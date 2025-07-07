@@ -6,7 +6,7 @@
   import { darkMode } from '$modules/theme/stores';
   import { getTranslation } from '$modules/i18n/translations';
   import { CHAT_MODES, MESSAGE_TYPES } from '$shared/utils/constants';
-  import { sendMessage, sendVoiceData } from '../services';
+  import { sendMessage } from '../services';
   import LanguageSelector from '$modules/i18n/components/LanguageSelector.svelte';
   import MessageList from './MessageList.svelte';
   import MessageInput from './MessageInput.svelte';
@@ -31,19 +31,14 @@
     sendMessage(content, images);
   }
 
+  // These functions are now just for logging purposes
+  // The actual implementation is in the VoiceChat component
   function handleStartRecording() {
     console.log('Recording started');
-    // In a real implementation, this would start recording audio
   }
 
   function handleStopRecording() {
-    console.log('Recording stopped, processing audio...');
-    // In a real implementation, this would process the audio and send it to the server
-
-    // Send the voice data to the OpenAI API
-    // For now, we're using a simulated audio blob
-    const simulatedAudioBlob = new Blob([], { type: 'audio/wav' });
-    sendVoiceData(simulatedAudioBlob);
+    console.log('Recording stopped');
   }
 
   function getCurrentLanguage() {
