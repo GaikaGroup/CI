@@ -10,8 +10,11 @@
 - [Technical Architecture](#technical-architecture)
 - [Project Structure](#project-structure)
 - [Implementation Notes](#implementation-notes)
+- [Voice Chat Implementation](#voice-chat-implementation)
+- [Pipeline Architecture](#pipeline-architecture)
 - [Contributing](#contributing)
 - [License](#license)
+- [Acknowledgments](#acknowledgments)
 
 ## Project Overview
 
@@ -67,7 +70,7 @@ By default, the frontend runs on port 3000 and automatically opens in your brows
 
 ### 2. Dual Communication Modes
 - **Text Chat**: Traditional text-based messaging interface
-- **Voice Chat**: Simulated voice-based interaction
+- **Voice Chat**: Voice-based interaction with speech-to-text and text-to-speech capabilities
 
 ### 3. Theme Toggle
 - Light and dark mode support
@@ -89,6 +92,9 @@ By default, the frontend runs on port 3000 and automatically opens in your brows
 - **Icons**: Lucide Svelte
 - **State Management**: Svelte stores
 - **Build Tools**: Vite
+- **Speech-to-Text**: OpenAI Whisper API
+- **Text-to-Speech**: OpenAI TTS API
+- **AI Chat**: OpenAI GPT API
 
 ## Project Structure
 
@@ -101,14 +107,21 @@ src/
 ├── routes/             # SvelteKit routes
 │   ├── +layout.svelte  # Main layout with navigation
 │   ├── +page.svelte    # Main page with chat interface
+│   ├── api/            # API endpoints for voice features
+│       ├── transcribe/ # Speech-to-text API endpoint
+│       ├── synthesize/ # Text-to-speech API endpoint
 ├── lib/
 │   ├── modules/        # Functional modules
 │   │   ├── auth/       # Authentication module
 │   │   ├── chat/       # Chat interface module
+│   │   │   ├── components/  # Chat UI components
+│   │   │   ├── voiceServices.js  # Voice chat functionality
 │   │   ├── i18n/       # Internationalization module
 │   │   ├── theme/      # Theme management module
 │   │   └── navigation/ # Navigation components
 │   ├── shared/         # Shared components and utilities
+│   ├── config/         # Configuration files
+│   │   ├── api.js      # API configuration
 │   └── stores/         # Application-wide stores
 └── static/             # Static assets
 ```
@@ -125,11 +138,74 @@ This implementation is a frontend prototype that demonstrates the UI and interac
    - Selected language
    - Message history
    - User authentication
+   - Voice recording state
 
 3. **Mock Functionality**:
    - Authentication is simulated with mock users
-   - AI responses are simulated with predefined messages
-   - Voice recording is simulated without actual audio processing
+   - AI responses are simulated with predefined messages if API keys are not provided
+
+## Voice Chat Implementation
+
+The Voice Chat feature enables users to interact with the AI tutor using speech instead of typing. The implementation includes:
+
+### Key Components
+1. **Speech-to-Text (STT)**: Uses OpenAI's Whisper API to convert user's speech to text
+2. **Text-to-Speech (TTS)**: Uses OpenAI's TTS API to convert AI responses to speech
+3. **Audio Recording**: Browser's MediaRecorder API for capturing user's voice
+4. **Audio Playback**: HTML5 Audio API for playing synthesized speech
+
+### Voice Chat Flow
+1. User clicks the microphone button to start recording
+2. Audio is captured using the browser's MediaRecorder API
+3. When recording stops, the audio is sent to the Whisper API for transcription
+4. The transcribed text is displayed in the chat and sent to the AI
+5. The AI's response is displayed in the chat and sent to the TTS API
+6. The synthesized speech is played back to the user
+
+### Multilingual Support
+The Voice Chat feature supports multiple languages:
+- English
+- Russian
+- Spanish
+
+The selected language is used for both speech recognition and speech synthesis to ensure a consistent experience.
+
+## Pipeline Architecture
+
+The AI Tutor Platform implements several processing pipelines to handle different aspects of the application:
+
+### Voice Processing Pipeline
+```
+User Speech → MediaRecorder → Audio Blob → Whisper API → Transcribed Text → 
+Chat API → AI Response → TTS API → Audio Playback
+```
+
+1. **Recording Pipeline**:
+   - User initiates recording through the UI
+   - Browser's MediaRecorder captures audio
+   - Audio is stored as a Blob
+
+2. **Transcription Pipeline**:
+   - Audio Blob is sent to the `/api/transcribe` endpoint
+   - The endpoint forwards the request to OpenAI's Whisper API
+   - Transcribed text is returned to the client
+
+3. **Response Pipeline**:
+   - Transcribed text is sent to the AI model
+   - AI generates a response
+   - Response is displayed in the chat interface
+
+4. **Synthesis Pipeline**:
+   - AI response is sent to the `/api/synthesize` endpoint
+   - The endpoint forwards the request to OpenAI's TTS API
+   - Synthesized speech is returned and played to the user
+
+### Text Chat Pipeline
+```
+User Input → Chat API → AI Response → Display
+```
+
+The text chat follows a simpler pipeline where user input is directly sent to the AI model and the response is displayed in the chat interface.
 
 ## Contributing
 
@@ -152,4 +228,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - The Svelte and SvelteKit communities for excellent tools and frameworks
 - Tailwind CSS for the styling framework
 - Lucide for the icon library
+- OpenAI for the Whisper and TTS APIs
 - All contributors who have helped shape this project
+- [Max Kanevskiy](https://www.linkedin.com/in/kanevskiy/) - Project Author
