@@ -1,14 +1,101 @@
 // Voice Chat Services
 import { get } from 'svelte/store';
+import { writable } from 'svelte/store';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { setLoading, setError } from '$lib/stores/app';
 import { addMessage } from './stores';
+
+// Stores for cat avatar animation
+export const isSpeaking = writable(false);
+export const currentEmotion = writable('neutral');
+export const audioAmplitude = writable(0); // Store for real-time audio amplitude
+
+// Emotion persistence
+let lastEmotionChangeTime = 0;
+const MIN_EMOTION_DURATION = 2000; // 2 seconds minimum for an emotion
+
+/**
+ * Determine emotion from text
+ * @param {string} text - Text to analyze
+ * @returns {string} - Emotion (neutral, happy, sad, surprised, angry)
+ */
+export function determineEmotion(text) {
+  // Enhanced keyword-based emotion detection with more comprehensive patterns
+
+  // Define emotion patterns with more keywords and phrases
+  const emotionPatterns = {
+    happy:
+      /\b(happy|great|excellent|good|congratulations|well done|fantastic|wonderful|amazing|delighted|pleased|joy|enjoy|glad|success|achievement|perfect|brilliant|awesome|love it|impressive)\b/i,
+
+    sad: /\b(sad|sorry|unfortunate|regret|disappointed|unhappy|upset|apology|apologize|depressed|gloomy|miserable|heartbroken|grief|sorrow|tragic|pity|sympathy|condolences|failed)\b/i,
+
+    surprised:
+      /\b(surprised|wow|amazing|incredible|unexpected|astonishing|shocking|startling|remarkable|extraordinary|unbelievable|stunned|astounded|speechless|wonder|awe|fascinating|impressive|sudden|unpredictable)\b/i,
+
+    angry:
+      /\b(angry|frustrated|error|wrong|incorrect|failed|annoyed|upset|mad|furious|irritated|outraged|enraged|livid|hostile|agitated|displeased|indignant|exasperated|problem|issue|mistake|fault)\b/i
+  };
+
+  // Calculate emotion scores based on keyword matches
+  const scores = {
+    happy: (text.match(emotionPatterns.happy) || []).length,
+    sad: (text.match(emotionPatterns.sad) || []).length,
+    surprised: (text.match(emotionPatterns.surprised) || []).length,
+    angry: (text.match(emotionPatterns.angry) || []).length
+  };
+
+  // Log the emotion scores for debugging
+  console.log('Emotion scores:', scores);
+
+  // Find the emotion with the highest score
+  let maxScore = 0;
+  let dominantEmotion = 'neutral';
+
+  for (const [emotion, score] of Object.entries(scores)) {
+    if (score > maxScore) {
+      maxScore = score;
+      dominantEmotion = emotion;
+    }
+  }
+
+  // Only change emotion if enough time has passed since the last change
+  const now = Date.now();
+  if (now - lastEmotionChangeTime < MIN_EMOTION_DURATION) {
+    // Return the current emotion without changing it
+    return get(currentEmotion);
+  }
+
+  // Only use the dominant emotion if its score is above a threshold
+  if (maxScore > 0) {
+    // If we're changing the emotion, update the timestamp
+    if (dominantEmotion !== get(currentEmotion)) {
+      lastEmotionChangeTime = now;
+    }
+
+    currentEmotion.set(dominantEmotion);
+    return dominantEmotion;
+  } else {
+    // If we're changing to neutral, update the timestamp
+    if (get(currentEmotion) !== 'neutral') {
+      lastEmotionChangeTime = now;
+    }
+
+    currentEmotion.set('neutral');
+    return 'neutral';
+  }
+}
 
 // Audio recording variables
 let mediaRecorder;
 let audioChunks = [];
 let audioContext;
 let audioPlayer;
+let audioAnalyser;
+let analyserDataArray;
+
+// Phrase queue system
+let phraseQueue = [];
+let isPlayingSequence = false;
 
 /**
  * Initialize audio context and player
@@ -16,10 +103,35 @@ let audioPlayer;
 export function initAudioContext() {
   if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Set a higher sample rate if possible for better audio analysis
+    if (audioContext.sampleRate < 44100 && typeof audioContext.sampleRate === 'number') {
+      console.log('Attempting to increase sample rate for better audio analysis');
+      try {
+        audioContext.sampleRate = 44100;
+      } catch (e) {
+        console.log('Could not set sample rate:', e);
+      }
+    }
   }
-  
+
   if (!audioPlayer) {
     audioPlayer = new Audio();
+    // Reduce latency in audio playback if possible
+    if (audioPlayer.mozAudioChannelType) {
+      audioPlayer.mozAudioChannelType = 'content'; // Firefox-specific
+    }
+  }
+
+  // Initialize audio analyzer for lip-syncing with optimized settings
+  if (!audioAnalyser && audioContext) {
+    audioAnalyser = audioContext.createAnalyser();
+    audioAnalyser.fftSize = 64; // Increased from 32 for better frequency resolution
+    audioAnalyser.smoothingTimeConstant = 0.4; // Reduced from default 0.8 for faster response
+    analyserDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+    console.log(
+      'Audio analyzer initialized with frequency bin count:',
+      audioAnalyser.frequencyBinCount
+    );
   }
 }
 
@@ -31,17 +143,17 @@ export async function startRecording() {
   try {
     initAudioContext();
     audioChunks = [];
-    
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    
+
     mediaRecorder = new MediaRecorder(stream);
-    
+
     mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
         audioChunks.push(event.data);
       }
     };
-    
+
     mediaRecorder.start();
     return true;
   } catch (error) {
@@ -62,7 +174,7 @@ export async function stopRecording() {
         reject('No recording in progress');
         return;
       }
-      
+
       mediaRecorder.onstop = async () => {
         try {
           const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
@@ -72,11 +184,11 @@ export async function stopRecording() {
           reject(error);
         }
       };
-      
+
       mediaRecorder.stop();
-      
+
       // Stop all tracks in the stream
-      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      mediaRecorder.stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
       console.error('Error stopping recording:', error);
       reject(error);
@@ -92,20 +204,20 @@ export async function stopRecording() {
 async function transcribeAudio(audioBlob) {
   try {
     setLoading(true);
-    
+
     const formData = new FormData();
     formData.append('audio', audioBlob);
     formData.append('language', get(selectedLanguage));
-    
+
     const response = await fetch('/api/transcribe', {
       method: 'POST',
       body: formData
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to transcribe audio');
     }
-    
+
     const data = await response.json();
     return data.transcription;
   } catch (error) {
@@ -125,10 +237,10 @@ async function transcribeAudio(audioBlob) {
 export async function sendTranscribedText(transcription) {
   try {
     setLoading(true);
-    
+
     // Add the transcription as a user message
     addMessage('user', transcription);
-    
+
     // Send the transcribed message to the OpenAI API
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -140,19 +252,22 @@ export async function sendTranscribedText(transcription) {
         language: get(selectedLanguage)
       })
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to process voice data');
     }
-    
+
     const data = await response.json();
-    
+
     // Add the AI's response to the chat
     addMessage('tutor', data.response);
-    
+
+    // Determine emotion from the response
+    determineEmotion(data.response);
+
     // Synthesize speech from the response
     await synthesizeSpeech(data.response);
-    
+
     return data.response;
   } catch (error) {
     console.error('Error processing voice data:', error);
@@ -171,7 +286,7 @@ export async function sendTranscribedText(transcription) {
 async function synthesizeSpeech(text) {
   try {
     setLoading(true);
-    
+
     const response = await fetch('/api/synthesize', {
       method: 'POST',
       headers: {
@@ -182,11 +297,11 @@ async function synthesizeSpeech(text) {
         language: get(selectedLanguage)
       })
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to synthesize speech');
     }
-    
+
     const audioBlob = await response.blob();
     playAudio(audioBlob);
   } catch (error) {
@@ -198,16 +313,140 @@ async function synthesizeSpeech(text) {
 }
 
 /**
- * Play audio from blob
+ * Analyze audio and update amplitude
+ */
+function analyzeAudio() {
+  if (!audioAnalyser || !analyserDataArray) return;
+
+  // Get frequency data
+  audioAnalyser.getByteFrequencyData(analyserDataArray);
+
+  // Calculate average amplitude (0-255) with emphasis on higher frequencies
+  // which are more relevant for speech
+  let sum = 0;
+  let weight = 0;
+  for (let i = 0; i < analyserDataArray.length; i++) {
+    // Apply higher weight to mid-high frequencies (more relevant for speech)
+    const freqWeight = i < analyserDataArray.length / 2 ? 1 : 2;
+    sum += analyserDataArray[i] * freqWeight;
+    weight += freqWeight;
+  }
+  const average = sum / weight;
+
+  // Normalize to 0-1 range and update store
+  // Apply a slight boost to make mouth movements more pronounced
+  const normalizedAmplitude = Math.min(1, (average / 255) * 1.2);
+  audioAmplitude.set(normalizedAmplitude);
+
+  // Schedule next analysis with high priority
+  if (get(isSpeaking)) {
+    requestAnimationFrame(analyzeAudio);
+  }
+}
+
+/**
+ * Play audio from blob with optimized lip sync
  * @param {Blob} audioBlob - Audio blob to play
  */
 function playAudio(audioBlob) {
+  // Add to phrase queue
+  phraseQueue.push(audioBlob);
+
+  // If not already playing a sequence, start one
+  if (!isPlayingSequence) {
+    playNextInQueue();
+  }
+}
+
+/**
+ * Play the next audio blob in the queue
+ */
+function playNextInQueue() {
+  if (phraseQueue.length === 0) {
+    isPlayingSequence = false;
+    return;
+  }
+
+  isPlayingSequence = true;
+  const audioBlob = phraseQueue.shift();
   const audioUrl = URL.createObjectURL(audioBlob);
+
+  // Set speaking state if not already speaking
+  if (!get(isSpeaking)) {
+    isSpeaking.set(true);
+    // Start with a gentle amplitude
+    audioAmplitude.set(0.05);
+  }
+
+  // Preload the audio for faster playback
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+
   audioPlayer.src = audioUrl;
-  audioPlayer.play();
-  
-  // Clean up the URL object after playing
+
+  // Reduce latency if browser supports it
+  if ('playbackRate' in audioPlayer) {
+    // Start playback slightly faster initially to compensate for any startup delay
+    audioPlayer.playbackRate = 1.01; // Just slightly faster
+
+    // Reset to normal rate after a short time
+    setTimeout(() => {
+      audioPlayer.playbackRate = 1.0;
+    }, 300);
+  }
+
+  // Set up audio analysis when playback starts
+  audioPlayer.onplay = () => {
+    // Connect audio player to analyzer if not already connected
+    if (audioContext && audioAnalyser && audioPlayer) {
+      try {
+        const source = audioContext.createMediaElementSource(audioPlayer);
+        source.connect(audioAnalyser);
+        audioAnalyser.connect(audioContext.destination);
+        console.log('Connected audio player to analyzer');
+
+        // Start analyzing audio immediately
+        analyzeAudio();
+      } catch (error) {
+        // If already connected, this will throw an error which we can ignore
+        console.log('Audio player already connected or error connecting:', error.message);
+        // Still start analyzing
+        analyzeAudio();
+      }
+    }
+  };
+
+  // Start playback with high priority
+  const playPromise = audioPlayer.play();
+
+  // Handle play promise to avoid uncaught promise errors
+  if (playPromise !== undefined) {
+    playPromise.catch((error) => {
+      console.log('Audio playback error:', error);
+      // Reset speaking state if playback fails
+      isSpeaking.set(false);
+      isPlayingSequence = false;
+    });
+  }
+
+  // Modify the onended handler
   audioPlayer.onended = () => {
+    // If there are more phrases in the queue, play the next one
+    if (phraseQueue.length > 0) {
+      // Keep speaking state true between phrases
+      playNextInQueue();
+    } else {
+      // Add a delay before setting speaking to false
+      setTimeout(() => {
+        if (audioPlayer.paused && phraseQueue.length === 0) {
+          isSpeaking.set(false);
+          audioAmplitude.set(0);
+          isPlayingSequence = false;
+        }
+      }, 300);
+    }
+
     URL.revokeObjectURL(audioUrl);
   };
 }
