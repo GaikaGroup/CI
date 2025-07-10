@@ -122,11 +122,13 @@ export function initAudioContext() {
     }
   }
 
-  // Initialize audio analyzer for lip-syncing with optimized settings
+  // Initialize audio analyzer for lip-syncing with optimized settings for consonant detection
   if (!audioAnalyser && audioContext) {
     audioAnalyser = audioContext.createAnalyser();
-    audioAnalyser.fftSize = 64; // Increased from 32 for better frequency resolution
-    audioAnalyser.smoothingTimeConstant = 0.4; // Reduced from default 0.8 for faster response
+    audioAnalyser.fftSize = 128; // Increased from 64 for even better frequency resolution
+    audioAnalyser.smoothingTimeConstant = 0.2; // Further reduced from 0.4 for faster response to consonants
+    audioAnalyser.minDecibels = -90; // Lower threshold to catch quieter sounds
+    audioAnalyser.maxDecibels = -10; // Upper threshold to prevent clipping
     analyserDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
     console.log(
       'Audio analyzer initialized with frequency bin count:',
@@ -313,7 +315,7 @@ async function synthesizeSpeech(text) {
 }
 
 /**
- * Analyze audio and update amplitude
+ * Analyze audio and update amplitude with enhanced consonant detection
  */
 function analyzeAudio() {
   if (!audioAnalyser || !analyserDataArray) return;
@@ -321,21 +323,86 @@ function analyzeAudio() {
   // Get frequency data
   audioAnalyser.getByteFrequencyData(analyserDataArray);
 
-  // Calculate average amplitude (0-255) with emphasis on higher frequencies
-  // which are more relevant for speech
+  // Create frequency bands for different speech components
+  // These ranges are approximate and based on typical speech frequencies
+  const bands = {
+    lowVowels: { start: 0, end: Math.floor(analyserDataArray.length * 0.1) }, // ~80-250 Hz (a, o sounds)
+    midVowels: {
+      start: Math.floor(analyserDataArray.length * 0.1),
+      end: Math.floor(analyserDataArray.length * 0.2)
+    }, // ~250-500 Hz (e, i sounds)
+    consonants: {
+      start: Math.floor(analyserDataArray.length * 0.2),
+      end: Math.floor(analyserDataArray.length * 0.6)
+    }, // ~500-4000 Hz (most consonants)
+    sibilants: { start: Math.floor(analyserDataArray.length * 0.6), end: analyserDataArray.length } // ~4000+ Hz (s, sh, f sounds)
+  };
+
+  // Calculate band energies
+  const bandEnergies = {};
+
+  for (const [bandName, range] of Object.entries(bands)) {
+    let bandSum = 0;
+    for (let i = range.start; i < range.end; i++) {
+      bandSum += analyserDataArray[i];
+    }
+    const bandAvg = bandSum / (range.end - range.start);
+    bandEnergies[bandName] = bandAvg;
+  }
+
+  // Normalize band energies
+  const normalizedBands = {};
+  for (const [bandName, energy] of Object.entries(bandEnergies)) {
+    normalizedBands[bandName] = energy / 255;
+  }
+
+  // Detect consonant patterns
+  const isConsonantDominant =
+    normalizedBands.consonants > 0.15 &&
+    normalizedBands.consonants > normalizedBands.lowVowels * 1.2;
+
+  const isSibilantDominant =
+    normalizedBands.sibilants > 0.1 && normalizedBands.sibilants > normalizedBands.lowVowels;
+
+  // Calculate weighted amplitude with emphasis on speech-relevant frequencies
   let sum = 0;
   let weight = 0;
+
   for (let i = 0; i < analyserDataArray.length; i++) {
-    // Apply higher weight to mid-high frequencies (more relevant for speech)
-    const freqWeight = i < analyserDataArray.length / 2 ? 1 : 2;
+    // Apply dynamic weighting based on frequency band importance
+    let freqWeight = 1;
+
+    // Boost consonant frequencies
+    if (i >= bands.consonants.start && i < bands.consonants.end) {
+      freqWeight = 2.5;
+    }
+    // Boost sibilant frequencies even more
+    else if (i >= bands.sibilants.start && i < bands.sibilants.end) {
+      freqWeight = 3;
+    }
+    // Apply standard weighting to vowel frequencies
+    else {
+      freqWeight = 1.5;
+    }
+
     sum += analyserDataArray[i] * freqWeight;
     weight += freqWeight;
   }
+
   const average = sum / weight;
 
-  // Normalize to 0-1 range and update store
-  // Apply a slight boost to make mouth movements more pronounced
-  const normalizedAmplitude = Math.min(1, (average / 255) * 1.2);
+  // Apply additional boost for consonant patterns
+  let consonantBoost = 1.0;
+  if (isConsonantDominant) {
+    consonantBoost = 1.4; // Boost amplitude for consonants
+  } else if (isSibilantDominant) {
+    consonantBoost = 1.6; // Boost amplitude even more for sibilants
+  }
+
+  // Normalize to 0-1 range and update store with consonant boost
+  const normalizedAmplitude = Math.min(1, (average / 255) * 1.3 * consonantBoost);
+
+  // Apply the amplitude update immediately for better responsiveness
   audioAmplitude.set(normalizedAmplitude);
 
   // Schedule next analysis with high priority
@@ -359,7 +426,7 @@ function playAudio(audioBlob) {
 }
 
 /**
- * Play the next audio blob in the queue
+ * Play the next audio blob in the queue with improved synchronization
  */
 function playNextInQueue() {
   if (phraseQueue.length === 0) {
@@ -371,29 +438,60 @@ function playNextInQueue() {
   const audioBlob = phraseQueue.shift();
   const audioUrl = URL.createObjectURL(audioBlob);
 
-  // Set speaking state if not already speaking
+  // Set speaking state immediately if not already speaking
   if (!get(isSpeaking)) {
     isSpeaking.set(true);
-    // Start with a gentle amplitude
-    audioAmplitude.set(0.05);
+
+    // Start with a more pronounced initial amplitude to ensure mouth starts moving
+    // before audio plays (helps with perceived synchronization)
+    audioAmplitude.set(0.15); // Increased from 0.05 for more immediate visual feedback
+
+    // Simulate an initial consonant pattern to get the mouth moving
+    setTimeout(() => {
+      if (get(isSpeaking)) {
+        // Quick pulse to simulate initial consonant
+        audioAmplitude.set(0.3);
+        setTimeout(() => {
+          if (get(isSpeaking)) {
+            audioAmplitude.set(0.1);
+          }
+        }, 60);
+      }
+    }, 30);
   }
 
-  // Preload the audio for faster playback
-  if (audioContext && audioContext.state === 'suspended') {
-    audioContext.resume();
+  // Ensure audio context is running
+  if (audioContext) {
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    // Warm up the audio context with a silent sound to reduce startup latency
+    const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+    const silentSource = audioContext.createBufferSource();
+    silentSource.buffer = silentBuffer;
+    silentSource.connect(audioContext.destination);
+    silentSource.start();
   }
 
+  // Preload the audio
+  audioPlayer.preload = 'auto';
   audioPlayer.src = audioUrl;
+
+  // Force a load event to ensure audio is ready to play
+  audioPlayer.load();
 
   // Reduce latency if browser supports it
   if ('playbackRate' in audioPlayer) {
-    // Start playback slightly faster initially to compensate for any startup delay
-    audioPlayer.playbackRate = 1.01; // Just slightly faster
+    // Start playback faster initially to compensate for any startup delay
+    audioPlayer.playbackRate = 1.05; // Increased from 1.01 for better compensation
 
     // Reset to normal rate after a short time
     setTimeout(() => {
-      audioPlayer.playbackRate = 1.0;
-    }, 300);
+      if (!audioPlayer.paused) {
+        audioPlayer.playbackRate = 1.0;
+      }
+    }, 200); // Reduced from 300ms for faster normalization
   }
 
   // Set up audio analysis when playback starts

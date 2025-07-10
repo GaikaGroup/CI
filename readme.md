@@ -201,14 +201,15 @@ The platform features an expressive cat avatar that enhances the voice chat expe
 #### Key Features
 
 1. **Emotion Detection**: The avatar displays different emotions (neutral, happy, surprised, sad, angry) based on the content of the AI's responses
-2. **Lip Sync Animation**: The cat's mouth movements are synchronized with the audio playback, creating a natural speaking effect
+2. **Enhanced Lip Sync Animation**: The cat's mouth movements are synchronized with the audio playback, with a variety of mouth positions for different sounds (a, e, o, b, ch, j, m, p, r, s, sh, w), creating a natural and expressive speaking effect
 3. **Smooth Transitions**: Implements smooth transitions between phrases and emotions to create a more natural and engaging experience
 4. **Idle Animation**: Subtle breathing animation when not speaking to make the avatar appear more lifelike
 
 #### Technical Implementation
 
 - **Image-Based Approach**: Uses static cat emotion images and mouth position overlays instead of canvas manipulation for better performance
-- **Audio Analysis**: Real-time analysis of audio amplitude to drive mouth animations
+- **Audio Analysis**: Real-time analysis of audio amplitude to drive mouth animations with intelligent selection of appropriate mouth positions
+- **Enhanced Variety**: Implements a variety of mouth positions for different sounds, with randomization for more natural and varied speech
 - **Emotion Persistence**: Maintains consistent emotions between phrases for a more natural experience
 - **Phrase Queuing**: Intelligently manages multiple audio phrases to maintain speaking state between consecutive responses
 
@@ -277,5 +278,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Tailwind CSS for the styling framework
 - Lucide for the icon library
 - OpenAI for the Whisper and TTS APIs
-- All contributors who have helped shape this project
 - [Max Kanevskiy](https://www.linkedin.com/in/kanevskiy/) - Project Author
