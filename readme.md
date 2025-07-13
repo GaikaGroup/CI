@@ -133,7 +133,11 @@ src/
 ├── routes/             # SvelteKit routes
 │   ├── +layout.svelte  # Main layout with navigation
 │   ├── +page.svelte    # Main page with chat interface
+│   ├── [...catchall]/  # Catch-all route for handling unknown paths
+│   ├── clear-cache/    # Route for clearing application cache
 │   ├── api/            # API endpoints for voice features
+│       ├── chat/       # Chat API endpoint for message processing
+│       ├── recognize/  # Image recognition API endpoint
 │       ├── transcribe/ # Speech-to-text API endpoint
 │       ├── synthesize/ # Text-to-speech API endpoint
 ├── lib/
@@ -144,21 +148,31 @@ src/
 │   │   │   ├── voiceServices.js  # Voice chat functionality
 │   │   │   ├── enhancedServices.js  # OCR-enhanced chat services
 │   │   ├── document/    # Document processing module
-│   │   │   ├── engines/  # OCR engines (Tesseract)
-│   │   │   ├── OCRService.js  # OCR service with memory
+│   │   │   ├── engines/  # OCR engines
+│   │   │   │   ├── TesseractOCR.js  # Tesseract OCR implementation
+│   │   │   │   ├── EasyOCR.js       # EasyOCR implementation
+│   │   │   │   ├── PdfJS.js         # PDF.js for PDF processing
+│   │   │   ├── OCRService.js        # OCR service with memory
 │   │   │   ├── ClientDocumentProcessor.js  # Client-side document processing
+│   │   │   ├── DocumentClassifier.js       # Document type classification
+│   │   │   ├── DocumentProcessor.js        # Document processing pipeline
+│   │   │   ├── OCREngineRegistry.js        # Registry for OCR engines
+│   │   │   ├── services.js                 # Document services
 │   │   ├── i18n/       # Internationalization module
 │   │   ├── theme/      # Theme management module
 │   │   └── navigation/ # Navigation components
 │   ├── shared/         # Shared components and utilities
 │   │   ├── components/  # Shared UI components
 │   │   │   ├── CatAvatar.svelte  # Animated cat avatar with lip sync
+│   │   ├── utils/      # Utility functions and constants
 │   ├── config/         # Configuration files
 │   │   ├── api.js      # API configuration
 │   └── stores/         # Application-wide stores
 └── static/             # Static assets
+    ├── .well-known/    # Well-known directory for domain verification
     ├── images/         # Image assets
     │   ├── cat/        # Cat avatar images for different emotions and mouth positions
+    ├── models/         # ML models for client-side processing
 ```
 
 ## Implementation Notes
