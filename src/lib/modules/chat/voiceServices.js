@@ -3,7 +3,21 @@ import { get } from 'svelte/store';
 import { writable } from 'svelte/store';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { setLoading, setError } from '$lib/stores/app';
-import { addMessage } from './stores';
+import { addMessage, selectedImages } from './stores';
+import { sendMessageWithOCRContext } from './enhancedServices';
+import { MESSAGE_TYPES } from '$shared/utils/constants';
+
+// Flag to track if we're in voice mode
+export const isVoiceModeActive = writable(false);
+
+/**
+ * Set the voice mode active state
+ * @param {boolean} active - Whether voice mode is active
+ */
+export function setVoiceModeActive(active) {
+  console.log(`Setting voice mode active: ${active}`);
+  isVoiceModeActive.set(active);
+}
 
 // Stores for cat avatar animation
 export const isSpeaking = writable(false);
@@ -238,31 +252,62 @@ async function transcribeAudio(audioBlob) {
  */
 export async function sendTranscribedText(transcription) {
   try {
+    // Set voice mode active flag to true
+    isVoiceModeActive.set(true);
+
     setLoading(true);
 
-    // Add the transcription as a user message
-    addMessage('user', transcription);
+    // Get the current selected images
+    const images = get(selectedImages);
+    console.log('Voice mode - Selected images:', images?.length || 0);
 
-    // Send the transcribed message to the OpenAI API
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        content: transcription,
-        language: get(selectedLanguage)
-      })
-    });
+    // Generate a unique message ID
+    const messageId = Date.now();
 
-    if (!response.ok) {
-      throw new Error('Failed to process voice data');
+    // Add the transcription as a user message with images
+    addMessage(MESSAGE_TYPES.USER, transcription, images, messageId);
+
+    // Process the message with OCR context if there are images
+    let data;
+    if (images && images.length > 0) {
+      console.log('Voice mode - Processing message with images');
+      // Extract URLs from image objects
+      const imageUrls = images.map((img) => img.url);
+
+      // Send the message with OCR context
+      await sendMessageWithOCRContext(transcription, imageUrls);
+
+      // Clear the selected images after sending
+      selectedImages.set([]);
+
+      // For voice mode, we don't need to add a response message here
+      // The response will be added to the chat by the enhancedServices
+      return; // Exit early as the response is handled by enhancedServices
+    } else {
+      // If no images, send the message normally
+      console.log('Voice mode - Processing message without images');
+
+      // Send the transcribed message to the OpenAI API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          content: transcription,
+          language: get(selectedLanguage)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process voice data');
+      }
+
+      data = await response.json();
     }
 
-    const data = await response.json();
-
     // Add the AI's response to the chat
-    addMessage('tutor', data.response);
+    addMessage(MESSAGE_TYPES.TUTOR, data.response);
 
     // Determine emotion from the response
     determineEmotion(data.response);
@@ -311,6 +356,27 @@ async function synthesizeSpeech(text) {
     setError('Failed to synthesize speech. Please try again.');
   } finally {
     setLoading(false);
+  }
+}
+
+/**
+ * Exported function to synthesize speech for OCR responses
+ * This function checks if voice mode is active before synthesizing speech
+ * @param {string} text - Text to synthesize
+ * @returns {Promise<void>}
+ */
+export async function synthesizeResponseSpeech(text) {
+  // Only synthesize speech if we're in voice mode
+  if (get(isVoiceModeActive)) {
+    console.log('Voice mode active, synthesizing speech for OCR response');
+
+    // Determine emotion from the response
+    determineEmotion(text);
+
+    // Synthesize speech from the response
+    await synthesizeSpeech(text);
+  } else {
+    console.log('Voice mode not active, skipping speech synthesis for OCR response');
   }
 }
 

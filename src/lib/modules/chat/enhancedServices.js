@@ -8,6 +8,7 @@ import { addMessage, updateMessage, messages } from './stores';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
+import { synthesizeResponseSpeech } from './voiceServices';
 import {
   processOCRWithMemory,
   buildOCRContextForChat,
@@ -169,6 +170,10 @@ export async function sendMessageWithOCRContext(content, images = []) {
       console.log('Adding AI response to chat');
       // Add the AI's response to the chat
       addMessage('tutor', data.response);
+
+      // Synthesize speech for the AI response if in voice mode
+      console.log('Checking if speech synthesis is needed for OCR response');
+      await synthesizeResponseSpeech(data.response);
 
       return true;
     } else {

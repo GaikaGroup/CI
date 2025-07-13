@@ -96,10 +96,11 @@ By default, the frontend runs on port 3000 and automatically opens in your brows
 - Clear separation of concerns
 - Reusable components
 
-### 6. Image Recognition and OCR
+### 6. Document Recognition and Processing
 
-- Upload and analyze images directly in chat
-- Advanced OCR (Optical Character Recognition) for text extraction
+- Upload and analyze images and PDFs directly in chat
+- Advanced OCR (Optical Character Recognition) for text extraction from images
+- PDF processing with text extraction and metadata retrieval
 - Adaptive image preprocessing for improved recognition
 - Multi-approach text recognition with intelligent selection
 - Seamless integration with chat context
@@ -229,6 +230,8 @@ The Voice Chat feature enables users to interact with the AI tutor using speech 
 2. **Text-to-Speech (TTS)**: Uses OpenAI's TTS API to convert AI responses to speech
 3. **Audio Recording**: Browser's MediaRecorder API for capturing user's voice
 4. **Audio Playback**: HTML5 Audio API for playing synthesized speech
+5. **OCR Integration**: Seamless integration with the OCR system for processing attached images in voice mode
+6. **Unified Experience**: Consistent handling of attached files in both text and voice modes
 
 ### Voice Chat Flow
 
@@ -236,6 +239,8 @@ The Voice Chat feature enables users to interact with the AI tutor using speech 
 2. Audio is captured using the browser's MediaRecorder API
 3. When recording stops, the audio is sent to the Whisper API for transcription
 4. The transcribed text is displayed in the chat and sent to the AI
+   - If images are attached, they are processed with OCR and included in the context
+   - The system seamlessly handles both voice input and image analysis together
 5. The AI's response is displayed in the chat and sent to the TTS API
 6. The synthesized speech is played back to the user
 
@@ -276,11 +281,14 @@ The AI Tutor Platform implements several processing pipelines to handle differen
 
 ```
 User Speech → MediaRecorder → Audio Blob → Whisper API → Transcribed Text →
-Chat API → AI Response → Emotion Detection → TTS API → Audio Playback + Cat Avatar Animation
+[Optional: Attached Images → OCR Processing → Text Extraction] →
+Enhanced Chat Context → Chat API → AI Response → Emotion Detection →
+TTS API → Audio Playback + Cat Avatar Animation
 ```
 
 1. **Recording Pipeline**:
    - User initiates recording through the UI
+   - User can optionally attach images before or after recording
    - Browser's MediaRecorder captures audio
    - Audio is stored as a Blob
 
@@ -291,7 +299,8 @@ Chat API → AI Response → Emotion Detection → TTS API → Audio Playback + 
 
 3. **Response Pipeline**:
    - Transcribed text is sent to the AI model
-   - AI generates a response
+   - If images are attached, they are processed with OCR and the extracted text is included in the context
+   - AI generates a response based on both the transcribed speech and any image content
    - Response is displayed in the chat interface
    - Response text is analyzed for emotional content
    - Cat avatar's emotion is updated based on the analysis

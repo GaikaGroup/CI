@@ -42,8 +42,12 @@
 
   function handleImageUpload(event) {
     const files = Array.from(event.target.files);
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-    $selectedImages = [...$selectedImages, ...imageUrls];
+    const fileObjects = files.map((file) => ({
+      url: URL.createObjectURL(file),
+      type: file.type,
+      name: file.name
+    }));
+    $selectedImages = [...$selectedImages, ...fileObjects];
     fileInput.value = null; // Reset file input
   }
 
@@ -53,16 +57,43 @@
 </script>
 
 <div class="border-t dark:border-gray-700 dark:bg-gray-800 border-stone-200 bg-stone-50 p-4">
-  <!-- Selected Images Preview -->
+  <!-- Selected Files Preview -->
   {#if $selectedImages.length > 0}
     <div class="mb-4 flex flex-wrap gap-2">
-      {#each $selectedImages as img, index}
+      {#each $selectedImages as file, index}
         <div class="relative">
-          <img src={img} alt="Selected" class="w-16 h-16 object-cover rounded-lg" />
+          {#if file.type.startsWith('image/')}
+            <!-- Display image preview for image files -->
+            <img src={file.url} alt="Selected" class="w-16 h-16 object-cover rounded-lg" />
+          {:else if file.type === 'application/pdf'}
+            <!-- Display PDF icon for PDF files -->
+            <div
+              class="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg"
+            >
+              <div class="text-red-500 font-bold text-xs text-center">
+                <div class="text-2xl">PDF</div>
+                <div class="truncate w-14 overflow-hidden" title={file.name}>
+                  {file.name.length > 10 ? file.name.substring(0, 7) + '...' : file.name}
+                </div>
+              </div>
+            </div>
+          {:else}
+            <!-- Display generic file icon for other file types -->
+            <div
+              class="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-lg"
+            >
+              <div class="text-gray-500 font-bold text-xs text-center">
+                <div class="text-2xl">File</div>
+                <div class="truncate w-14 overflow-hidden" title={file.name}>
+                  {file.name.length > 10 ? file.name.substring(0, 7) + '...' : file.name}
+                </div>
+              </div>
+            </div>
+          {/if}
           <button
             on:click={() => removeImage(index)}
             class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-            aria-label="Remove image"
+            aria-label="Remove file"
           >
             ×
           </button>
@@ -76,7 +107,7 @@
       type="file"
       bind:this={fileInput}
       on:change={handleImageUpload}
-      accept="image/*"
+      accept="image/*,application/pdf"
       multiple
       class="hidden"
     />

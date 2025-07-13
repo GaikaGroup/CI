@@ -18,6 +18,7 @@ export const DOCUMENT_TYPES = {
   PRINTED: 'printed',
   HANDWRITTEN: 'handwritten',
   MIXED: 'mixed',
+  PDF: 'pdf',
   UNKNOWN: 'unknown'
 };
 
@@ -31,7 +32,8 @@ export const SUPPORTED_FILE_TYPES = [
   'image/tiff',
   'image/webp',
   'image/heic',
-  'image/heif'
+  'image/heif',
+  'application/pdf'
 ];
 
 // Maximum file size for uploads (10MB)

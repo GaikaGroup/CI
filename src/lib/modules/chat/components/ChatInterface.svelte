@@ -17,6 +17,7 @@
   import { getTranslation } from '$modules/i18n/translations';
   import { CHAT_MODES, MESSAGE_TYPES } from '$shared/utils/constants';
   import { sendMessageWithOCRContext } from '../enhancedServices';
+  import { setVoiceModeActive } from '../voiceServices';
   import LanguageSelector from '$modules/i18n/components/LanguageSelector.svelte';
   import MessageList from './MessageList.svelte';
   import MessageInput from './MessageInput.svelte';
@@ -103,6 +104,10 @@
   // Check for messages with unprocessed images when component mounts
   onMount(() => {
     console.log('ChatInterface mounted, checking for messages with unprocessed images');
+
+    // Initialize voice mode active state based on current chat mode
+    setVoiceModeActive($chatMode === CHAT_MODES.VOICE);
+    console.log('Initialized voice mode active state:', $chatMode === CHAT_MODES.VOICE);
 
     if (browser) {
       console.log('Running in browser environment, messages:', $messages.length);
@@ -206,6 +211,10 @@
 
     // If the message has images, add ocrRequested flag to prevent duplicate processing
     if (images && images.length > 0) {
+      // Extract URLs from image objects
+      const imageUrls = images.map((img) => img.url);
+
+      // Store the original image objects for display
       addMessage(MESSAGE_TYPES.USER, content, images, messageId, {
         ocrRequested: false,
         ocrProcessed: false
@@ -214,7 +223,8 @@
       console.log('Message has images, processing...');
       // Don't set processing state here, let processImages handle it
 
-      processImages(content, images, messageId).catch((error) => {
+      // Pass the image URLs to processImages
+      processImages(content, imageUrls, messageId).catch((error) => {
         console.error('Failed to process images:', error);
         // Make sure to reset processing state on error
         setProcessingImages(messageId, false);
@@ -251,7 +261,11 @@
         : 'bg-white border-stone-200'} rounded-xl p-2 shadow-sm border"
     >
       <Button
-        on:click={() => ($chatMode = CHAT_MODES.TEXT)}
+        on:click={() => {
+          $chatMode = CHAT_MODES.TEXT;
+          setVoiceModeActive(false);
+          console.log('Switched to text mode, voice mode active:', false);
+        }}
         variant={$chatMode === CHAT_MODES.TEXT ? 'primary' : 'text'}
         class="px-6 py-3 rounded-lg font-medium transition-all {$chatMode === CHAT_MODES.TEXT
           ? 'bg-amber-600 text-white shadow-sm'
@@ -265,7 +279,11 @@
         </div>
       </Button>
       <Button
-        on:click={() => ($chatMode = CHAT_MODES.VOICE)}
+        on:click={() => {
+          $chatMode = CHAT_MODES.VOICE;
+          setVoiceModeActive(true);
+          console.log('Switched to voice mode, voice mode active:', true);
+        }}
         variant={$chatMode === CHAT_MODES.VOICE ? 'primary' : 'text'}
         class="px-6 py-3 rounded-lg font-medium transition-all {$chatMode === CHAT_MODES.VOICE
           ? 'bg-amber-600 text-white shadow-sm'

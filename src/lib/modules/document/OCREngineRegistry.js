@@ -7,6 +7,7 @@
 import { DOCUMENT_TYPES } from '$lib/shared/utils/constants';
 import { TesseractOCR } from './engines/TesseractOCR';
 import { EasyOCR } from './engines/EasyOCR';
+import { PdfJS } from './engines/PdfJS';
 
 export class OCREngineRegistry {
   constructor() {
@@ -14,6 +15,7 @@ export class OCREngineRegistry {
       [DOCUMENT_TYPES.PRINTED]: new TesseractOCR(),
       [DOCUMENT_TYPES.HANDWRITTEN]: new EasyOCR(),
       [DOCUMENT_TYPES.MIXED]: new TesseractOCR(), // Default to Tesseract for mixed content
+      [DOCUMENT_TYPES.PDF]: new PdfJS(), // Use PdfJS for PDF documents
       [DOCUMENT_TYPES.UNKNOWN]: new TesseractOCR() // Default to Tesseract for unknown content
     };
   }
