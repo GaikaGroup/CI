@@ -11,6 +11,7 @@
 - [Technical Architecture](#technical-architecture)
 - [Project Structure](#project-structure)
 - [Implementation Notes](#implementation-notes)
+- [Image Recognition Implementation](#image-recognition-implementation)
 - [Voice Chat Implementation](#voice-chat-implementation)
 - [Pipeline Architecture](#pipeline-architecture)
 - [Contributing](#contributing)
@@ -95,6 +96,14 @@ By default, the frontend runs on port 3000 and automatically opens in your brows
 - Clear separation of concerns
 - Reusable components
 
+### 6. Image Recognition and OCR
+
+- Upload and analyze images directly in chat
+- Advanced OCR (Optical Character Recognition) for text extraction
+- Adaptive image preprocessing for improved recognition
+- Multi-approach text recognition with intelligent selection
+- Seamless integration with chat context
+
 ## Technical Architecture
 
 ### Technology Stack
@@ -107,6 +116,8 @@ By default, the frontend runs on port 3000 and automatically opens in your brows
 - **Speech-to-Text**: OpenAI Whisper API
 - **Text-to-Speech**: OpenAI TTS API
 - **AI Chat**: OpenAI GPT API
+- **OCR Engine**: Tesseract.js for text recognition in images
+- **Image Processing**: Browser-based adaptive preprocessing pipeline
 - **Animation**: Svelte tweened stores for smooth transitions
 - **Audio Analysis**: Web Audio API for real-time amplitude analysis
 
@@ -130,6 +141,11 @@ src/
 │   │   ├── chat/       # Chat interface module
 │   │   │   ├── components/  # Chat UI components
 │   │   │   ├── voiceServices.js  # Voice chat functionality
+│   │   │   ├── enhancedServices.js  # OCR-enhanced chat services
+│   │   ├── document/    # Document processing module
+│   │   │   ├── engines/  # OCR engines (Tesseract)
+│   │   │   ├── OCRService.js  # OCR service with memory
+│   │   │   ├── ClientDocumentProcessor.js  # Client-side document processing
 │   │   ├── i18n/       # Internationalization module
 │   │   ├── theme/      # Theme management module
 │   │   └── navigation/ # Navigation components
@@ -163,6 +179,45 @@ This implementation is a frontend prototype that demonstrates the UI and interac
 3. **Mock Functionality**:
    - Authentication is simulated with mock users
    - AI responses are simulated with predefined messages if API keys are not provided
+
+4. **Image Recognition and OCR**:
+   - Client-side OCR processing using Tesseract.js
+   - Enhanced preprocessing pipeline with adaptive techniques
+   - Intelligent approach selection based on image characteristics
+   - OCR memory system for maintaining context across conversations
+   - Seamless integration with the chat interface
+
+## Image Recognition Implementation
+
+The Image Recognition feature allows users to upload images directly in the chat interface for analysis and text extraction. The implementation includes:
+
+### Key Components
+
+1. **Enhanced Tesseract OCR Engine**: A highly optimized implementation of Tesseract.js with improved preprocessing and recognition capabilities
+2. **Adaptive Image Processing**: Intelligent image analysis and preprocessing pipeline that adapts to different image types and characteristics
+3. **Multi-Approach Recognition**: Multiple recognition strategies with different parameters to maximize text extraction accuracy
+4. **OCR Memory System**: Storage and retrieval of OCR results to maintain context across conversations
+5. **Chat Integration**: Seamless integration with the chat interface for a unified user experience
+
+### Image Recognition Flow
+
+1. User uploads an image through the chat interface
+2. The image is processed client-side using the browser's capabilities
+3. The system analyzes the image characteristics to determine optimal preprocessing
+4. Multiple recognition approaches are attempted with different parameters
+5. Results are scored based on confidence, length, and quality metrics
+6. The best result is selected and post-processed for accuracy
+7. The extracted text is stored in memory and included in the chat context
+8. The AI receives both the user's question and the extracted text
+9. The AI response incorporates understanding of the image content
+
+### Technical Implementation
+
+- **Client-Side Processing**: All OCR processing happens in the browser for privacy and reduced server load
+- **Adaptive Preprocessing**: Images are analyzed and preprocessed using techniques like contrast enhancement, thresholding, sharpening, and noise reduction
+- **Intelligent Approach Selection**: The system selects the best preprocessing and recognition approaches based on image characteristics
+- **Enhanced Post-Processing**: Advanced text cleaning and correction for improved accuracy
+- **Memory Integration**: OCR results are stored with metadata and associated with specific messages for context
 
 ## Voice Chat Implementation
 
@@ -255,6 +310,38 @@ User Input → Chat API → AI Response → Display
 ```
 
 The text chat follows a simpler pipeline where user input is directly sent to the AI model and the response is displayed in the chat interface.
+
+### Image Recognition Pipeline
+
+```
+User Image Upload → Image Processing → Tesseract OCR Engine →
+Multiple Recognition Approaches → Best Result Selection →
+OCR Memory Storage → Enhanced Chat Context → AI Response with Image Understanding
+```
+
+1. **Image Upload Pipeline**:
+   - User uploads image(s) through the chat interface
+   - Images are converted to processable format
+   - System adds a placeholder message indicating processing
+
+2. **OCR Processing Pipeline**:
+   - Images are analyzed to determine optimal preprocessing approach
+   - Adaptive preprocessing enhances image quality for text recognition
+   - Multiple recognition approaches are tried with different parameters
+   - Results are scored based on confidence, length, and quality metrics
+   - Best result is selected and post-processed for accuracy
+
+3. **Memory Integration Pipeline**:
+   - OCR results are stored in memory with metadata
+   - Results are associated with specific messages
+   - Previous OCR results are maintained for context
+   - OCR context is built and included with future messages
+
+4. **Enhanced Response Pipeline**:
+   - Chat messages include OCR context from current and previous images
+   - AI receives both the user's question and the extracted text
+   - AI response incorporates understanding of image content
+   - User receives contextually relevant answers about uploaded images
 
 ## Contributing
 

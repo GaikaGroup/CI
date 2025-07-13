@@ -37,6 +37,7 @@
     "@tensorflow-models/face-landmarks-detection": "^1.0.6",
     "@tensorflow/tfjs": "^4.22.0",
     "face-api.js": "^0.22.2",
-    "lucide-svelte": "^0.300.0"
+    "lucide-svelte": "^0.300.0",
+    "tesseract.js": "^5.0.3"
   }
 }

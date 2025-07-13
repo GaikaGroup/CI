@@ -1,22 +1,39 @@
+/**
+ * Enhanced Chat Services
+ *
+ * This module provides enhanced chat services with OCR memory integration.
+ * It extends the basic chat services to include OCR context in messages.
+ */
 import { addMessage, updateMessage, messages } from './stores';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
-import { processDocumentInClient } from '$lib/modules/document/ClientDocumentProcessor';
+import {
+  processOCRWithMemory,
+  buildOCRContextForChat,
+  initializeOCRService
+} from '$lib/modules/document/OCRService';
+
+// Initialize OCR service when this module is imported
+if (typeof window !== 'undefined') {
+  initializeOCRService();
+}
 
 /**
- * Send a message to the AI tutor
+ * Enhanced message sending with OCR context
  * @param {string} content - The message content
  * @param {Array} images - Array of image URLs
- * @returns {Promise} - Promise that resolves when the message is sent
+ * @returns {Promise<boolean>} - Promise that resolves when the message is sent
  */
-
-export async function sendMessage(content, images = []) {
+export async function sendMessageWithOCRContext(content, images = []) {
   try {
-    console.log('sendMessage called with content:', content);
-    console.log('sendMessage called with images:', images.length);
+    console.log('sendMessageWithOCRContext called with content:', content);
+    console.log('sendMessageWithOCRContext called with images:', images?.length || 0);
 
     setLoading(true);
+
+    // Generate a unique message ID for this message
+    const messageId = Date.now().toString();
 
     // If there are images, process them
     if (images && images.length > 0) {
@@ -35,7 +52,11 @@ export async function sendMessage(content, images = []) {
             const reader = new FileReader();
             reader.onloadend = () => {
               console.log(`Image ${index + 1} converted to base64 successfully`);
-              resolve(reader.result);
+              resolve({
+                data: reader.result,
+                blob,
+                name: `image_${index + 1}.${blob.type.split('/')[1] || 'png'}`
+              });
             };
             reader.onerror = (error) => {
               console.error(`Error reading blob as data URL for image ${index + 1}:`, error);
@@ -58,19 +79,31 @@ export async function sendMessage(content, images = []) {
         throw new Error('Failed to process images: No valid images found');
       }
 
-      // Process images locally first
+      // Process images locally with OCR memory
       let recognizedText = '';
-      console.log('[OCR] Processing images locally in the browser');
+      console.log('[OCR] Processing images locally in the browser with memory');
 
-      for (const base64Data of validImageData) {
+      for (let i = 0; i < validImageData.length; i++) {
+        const image = validImageData[i];
         try {
-          // Process in browser
-          console.log('[OCR] Processing image with ClientDocumentProcessor');
-          const result = await processDocumentInClient(base64Data);
-          recognizedText += result.text + '\n\n';
-          console.log('[OCR] Image processed successfully, text length:', result.text.length);
+          // Convert base64 to buffer for OCR processing
+          const base64String = image.data.split(',')[1];
+          const binaryString = atob(base64String);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let j = 0; j < binaryString.length; j++) {
+            bytes[j] = binaryString.charCodeAt(j);
+          }
+
+          // Process with OCR memory service
+          const imgMessageId = `${messageId}_img_${i}`;
+          const ocrResult = await processOCRWithMemory(imgMessageId, bytes, image.name);
+          recognizedText += ocrResult + '\n\n';
+          console.log(
+            `[OCR] Image ${i + 1} processed successfully, text length:`,
+            ocrResult.length
+          );
         } catch (error) {
-          console.error('[OCR] Error processing image:', error);
+          console.error(`[OCR] Error processing image ${i + 1}:`, error);
         }
       }
 
@@ -84,14 +117,26 @@ export async function sendMessage(content, images = []) {
         updateMessage(userMessage.id, { ocrText: recognizedText });
       }
 
+      // Build OCR context for chat
+      const ocrContext = buildOCRContextForChat(messageId);
+      console.log('[OCR] OCR context built, length:', ocrContext.length);
+
+      // Combine original content with OCR context
+      const enhancedContent = content + ocrContext;
+      console.log('[OCR] Enhanced content length:', enhancedContent.length);
+
+      // Extract base64 strings for API call
+      const base64Images = validImageData.map((img) => img.data);
+
       // Make API call with images and already processed text
       console.log('[OCR] Sending image and recognized text for message', content, {
-        snippet: validImageData[0].slice(0, 50) + '…',
+        snippet: base64Images[0].slice(0, 50) + '…',
         textLength: recognizedText.length
       });
+
       const requestBody = {
-        content,
-        images: validImageData,
+        content: enhancedContent, // Send enhanced content with OCR context
+        images: base64Images,
         recognizedText, // Send the already processed text
         language: get(selectedLanguage)
       };
@@ -125,26 +170,6 @@ export async function sendMessage(content, images = []) {
       // Add the AI's response to the chat
       addMessage('tutor', data.response);
 
-      // If OCR text was returned, update the original message with it
-      if (data.ocrText) {
-        console.log(`[OCR] Got text:`, data.ocrText);
-        // Find the message we're processing (should be the most recent user message with images)
-        const userMessage = [...get(messages)]
-          .reverse()
-          .find((m) => m.type === 'user' && m.images && m.images.length > 0);
-
-        if (userMessage) {
-          console.log(`[OCR] Updating message ${userMessage.id} with text:`, data.ocrText);
-          // Update the message with the OCR text
-          updateMessage(userMessage.id, { ocrText: data.ocrText });
-          console.log(`[STORE] addOcrNote for ${userMessage.id}:`, data.ocrText);
-        } else {
-          console.error('[OCR] Could not find user message to update with OCR text');
-        }
-      } else {
-        console.warn('[OCR] No OCR text returned from server');
-      }
-
       return true;
     } else {
       // No images, just send the text message
@@ -174,7 +199,7 @@ export async function sendMessage(content, images = []) {
       return true;
     }
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('Error sending message with OCR context:', error);
     console.error('Error details:', {
       name: error.name,
       message: error.message,
@@ -186,45 +211,7 @@ export async function sendMessage(content, images = []) {
     setError(`Failed to send message: ${errorMessage}. Please try again.`);
     return false;
   } finally {
-    console.log('sendMessage function completed, setting loading to false');
+    console.log('sendMessageWithOCRContext function completed, setting loading to false');
     setLoading(false);
   }
 }
-
-/**
- * Get chat history
- * @returns {Promise} - Promise that resolves with chat history
- */
-export async function getChatHistory() {
-  try {
-    setLoading(true);
-
-    // In a real implementation, this would be an API call
-    // const response = await fetch(API_ENDPOINTS.CHAT.HISTORY, {
-    //   headers: {
-    //     'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-    //   }
-    // });
-
-    // if (!response.ok) {
-    //   throw new Error('Failed to get chat history');
-    // }
-
-    // const data = await response.json();
-    // return data.messages;
-
-    // Simulate API call for demonstration
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Return empty array for demonstration
-    return [];
-  } catch (error) {
-    console.error('Error getting chat history:', error);
-    setError('Failed to load chat history. Please try again.');
-    return [];
-  } finally {
-    setLoading(false);
-  }
-}
-
-// Voice chat functionality has been moved to voiceServices.js

@@ -13,6 +13,30 @@ export const CHAT_MODES = {
   VOICE: 'voice'
 };
 
+// Document recognition constants
+export const DOCUMENT_TYPES = {
+  PRINTED: 'printed',
+  HANDWRITTEN: 'handwritten',
+  MIXED: 'mixed',
+  UNKNOWN: 'unknown'
+};
+
+// Supported file types for document recognition
+export const SUPPORTED_FILE_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/bmp',
+  'image/tiff',
+  'image/webp',
+  'image/heic',
+  'image/heif'
+];
+
+// Maximum file size for uploads (10MB)
+export const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 // User roles
 export const USER_ROLES = {
   ADMIN: 'admin',
@@ -40,6 +64,9 @@ export const API_ENDPOINTS = {
   MATERIALS: {
     BASE: '/api/v1/materials',
     SEARCH: '/api/v1/materials/search'
+  },
+  DOCUMENT: {
+    RECOGNIZE: '/api/recognize'
   }
 };
 
