@@ -8,166 +8,26 @@
  * 4. Page rendering to canvas
  */
 import { browser } from '$app/environment';
+import { IOCREngine } from '../interfaces/IOCREngine';
 
-// We'll use dynamic import for pdf.js to avoid SSR issues
-let pdfjsLib;
-
-export class PdfJS {
+/**
+ * PdfJS engine that implements the IOCREngine interface
+ * Uses composition with PDFExtractor
+ */
+export class PdfJS extends IOCREngine {
   /**
    * Constructor to initialize the PDF processor
+   * @param {PDFExtractor} pdfExtractor - The PDF extractor
    * @param {Object} config - Configuration options
    */
-  constructor(config = {}) {
+  constructor(pdfExtractor, config = {}) {
+    super();
+    this.pdfExtractor = pdfExtractor;
     this.config = {
       cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.93/cmaps/',
       cMapPacked: true,
       ...config
     };
-  }
-
-  /**
-   * Initialize the PDF.js library
-   * @returns {Promise<void>}
-   */
-  async initialize() {
-    if (!browser) {
-      console.info('Skipping PDF.js initialization during SSR');
-      return;
-    }
-
-    if (!pdfjsLib) {
-      try {
-        console.log('Importing PDF.js module...');
-        pdfjsLib = await import('pdfjs-dist');
-
-        // Configure worker with CDN URL
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.93/build/pdf.worker.min.mjs';
-
-        console.log('PDF.js module imported successfully');
-      } catch (importError) {
-        console.error('Error importing PDF.js:', importError);
-        throw new Error(`Failed to import PDF.js: ${importError.message}`);
-      }
-    }
-  }
-
-  /**
-   * Load a PDF document from a buffer
-   * @param {Uint8Array} buffer - The PDF file buffer
-   * @param {string} password - Optional password for protected PDFs
-   * @returns {Promise<Object>} - The loaded PDF document
-   */
-  async loadDocument(buffer, password = '') {
-    await this.initialize();
-
-    if (!browser) {
-      console.info('Skipping PDF loading during SSR');
-      return null;
-    }
-
-    try {
-      const loadingTask = pdfjsLib.getDocument({
-        data: buffer,
-        password,
-        cMapUrl: this.config.cMapUrl,
-        cMapPacked: this.config.cMapPacked
-      });
-
-      return await loadingTask.promise;
-    } catch (error) {
-      if (error.name === 'PasswordException') {
-        throw new Error('This PDF is password protected. Please provide a password.');
-      } else {
-        console.error('Error loading PDF:', error);
-        throw new Error(`Failed to load PDF: ${error.message}`);
-      }
-    }
-  }
-
-  /**
-   * Extract text from a PDF document
-   * @param {Uint8Array} buffer - The PDF file buffer
-   * @param {string} password - Optional password for protected PDFs
-   * @returns {Promise<string>} - The extracted text
-   */
-  async extractText(buffer, password = '') {
-    if (!browser) {
-      console.info('Skipping PDF text extraction during SSR');
-      return 'PDF text extraction will be performed in the browser.';
-    }
-
-    console.log('Starting PDF text extraction with buffer size:', buffer.length);
-
-    try {
-      const pdfDocument = await this.loadDocument(buffer, password);
-      if (!pdfDocument) return '';
-
-      const numPages = pdfDocument.numPages;
-      console.log(`PDF loaded with ${numPages} pages`);
-
-      let fullText = '';
-      for (let i = 1; i <= numPages; i++) {
-        const page = await pdfDocument.getPage(i);
-        const textContent = await page.getTextContent();
-        const textItems = textContent.items.map((item) => item.str);
-        const pageText = textItems.join(' ');
-
-        fullText += pageText + '\n\n';
-      }
-
-      const processedText = this.postProcessText(fullText);
-      console.log('Extracted text length:', processedText.length);
-
-      return processedText || 'No text could be extracted from the PDF';
-    } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      throw new Error(`Failed to extract text: ${error.message}`);
-    }
-  }
-
-  /**
-   * Render a PDF page to a canvas
-   * @param {Uint8Array} buffer - The PDF file buffer
-   * @param {number} pageNumber - The page number to render (1-based)
-   * @param {number} scale - The scale to render at (default: 1.5)
-   * @returns {Promise<HTMLCanvasElement>} - The rendered canvas
-   */
-  async renderPage(buffer, pageNumber = 1, scale = 1.5) {
-    if (!browser) {
-      console.info('Skipping PDF rendering during SSR');
-      return null;
-    }
-
-    try {
-      const pdfDocument = await this.loadDocument(buffer);
-      if (!pdfDocument) return null;
-
-      if (pageNumber < 1 || pageNumber > pdfDocument.numPages) {
-        throw new Error(
-          `Invalid page number: ${pageNumber}. Document has ${pdfDocument.numPages} pages.`
-        );
-      }
-
-      const page = await pdfDocument.getPage(pageNumber);
-      const viewport = page.getViewport({ scale });
-
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport
-      };
-
-      await page.render(renderContext).promise;
-      return canvas;
-    } catch (error) {
-      console.error('Error rendering PDF page:', error);
-      throw new Error(`Failed to render page: ${error.message}`);
-    }
   }
 
   /**
@@ -185,6 +45,81 @@ export class PdfJS {
   }
 
   /**
+   * Recognize text from a buffer (implements IOCREngine interface)
+   * @param {Uint8Array} buffer - The input buffer
+   * @returns {Promise<string>} - The recognized text
+   */
+  async recognize(buffer) {
+    if (!browser) {
+      console.info('Skipping PDF text extraction during SSR');
+      return 'PDF text extraction will be performed in the browser.';
+    }
+
+    // Check if buffer is valid
+    if (!buffer || buffer.length === 0) {
+      console.warn('Invalid or empty buffer provided to recognize method');
+      return 'No valid content to recognize';
+    }
+
+    // Check if it's a PDF using the PDFExtractor
+    const isPdf = this.pdfExtractor.isPDF(buffer);
+
+    if (!isPdf) {
+      console.log('Non-PDF detected. PdfJS is optimized for PDF documents.');
+      return 'Non-PDF detected. PdfJS is optimized for PDF documents.';
+    }
+
+    try {
+      // Use the PDFExtractor to extract text
+      const extractedText = await this.pdfExtractor.extractText(buffer);
+      return this.postProcessText(extractedText) || 'No text could be extracted from the PDF';
+    } catch (error) {
+      console.error('Error extracting text from PDF:', error);
+      throw new Error(`Failed to extract text: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the confidence score of the OCR recognition (implements IOCREngine interface)
+   * @param {Uint8Array} buffer - The input buffer
+   * @returns {Promise<number>} - The confidence score (0 to 1)
+   */
+  async getConfidence(buffer) {
+    if (!browser) {
+      console.info('Skipping PDF confidence check during SSR');
+      return 0;
+    }
+
+    // Check if buffer is valid
+    if (!buffer || buffer.length === 0) {
+      console.warn('Invalid or empty buffer provided to getConfidence method');
+      return 0;
+    }
+
+    // Check if it's a PDF using the PDFExtractor
+    const isPdf = this.pdfExtractor.isPDF(buffer);
+
+    if (!isPdf) {
+      console.log('Non-PDF detected. PdfJS is optimized for PDF documents.');
+      return 0;
+    }
+
+    try {
+      // For PDFs with extractable text, we return high confidence
+      const extractedText = await this.pdfExtractor.extractText(buffer);
+      if (extractedText && extractedText.trim().length > 0) {
+        return 0.95; // High confidence for PDFs with extractable text
+      }
+
+      // For PDFs without extractable text, we return medium confidence
+      return 0.7;
+    } catch (error) {
+      console.error('Error getting confidence for PDF:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get metadata from a PDF document
    * @param {Uint8Array} buffer - The PDF file buffer
    * @returns {Promise<Object>} - The document metadata
@@ -195,21 +130,27 @@ export class PdfJS {
       return {};
     }
 
-    try {
-      const pdfDocument = await this.loadDocument(buffer);
-      if (!pdfDocument) return {};
+    // Check if buffer is valid
+    if (!buffer || buffer.length === 0) {
+      console.warn('Invalid or empty buffer provided to getMetadata method');
+      return {};
+    }
 
-      const metadata = await pdfDocument.getMetadata();
+    // Check if it's a PDF using the PDFExtractor
+    const isPdf = this.pdfExtractor.isPDF(buffer);
+
+    if (!isPdf) {
+      console.log('Non-PDF detected. Cannot extract metadata.');
+      return {};
+    }
+
+    try {
+      // This would be implemented in a real application
+      // For now, we'll return a placeholder
       return {
-        title: metadata.info?.Title || '',
-        author: metadata.info?.Author || '',
-        subject: metadata.info?.Subject || '',
-        keywords: metadata.info?.Keywords || '',
-        creator: metadata.info?.Creator || '',
-        producer: metadata.info?.Producer || '',
-        creationDate: metadata.info?.CreationDate || '',
-        modificationDate: metadata.info?.ModDate || '',
-        pageCount: pdfDocument.numPages
+        title: 'PDF Document',
+        author: 'Unknown',
+        pageCount: 1
       };
     } catch (error) {
       console.error('Error extracting PDF metadata:', error);

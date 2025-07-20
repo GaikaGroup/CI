@@ -6,22 +6,66 @@
  * appropriate OCR engine based on the document type.
  */
 import { DOCUMENT_TYPES } from '$lib/shared/utils/constants';
-import { DocumentClassifier } from './DocumentClassifier';
-import { OCREngineRegistry } from './OCREngineRegistry';
 import { browser } from '$app/environment';
+import { container } from '$lib/shared/di/container';
+import { OCREngineFactory } from './factories/OCREngineFactory';
+import { DocumentClassifier } from './DocumentClassifier';
+import { ImagePreprocessor } from './preprocessing/ImagePreprocessor';
+import { PDFExtractor } from './pdf/PDFExtractor';
+import { SessionStorageOCRResultStorage } from './storage/SessionStorageOCRResultStorage';
+
+/**
+ * Initialize the document processing components and register them in the DI container
+ */
+function initializeDocumentProcessing() {
+  // Create instances of the components
+  const imagePreprocessor = new ImagePreprocessor();
+  const pdfExtractor = new PDFExtractor();
+  const documentClassifier = new DocumentClassifier();
+  const ocrStorage = new SessionStorageOCRResultStorage();
+
+  // Register the components in the DI container
+  container.register('imagePreprocessor', imagePreprocessor);
+  container.register('pdfExtractor', pdfExtractor);
+  container.register('documentClassifier', documentClassifier);
+  container.register('ocrStorage', ocrStorage);
+
+  // Register factory functions
+  container.registerFactory('ocrEngine', (container) => {
+    return (documentType) => {
+      return OCREngineFactory.createEngine(
+        documentType, 
+        {
+          // Optional configuration
+        }
+      );
+    };
+  });
+}
+
+// Initialize document processing components
+initializeDocumentProcessing();
 
 export class DocumentProcessor {
-  constructor() {
-    this.classifier = new DocumentClassifier();
-    this.engineRegistry = new OCREngineRegistry();
+  /**
+   * Create a new DocumentProcessor
+   * @param {IDocumentClassifier} classifier - The document classifier
+   * @param {SessionStorageAdapter} sessionStorageAdapter - The session storage adapter
+   */
+  constructor(classifier = null, sessionStorageAdapter = null) {
+    // Use dependency injection if components are provided, otherwise get from container
+    this.classifier = classifier || container.resolve('documentClassifier');
+    this.sessionStorageAdapter = sessionStorageAdapter || 
+      (container.has('sessionStorageAdapter') ? container.resolve('sessionStorageAdapter') : null);
   }
 
   /**
    * Process a document and extract text
    * @param {File} file - The document file to process
+   * @param {string} sessionId - Optional session ID for maintaining context
    * @returns {Promise<Object>} - The processing result with text, document type, and confidence
    */
-  async processDocument(file) {
+  async processDocument(file, sessionId = null) {
     console.log(`[OCR] Processing document in ${browser ? 'browser' : 'server'} environment`);
     console.log('DocumentProcessor.processDocument called with file:', file);
     console.log('File type:', file.type, 'File size:', file.size);
@@ -55,8 +99,9 @@ export class DocumentProcessor {
       console.log('Document classified as:', documentType, 'with confidence:', confidence);
 
       console.log('Getting OCR engine for document type:', documentType);
-      // Get the appropriate OCR engine
-      const engine = this.engineRegistry.getEngine(documentType);
+      // Get the appropriate OCR engine using the factory from the container
+      const engineFactory = container.resolve('ocrEngine');
+      const engine = engineFactory(documentType);
       console.log('OCR engine selected:', engine.constructor.name);
 
       console.log('Processing document with selected engine...');
@@ -67,6 +112,35 @@ export class DocumentProcessor {
         'First 100 characters of recognized text:',
         text ? text.substring(0, 100) : 'No text recognized'
       );
+
+      // Store the result in OCR storage
+      const ocrStorage = container.resolve('ocrStorage');
+      const messageId = Date.now().toString();
+      ocrStorage.store(messageId, {
+        messageId,
+        fileName: file.name,
+        text,
+        documentType,
+        confidence,
+        timestamp: new Date().toISOString()
+      });
+
+      // If session storage adapter is available and sessionId is provided, store in session
+      if (this.sessionStorageAdapter && sessionId) {
+        console.log(`[Session] Storing document in session ${sessionId}`);
+        this.sessionStorageAdapter.processAndStoreDocument(
+          {
+            file: file,
+            result: {
+              text,
+              documentType,
+              confidence
+            }
+          },
+          sessionId,
+          { processDocument: async () => ({ text, documentType, confidence }) }
+        );
+      }
 
       return {
         text,

@@ -3,20 +3,30 @@ import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
 import { processDocumentInClient } from '$lib/modules/document/ClientDocumentProcessor';
+import { container } from '$lib/shared/di/container';
 
 /**
  * Send a message to the AI tutor
  * @param {string} content - The message content
  * @param {Array} images - Array of image URLs
+ * @param {string} sessionId - Optional session ID for maintaining context
  * @returns {Promise} - Promise that resolves when the message is sent
  */
 
-export async function sendMessage(content, images = []) {
+export async function sendMessage(content, images = [], sessionId = null) {
   try {
     console.log('sendMessage called with content:', content);
     console.log('sendMessage called with images:', images.length);
+    if (sessionId) {
+      console.log('sendMessage called with sessionId:', sessionId);
+    }
 
     setLoading(true);
+
+    // Get session storage adapter if available
+    const sessionStorageAdapter = container.has('sessionStorageAdapter') 
+      ? container.resolve('sessionStorageAdapter') 
+      : null;
 
     // If there are images, process them
     if (images && images.length > 0) {
@@ -89,11 +99,21 @@ export async function sendMessage(content, images = []) {
         snippet: validImageData[0].slice(0, 50) + '…',
         textLength: recognizedText.length
       });
+      // Get session context if available
+      let sessionContext = null;
+      if (sessionId && sessionStorageAdapter) {
+        const sessionFactory = container.resolve('sessionFactory');
+        const session = sessionFactory.getOrCreateSession(sessionId);
+        sessionContext = session.getContext();
+        console.log(`[Session] Including context in API request for image message:`, sessionContext);
+      }
+
       const requestBody = {
         content,
         images: validImageData,
         recognizedText, // Send the already processed text
-        language: get(selectedLanguage)
+        language: get(selectedLanguage),
+        sessionContext // Include session context in the request
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 
@@ -125,6 +145,21 @@ export async function sendMessage(content, images = []) {
       // Add the AI's response to the chat
       addMessage('tutor', data.response);
 
+      // If session storage adapter is available and sessionId is provided, store in session
+      if (sessionStorageAdapter && sessionId) {
+        console.log(`[Session] Storing conversation in session ${sessionId}`);
+        // Store user message
+        sessionStorageAdapter.handleUserMessage(
+          content,
+          sessionId,
+          async (message, context) => {
+            console.log(`[Session] Generating response for message: ${message}`);
+            console.log(`[Session] Using context:`, context);
+            return data.response;
+          }
+        );
+      }
+
       // If OCR text was returned, update the original message with it
       if (data.ocrText) {
         console.log(`[OCR] Got text:`, data.ocrText);
@@ -150,6 +185,15 @@ export async function sendMessage(content, images = []) {
       // No images, just send the text message
       console.log('No images to process, sending text-only message');
 
+      // Get session context if available
+      let sessionContext = null;
+      if (sessionId && sessionStorageAdapter) {
+        const sessionFactory = container.resolve('sessionFactory');
+        const session = sessionFactory.getOrCreateSession(sessionId);
+        sessionContext = session.getContext();
+        console.log(`[Session] Including context in API request:`, sessionContext);
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -158,7 +202,8 @@ export async function sendMessage(content, images = []) {
         body: JSON.stringify({
           content,
           images: [],
-          language: get(selectedLanguage)
+          language: get(selectedLanguage),
+          sessionContext // Include session context in the request
         })
       });
 
@@ -170,6 +215,21 @@ export async function sendMessage(content, images = []) {
 
       // Add the AI's response to the chat
       addMessage('tutor', data.response);
+
+      // If session storage adapter is available and sessionId is provided, store in session
+      if (sessionStorageAdapter && sessionId) {
+        console.log(`[Session] Storing conversation in session ${sessionId}`);
+        // Store user message
+        sessionStorageAdapter.handleUserMessage(
+          content,
+          sessionId,
+          async (message, context) => {
+            console.log(`[Session] Generating response for message: ${message}`);
+            console.log(`[Session] Using context:`, context);
+            return data.response;
+          }
+        );
+      }
 
       return true;
     }
@@ -193,11 +253,37 @@ export async function sendMessage(content, images = []) {
 
 /**
  * Get chat history
+ * @param {string} sessionId - Optional session ID for retrieving context
  * @returns {Promise} - Promise that resolves with chat history
  */
-export async function getChatHistory() {
+export async function getChatHistory(sessionId = null) {
   try {
     setLoading(true);
+
+    // If sessionId is provided and session storage adapter is available, get history from session
+    if (sessionId) {
+      const sessionStorageAdapter = container.has('sessionStorageAdapter') 
+        ? container.resolve('sessionStorageAdapter') 
+        : null;
+
+      if (sessionStorageAdapter) {
+        console.log(`[Session] Getting chat history from session ${sessionId}`);
+        const sessionFactory = container.resolve('sessionFactory');
+        const session = sessionFactory.getOrCreateSession(sessionId);
+        const context = session.getContext();
+
+        if (context && context.history && context.history.length > 0) {
+          console.log(`[Session] Found ${context.history.length} messages in session history`);
+          // Convert session history format to app format
+          return context.history.map(entry => ({
+            id: entry.timestamp,
+            type: entry.role === 'user' ? 'user' : 'tutor',
+            content: entry.content,
+            timestamp: entry.timestamp
+          }));
+        }
+      }
+    }
 
     // In a real implementation, this would be an API call
     // const response = await fetch(API_ENDPOINTS.CHAT.HISTORY, {

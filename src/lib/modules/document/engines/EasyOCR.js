@@ -8,9 +8,23 @@
  * Note: This implementation is compatible with both browser and SSR environments.
  */
 import { browser } from '$app/environment';
+import { IOCREngine } from '../interfaces/IOCREngine';
 
-export class EasyOCR {
-  constructor(config = {}) {
+/**
+ * EasyOCR engine that implements the IOCREngine interface
+ * Uses composition with ImagePreprocessor and PDFExtractor
+ */
+export class EasyOCR extends IOCREngine {
+  /**
+   * Create a new EasyOCR engine
+   * @param {ImagePreprocessor} preprocessor - The image preprocessor
+   * @param {PDFExtractor} pdfExtractor - The PDF extractor
+   * @param {object} config - Optional configuration
+   */
+  constructor(preprocessor, pdfExtractor, config = {}) {
+    super();
+    this.preprocessor = preprocessor;
+    this.pdfExtractor = pdfExtractor;
     this.config = {
       lang: 'en',
       ...config
@@ -18,16 +32,33 @@ export class EasyOCR {
   }
 
   /**
-   * Recognize text in an image
+   * Recognize text in an image or PDF
+   * @param {Uint8Array} buffer - The input buffer
    * @returns {Promise<string>} - The recognized text
    */
-  async recognize() {
+  async recognize(buffer) {
     try {
       // Check if we're in the browser environment
       if (!browser) {
         // This is expected behavior during SSR - OCR will be performed client-side
         console.info('Info: Skipping EasyOCR during SSR (this is normal behavior)');
         return 'OCR processing will be performed in the browser.';
+      }
+
+      // Check if buffer is valid
+      if (!buffer || buffer.length === 0) {
+        console.warn('Invalid or empty buffer provided to recognize method');
+        return 'No valid content to recognize';
+      }
+
+      // Check if it's a PDF using the PDFExtractor
+      const isPdf = this.pdfExtractor.isPDF(buffer);
+
+      if (isPdf) {
+        console.log('PDF detected, but EasyOCR is optimized for handwritten text in images');
+        // In a real implementation, we might still try to process PDFs
+        // For this example, we'll just return a message
+        return 'PDF detected. EasyOCR is optimized for handwritten text in images.';
       }
 
       // In a real implementation, this would call a server-side API for EasyOCR
@@ -47,9 +78,10 @@ export class EasyOCR {
 
   /**
    * Get the confidence score for the recognized text
+   * @param {Uint8Array} buffer - The input buffer
    * @returns {Promise<number>} - The confidence score (0-1)
    */
-  async getConfidence() {
+  async getConfidence(buffer) {
     try {
       // Check if we're in the browser environment
       if (!browser) {
@@ -58,6 +90,12 @@ export class EasyOCR {
           'Info: Skipping EasyOCR confidence check during SSR (this is normal behavior)'
         );
         return 0.8; // Return a default confidence value during SSR
+      }
+
+      // Check if buffer is valid
+      if (!buffer || buffer.length === 0) {
+        console.warn('Invalid or empty buffer provided to getConfidence method');
+        return 0;
       }
 
       // In a real implementation, this would call a server-side API for EasyOCR

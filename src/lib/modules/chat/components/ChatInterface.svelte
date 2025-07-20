@@ -18,12 +18,16 @@
   import { CHAT_MODES, MESSAGE_TYPES } from '$shared/utils/constants';
   import { sendMessageWithOCRContext } from '../enhancedServices';
   import { setVoiceModeActive } from '../voiceServices';
+  import { container } from '$lib/shared/di/container';
   import LanguageSelector from '$modules/i18n/components/LanguageSelector.svelte';
   import MessageList from './MessageList.svelte';
   import MessageInput from './MessageInput.svelte';
   import VoiceChat from './VoiceChat.svelte';
   import Button from '$shared/components/Button.svelte';
   import { browser } from '$app/environment';
+
+  // Session ID for maintaining conversation context
+  let sessionId;
 
   let showLanguageSelector = false;
 
@@ -58,8 +62,18 @@
       console.log(`[STORE] updateMessage for ${messageId}:`, { ocrRequested: true });
       updateMessage(messageId, { ocrRequested: true });
 
-      // Process the images with enhanced OCR context
-      const result = await sendMessageWithOCRContext(messageContent, images);
+      // Import services dynamically to avoid circular dependencies
+      const { sendMessage } = await import('../services');
+
+      // Process the images with enhanced OCR context and session ID if available
+      let result;
+      if (sessionId) {
+        console.log('Processing images with session ID:', sessionId);
+        result = await sendMessage(messageContent, images, sessionId);
+      } else {
+        console.log('Processing images without session ID');
+        result = await sendMessageWithOCRContext(messageContent, images);
+      }
 
       console.log('Image processing completed successfully with OCR context:', result);
 
@@ -108,6 +122,44 @@
     // Initialize voice mode active state based on current chat mode
     setVoiceModeActive($chatMode === CHAT_MODES.VOICE);
     console.log('Initialized voice mode active state:', $chatMode === CHAT_MODES.VOICE);
+
+    // Initialize session ID for maintaining conversation context
+    if (browser) {
+      // Try to get existing session ID from localStorage
+      const savedSessionId = localStorage.getItem('sessionId');
+      if (savedSessionId) {
+        console.log('Using existing session ID:', savedSessionId);
+        sessionId = savedSessionId;
+      } else {
+        // Create a new session ID
+        if (container.has('sessionFactory')) {
+          const sessionFactory = container.resolve('sessionFactory');
+          const session = sessionFactory.getOrCreateSession();
+          sessionId = session.getSessionId();
+          console.log('Created new session ID:', sessionId);
+          // Save session ID to localStorage
+          localStorage.setItem('sessionId', sessionId);
+        } else {
+          // Fallback if session factory is not available
+          sessionId = Date.now().toString() + Math.random().toString(36).substring(2, 15);
+          console.log('Created fallback session ID:', sessionId);
+          localStorage.setItem('sessionId', sessionId);
+        }
+      }
+
+      // Load chat history from session if available
+      if (sessionId && $messages.length === 0) {
+        import('../services').then(({ getChatHistory }) => {
+          getChatHistory(sessionId).then(history => {
+            if (history && history.length > 0) {
+              console.log('Loaded chat history from session:', history.length, 'messages');
+              // Replace messages store with history
+              messages.set(history);
+            }
+          });
+        });
+      }
+    }
 
     if (browser) {
       console.log('Running in browser environment, messages:', $messages.length);
@@ -233,7 +285,18 @@
       // If no images, just send the message normally but with enhanced context
       addMessage(MESSAGE_TYPES.USER, content, images, messageId);
       // Make sure we're not passing any images to sendMessageWithOCRContext
-      sendMessageWithOCRContext(content, []);
+
+      // Import services dynamically to avoid circular dependencies
+      import('../services').then(({ sendMessage }) => {
+        // Use the session ID when sending messages
+        if (sessionId) {
+          console.log('Sending message with session ID:', sessionId);
+          sendMessage(content, [], sessionId);
+        } else {
+          console.log('Sending message without session ID');
+          sendMessageWithOCRContext(content, []);
+        }
+      });
     }
   }
 

@@ -4,9 +4,41 @@
  * This service handles OCR processing and ensures results are properly stored
  * in the chat context for memory persistence.
  */
+import { container } from '$lib/shared/di/container';
+import { DOCUMENT_TYPES } from '$lib/shared/utils/constants';
+import { DocumentClassifier } from './DocumentClassifier';
+import { ImagePreprocessor } from './preprocessing/ImagePreprocessor';
+import { PDFExtractor } from './pdf/PDFExtractor';
+import { SessionStorageOCRResultStorage } from './storage/SessionStorageOCRResultStorage';
+import { OCREngineFactory } from './factories/OCREngineFactory';
 
-// Store OCR results in memory for chat context
-const ocrResultsStore = new Map();
+// Initialize the service if not already initialized
+if (!container.has('ocrStorage')) {
+  // This should have been initialized by DocumentProcessor, but we'll check just in case
+  console.log('[OCR Service] Initializing OCR service components');
+
+  // Create instances
+  const imagePreprocessor = new ImagePreprocessor();
+  const pdfExtractor = new PDFExtractor();
+  const documentClassifier = new DocumentClassifier();
+  const ocrStorage = new SessionStorageOCRResultStorage();
+
+  // Register in container
+  container.register('imagePreprocessor', imagePreprocessor);
+  container.register('pdfExtractor', pdfExtractor);
+  container.register('documentClassifier', documentClassifier);
+  container.register('ocrStorage', ocrStorage);
+
+  // Register the OCR engine factory if it's not already registered
+  if (!container.has('ocrEngine')) {
+    console.log('[OCR Service] Registering OCR engine factory');
+    container.registerFactory('ocrEngine', () => {
+      return (documentType) => {
+        return OCREngineFactory.createEngine(documentType);
+      };
+    });
+  }
+}
 
 /**
  * Process OCR and store results for chat memory
@@ -19,13 +51,25 @@ export async function processOCRWithMemory(messageId, imageBuffer, fileName) {
   try {
     console.log(`[OCR Service] Processing OCR for message ${messageId}, file: ${fileName}`);
 
-    // Import and use the fixed TesseractOCR
-    const { TesseractOCR } = await import('./engines/TesseractOCR.js');
-    const ocrEngine = new TesseractOCR();
+    // Get the document classifier from the container
+    const classifier = container.resolve('documentClassifier');
+
+    // Classify the document
+    const classification = await classifier.classify(imageBuffer);
+    const { documentType, confidence: classificationConfidence } = classification;
+    console.log(`[OCR Service] Document classified as: ${documentType}`);
+
+    // Get the OCR engine factory from the container
+    // The factory should have been registered during initialization
+    const engineFactory = container.resolve('ocrEngine');
+
+    // Get the appropriate OCR engine
+    const engine = engineFactory(documentType);
+    console.log(`[OCR Service] Using OCR engine: ${engine.constructor.name}`);
 
     // Perform OCR
-    const ocrResult = await ocrEngine.recognize(imageBuffer);
-    const confidence = await ocrEngine.getConfidence(imageBuffer);
+    const ocrResult = await engine.recognize(imageBuffer);
+    const confidence = await engine.getConfidence(imageBuffer);
 
     console.log(`[OCR Service] OCR completed for message ${messageId}`);
     console.log(`[OCR Service] Result length: ${ocrResult.length}`);
@@ -37,25 +81,16 @@ export async function processOCRWithMemory(messageId, imageBuffer, fileName) {
       messageId,
       fileName,
       text: ocrResult,
+      documentType,
       confidence,
       timestamp: new Date().toISOString(),
       processed: true
     };
 
-    ocrResultsStore.set(messageId, ocrData);
-
-    // Also store in sessionStorage for persistence across page reloads
-    // Note: This is for the main app, not artifacts
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      try {
-        const existingResults = JSON.parse(sessionStorage.getItem('ocrResults') || '{}');
-        existingResults[messageId] = ocrData;
-        sessionStorage.setItem('ocrResults', JSON.stringify(existingResults));
-        console.log(`[OCR Service] Stored OCR result in sessionStorage for message ${messageId}`);
-      } catch (storageError) {
-        console.warn('[OCR Service] Could not store in sessionStorage:', storageError);
-      }
-    }
+    // Get the OCR storage from the container
+    const ocrStorage = container.resolve('ocrStorage');
+    ocrStorage.store(messageId, ocrData);
+    console.log(`[OCR Service] Stored OCR result for message ${messageId}`);
 
     return ocrResult;
   } catch (error) {
@@ -65,31 +100,19 @@ export async function processOCRWithMemory(messageId, imageBuffer, fileName) {
 }
 
 /**
- * Get OCR result from memory
+ * Get OCR result from storage
  * @param {string} messageId - The message ID
  * @returns {object|null} - The OCR data or null if not found
  */
 export function getOCRResult(messageId) {
-  // First check in-memory store
-  if (ocrResultsStore.has(messageId)) {
-    return ocrResultsStore.get(messageId);
+  try {
+    // Get the OCR storage from the container
+    const ocrStorage = container.resolve('ocrStorage');
+    return ocrStorage.retrieve(messageId);
+  } catch (error) {
+    console.error('[OCR Service] Error getting OCR result:', error);
+    return null;
   }
-
-  // Then check sessionStorage
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const existingResults = JSON.parse(sessionStorage.getItem('ocrResults') || '{}');
-      if (existingResults[messageId]) {
-        // Also store back in memory for faster access
-        ocrResultsStore.set(messageId, existingResults[messageId]);
-        return existingResults[messageId];
-      }
-    } catch (storageError) {
-      console.warn('[OCR Service] Could not read from sessionStorage:', storageError);
-    }
-  }
-
-  return null;
 }
 
 /**
@@ -97,28 +120,17 @@ export function getOCRResult(messageId) {
  * @returns {Array} - Array of all OCR results
  */
 export function getAllOCRResults() {
-  const results = [];
+  try {
+    // Get the OCR storage from the container
+    const ocrStorage = container.resolve('ocrStorage');
+    const results = ocrStorage.retrieveAll();
 
-  // Collect from in-memory store
-  for (const [, data] of ocrResultsStore.entries()) {
-    results.push(data);
+    // Sort by timestamp
+    return results.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  } catch (error) {
+    console.error('[OCR Service] Error getting all OCR results:', error);
+    return [];
   }
-
-  // Also collect from sessionStorage
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const existingResults = JSON.parse(sessionStorage.getItem('ocrResults') || '{}');
-      for (const [messageId, data] of Object.entries(existingResults)) {
-        if (!ocrResultsStore.has(messageId)) {
-          results.push(data);
-        }
-      }
-    } catch (storageError) {
-      console.warn('[OCR Service] Could not read all results from sessionStorage:', storageError);
-    }
-  }
-
-  return results.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 }
 
 /**
@@ -153,9 +165,12 @@ export function buildOCRContextForChat(currentMessageId) {
  * Clear OCR results (for cleanup)
  */
 export function clearOCRResults() {
-  ocrResultsStore.clear();
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    sessionStorage.removeItem('ocrResults');
+  try {
+    // Get the OCR storage from the container
+    const ocrStorage = container.resolve('ocrStorage');
+    ocrStorage.clear();
+  } catch (error) {
+    console.error('[OCR Service] Error clearing OCR results:', error);
   }
 }
 
@@ -163,17 +178,10 @@ export function clearOCRResults() {
  * Initialize OCR service (load existing results from storage)
  */
 export function initializeOCRService() {
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const existingResults = JSON.parse(sessionStorage.getItem('ocrResults') || '{}');
-      for (const [messageId, data] of Object.entries(existingResults)) {
-        ocrResultsStore.set(messageId, data);
-      }
-      console.log(
-        `[OCR Service] Loaded ${Object.keys(existingResults).length} OCR results from storage`
-      );
-    } catch (storageError) {
-      console.warn('[OCR Service] Could not load from sessionStorage:', storageError);
-    }
+  try {
+    // The SessionStorageOCRResultStorage already initializes from storage in its constructor
+    console.log('[OCR Service] OCR service initialized');
+  } catch (error) {
+    console.error('[OCR Service] Error initializing OCR service:', error);
   }
 }
