@@ -1,6 +1,8 @@
 import { addMessage, updateMessage, messages } from './stores';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
+import { mode, subject, activity } from '$lib/stores/ui';
+import { buildSystemPrompt } from '$lib/stores/prompt';
 import { setLoading, setError } from '$lib/stores/app';
 import { processDocumentInClient } from '$lib/modules/document/ClientDocumentProcessor';
 import { container } from '$lib/shared/di/container';
@@ -24,9 +26,20 @@ export async function sendMessage(content, images = [], sessionId = null, provid
 
     setLoading(true);
 
+    const meta = {
+      mode: get(mode),
+      subject: get(subject) || undefined,
+      activity: get(activity) || undefined
+    };
+    const system = buildSystemPrompt({
+      mode: meta.mode,
+      subject: meta.subject,
+      activity: meta.activity
+    });
+
     // Get session storage adapter if available
-    const sessionStorageAdapter = container.has('sessionStorageAdapter') 
-      ? container.resolve('sessionStorageAdapter') 
+    const sessionStorageAdapter = container.has('sessionStorageAdapter')
+      ? container.resolve('sessionStorageAdapter')
       : null;
 
     // If there are images, process them
@@ -106,7 +119,10 @@ export async function sendMessage(content, images = [], sessionId = null, provid
         const sessionFactory = container.resolve('sessionFactory');
         const session = sessionFactory.getOrCreateSession(sessionId);
         sessionContext = session.getContext();
-        console.log(`[Session] Including context in API request for image message:`, sessionContext);
+        console.log(
+          `[Session] Including context in API request for image message:`,
+          sessionContext
+        );
       }
 
       const requestBody = {
@@ -115,7 +131,9 @@ export async function sendMessage(content, images = [], sessionId = null, provid
         recognizedText, // Send the already processed text
         language: get(selectedLanguage),
         sessionContext, // Include session context in the request
-        provider // Include provider selection if specified
+        provider, // Include provider selection if specified
+        meta,
+        system
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 
@@ -151,15 +169,11 @@ export async function sendMessage(content, images = [], sessionId = null, provid
       if (sessionStorageAdapter && sessionId) {
         console.log(`[Session] Storing conversation in session ${sessionId}`);
         // Store user message
-        sessionStorageAdapter.handleUserMessage(
-          content,
-          sessionId,
-          async (message, context) => {
-            console.log(`[Session] Generating response for message: ${message}`);
-            console.log(`[Session] Using context:`, context);
-            return data.response;
-          }
-        );
+        sessionStorageAdapter.handleUserMessage(content, sessionId, async (message, context) => {
+          console.log(`[Session] Generating response for message: ${message}`);
+          console.log(`[Session] Using context:`, context);
+          return data.response;
+        });
       }
 
       // If OCR text was returned, update the original message with it
@@ -206,7 +220,9 @@ export async function sendMessage(content, images = [], sessionId = null, provid
           images: [],
           language: get(selectedLanguage),
           sessionContext, // Include session context in the request
-          provider // Include provider selection if specified
+          provider, // Include provider selection if specified
+          meta,
+          system
         })
       });
 
@@ -223,15 +239,11 @@ export async function sendMessage(content, images = [], sessionId = null, provid
       if (sessionStorageAdapter && sessionId) {
         console.log(`[Session] Storing conversation in session ${sessionId}`);
         // Store user message
-        sessionStorageAdapter.handleUserMessage(
-          content,
-          sessionId,
-          async (message, context) => {
-            console.log(`[Session] Generating response for message: ${message}`);
-            console.log(`[Session] Using context:`, context);
-            return data.response;
-          }
-        );
+        sessionStorageAdapter.handleUserMessage(content, sessionId, async (message, context) => {
+          console.log(`[Session] Generating response for message: ${message}`);
+          console.log(`[Session] Using context:`, context);
+          return data.response;
+        });
       }
 
       return true;
@@ -265,8 +277,8 @@ export async function getChatHistory(sessionId = null) {
 
     // If sessionId is provided and session storage adapter is available, get history from session
     if (sessionId) {
-      const sessionStorageAdapter = container.has('sessionStorageAdapter') 
-        ? container.resolve('sessionStorageAdapter') 
+      const sessionStorageAdapter = container.has('sessionStorageAdapter')
+        ? container.resolve('sessionStorageAdapter')
         : null;
 
       if (sessionStorageAdapter) {
@@ -278,7 +290,7 @@ export async function getChatHistory(sessionId = null) {
         if (context && context.history && context.history.length > 0) {
           console.log(`[Session] Found ${context.history.length} messages in session history`);
           // Convert session history format to app format
-          return context.history.map(entry => ({
+          return context.history.map((entry) => ({
             id: entry.timestamp,
             type: entry.role === 'user' ? 'user' : 'tutor',
             content: entry.content,

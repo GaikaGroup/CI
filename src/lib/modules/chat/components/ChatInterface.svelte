@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { MessageCircle, Mic, Globe, RotateCcw, Server } from 'lucide-svelte';
+  import { MessageCircle, Mic, Globe, RotateCcw } from 'lucide-svelte';
   import {
     chatMode,
     messages,
@@ -27,6 +27,7 @@
   import Button from '$shared/components/Button.svelte';
   import { browser } from '$app/environment';
 
+  export let showModeToggle = true;
   // Session ID for maintaining conversation context
   let sessionId;
 
@@ -35,7 +36,6 @@
   // Provider selection
   let selectedProvider = null;
   let availableProviders = [];
-  let showProviderSelector = false;
 
   // Get available providers on mount
   onMount(async () => {
@@ -182,7 +182,7 @@
       // Load chat history from session if available
       if (sessionId && $messages.length === 0) {
         import('../services').then(({ getChatHistory }) => {
-          getChatHistory(sessionId).then(history => {
+          getChatHistory(sessionId).then((history) => {
             if (history && history.length > 0) {
               console.log('Loaded chat history from session:', history.length, 'messages');
               // Replace messages store with history
@@ -360,51 +360,53 @@
 </script>
 
 <div class="max-w-4xl mx-auto">
-  <!-- Mode Toggle -->
-  <div class="flex justify-center mb-8">
-    <div
-      class="{$darkMode
-        ? 'bg-gray-800 border-gray-700'
-        : 'bg-white border-stone-200'} rounded-xl p-2 shadow-sm border"
-    >
-      <Button
-        on:click={() => {
-          $chatMode = CHAT_MODES.TEXT;
-          setVoiceModeActive(false);
-          console.log('Switched to text mode, voice mode active:', false);
-        }}
-        variant={$chatMode === CHAT_MODES.TEXT ? 'primary' : 'text'}
-        class="px-6 py-3 rounded-lg font-medium transition-all {$chatMode === CHAT_MODES.TEXT
-          ? 'bg-amber-600 text-white shadow-sm'
-          : $darkMode
-            ? 'text-gray-300 hover:text-amber-400 hover:bg-gray-700'
-            : 'text-stone-600 hover:text-amber-700 hover:bg-stone-50'}"
+  {#if showModeToggle}
+    <!-- Mode Toggle -->
+    <div class="flex justify-center mb-8">
+      <div
+        class="{$darkMode
+          ? 'bg-gray-800 border-gray-700'
+          : 'bg-white border-stone-200'} rounded-xl p-2 shadow-sm border"
       >
-        <div class="flex items-center">
-          <MessageCircle class="w-5 h-5 mr-2" />
-          <span>{getTranslation($selectedLanguage, 'textChat')}</span>
-        </div>
-      </Button>
-      <Button
-        on:click={() => {
-          $chatMode = CHAT_MODES.VOICE;
-          setVoiceModeActive(true);
-          console.log('Switched to voice mode, voice mode active:', true);
-        }}
-        variant={$chatMode === CHAT_MODES.VOICE ? 'primary' : 'text'}
-        class="px-6 py-3 rounded-lg font-medium transition-all {$chatMode === CHAT_MODES.VOICE
-          ? 'bg-amber-600 text-white shadow-sm'
-          : $darkMode
-            ? 'text-gray-300 hover:text-amber-400 hover:bg-gray-700'
-            : 'text-stone-600 hover:text-amber-700 hover:bg-stone-50'}"
-      >
-        <div class="flex items-center">
-          <Mic class="w-5 h-5 mr-2" />
-          <span>{getTranslation($selectedLanguage, 'voiceChat')}</span>
-        </div>
-      </Button>
+        <Button
+          on:click={() => {
+            $chatMode = CHAT_MODES.TEXT;
+            setVoiceModeActive(false);
+            console.log('Switched to text mode, voice mode active:', false);
+          }}
+          variant={$chatMode === CHAT_MODES.TEXT ? 'primary' : 'text'}
+          class="px-6 py-3 rounded-lg font-medium transition-all {$chatMode === CHAT_MODES.TEXT
+            ? 'bg-amber-600 text-white shadow-sm'
+            : $darkMode
+              ? 'text-gray-300 hover:text-amber-400 hover:bg-gray-700'
+              : 'text-stone-600 hover:text-amber-700 hover:bg-stone-50'}"
+        >
+          <div class="flex items-center">
+            <MessageCircle class="w-5 h-5 mr-2" />
+            <span>{getTranslation($selectedLanguage, 'textChat')}</span>
+          </div>
+        </Button>
+        <Button
+          on:click={() => {
+            $chatMode = CHAT_MODES.VOICE;
+            setVoiceModeActive(true);
+            console.log('Switched to voice mode, voice mode active:', true);
+          }}
+          variant={$chatMode === CHAT_MODES.VOICE ? 'primary' : 'text'}
+          class="px-6 py-3 rounded-lg font-medium transition-all {$chatMode === CHAT_MODES.VOICE
+            ? 'bg-amber-600 text-white shadow-sm'
+            : $darkMode
+              ? 'text-gray-300 hover:text-amber-400 hover:bg-gray-700'
+              : 'text-stone-600 hover:text-amber-700 hover:bg-stone-50'}"
+        >
+          <div class="flex items-center">
+            <Mic class="w-5 h-5 mr-2" />
+            <span>{getTranslation($selectedLanguage, 'voiceChat')}</span>
+          </div>
+        </Button>
+      </div>
     </div>
-  </div>
+  {/if}
 
   <!-- Chat Interface -->
   <div
