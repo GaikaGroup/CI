@@ -4,7 +4,8 @@
   import { selectedLanguage } from '$modules/i18n/stores';
   import { darkMode } from '$modules/theme/stores';
   import { MESSAGE_TYPES } from '$shared/utils/constants';
-  import { Loader, CheckCircle } from 'lucide-svelte';
+  import { Loader, CheckCircle, Server } from 'lucide-svelte';
+  import { LLM_FEATURES } from '$lib/config/llm';
 
   // No props needed anymore, using stores instead
 
@@ -90,6 +91,20 @@
 
     return true;
   }
+
+  // Check if provider information should be displayed
+  function shouldShowProviderInfo() {
+    // Show provider info in development mode or if provider switching is enabled
+    return import.meta.env.DEV || LLM_FEATURES.ENABLE_PROVIDER_SWITCHING;
+  }
+
+  // Get provider display name
+  function getProviderDisplayName(providerName) {
+    if (!providerName) return '';
+
+    // Capitalize first letter
+    return providerName.charAt(0).toUpperCase() + providerName.slice(1);
+  }
 </script>
 
 <div class="h-96 overflow-y-auto p-6 space-y-4" bind:this={messagesContainer}>
@@ -162,8 +177,8 @@
             <!-- No OCR content -->
           {/if}
 
-          <p
-            class="text-xs mt-1 {message.type === MESSAGE_TYPES.USER
+          <div
+            class="flex items-center justify-between text-xs mt-1 {message.type === MESSAGE_TYPES.USER
               ? 'text-amber-200'
               : message.type === MESSAGE_TYPES.SYSTEM
                 ? $darkMode
@@ -173,8 +188,18 @@
                   ? 'text-gray-400'
                   : 'text-stone-500'}"
           >
-            {message.timestamp}
-          </p>
+            <span>{message.timestamp}</span>
+
+            {#if message.type === MESSAGE_TYPES.TUTOR && message.provider && shouldShowProviderInfo()}
+              <div class="flex items-center ml-2">
+                <Server class="w-3 h-3 mr-1" />
+                <span>{getProviderDisplayName(message.provider.name)}</span>
+                {#if message.provider.model}
+                  <span class="ml-1 opacity-75">({message.provider.model})</span>
+                {/if}
+              </div>
+            {/if}
+          </div>
         </div>
       </div>
     {/each}

@@ -11,12 +11,24 @@
     sendTranscribedText,
     initAudioContext,
     isSpeaking,
-    currentEmotion
+    currentEmotion,
+    isWaitingPhraseActive,
+    getAudioQueueStatus
   } from '../voiceServices';
 
   const dispatch = createEventDispatcher();
   let fileInput;
   let isProcessing = false;
+  let waitingPhraseStatus = false;
+  let audioQueueInfo = null;
+
+  // Update waiting phrase status periodically
+  let statusUpdateInterval;
+
+  function updateWaitingPhraseStatus() {
+    waitingPhraseStatus = isWaitingPhraseActive();
+    audioQueueInfo = getAudioQueueStatus();
+  }
 
   // Custom face positions for the cat avatar (percentages of image dimensions)
   // These are optimized for the cat.png image
@@ -43,6 +55,10 @@
     // Initialize audio context on component mount
     initAudioContext();
 
+    // Start monitoring waiting phrase status
+    updateWaitingPhraseStatus();
+    statusUpdateInterval = setInterval(updateWaitingPhraseStatus, 200); // Update every 200ms
+
     // Add keyboard shortcut for toggling debug mode (Ctrl+Shift+D)
     // This is only for development purposes
     const handleKeyDown = (e) => {
@@ -56,6 +72,9 @@
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
+      }
     };
   });
 
@@ -74,12 +93,21 @@
       try {
         const transcription = await stopRecording();
         if (transcription) {
+          // Update status immediately to show processing
+          updateWaitingPhraseStatus();
+          
+          // Send transcribed text (this will trigger waiting phrases)
           await sendTranscribedText(transcription);
+          
+          // Update status after processing
+          updateWaitingPhraseStatus();
         }
       } catch (error) {
         console.error('Error processing voice:', error);
       } finally {
         isProcessing = false;
+        // Final status update
+        updateWaitingPhraseStatus();
       }
     }
   }
@@ -112,6 +140,21 @@
       {getTranslation($selectedLanguage, 'voiceChatMode')}
     </h2>
     <p class="text-amber-100">{getTranslation($selectedLanguage, 'talkToTutor')}</p>
+    
+    <!-- Waiting phrase status indicator -->
+    {#if waitingPhraseStatus && audioQueueInfo}
+      <div class="mt-3 flex justify-center">
+        <div class="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span>{getTranslation($selectedLanguage, 'thinking') || 'Thinking...'}</span>
+            {#if audioQueueInfo.waitingPhrases > 0}
+              <span class="text-xs opacity-75">({audioQueueInfo.waitingPhrases} phrases)</span>
+            {/if}
+          </div>
+        </div>
+      </div>
+    {/if}
   </div>
 
   <!-- Selected Files Preview -->
@@ -197,7 +240,13 @@
       {#if $isRecording}
         {getTranslation($selectedLanguage, 'recording')}
       {:else if isProcessing}
-        {getTranslation($selectedLanguage, 'processing')}
+        {#if waitingPhraseStatus}
+          <span class="text-amber-600 dark:text-amber-400">
+            {getTranslation($selectedLanguage, 'thinking') || 'Thinking...'}
+          </span>
+        {:else}
+          {getTranslation($selectedLanguage, 'processing')}
+        {/if}
       {:else}
         {getTranslation($selectedLanguage, 'holdToRecord')}
       {/if}

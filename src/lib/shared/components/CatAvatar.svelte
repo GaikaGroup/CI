@@ -80,19 +80,19 @@
   // Track frequency of mouth position changes to detect and prevent rapid oscillation
   let mouthPositionCounts = {};
 
-  // Size classes (reusing from Avatar.svelte but doubled in size)
+  // Size classes (enlarged for better visibility)
   const sizeClasses = {
     sm: {
-      outer: 'w-20 h-20',
-      inner: 'w-16 h-16'
+      outer: 'w-24 h-24',
+      inner: 'w-24 h-24'
     },
     md: {
-      outer: 'w-32 h-32',
-      inner: 'w-28 h-28'
+      outer: 'w-40 h-40',
+      inner: 'w-40 h-40'
     },
     lg: {
-      outer: 'w-64 h-64',
-      inner: 'w-56 h-56'
+      outer: 'w-80 h-80',
+      inner: 'w-80 h-80'
     }
   };
 
@@ -502,20 +502,19 @@
 </script>
 
 <div
-  class="{sizeClasses[size]
-    .outer} rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg relative"
+  class="{sizeClasses[size].outer} flex items-center justify-center relative"
 >
-  <div class="{sizeClasses[size].inner} rounded-full overflow-hidden relative">
+  <div class="{sizeClasses[size].inner} overflow-hidden relative">
     <!-- Base emotion image -->
-    <img src={currentCatImage} alt="Cat avatar" class="w-full h-full object-cover" />
+    <img src={currentCatImage} alt="Cat avatar" class="w-full h-full object-cover drop-shadow-lg filter" style="filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));" />
 
     <!-- Mouth overlay for lip sync with CSS transition for smoother changes -->
     {#if currentMouthImage}
       <img
         src={currentMouthImage}
         alt="Cat mouth"
-        class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-100"
-        style="opacity: 1;"
+        class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-100 drop-shadow-lg filter"
+        style="opacity: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));"
       />
     {/if}
 

@@ -1,0 +1,255 @@
+{
+  "$schema": "./waitingPhrases.schema.json",
+  "version": "1.0.0",
+  "description": "Waiting phrases configuration for voice chat interactions",
+  "lastUpdated": "2025-01-09",
+  "phrases": {
+    "general": {
+      "en": [
+        "Fascinating question! I need a moment to formulate my response...",
+        "Ooh, this is a good one! Let me chew on this for a sec... I'm piecing together some really cool connections that'll make this worth the wait.",
+        "You've got me thinking hard on this one! I'm digging through everything I know to make sure I don't miss anything important.",
+        "Hang on, this deserves the full treatment... I'm sorting through a bunch of different angles so I can give you something really solid.",
+        "Nice question! I'm taking a beat to really think this through properly instead of just throwing something quick at you.",
+        "You've stumped me in the best way! I'm working through this step by step because I want to make sure I nail it for you.",
+        "Hold up, let me really dig into this one... There's more to unpack here than meets the eye, and I want to get it right.",
+        "This is the kind of question I love! Give me a moment to connect all the pieces - I've got some interesting stuff brewing up here.",
+        "You're making me work for it, and I'm here for it! I'm taking my time to make sure I give you something actually useful, not just quick and dirty.",
+        "Alright, you've got my gears turning... I'm running through this from a few different directions to make sure I cover all the bases.",
+        "This one's got layers! I'm taking a minute to really break it down properly because you deserve better than a half-baked answer."
+      ],
+      "ru": [
+        "Позвольте мне подумать об этом...",
+        "Дайте мне момент, чтобы обработать это...",
+        "Хм, интересный вопрос...",
+        "Мне нужно тщательно это рассмотреть...",
+        "Ого, это интересный вопрос! Дай-ка я над этим покумекаю... Тут такие классные связи вырисовываются, что стоит подождать.",
+        "Ты меня реально заставил задуматься! Перерываю все, что знаю, чтобы ничего важного не упустить.",
+        "Подожди, это заслуживает серьезного подхода... Разбираю кучу разных углов зрения, чтобы дать тебе что-то реально толковое.",
+        "Классный вопрос! Беру паузу, чтобы как следует все обдумать, а не выдавать первое, что в голову пришло.",
+        "Ты меня здорово озадачил! Разбираю по шагам, потому что хочу точно попасть в яблочко.",
+        "Стоп, дай-ка я в это углублюсь... Тут больше нюансов, чем кажется на первый взгляд, и я хочу все правильно разложить.",
+        "Обожаю такие вопросы! Дай минутку связать все кусочки - тут такая интересная штука вырисовывается.",
+        "Заставляешь меня попотеть, и мне это нравится! Не тороплюсь, чтобы дать тебе что-то реально полезное, а не абы как.",
+        "Ладно, ты запустил мои мозги... Прогоняю это с разных сторон, чтобы ничего не упустить.",
+        "Тут много слоев! Беру минутку, чтобы все как следует разобрать, потому что ты заслуживаешь не сырой ответ."
+      ],
+      "es": [
+        "¡Uy, esta está buena! Déjame masticar esto un ratito... Estoy conectando cosas súper interesantes que van a valer la pena.",
+        "¡Me tienes pensando en serio con esta! Estoy rebuscando todo lo que sé para no dejarme nada importante.",
+        "Espérate, esto se merece el tratamiento completo... Estoy revisando un montón de enfoques diferentes para darte algo realmente sólido.",
+        "¡Buena pregunta! Me tomo un momento para pensarlo bien en lugar de soltarte cualquier cosa rápida.",
+        "¡Me has dejado pensando de la mejor manera! Lo estoy trabajando paso a paso porque quiero clavártela perfecta.",
+        "Para, déjame profundizar en esta... Hay más que desentrañar de lo que parece a simple vista, y quiero hacerlo bien.",
+        "¡Este es el tipo de pregunta que me encanta! Dame un momento para conectar todas las piezas - tengo algo interesante cocinándose aquí.",
+        "Me estás haciendo trabajar, ¡y me gusta! Me tomo mi tiempo para darte algo realmente útil, no algo rápido y chapucero.",
+        "Bueno, me tienes los engranajes girando... Lo estoy viendo desde varias direcciones para asegurarme de cubrir todas las bases.",
+        "¡Esta tiene capas! Me tomo un minuto para desglosarla bien porque te mereces algo mejor que una respuesta a medias."
+      ],
+      "fr": [
+        "Laissez-moi réfléchir à cela...",
+        "Donnez-moi un moment pour traiter cela...",
+        "Hmm, question intéressante...",
+        "Je dois considérer cela attentivement...",
+        "Laissez-moi rassembler mes pensées...",
+        "Un moment s'il vous plaît...",
+        "Traitement de votre demande...",
+        "Analyse de votre question...",
+        "Je travaille là-dessus...",
+        "Juste une seconde..."
+      ],
+      "de": [
+        "Lassen Sie mich darüber nachdenken...",
+        "Geben Sie mir einen Moment, um das zu verarbeiten...",
+        "Hmm, interessante Frage...",
+        "Ich muss das sorgfältig überdenken...",
+        "Lassen Sie mich meine Gedanken sammeln...",
+        "Einen Moment bitte...",
+        "Verarbeite Ihre Anfrage...",
+        "Analysiere Ihre Frage...",
+        "Arbeite daran...",
+        "Nur eine Sekunde..."
+      ]
+    },
+    "math": {
+      "en": [
+        "Let me work through this calculation...",
+        "Mathematical problems require careful thought...",
+        "I need to compute this step by step...",
+        "Let me crunch these numbers for you...",
+        "Calculating this problem...",
+        "Working on the math...",
+        "Let me solve this step by step...",
+        "Processing the mathematical logic...",
+        "Computing the solution...",
+        "Analyzing the numerical data..."
+      ],
+      "ru": [
+        "Позвольте мне проработать этот расчет...",
+        "Математические задачи требуют внимательного размышления...",
+        "Мне нужно вычислить это пошагово...",
+        "Позвольте мне обработать эти числа для вас...",
+        "Вычисляю эту задачу...",
+        "Работаю над математикой...",
+        "Позвольте мне решить это пошагово...",
+        "Обрабатываю математическую логику...",
+        "Вычисляю решение...",
+        "Анализирую числовые данные..."
+      ],
+      "es": [
+        "Déjame resolver este cálculo...",
+        "Los problemas matemáticos requieren un pensamiento cuidadoso...",
+        "Necesito calcular esto paso a paso...",
+        "Déjame procesar estos números para ti...",
+        "Calculando este problema...",
+        "Trabajando en las matemáticas...",
+        "Déjame resolver esto paso a paso...",
+        "Procesando la lógica matemática...",
+        "Computando la solución...",
+        "Analizando los datos numéricos..."
+      ],
+      "fr": [
+        "Laissez-moi résoudre ce calcul...",
+        "Les problèmes mathématiques nécessitent une réflexion attentive...",
+        "Je dois calculer cela étape par étape...",
+        "Laissez-moi traiter ces nombres pour vous...",
+        "Calcul de ce problème...",
+        "Travail sur les mathématiques..."
+      ],
+      "de": [
+        "Lassen Sie mich diese Berechnung durcharbeiten...",
+        "Mathematische Probleme erfordern sorgfältiges Nachdenken...",
+        "Ich muss das Schritt für Schritt berechnen...",
+        "Lassen Sie mich diese Zahlen für Sie verarbeiten...",
+        "Berechne dieses Problem...",
+        "Arbeite an der Mathematik..."
+      ]
+    },
+    "creative": {
+      "en": [
+        "Creative questions need creative thinking...",
+        "Let me tap into my imagination for this one...",
+        "This calls for some artistic consideration...",
+        "I need to think outside the box here...",
+        "Let me think creatively...",
+        "Exploring creative possibilities...",
+        "Generating some ideas...",
+        "Brainstorming creative solutions...",
+        "Thinking imaginatively about this...",
+        "Let me approach this creatively..."
+      ],
+      "ru": [
+        "Творческие вопросы требуют творческого мышления...",
+        "Позвольте мне задействовать свое воображение для этого...",
+        "Это требует некоторого художественного рассмотрения...",
+        "Мне нужно мыслить нестандартно здесь...",
+        "Позвольте мне подумать творчески...",
+        "Исследую творческие возможности...",
+        "Генерирую некоторые идеи...",
+        "Мозговой штурм творческих решений...",
+        "Думаю об этом творчески...",
+        "Позвольте мне подойти к этому творчески..."
+      ],
+      "es": [
+        "Las preguntas creativas necesitan pensamiento creativo...",
+        "Déjame aprovechar mi imaginación para esto...",
+        "Esto requiere consideración artística...",
+        "Necesito pensar fuera de la caja aquí...",
+        "Déjame pensar creativamente...",
+        "Explorando posibilidades creativas...",
+        "Generando algunas ideas...",
+        "Lluvia de ideas para soluciones creativas...",
+        "Pensando imaginativamente sobre esto...",
+        "Déjame abordar esto creativamente..."
+      ],
+      "fr": [
+        "Les questions créatives nécessitent une pensée créative...",
+        "Laissez-moi puiser dans mon imagination pour celle-ci...",
+        "Cela demande une considération artistique...",
+        "Je dois sortir des sentiers battus ici...",
+        "Laissez-moi penser de manière créative...",
+        "Explorer les possibilités créatives..."
+      ],
+      "de": [
+        "Kreative Fragen brauchen kreatives Denken...",
+        "Lassen Sie mich meine Vorstellungskraft für diese nutzen...",
+        "Das erfordert künstlerische Überlegung...",
+        "Ich muss hier über den Tellerrand hinausdenken...",
+        "Lassen Sie mich kreativ denken...",
+        "Erforsche kreative Möglichkeiten..."
+      ]
+    },
+    "science": {
+      "en": [
+        "Let me analyze the scientific aspects...",
+        "Scientific questions require methodical thinking...",
+        "I need to consider the evidence carefully...",
+        "Let me examine this from a scientific perspective...",
+        "Processing the scientific data...",
+        "Analyzing the research implications..."
+      ],
+      "ru": [
+        "Позвольте мне проанализировать научные аспекты...",
+        "Научные вопросы требуют методического мышления...",
+        "Мне нужно тщательно рассмотреть доказательства...",
+        "Позвольте мне рассмотреть это с научной точки зрения...",
+        "Обрабатываю научные данные...",
+        "Анализирую исследовательские последствия..."
+      ],
+      "es": [
+        "Déjame analizar los aspectos científicos...",
+        "Las preguntas científicas requieren pensamiento metódico...",
+        "Necesito considerar la evidencia cuidadosamente...",
+        "Déjame examinar esto desde una perspectiva científica...",
+        "Procesando los datos científicos...",
+        "Analizando las implicaciones de la investigación..."
+      ]
+    },
+    "language": {
+      "en": [
+        "Let me consider the linguistic aspects...",
+        "Language questions require careful analysis...",
+        "I need to think about the grammar and usage...",
+        "Let me examine the language structure...",
+        "Processing the linguistic patterns...",
+        "Analyzing the language rules..."
+      ],
+      "ru": [
+        "Позвольте мне рассмотреть лингвистические аспекты...",
+        "Языковые вопросы требуют тщательного анализа...",
+        "Мне нужно подумать о грамматике и использовании...",
+        "Позвольте мне изучить структуру языка...",
+        "Обрабатываю лингвистические паттерны...",
+        "Анализирую языковые правила..."
+      ],
+      "es": [
+        "Déjame considerar los aspectos lingüísticos...",
+        "Las preguntas de idioma requieren análisis cuidadoso...",
+        "Necesito pensar en la gramática y el uso...",
+        "Déjame examinar la estructura del idioma...",
+        "Procesando los patrones lingüísticos...",
+        "Analizando las reglas del idioma..."
+      ]
+    }
+  },
+  "settings": {
+    "avoidConsecutiveRepeats": true,
+    "maxPhraseLength": 10,
+    "fallbackToTranslation": true,
+    "defaultLanguage": "en",
+    "maxHistorySize": 5,
+    "enableContextualPhrases": true,
+    "cacheTimeout": 300000,
+    "translationTimeout": 5000,
+    "maxCacheSize": 100,
+    "enableLogging": true,
+    "logLevel": "info"
+  },
+  "metadata": {
+    "supportedLanguages": ["en", "ru", "es", "fr", "de"],
+    "categories": ["general", "math", "creative", "science", "language"],
+    "totalPhrases": 125,
+    "contributors": ["AI Tutor Team"],
+    "license": "MIT"
+  }
+}

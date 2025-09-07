@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { MessageCircle, Mic, Globe, RotateCcw } from 'lucide-svelte';
+  import { MessageCircle, Mic, Globe, RotateCcw, Server } from 'lucide-svelte';
   import {
     chatMode,
     messages,
@@ -19,6 +19,7 @@
   import { sendMessageWithOCRContext } from '../enhancedServices';
   import { setVoiceModeActive } from '../voiceServices';
   import { container } from '$lib/shared/di/container';
+  import { LLM_FEATURES } from '$lib/config/llm';
   import LanguageSelector from '$modules/i18n/components/LanguageSelector.svelte';
   import MessageList from './MessageList.svelte';
   import MessageInput from './MessageInput.svelte';
@@ -30,6 +31,25 @@
   let sessionId;
 
   let showLanguageSelector = false;
+
+  // Provider selection
+  let selectedProvider = null;
+  let availableProviders = [];
+  let showProviderSelector = false;
+
+  // Get available providers on mount
+  onMount(async () => {
+    if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && browser) {
+      try {
+        const providerManager = container.resolve('llmProviderManager');
+        availableProviders = providerManager.listProviders();
+        selectedProvider = providerManager.defaultProvider;
+        console.log('Available LLM providers:', availableProviders);
+      } catch (error) {
+        console.error('Error getting available providers:', error);
+      }
+    }
+  });
 
   // Initialize chat when language is selected
   $: if ($selectedLanguage && $messages.length === 0) {
@@ -69,10 +89,22 @@
       let result;
       if (sessionId) {
         console.log('Processing images with session ID:', sessionId);
-        result = await sendMessage(messageContent, images, sessionId);
+        // Pass selected provider if provider switching is enabled
+        if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
+          console.log(`Using selected provider: ${selectedProvider}`);
+          result = await sendMessage(messageContent, images, sessionId, selectedProvider);
+        } else {
+          result = await sendMessage(messageContent, images, sessionId);
+        }
       } else {
         console.log('Processing images without session ID');
-        result = await sendMessageWithOCRContext(messageContent, images);
+        // Pass selected provider if provider switching is enabled
+        if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
+          console.log(`Using selected provider: ${selectedProvider}`);
+          result = await sendMessage(messageContent, images, null, selectedProvider);
+        } else {
+          result = await sendMessageWithOCRContext(messageContent, images);
+        }
       }
 
       console.log('Image processing completed successfully with OCR context:', result);
@@ -291,10 +323,22 @@
         // Use the session ID when sending messages
         if (sessionId) {
           console.log('Sending message with session ID:', sessionId);
-          sendMessage(content, [], sessionId);
+          // Pass selected provider if provider switching is enabled
+          if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
+            console.log(`Using selected provider: ${selectedProvider}`);
+            sendMessage(content, [], sessionId, selectedProvider);
+          } else {
+            sendMessage(content, [], sessionId);
+          }
         } else {
           console.log('Sending message without session ID');
-          sendMessageWithOCRContext(content, []);
+          // Pass selected provider if provider switching is enabled
+          if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
+            console.log(`Using selected provider: ${selectedProvider}`);
+            sendMessage(content, [], null, selectedProvider);
+          } else {
+            sendMessageWithOCRContext(content, []);
+          }
         }
       });
     }

@@ -10,10 +10,11 @@ import { container } from '$lib/shared/di/container';
  * @param {string} content - The message content
  * @param {Array} images - Array of image URLs
  * @param {string} sessionId - Optional session ID for maintaining context
+ * @param {string} provider - Optional provider to use (openai or ollama)
  * @returns {Promise} - Promise that resolves when the message is sent
  */
 
-export async function sendMessage(content, images = [], sessionId = null) {
+export async function sendMessage(content, images = [], sessionId = null, provider = null) {
   try {
     console.log('sendMessage called with content:', content);
     console.log('sendMessage called with images:', images.length);
@@ -113,7 +114,8 @@ export async function sendMessage(content, images = [], sessionId = null) {
         images: validImageData,
         recognizedText, // Send the already processed text
         language: get(selectedLanguage),
-        sessionContext // Include session context in the request
+        sessionContext, // Include session context in the request
+        provider // Include provider selection if specified
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 
@@ -142,8 +144,8 @@ export async function sendMessage(content, images = [], sessionId = null) {
       }
 
       console.log('Adding AI response to chat');
-      // Add the AI's response to the chat
-      addMessage('tutor', data.response);
+      // Add the AI's response to the chat with provider info if available
+      addMessage('tutor', data.response, null, null, { provider: data.provider });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
@@ -203,7 +205,8 @@ export async function sendMessage(content, images = [], sessionId = null) {
           content,
           images: [],
           language: get(selectedLanguage),
-          sessionContext // Include session context in the request
+          sessionContext, // Include session context in the request
+          provider // Include provider selection if specified
         })
       });
 
@@ -213,8 +216,8 @@ export async function sendMessage(content, images = [], sessionId = null) {
 
       const data = await response.json();
 
-      // Add the AI's response to the chat
-      addMessage('tutor', data.response);
+      // Add the AI's response to the chat with provider info if available
+      addMessage('tutor', data.response, null, null, { provider: data.provider });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {

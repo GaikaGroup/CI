@@ -32,14 +32,12 @@
         <a href="/contacts" class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors">
           {getTranslation($selectedLanguage, 'contacts')}
         </a>
-        <LanguageSelector compact={true} bind:showSelector={showLanguageSelector} />
         <ThemeToggle />
         <AuthButton />
       </div>
 
       <!-- Mobile Menu Button -->
       <div class="md:hidden flex items-center space-x-2">
-        <LanguageSelector compact={true} bind:showSelector={showLanguageSelector} />
         <ThemeToggle />
         <button
           on:click={toggleMobileMenu}
@@ -73,7 +71,4 @@
     </div>
   {/if}
 
-  {#if showLanguageSelector}
-    <LanguageSelector bind:showSelector={showLanguageSelector} />
-  {/if}
 </nav>
