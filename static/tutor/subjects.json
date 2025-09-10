@@ -1,0 +1,8 @@
+[
+  {
+    "id": "dele-b1",
+    "displayName": "DELE B1 Tutor",
+    "promptPath": "/tutor/dele-b1/behavior-prompt.md",
+    "metadataPath": "/tutor/dele-b1/metadata.json"
+  }
+]
