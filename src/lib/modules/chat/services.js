@@ -178,7 +178,10 @@ export async function sendMessage(content, images = [], sessionId = null, provid
 
       console.log('Adding AI response to chat');
       // Add the AI's response to the chat with provider info if available
-      addMessage('tutor', data.response, null, null, { provider: data.provider });
+      addMessage('tutor', data.response, null, null, {
+        provider: data.provider,
+        source: imgRefs.length ? 'rag' : undefined
+      });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
@@ -248,7 +251,10 @@ export async function sendMessage(content, images = [], sessionId = null, provid
       const data = await response.json();
 
       // Add the AI's response to the chat with provider info if available
-      addMessage('tutor', data.response, null, null, { provider: data.provider });
+      addMessage('tutor', data.response, null, null, {
+        provider: data.provider,
+        source: references.length ? 'rag' : undefined
+      });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {

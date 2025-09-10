@@ -13,9 +13,9 @@ import { PgVectorStore } from '$lib/modules/rag/PgVectorStore';
 import fs from 'fs';
 import { POST } from '../../../src/routes/api/admin/subjects/[id]/materials/+server.js';
 vi.mock('$lib/modules/rag/ingest', () => ({
-  ingestSubjectMaterials: vi.fn()
+  ingestFile: vi.fn()
 }));
-import { ingestSubjectMaterials } from '$lib/modules/rag/ingest';
+import { ingestFile } from '$lib/modules/rag/ingest';
 
 describe('material upload/delete', () => {
   it('calls upsert on upload', async () => {
@@ -34,9 +34,12 @@ describe('material upload/delete', () => {
     const file = new File(['hello'], 'note.txt', { type: 'text/plain' });
     const form = new FormData();
     form.append('file', file);
-    await POST({ params: { id: 'math' }, request: { formData: async () => form } });
-    expect(ingestSubjectMaterials).toHaveBeenCalledWith('math');
+    process.env.CSRF_TOKEN = 'token';
+    const headers = new Headers({ 'x-csrf-token': 'token' });
+    await POST({ params: { id: 'math' }, request: { headers, formData: async () => form } });
+    expect(ingestFile).toHaveBeenCalledWith('math', 'note.txt');
     expect(fs.existsSync('static/tutor/math/materials/note.txt')).toBe(true);
     fs.rmSync('static/tutor/math', { recursive: true, force: true });
+    fs.rmSync('logs', { recursive: true, force: true });
   });
 });

@@ -178,7 +178,8 @@
           {/if}
 
           <div
-            class="flex items-center justify-between text-xs mt-1 {message.type === MESSAGE_TYPES.USER
+            class="flex items-center justify-between text-xs mt-1 {message.type ===
+            MESSAGE_TYPES.USER
               ? 'text-amber-200'
               : message.type === MESSAGE_TYPES.SYSTEM
                 ? $darkMode
@@ -188,7 +189,9 @@
                   ? 'text-gray-400'
                   : 'text-stone-500'}"
           >
-            <span>{message.timestamp}</span>
+            <span>{message.timestamp}</span>{#if message.source === 'rag'}<span
+                class="ml-2 text-purple-500">RAG</span
+              >{/if}
 
             {#if message.type === MESSAGE_TYPES.TUTOR && message.provider && shouldShowProviderInfo()}
               <div class="flex items-center ml-2">
