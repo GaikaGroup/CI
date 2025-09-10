@@ -28,19 +28,12 @@ export const FUN_PROMPTS = {
 export function buildSystemPrompt({ mode, subject, activity, references = [] }) {
   if (mode === 'learning' && subject) {
     const cfg = get(subjectConfig);
-    if (cfg && cfg.id === subject && cfg.prompt) {
-      let prompt = cfg.prompt;
+    const base = (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject];
+    if (base) {
       if (references.length) {
-        prompt += '\n\nReference:\n' + references.map((r) => r.text).join('\n---\n');
+        return base + '\n\nReference:\n' + references.map((r) => r.text).join('\n---\n');
       }
-      return prompt;
-    }
-    if (SUBJECT_PROMPTS[subject]) {
-      let prompt = SUBJECT_PROMPTS[subject];
-      if (references.length) {
-        prompt += '\n\nReference:\n' + references.map((r) => r.text).join('\n---\n');
-      }
-      return prompt;
+      return base;
     }
   }
   if (mode === 'fun' && activity && FUN_PROMPTS[activity]) {
