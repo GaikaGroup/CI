@@ -3,7 +3,16 @@ import fs from 'fs/promises';
 import path from 'path';
 import { ingestFile } from '$lib/modules/rag/ingest.js';
 
+async function logAdmin(message) {
+  await fs.appendFile('logs/admin.log', `[${new Date().toISOString()}] ${message}\n`);
+}
+
 export async function POST({ params, request }) {
+  const token = request.headers.get('x-csrf-token');
+  if (token !== process.env.CSRF_TOKEN) {
+    await logAdmin('CSRF failure on upload');
+    return json({ error: 'Forbidden' }, { status: 403 });
+  }
   const { id } = params;
 
   const form = await request.formData();
@@ -31,6 +40,7 @@ export async function POST({ params, request }) {
 
   // Ingest just the uploaded file (faster than re-ingesting all materials)
   await ingestFile(id, filename);
+  await logAdmin(`uploaded ${filename} to ${id}`);
 
   return json({ success: true, filename });
 }

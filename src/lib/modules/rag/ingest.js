@@ -1,4 +1,3 @@
-```ts
 import fs from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -6,10 +5,13 @@ import { chunkText, chunkMarkdown } from './chunk.js';
 import { EmbeddingService } from './EmbeddingService.js';
 import { PgVectorStore } from './PgVectorStore.js';
 
-const indexPath = (subjectId: string) =>
-  path.resolve(`static/tutor/${subjectId}/embeddings/index.json`);
+async function logIngest(message) {
+  await fs.appendFile('logs/ingest.log', `[${new Date().toISOString()}] ${message}\n`);
+}
 
-async function readIndex(subjectId: string): Promise<Record<string, string[]>> {
+const indexPath = (subjectId) => path.resolve(`static/tutor/${subjectId}/embeddings/index.json`);
+
+async function readIndex(subjectId) {
   try {
     const data = await fs.readFile(indexPath(subjectId), 'utf8');
     return JSON.parse(data);
@@ -18,12 +20,12 @@ async function readIndex(subjectId: string): Promise<Record<string, string[]>> {
   }
 }
 
-async function writeIndex(subjectId: string, index: Record<string, string[]>) {
+async function writeIndex(subjectId, index) {
   await fs.mkdir(path.dirname(indexPath(subjectId)), { recursive: true });
   await fs.writeFile(indexPath(subjectId), JSON.stringify(index, null, 2));
 }
 
-async function extractText(filePath: string): Promise<{ text: string; ext: string }> {
+async function extractText(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === '.pdf') {
     const data = await fs.readFile(filePath);
@@ -36,7 +38,7 @@ async function extractText(filePath: string): Promise<{ text: string; ext: strin
   return { text, ext };
 }
 
-export async function ingestFile(subjectId: string, filename: string) {
+export async function ingestFile(subjectId, filename) {
   const filePath = path.resolve(`static/tutor/${subjectId}/materials/${filename}`);
   const { text, ext } = await extractText(filePath);
 
@@ -48,18 +50,18 @@ export async function ingestFile(subjectId: string, filename: string) {
     ext === '.md'
       ? chunkMarkdown(text).map((chunk, idx) => ({
           id: randomUUID(),
-          embedding: null as number[] | null,
+          embedding: null,
           metadata: {
             source: filename,
             index: idx,
             heading: chunk.heading,
-            text: chunk.text,
-          },
+            text: chunk.text
+          }
         }))
       : chunkText(text).map((content, idx) => ({
           id: randomUUID(),
-          embedding: null as number[] | null,
-          metadata: { source: filename, index: idx, text: content },
+          embedding: null,
+          metadata: { source: filename, index: idx, text: content }
         }));
 
   for (const chunk of chunks) {
@@ -71,9 +73,10 @@ export async function ingestFile(subjectId: string, filename: string) {
   const idx = await readIndex(subjectId);
   idx[filename] = chunks.map((c) => c.id);
   await writeIndex(subjectId, idx);
+  await logIngest(`ingested ${filename} for ${subjectId}`);
 }
 
-export async function ingestSubjectMaterials(subjectId: string) {
+export async function ingestSubjectMaterials(subjectId) {
   const base = path.resolve(`static/tutor/${subjectId}/materials`);
   const files = await fs.readdir(base);
   // Ensure embeddings directory exists (for index.json)
@@ -87,13 +90,14 @@ export async function ingestSubjectMaterials(subjectId: string) {
     if (stat.isDirectory()) continue;
     await ingestFile(subjectId, file);
   }
+  await logIngest(`ingested subject ${subjectId}`);
 }
 
-export async function removeFile(subjectId: string, filename: string) {
+export async function removeFile(subjectId, filename) {
   const idx = await readIndex(subjectId);
   delete idx[filename];
   await writeIndex(subjectId, idx);
   const store = new PgVectorStore();
   await store.deleteByFile(subjectId, filename);
+  await logIngest(`removed ${filename} from ${subjectId}`);
 }
-```
