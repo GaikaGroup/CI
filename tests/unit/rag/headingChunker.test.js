@@ -12,14 +12,22 @@ describe('chunkByHeading', () => {
 });
 
 describe('chunkMarkdown', () => {
-  it('respects headings and overlap', () => {
-    const p1 = Array.from({ length: 10 }, (_, i) => `a${i}`).join(' ');
-    const p2 = Array.from({ length: 10 }, (_, i) => `b${i}`).join(' ');
+  it('preserves headings in all chunks', () => {
+    const p1 = Array.from({ length: 150 }, () => 'a').join(' ');
+    const p2 = Array.from({ length: 150 }, () => 'b').join(' ');
     const md = `# H1\n${p1}\n\n${p2}`;
-    const chunks = chunkMarkdown(md, 15, 5);
-    expect(chunks).toHaveLength(2);
-    expect(chunks[0].heading).toBe('H1');
-    expect(chunks[1].text.startsWith(p1)).toBe(true);
-    expect(chunks[1].text).toContain(p2);
+    const chunks = chunkMarkdown(md, 200, 50);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((c) => c.heading === 'H1')).toBe(true);
+  });
+
+  it('maintains 50 token overlap', () => {
+    const p1 = Array.from({ length: 150 }, () => 'a').join(' ');
+    const p2 = Array.from({ length: 150 }, () => 'b').join(' ');
+    const md = `# H1\n${p1}\n\n${p2}`;
+    const chunks = chunkMarkdown(md, 200, 50);
+    const firstWords = chunks[0].text.trim().split(/\s+/);
+    const secondWords = chunks[1].text.trim().split(/\s+/);
+    expect(firstWords.slice(-50)).toEqual(secondWords.slice(0, 50));
   });
 });
