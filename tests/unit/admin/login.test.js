@@ -27,6 +27,13 @@ describe('LocalAuthService login', () => {
     expect(localStorage.setItem).toHaveBeenCalled();
   });
 
+  it('logs in with ADMIN predefined credentials', async () => {
+    const svc = new LocalAuthService();
+    const res = await svc.login('ADMIN', 'Demo543');
+    expect(res.role).toBe('admin');
+    expect(localStorage.setItem).toHaveBeenCalled();
+  });
+
   it('fails with invalid credentials', async () => {
     const svc = new LocalAuthService();
     const res = await svc.login('bad', 'creds');

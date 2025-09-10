@@ -24,15 +24,15 @@ describe('LoginPage', () => {
 
     const { getByPlaceholderText, getByRole } = render(LoginPage);
 
-    await fireEvent.input(getByPlaceholderText('Email'), {
-      target: { value: 'admin@example.com' }
+    await fireEvent.input(getByPlaceholderText('Email or Username'), {
+      target: { value: 'ADMIN' }
     });
     await fireEvent.input(getByPlaceholderText('Password'), {
-      target: { value: 'password' }
+      target: { value: 'Demo543' }
     });
     await fireEvent.click(getByRole('button', { name: /Sign In/i }));
 
-    expect(login).toHaveBeenCalledWith('admin@example.com', 'password');
+    expect(login).toHaveBeenCalledWith('ADMIN', 'Demo543');
     await waitFor(() => {
       expect(goto).toHaveBeenCalledWith('/');
     });
