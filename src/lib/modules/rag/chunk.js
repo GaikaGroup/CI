@@ -12,3 +12,25 @@ export function chunkText(text, chunkSize = 500, overlap = 50) {
   }
   return chunks;
 }
+
+export function chunkByHeading(text) {
+  const lines = text.split(/\n/);
+  const chunks = [];
+  let currentHeading = '';
+  let buffer = [];
+  for (const line of lines) {
+    if (/^#+\s/.test(line)) {
+      if (buffer.length) {
+        chunks.push({ heading: currentHeading, text: buffer.join('\n').trim() });
+        buffer = [];
+      }
+      currentHeading = line.replace(/^#+\s*/, '').trim();
+    } else {
+      buffer.push(line);
+    }
+  }
+  if (buffer.length) {
+    chunks.push({ heading: currentHeading, text: buffer.join('\n').trim() });
+  }
+  return chunks;
+}
