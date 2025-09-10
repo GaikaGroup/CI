@@ -3,6 +3,7 @@ import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { mode, subject, activity } from '$lib/stores/ui';
 import { buildSystemPrompt } from '$lib/stores/prompt';
+import { RetrievalService } from '$lib/modules/rag/RetrievalService';
 import { setLoading, setError } from '$lib/stores/app';
 import { processDocumentInClient } from '$lib/modules/document/ClientDocumentProcessor';
 import { container } from '$lib/shared/di/container';
@@ -31,10 +32,14 @@ export async function sendMessage(content, images = [], sessionId = null, provid
       subject: get(subject) || undefined,
       activity: get(activity) || undefined
     };
+    const retrieval = new RetrievalService();
+    const references =
+      meta.mode === 'learning' && meta.subject ? await retrieval.search(meta.subject, content) : [];
     const system = buildSystemPrompt({
       mode: meta.mode,
       subject: meta.subject,
-      activity: meta.activity
+      activity: meta.activity,
+      references
     });
 
     // Get session storage adapter if available
@@ -124,6 +129,16 @@ export async function sendMessage(content, images = [], sessionId = null, provid
           sessionContext
         );
       }
+      const imgRefs =
+        meta.mode === 'learning' && meta.subject
+          ? await retrieval.search(meta.subject, content + '\n' + recognizedText)
+          : [];
+      const systemWithImg = buildSystemPrompt({
+        mode: meta.mode,
+        subject: meta.subject,
+        activity: meta.activity,
+        references: imgRefs
+      });
 
       const requestBody = {
         content,
@@ -133,7 +148,7 @@ export async function sendMessage(content, images = [], sessionId = null, provid
         sessionContext, // Include session context in the request
         provider, // Include provider selection if specified
         meta,
-        system
+        system: systemWithImg
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 

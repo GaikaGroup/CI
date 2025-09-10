@@ -25,18 +25,38 @@ export const FUN_PROMPTS = {
   stories: 'You tell very short, engaging micro-stories (<=120 words) with a positive tone.'
 };
 
-export function buildSystemPrompt({ mode, subject, activity }) {
+export function buildSystemPrompt({
+  mode,
+  subject,
+  activity,
+  references = []
+}: {
+  mode?: 'learning' | 'fun' | string;
+  subject?: string;
+  activity?: string;
+  references?: Array<string | { text?: string }>;
+}) {
   if (mode === 'learning' && subject) {
     const cfg = get(subjectConfig);
-    if (cfg && cfg.id === subject && cfg.prompt) {
-      return cfg.prompt;
-    }
-    if (SUBJECT_PROMPTS[subject]) {
-      return SUBJECT_PROMPTS[subject];
+    const base =
+      (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject];
+
+    if (base) {
+      if (references.length) {
+        const formatted = references
+          .map((r) => (typeof r === 'string' ? r : r?.text || ''))
+          .filter(Boolean)
+          .join('\n---\n');
+
+        return formatted ? `${base}\n\nReference:\n${formatted}` : base;
+      }
+      return base;
     }
   }
+
   if (mode === 'fun' && activity && FUN_PROMPTS[activity]) {
     return FUN_PROMPTS[activity];
   }
+
   return 'You are a helpful, multilingual tutor. Be clear, concise, and supportive.';
 }
