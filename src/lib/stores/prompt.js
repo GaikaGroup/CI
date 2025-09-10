@@ -11,6 +11,9 @@ export const SUBJECT_PROMPTS = {
     'You are a History tutor. Provide timeline, key causes/effects, and one primary-source style question.'
 };
 
+import { get } from 'svelte/store';
+import { subjectConfig } from './subject-config';
+
 export const FUN_PROMPTS = {
   anecdotes: 'You tell short, witty, family-friendly anecdotes. Keep it under 80 words.',
   motivation: 'You are a concise motivational coach. Be empathetic, 2-3 sentences max.',
@@ -22,9 +25,16 @@ export const FUN_PROMPTS = {
   stories: 'You tell very short, engaging micro-stories (<=120 words) with a positive tone.'
 };
 
-export function buildSystemPrompt({ mode, subject, activity }) {
-  if (mode === 'learning' && subject && SUBJECT_PROMPTS[subject]) {
-    return SUBJECT_PROMPTS[subject];
+export function buildSystemPrompt({ mode, subject, activity, references = [] }) {
+  if (mode === 'learning' && subject) {
+    const cfg = get(subjectConfig);
+    const base = (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject];
+    if (base) {
+      if (references.length) {
+        return base + '\n\nReference:\n' + references.map((r) => r.text).join('\n---\n');
+      }
+      return base;
+    }
   }
   if (mode === 'fun' && activity && FUN_PROMPTS[activity]) {
     return FUN_PROMPTS[activity];

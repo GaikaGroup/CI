@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import { addSystemMessage } from '$lib/modules/chat/stores';
+import { loadSubjectConfig } from './subject-config';
 import { selectedLanguage } from '$lib/modules/i18n/stores';
 import { getTranslation } from '$lib/modules/i18n/translations';
 
@@ -42,6 +43,7 @@ export function setChatType(value) {
 export function setSubject(value) {
   subject.set(value);
   if (value) {
+    loadSubjectConfig(value).catch((e) => console.error('Failed to load subject config', e));
     const lang = get(selectedLanguage);
     const subj = getTranslation(lang, `subjects.${value}`);
     const msg = getTranslation(lang, 'banner.switched.subject').replace('{subject}', subj);
