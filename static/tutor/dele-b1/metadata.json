@@ -1,0 +1,9 @@
+{
+  "quickCodes": {
+    "00": "menu",
+    "99": "help"
+  },
+  "materials": [
+    { "id": "present-simple", "filename": "present-simple.txt", "title": "Present Simple Guide" }
+  ]
+}

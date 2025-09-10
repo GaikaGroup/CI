@@ -51,6 +51,7 @@
     "face-api.js": "^0.22.2",
     "lucide-svelte": "^0.300.0",
     "pdfjs-dist": "^5.3.93",
+    "pg": "^8.16.3",
     "tesseract.js": "^5.0.3"
   }
 }
