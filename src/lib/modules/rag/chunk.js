@@ -34,3 +34,46 @@ export function chunkByHeading(text) {
   }
   return chunks;
 }
+
+export function chunkMarkdown(text, chunkSize = 500, overlap = 50) {
+  const sections = chunkByHeading(text);
+  const results = [];
+  for (const { heading, text: sectionText } of sections) {
+    const paragraphs = sectionText
+      .split(/\n\s*\n/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    let current = [];
+    let tokenCounts = [];
+    let tokensInChunk = 0;
+
+    for (const para of paragraphs) {
+      const tokens = para.split(/\s+/);
+      const count = tokens.length;
+
+      if (tokensInChunk + count > chunkSize && tokensInChunk > 0) {
+        results.push({ heading, text: current.join('\n\n') });
+
+        let overlapParas = [];
+        let overlapTokens = 0;
+        for (let i = current.length - 1; i >= 0 && overlapTokens < overlap; i--) {
+          overlapParas.unshift(current[i]);
+          overlapTokens += tokenCounts[i];
+        }
+        current = overlapParas.slice();
+        tokenCounts = overlapParas.map((p) => p.split(/\s+/).length);
+        tokensInChunk = overlapTokens;
+      }
+
+      current.push(para);
+      tokenCounts.push(count);
+      tokensInChunk += count;
+    }
+
+    if (current.length) {
+      results.push({ heading, text: current.join('\n\n') });
+    }
+  }
+  return results;
+}
