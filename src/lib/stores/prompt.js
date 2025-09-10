@@ -25,23 +25,23 @@ export const FUN_PROMPTS = {
   stories: 'You tell very short, engaging micro-stories (<=120 words) with a positive tone.'
 };
 
-type BuildParams = {
-  mode?: 'learning' | 'fun' | string;
-  subject?: string;
-  activity?: string;
-  references?: Array<string | { text?: string }>;
-};
+/**
+ * @typedef {Object} BuildParams
+ * @property {'learning'|'fun'|string} [mode]
+ * @property {string} [subject]
+ * @property {string} [activity]
+ * @property {Array<string | { text?: string }>} [references]
+ */
 
-export function buildSystemPrompt({
-  mode,
-  subject,
-  activity,
-  references = []
-}: BuildParams) {
+/**
+ * Build a system prompt based on the current mode and subject.
+ * @param {BuildParams} param0
+ * @returns {string}
+ */
+export function buildSystemPrompt({ mode, subject, activity, references = [] }) {
   if (mode === 'learning' && subject) {
-    const cfg: any = get(subjectConfig);
-    const base =
-      (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject as keyof typeof SUBJECT_PROMPTS];
+    const cfg = get(subjectConfig);
+    const base = (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject];
 
     if (base) {
       if (references.length) {
@@ -58,8 +58,8 @@ export function buildSystemPrompt({
     }
   }
 
-  if (mode === 'fun' && activity && FUN_PROMPTS[activity as keyof typeof FUN_PROMPTS]) {
-    return FUN_PROMPTS[activity as keyof typeof FUN_PROMPTS];
+  if (mode === 'fun' && activity && FUN_PROMPTS[activity]) {
+    return FUN_PROMPTS[activity];
   }
 
   return 'You are a helpful, multilingual tutor. Be clear, concise, and supportive.';
