@@ -5,8 +5,8 @@
 
 export class DIContainer {
   constructor() {
-    this.services = new Map();   // key -> instance (singleton)
-    this.factories = new Map();  // key -> (container) => instance
+    this.services = new Map(); // key -> instance (singleton)
+    this.factories = new Map(); // key -> (container) => instance
   }
 
   /** Register a concrete instance (singleton). */
@@ -53,24 +53,14 @@ export const TOKENS = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Server-only registration using top-level await + dynamic import     */
+/* LLM provider manager registration                                   */
 /* ------------------------------------------------------------------ */
-/**
- * We only register the ProviderManager on the server to avoid bundling
- * server-only code into the client build.
- *
- * NOTE: Vite/SvelteKit supports top-level await in SSR modules.
- */
-if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.SSR) {
-  // Dynamically import to keep this file browser-safe.
-  const { ProviderManager } = await import('$lib/modules/llm/ProviderManager.js');
-
-  if (!container.has(TOKENS.LLM_PROVIDER_MANAGER)) {
-    const instance = new ProviderManager({ fetchImpl: fetch });
-    container.register(TOKENS.LLM_PROVIDER_MANAGER, instance);
-
-    if (import.meta.env.DEV) {
-      console.info('[DI] Registered:', TOKENS.LLM_PROVIDER_MANAGER);
+// Dynamically import the LLM module which registers itself with the container
+if (!container.has(TOKENS.LLM_PROVIDER_MANAGER)) {
+  (async () => {
+    await import('$lib/modules/llm/index.js');
+    if (import.meta.env?.DEV) {
+      console.info('[DI] Initialized LLM module');
     }
-  }
+  })();
 }
