@@ -25,19 +25,42 @@ export const FUN_PROMPTS = {
   stories: 'You tell very short, engaging micro-stories (<=120 words) with a positive tone.'
 };
 
-export function buildSystemPrompt({ mode, subject, activity, references = [] }) {
+type BuildParams = {
+  mode?: 'learning' | 'fun' | string;
+  subject?: string;
+  activity?: string;
+  references?: Array<string | { text?: string }>;
+};
+
+export function buildSystemPrompt({
+  mode,
+  subject,
+  activity,
+  references = []
+}: BuildParams) {
   if (mode === 'learning' && subject) {
-    const cfg = get(subjectConfig);
-    const base = (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject];
+    const cfg: any = get(subjectConfig);
+    const base =
+      (cfg && cfg.id === subject && cfg.prompt) || SUBJECT_PROMPTS[subject as keyof typeof SUBJECT_PROMPTS];
+
     if (base) {
       if (references.length) {
-        return base + '\n\nReference:\n' + references.map((r) => r.text).join('\n---\n');
+        const formatted = references
+          .map((r) => (typeof r === 'string' ? r : r?.text || ''))
+          .filter(Boolean)
+          .join('\n---\n');
+
+        if (formatted) {
+          return `${base}\n\nReference:\n${formatted}`;
+        }
       }
       return base;
     }
   }
-  if (mode === 'fun' && activity && FUN_PROMPTS[activity]) {
-    return FUN_PROMPTS[activity];
+
+  if (mode === 'fun' && activity && FUN_PROMPTS[activity as keyof typeof FUN_PROMPTS]) {
+    return FUN_PROMPTS[activity as keyof typeof FUN_PROMPTS];
   }
+
   return 'You are a helpful, multilingual tutor. Be clear, concise, and supportive.';
 }

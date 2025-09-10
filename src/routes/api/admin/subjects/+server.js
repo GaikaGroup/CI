@@ -4,8 +4,15 @@ import path from 'path';
 
 export async function GET() {
   const base = path.resolve('static/tutor');
-  const data = await fs.readFile(path.join(base, 'subjects.json'), 'utf8');
-  const subjects = JSON.parse(data);
+
+  let subjects: Array<{ id: string; displayName?: string; materials?: string[] }> = [];
+  try {
+    const data = await fs.readFile(path.join(base, 'subjects.json'), 'utf8');
+    subjects = JSON.parse(data);
+  } catch {
+    subjects = [];
+  }
+
   for (const subj of subjects) {
     const matDir = path.join(base, subj.id, 'materials');
     try {
@@ -14,5 +21,6 @@ export async function GET() {
       subj.materials = [];
     }
   }
+
   return json(subjects);
 }
