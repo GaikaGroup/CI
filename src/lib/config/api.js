@@ -8,7 +8,7 @@ export const OPENAI_CONFIG = {
   API_URL: 'https://api.openai.com/v1/chat/completions',
   MODEL: import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo',
   MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_MAX_TOKENS || '500', 10),
-  DETAILED_MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_DETAILED_MAX_TOKENS || '2000', 10),
+  DETAILED_MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_DETAILED_MAX_TOKENS || '4000', 10),
   TEMPERATURE: parseFloat(import.meta.env.VITE_OPENAI_TEMPERATURE || '0.7'),
   // Retry configuration for API calls
   RETRY: {
