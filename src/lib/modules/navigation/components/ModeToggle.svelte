@@ -27,6 +27,7 @@
   />
   <button
     on:click={() => handleClick('fun')}
+    aria-pressed={$appMode === 'fun'}
     class={`relative z-10 flex-1 flex items-center justify-center gap-1 text-sm font-medium
       transition-transform duration-300 hover:scale-105
       ${$appMode === 'fun' ? 'text-white' : 'text-stone-600 dark:text-gray-300'}`}
@@ -36,6 +37,7 @@
   </button>
   <button
     on:click={() => handleClick('learn')}
+    aria-pressed={$appMode === 'learn'}
     class={`relative z-10 flex-1 flex items-center justify-center gap-1 text-sm font-medium
       transition-transform duration-300 hover:scale-105
       ${$appMode === 'learn' ? 'text-white' : 'text-stone-600 dark:text-gray-300'}`}
