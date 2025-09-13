@@ -5,6 +5,7 @@
   import ThemeToggle from '$modules/theme/components/ThemeToggle.svelte';
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
+  import { requireAuth } from '$lib/stores/mode';
 
   let mobileMenuOpen = false;
 
@@ -27,7 +28,7 @@
 
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center space-x-8">
-        <ModeToggle />
+        <ModeToggle on:change={(e) => requireAuth(e.detail.mode)} />
         <a
           href="/about"
           class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
@@ -46,7 +47,7 @@
 
       <!-- Mobile Menu Button -->
       <div class="md:hidden flex items-center space-x-2">
-        <ModeToggle size="compact" />
+        <ModeToggle size="compact" on:change={(e) => requireAuth(e.detail.mode)} />
         <ThemeToggle />
         <button
           on:click={toggleMobileMenu}
@@ -68,7 +69,13 @@
     <div class="md:hidden dark:bg-gray-800 dark:border-gray-700 bg-white border-stone-200 border-t">
       <div class="px-2 pt-2 pb-3 space-y-1">
         <div class="px-3 py-2">
-          <ModeToggle size="compact" on:change={() => (mobileMenuOpen = false)} />
+          <ModeToggle
+            size="compact"
+            on:change={(e) => {
+              requireAuth(e.detail.mode);
+              mobileMenuOpen = false;
+            }}
+          />
         </div>
         <a
           href="/about"

@@ -1,12 +1,11 @@
 <script>
-  import { appMode, requireAuth } from '$lib/stores/mode';
+  import { appMode } from '$lib/stores/mode';
   import { createEventDispatcher } from 'svelte';
 
   export let size = 'normal';
   const dispatch = createEventDispatcher();
 
   function handleClick(mode) {
-    requireAuth(mode);
     dispatch('change', { mode });
   }
 </script>
