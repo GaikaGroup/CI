@@ -11,7 +11,14 @@ import { LLM_FEATURES } from '$lib/config/llm';
 export async function POST({ request }) {
   try {
     const requestBody = await request.json();
-    const { content, images, recognizedText: clientRecognizedText, language, sessionContext } = requestBody;
+    const {
+      content,
+      images,
+      recognizedText: clientRecognizedText,
+      language,
+      sessionContext,
+      maxTokens
+    } = requestBody;
 
     // Log session context if available
     if (sessionContext) {
@@ -70,7 +77,7 @@ export async function POST({ request }) {
       // Add conversation history
       if (sessionContext.history && sessionContext.history.length > 0) {
         fullContent += `Conversation history:\n`;
-        sessionContext.history.forEach(entry => {
+        sessionContext.history.forEach((entry) => {
           fullContent += `${entry.role === 'user' ? 'Student' : 'Tutor'}: ${entry.content}\n`;
         });
         fullContent += `\n`;
@@ -141,7 +148,10 @@ Your task:
     // Options for the LLM request
     const options = {
       temperature: OPENAI_CONFIG.TEMPERATURE,
-      maxTokens: OPENAI_CONFIG.MAX_TOKENS
+      maxTokens:
+        maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS
+          ? Math.min(maxTokens, OPENAI_CONFIG.DETAILED_MAX_TOKENS)
+          : OPENAI_CONFIG.MAX_TOKENS
     };
 
     // If a specific provider was requested and provider switching is enabled, use it

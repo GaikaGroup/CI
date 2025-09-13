@@ -8,6 +8,7 @@ export const OPENAI_CONFIG = {
   API_URL: 'https://api.openai.com/v1/chat/completions',
   MODEL: import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo',
   MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_MAX_TOKENS || '500', 10),
+  DETAILED_MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_DETAILED_MAX_TOKENS || '2000', 10),
   TEMPERATURE: parseFloat(import.meta.env.VITE_OPENAI_TEMPERATURE || '0.7'),
   // Retry configuration for API calls
   RETRY: {
@@ -17,6 +18,11 @@ export const OPENAI_CONFIG = {
   // Timeout in milliseconds
   TIMEOUT: parseInt(import.meta.env.VITE_OPENAI_TIMEOUT || '30000', 10)
 };
+
+export const WAITING_PHRASES_DEFAULT =
+  import.meta.env.VITE_WAITING_PHRASES_DEFAULT || 'DefaultWaitingAnswer';
+export const WAITING_PHRASES_DETAILED =
+  import.meta.env.VITE_WAITING_PHRASES_DETAILED || 'DetailedWaitingAnswer';
 
 // Whisper API configuration for speech-to-text
 export const WHISPER_CONFIG = {
