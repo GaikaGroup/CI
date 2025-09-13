@@ -40,7 +40,7 @@
               "items": {
                 "type": "string",
                 "minLength": 1,
-                "maxLength": 200,
+                "maxLength": 1000,
                 "description": "Individual waiting phrase"
               }
             }
@@ -68,7 +68,7 @@
         "maxPhraseLength": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 50,
+          "maximum": 500,
           "description": "Maximum number of words in a phrase"
         },
         "fallbackToTranslation": {
@@ -164,14 +164,8 @@
     {
       "phrases": {
         "general": {
-          "en": [
-            "Let me think about this...",
-            "Give me a moment..."
-          ],
-          "es": [
-            "Déjame pensar en esto...",
-            "Dame un momento..."
-          ]
+          "en": ["Let me think about this...", "Give me a moment..."],
+          "es": ["Déjame pensar en esto...", "Dame un momento..."]
         }
       },
       "settings": {

@@ -3,11 +3,17 @@
  * Core service for managing phrase selection, caching, and playback coordination
  */
 
-import { loadWaitingPhrasesConfig, getPhrasesForLanguage, isLanguageSupported } from './waitingPhrasesConfig.js';
+import {
+  loadWaitingPhrasesConfig,
+  getPhrasesForLanguage,
+  isLanguageSupported
+} from './waitingPhrasesConfig.js';
 import { get } from 'svelte/store';
 import { selectedLanguage, languages } from '$modules/i18n/stores';
-import { getTranslation } from '$modules/i18n/translations.js';
 import { translationBridge } from './translationBridge.js';
+
+const DEFAULT_CATEGORY = 'DefaultWaitingAnswer';
+const DETAILED_CATEGORY = 'DetailedWaitingAnswer';
 
 /**
  * WaitingPhrasesService class handles phrase selection logic and history management
@@ -51,7 +57,7 @@ export class WaitingPhrasesService {
 
     // Create and cache the loading promise
     this.configLoadPromise = this._performInitialization();
-    
+
     try {
       await this.configLoadPromise;
     } finally {
@@ -68,31 +74,30 @@ export class WaitingPhrasesService {
   async _performInitialization() {
     const initStartTime = Date.now();
     let initializationSteps = [];
-    
+
     try {
       console.log('Initializing WaitingPhrasesService...');
-      
+
       // Step 1: Load configuration with error handling
       try {
         initializationSteps.push('loading-config');
         console.log('Step 1: Loading configuration...');
         this.config = await loadWaitingPhrasesConfig();
-        
+
         if (!this.config) {
           throw new Error('Configuration loader returned null');
         }
-        
+
         console.log('Configuration loaded successfully');
         initializationSteps.push('config-loaded');
-        
       } catch (configError) {
         console.error('Configuration loading failed:', configError);
-        
+
         // Try to create emergency configuration
         console.log('Attempting to create emergency configuration...');
         this.config = this._createEmergencyConfig();
         initializationSteps.push('emergency-config');
-        
+
         if (!this.config) {
           throw new Error('Failed to create emergency configuration');
         }
@@ -105,12 +110,11 @@ export class WaitingPhrasesService {
         this.phraseHistory = [];
         console.log('Phrase history initialized');
         initializationSteps.push('history-ready');
-        
       } catch (historyError) {
         console.error('Phrase history initialization failed:', historyError);
         this.phraseHistory = []; // Ensure it's at least an empty array
       }
-      
+
       // Step 3: Initialize supported languages
       try {
         initializationSteps.push('init-languages');
@@ -118,13 +122,12 @@ export class WaitingPhrasesService {
         this._initializeSupportedLanguages();
         console.log('Supported languages initialized');
         initializationSteps.push('languages-ready');
-        
       } catch (languagesError) {
         console.error('Supported languages initialization failed:', languagesError);
         // Fallback to minimal language support
         this.supportedLanguages = new Set(['en']);
       }
-      
+
       // Step 4: Pre-cache common phrases (non-critical)
       try {
         initializationSteps.push('pre-caching');
@@ -132,12 +135,11 @@ export class WaitingPhrasesService {
         this._preCacheCommonPhrases();
         console.log('Pre-caching completed');
         initializationSteps.push('cache-ready');
-        
       } catch (cacheError) {
         console.warn('Pre-caching failed (non-critical):', cacheError);
         // Continue initialization even if pre-caching fails
       }
-      
+
       // Step 5: Validate final state
       try {
         initializationSteps.push('validation');
@@ -145,26 +147,24 @@ export class WaitingPhrasesService {
         this._validateInitializationState();
         console.log('Initialization state validation passed');
         initializationSteps.push('validated');
-        
       } catch (validationError) {
         console.error('Initialization state validation failed:', validationError);
         throw new Error(`Initialization validation failed: ${validationError.message}`);
       }
-      
+
       this.isInitialized = true;
-      
+
       const initTime = Date.now() - initStartTime;
       console.log(`WaitingPhrasesService initialized successfully in ${initTime}ms`);
       console.log('Available categories:', Object.keys(this.config.phrases));
       console.log('Supported languages:', Array.from(this.supportedLanguages));
       console.log('Pre-cached phrases:', this.phraseCache.size);
       console.log('Initialization steps completed:', initializationSteps);
-      
     } catch (error) {
       const initTime = Date.now() - initStartTime;
       console.error(`Failed to initialize WaitingPhrasesService after ${initTime}ms:`, error);
       console.error('Initialization steps completed before failure:', initializationSteps);
-      
+
       // Log detailed error information
       const errorDetails = {
         message: error.message,
@@ -174,12 +174,12 @@ export class WaitingPhrasesService {
         timestamp: new Date().toISOString()
       };
       console.error('Initialization error details:', errorDetails);
-      
+
       this.isInitialized = false;
-      
+
       // Set minimal fallback state to prevent complete failure
       this._setFallbackState();
-      
+
       throw error;
     }
   }
@@ -192,16 +192,16 @@ export class WaitingPhrasesService {
   _createEmergencyConfig() {
     try {
       console.log('Creating emergency configuration...');
-      
+
       return {
         phrases: {
           general: {
             en: [
-              "Please wait...",
-              "Processing...",
-              "One moment...",
-              "Working on this...",
-              "Just a second..."
+              'Please wait...',
+              'Processing...',
+              'One moment...',
+              'Working on this...',
+              'Just a second...'
             ]
           }
         },
@@ -209,12 +209,11 @@ export class WaitingPhrasesService {
           avoidConsecutiveRepeats: false,
           maxPhraseLength: 5,
           fallbackToTranslation: false,
-          defaultLanguage: "en",
+          defaultLanguage: 'en',
           maxHistorySize: 3,
           enableContextualPhrases: false
         }
       };
-      
     } catch (error) {
       console.error('Failed to create emergency configuration:', error);
       return null;
@@ -230,40 +229,40 @@ export class WaitingPhrasesService {
     if (!this.config || typeof this.config !== 'object') {
       throw new Error('Configuration is invalid or missing');
     }
-    
+
     if (!this.config.phrases || typeof this.config.phrases !== 'object') {
       throw new Error('Configuration phrases section is invalid or missing');
     }
-    
+
     if (!this.config.settings || typeof this.config.settings !== 'object') {
       throw new Error('Configuration settings section is invalid or missing');
     }
-    
+
     // Check phrase history
     if (!Array.isArray(this.phraseHistory)) {
       throw new Error('Phrase history is not properly initialized');
     }
-    
+
     // Check supported languages
     if (!this.supportedLanguages || !(this.supportedLanguages instanceof Set)) {
       throw new Error('Supported languages set is not properly initialized');
     }
-    
+
     if (this.supportedLanguages.size === 0) {
       throw new Error('No supported languages found');
     }
-    
+
     // Check that at least English is supported
     if (!this.supportedLanguages.has('en')) {
       throw new Error('English language support is missing');
     }
-    
+
     // Check that at least one category exists
     const categories = Object.keys(this.config.phrases);
     if (categories.length === 0) {
       throw new Error('No phrase categories found in configuration');
     }
-    
+
     // Check that at least one phrase exists
     let totalPhrases = 0;
     for (const category of categories) {
@@ -275,12 +274,14 @@ export class WaitingPhrasesService {
         }
       }
     }
-    
+
     if (totalPhrases === 0) {
       throw new Error('No phrases found in configuration');
     }
-    
-    console.log(`Initialization validation passed: ${categories.length} categories, ${this.supportedLanguages.size} languages, ${totalPhrases} total phrases`);
+
+    console.log(
+      `Initialization validation passed: ${categories.length} categories, ${this.supportedLanguages.size} languages, ${totalPhrases} total phrases`
+    );
   }
 
   /**
@@ -290,30 +291,29 @@ export class WaitingPhrasesService {
   _setFallbackState() {
     try {
       console.log('Setting fallback state for partial functionality...');
-      
+
       // Ensure basic properties exist
       if (!this.config) {
         this.config = this._createEmergencyConfig();
       }
-      
+
       if (!Array.isArray(this.phraseHistory)) {
         this.phraseHistory = [];
       }
-      
+
       if (!this.supportedLanguages || !(this.supportedLanguages instanceof Set)) {
         this.supportedLanguages = new Set(['en']);
       }
-      
+
       if (!this.cache) {
         this.cache = new Map();
       }
-      
+
       if (!this.translationCache) {
         this.translationCache = new Map();
       }
-      
+
       console.log('Fallback state set - service will operate with limited functionality');
-      
     } catch (fallbackError) {
       console.error('Failed to set fallback state:', fallbackError);
     }
@@ -322,10 +322,10 @@ export class WaitingPhrasesService {
   /**
    * Select a waiting phrase for the given language and category
    * @param {string} language - Target language code (optional, uses current language if not provided)
-   * @param {string} category - Phrase category (default: 'general')
+   * @param {string} category - Phrase category (default: DEFAULT_CATEGORY)
    * @returns {Promise<string>} Selected phrase
    */
-  async selectWaitingPhrase(language = null, category = 'general') {
+  async selectWaitingPhrase(language = null, category = DEFAULT_CATEGORY) {
     try {
       // Ensure service is initialized
       if (!this.isInitialized) {
@@ -334,29 +334,30 @@ export class WaitingPhrasesService {
 
       // Detect and validate target language
       const targetLanguage = this._detectTargetLanguage(language);
-      
+
       // Update current language tracking
       this.currentLanguage = targetLanguage;
 
-      console.log(`Selecting waiting phrase for language: ${targetLanguage}, category: ${category}`);
+      console.log(
+        `Selecting waiting phrase for language: ${targetLanguage}, category: ${category}`
+      );
 
       // Try to get phrases with fallback logic
       const phrase = await this._getPhraseWithFallback(targetLanguage, category);
-      
+
       // Update history and tracking
       this._updatePhraseHistory(phrase, category);
-      
+
       console.log(`Selected phrase: "${phrase.substring(0, 50)}..."`);
-      
+
       return phrase;
-      
     } catch (error) {
       console.error('Error selecting waiting phrase:', error);
-      
+
       // Ultimate fallback to a simple default phrase
-      const fallbackPhrase = "Let me think about this...";
+      const fallbackPhrase = 'Let me think about this...';
       console.warn(`Using ultimate fallback phrase: "${fallbackPhrase}"`);
-      
+
       return fallbackPhrase;
     }
   }
@@ -379,12 +380,12 @@ export class WaitingPhrasesService {
     }
 
     let availablePhrases = [...phrases];
-    
+
     // Apply consecutive repeat avoidance if enabled
     if (this.config.settings.avoidConsecutiveRepeats) {
       // Remove the last selected phrase if it's in the same category
       if (this.lastSelectedPhrase && this.lastSelectedCategory === category) {
-        availablePhrases = availablePhrases.filter(phrase => phrase !== this.lastSelectedPhrase);
+        availablePhrases = availablePhrases.filter((phrase) => phrase !== this.lastSelectedPhrase);
       }
 
       // If we filtered out all phrases, use the original array
@@ -396,10 +397,10 @@ export class WaitingPhrasesService {
     // Apply history-based filtering to avoid recent repeats
     if (this.phraseHistory.length > 0) {
       const recentPhrases = this.phraseHistory.slice(-Math.min(2, this.phraseHistory.length));
-      const filteredPhrases = availablePhrases.filter(phrase => 
-        !recentPhrases.some(historyEntry => historyEntry.phrase === phrase)
+      const filteredPhrases = availablePhrases.filter(
+        (phrase) => !recentPhrases.some((historyEntry) => historyEntry.phrase === phrase)
       );
-      
+
       // Use filtered phrases if we have options, otherwise use available phrases
       if (filteredPhrases.length > 0) {
         availablePhrases = filteredPhrases;
@@ -473,17 +474,17 @@ export class WaitingPhrasesService {
    */
   getAvailableCategories() {
     if (!this.config) {
-      return ['general'];
+      return [DEFAULT_CATEGORY];
     }
     return Object.keys(this.config.phrases);
   }
 
   /**
    * Get available languages for a category
-   * @param {string} category - Category name (default: 'general')
+   * @param {string} category - Category name (default: DEFAULT_CATEGORY)
    * @returns {Array<string>} Available language codes
    */
-  getAvailableLanguages(category = 'general') {
+  getAvailableLanguages(category = DEFAULT_CATEGORY) {
     if (!this.config || !this.config.phrases[category]) {
       return ['en'];
     }
@@ -493,10 +494,10 @@ export class WaitingPhrasesService {
   /**
    * Check if a language is supported for a category
    * @param {string} language - Language code
-   * @param {string} category - Category name (default: 'general')
+   * @param {string} category - Category name (default: DEFAULT_CATEGORY)
    * @returns {boolean} True if language is supported
    */
-  isLanguageSupported(language, category = 'general') {
+  isLanguageSupported(language, category = DEFAULT_CATEGORY) {
     if (!this.config) {
       return language === 'en';
     }
@@ -519,7 +520,9 @@ export class WaitingPhrasesService {
     return {
       size: this.cache.size,
       historySize: this.phraseHistory.length,
-      lastSelected: this.lastSelectedPhrase ? this.lastSelectedPhrase.substring(0, 30) + '...' : null,
+      lastSelected: this.lastSelectedPhrase
+        ? this.lastSelectedPhrase.substring(0, 30) + '...'
+        : null,
       currentLanguage: this.currentLanguage,
       translationCacheSize: this.translationCache.size,
       supportedLanguages: Array.from(this.supportedLanguages)
@@ -532,7 +535,7 @@ export class WaitingPhrasesService {
    */
   _initializeSupportedLanguages() {
     this.supportedLanguages.clear();
-    
+
     if (!this.config || !this.config.phrases) {
       this.supportedLanguages.add('en');
       return;
@@ -541,7 +544,7 @@ export class WaitingPhrasesService {
     // Collect all unique languages across all categories
     for (const category of Object.keys(this.config.phrases)) {
       const categoryLanguages = Object.keys(this.config.phrases[category]);
-      categoryLanguages.forEach(lang => this.supportedLanguages.add(lang));
+      categoryLanguages.forEach((lang) => this.supportedLanguages.add(lang));
     }
 
     console.log('Initialized supported languages:', Array.from(this.supportedLanguages));
@@ -567,7 +570,7 @@ export class WaitingPhrasesService {
       targetLanguage = language;
       console.log(`Using explicitly provided language: ${targetLanguage}`);
     }
-    
+
     // Fall back to selected language from i18n store
     if (!targetLanguage) {
       const currentLanguage = get(selectedLanguage);
@@ -607,7 +610,7 @@ export class WaitingPhrasesService {
     }
 
     // Check if language is in the supported languages from i18n
-    const appLanguages = languages.map(lang => lang.code);
+    const appLanguages = languages.map((lang) => lang.code);
     return appLanguages.includes(languageCode);
   }
 
@@ -622,7 +625,7 @@ export class WaitingPhrasesService {
     // Check cache first
     const cacheKey = `${targetLanguage}:${category}`;
     const cachedPhrases = this._getCachedPhrases(cacheKey);
-    
+
     if (cachedPhrases && cachedPhrases.length > 0) {
       this.cacheStats.hits++;
       console.log(`Cache hit for ${cacheKey}, found ${cachedPhrases.length} phrases`);
@@ -633,7 +636,7 @@ export class WaitingPhrasesService {
 
     // Step 1: Try to get phrases in target language for target category
     let phrases = getPhrasesForLanguage(this.config, targetLanguage, category);
-    
+
     if (phrases && phrases.length > 0) {
       console.log(`Found ${phrases.length} phrases for ${targetLanguage}/${category}`);
       // Cache the phrases for future use
@@ -643,12 +646,14 @@ export class WaitingPhrasesService {
 
     console.log(`No phrases found for ${targetLanguage}/${category}, trying fallbacks...`);
 
-    // Step 2: Try target language with 'general' category if not already general
-    if (category !== 'general') {
-      phrases = getPhrasesForLanguage(this.config, targetLanguage, 'general');
+    // Step 2: Try target language with default category if not already default
+    if (category !== DEFAULT_CATEGORY) {
+      phrases = getPhrasesForLanguage(this.config, targetLanguage, DEFAULT_CATEGORY);
       if (phrases && phrases.length > 0) {
-        console.log(`Found ${phrases.length} phrases for ${targetLanguage}/general (category fallback)`);
-        return this._selectRandomPhrase(phrases, 'general');
+        console.log(
+          `Found ${phrases.length} phrases for ${targetLanguage}/${DEFAULT_CATEGORY} (category fallback)`
+        );
+        return this._selectRandomPhrase(phrases, DEFAULT_CATEGORY);
       }
     }
 
@@ -657,81 +662,100 @@ export class WaitingPhrasesService {
       phrases = getPhrasesForLanguage(this.config, 'en', category);
       if (phrases && phrases.length > 0) {
         console.log(`Found ${phrases.length} phrases for en/${category} (language fallback)`);
-        
+
         // Always try translation if enabled and target language is not English
         if (this.config.settings.fallbackToTranslation) {
           const englishPhrase = this._selectRandomPhrase(phrases, category);
-          
+
           try {
-            const translatedPhrase = await this._translatePhraseWithRetry(englishPhrase, targetLanguage);
+            const translatedPhrase = await this._translatePhraseWithRetry(
+              englishPhrase,
+              targetLanguage
+            );
             if (translatedPhrase) {
               console.log(`Successfully translated English phrase to ${targetLanguage}`);
               return translatedPhrase;
             }
           } catch (translationError) {
-            console.warn(`Translation failed for "${englishPhrase}" to ${targetLanguage}:`, translationError);
+            console.warn(
+              `Translation failed for "${englishPhrase}" to ${targetLanguage}:`,
+              translationError
+            );
           }
-          
+
           // If translation fails, return English phrase as fallback
           console.log(`Using English phrase as fallback for ${targetLanguage}`);
           return englishPhrase;
         }
-        
+
         return this._selectRandomPhrase(phrases, category);
       }
     }
 
-    // Step 4: Try English with 'general' category and translation
-    phrases = getPhrasesForLanguage(this.config, 'en', 'general');
+    // Step 4: Try English with default category and translation
+    phrases = getPhrasesForLanguage(this.config, 'en', DEFAULT_CATEGORY);
     if (phrases && phrases.length > 0) {
       console.log(`Found ${phrases.length} phrases for en/general (full fallback)`);
-      
+
       // Always try translation if enabled and target language is not English
       if (this.config.settings.fallbackToTranslation && targetLanguage !== 'en') {
-        const englishPhrase = this._selectRandomPhrase(phrases, 'general');
-        
+        const englishPhrase = this._selectRandomPhrase(phrases, DEFAULT_CATEGORY);
+
         try {
-          const translatedPhrase = await this._translatePhraseWithRetry(englishPhrase, targetLanguage);
+          const translatedPhrase = await this._translatePhraseWithRetry(
+            englishPhrase,
+            targetLanguage
+          );
           if (translatedPhrase) {
             console.log(`Successfully translated English general phrase to ${targetLanguage}`);
             return translatedPhrase;
           }
         } catch (translationError) {
-          console.warn(`Translation failed for general phrase "${englishPhrase}" to ${targetLanguage}:`, translationError);
+          console.warn(
+            `Translation failed for general phrase "${englishPhrase}" to ${targetLanguage}:`,
+            translationError
+          );
         }
-        
+
         // If translation fails, return English phrase as fallback
         console.log(`Using English general phrase as fallback for ${targetLanguage}`);
         return englishPhrase;
       }
-      
-      return this._selectRandomPhrase(phrases, 'general');
+
+      return this._selectRandomPhrase(phrases, DEFAULT_CATEGORY);
     }
 
     // Step 5: Ultimate fallback with translation attempt
     console.warn('No phrases found in configuration, using hardcoded fallback');
     const hardcodedFallbacks = [
-      "Let me think about this...",
-      "Give me a moment...",
-      "Processing your request...",
-      "One moment please..."
+      'Let me think about this...',
+      'Give me a moment...',
+      'Processing your request...',
+      'One moment please...'
     ];
-    
-    const selectedFallback = hardcodedFallbacks[Math.floor(Math.random() * hardcodedFallbacks.length)];
-    
+
+    const selectedFallback =
+      hardcodedFallbacks[Math.floor(Math.random() * hardcodedFallbacks.length)];
+
     // Try to translate hardcoded fallback if translation is enabled
     if (this.config.settings.fallbackToTranslation && targetLanguage !== 'en') {
       try {
-        const translatedFallback = await this._translatePhraseWithRetry(selectedFallback, targetLanguage);
+        const translatedFallback = await this._translatePhraseWithRetry(
+          selectedFallback,
+          targetLanguage
+        );
         if (translatedFallback) {
           console.log(`Successfully translated hardcoded fallback to ${targetLanguage}`);
           return translatedFallback;
         }
       } catch (translationError) {
-        console.warn(`Translation failed for hardcoded fallback "${selectedFallback}" to ${targetLanguage}:`, translationError);
+        console.warn(
+          `Translation failed for hardcoded fallback "${selectedFallback}" to ${targetLanguage}:`,
+          translationError
+        );
       }
     }
-    
+
     console.log(`Using English hardcoded fallback: "${selectedFallback}"`);
     return selectedFallback;
   }
@@ -746,13 +770,15 @@ export class WaitingPhrasesService {
    */
   async _translatePhraseWithRetry(phrase, targetLanguage, maxRetries = 2) {
     let lastError = null;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Translation attempt ${attempt}/${maxRetries} for "${phrase.substring(0, 30)}..." to ${targetLanguage}`);
-        
+        console.log(
+          `Translation attempt ${attempt}/${maxRetries} for "${phrase.substring(0, 30)}..." to ${targetLanguage}`
+        );
+
         const translatedPhrase = await this._translatePhrase(phrase, targetLanguage);
-        
+
         if (translatedPhrase) {
           console.log(`Translation successful on attempt ${attempt}`);
           return translatedPhrase;
@@ -760,21 +786,23 @@ export class WaitingPhrasesService {
           console.log(`Translation returned null on attempt ${attempt}`);
           return null; // Don't retry if translation service returns null (not supported)
         }
-        
       } catch (error) {
         lastError = error;
         console.warn(`Translation attempt ${attempt} failed:`, error);
-        
+
         if (attempt < maxRetries) {
           // Wait before retry (exponential backoff)
           const delay = Math.pow(2, attempt - 1) * 100; // 100ms, 200ms, 400ms...
           console.log(`Waiting ${delay}ms before retry...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
-    
-    console.error(`All translation attempts failed for "${phrase}" to ${targetLanguage}:`, lastError);
+
+    console.error(
+      `All translation attempts failed for "${phrase}" to ${targetLanguage}:`,
+      lastError
+    );
     throw lastError || new Error('Translation failed after all retries');
   }
 
@@ -787,7 +815,9 @@ export class WaitingPhrasesService {
    */
   async _translatePhrase(phrase, targetLanguage) {
     try {
-      console.log(`Attempting to translate phrase to ${targetLanguage}: "${phrase.substring(0, 50)}..."`);
+      console.log(
+        `Attempting to translate phrase to ${targetLanguage}: "${phrase.substring(0, 50)}..."`
+      );
 
       // Use the translation bridge service for translation
       const translatedPhrase = await translationBridge.translatePhrase(phrase, targetLanguage);
@@ -799,14 +829,11 @@ export class WaitingPhrasesService {
       }
 
       return translatedPhrase;
-
     } catch (error) {
       console.error('Error translating phrase:', error);
       return null;
     }
   }
-
-
 
   /**
    * Clear translation cache (delegates to translation bridge)
@@ -831,18 +858,18 @@ export class WaitingPhrasesService {
   async warmUpTranslationCache(language = null) {
     try {
       const targetLanguage = language || this.currentLanguage || get(selectedLanguage) || 'en';
-      
+
       if (targetLanguage === 'en') {
         console.log('Skipping translation cache warmup for English');
         return;
       }
 
       console.log(`Warming up translation cache for ${targetLanguage}...`);
-      
+
       // Get common phrases to warm up
       const commonPhrases = [];
       const categories = this.getAvailableCategories();
-      
+
       for (const category of categories) {
         const phrases = getPhrasesForLanguage(this.config, 'en', category);
         if (phrases && phrases.length > 0) {
@@ -852,9 +879,8 @@ export class WaitingPhrasesService {
 
       // Warm up translation bridge
       await translationBridge.warmUpCache([targetLanguage], commonPhrases);
-      
+
       console.log(`Translation cache warmed up for ${targetLanguage}`);
-      
     } catch (error) {
       console.error('Error warming up translation cache:', error);
     }
@@ -883,9 +909,9 @@ export class WaitingPhrasesService {
       }
 
       // Test with a simple phrase
-      const testPhrase = "Hello";
+      const testPhrase = 'Hello';
       const result = await this._translatePhrase(testPhrase, targetLanguage);
-      
+
       return result !== null;
     } catch (error) {
       console.warn('Translation service availability check failed:', error);
@@ -904,19 +930,16 @@ export class WaitingPhrasesService {
     // Language-specific hardcoded fallbacks
     const fallbacks = {
       ru: {
-        general: "Позвольте мне подумать...",
-        math: "Решаю задачу...",
-        creative: "Обдумываю идею..."
+        [DEFAULT_CATEGORY]: 'Позвольте мне подумать...',
+        [DETAILED_CATEGORY]: 'Собираю подробный ответ...'
       },
       es: {
-        general: "Déjame pensar...",
-        math: "Resolviendo el problema...",
-        creative: "Pensando en una idea..."
+        [DEFAULT_CATEGORY]: 'Déjame pensar...',
+        [DETAILED_CATEGORY]: 'Preparando una explicación completa...'
       },
       en: {
-        general: "Let me think...",
-        math: "Working on this problem...",
-        creative: "Considering your idea..."
+        [DEFAULT_CATEGORY]: 'Let me think...',
+        [DETAILED_CATEGORY]: 'Preparing a detailed answer...'
       }
     };
 
@@ -925,9 +948,9 @@ export class WaitingPhrasesService {
       return fallbacks[targetLanguage][category];
     }
 
-    // Try general category for the language
-    if (fallbacks[targetLanguage] && fallbacks[targetLanguage].general) {
-      return fallbacks[targetLanguage].general;
+    // Try default category for the language
+    if (fallbacks[targetLanguage] && fallbacks[targetLanguage][DEFAULT_CATEGORY]) {
+      return fallbacks[targetLanguage][DEFAULT_CATEGORY];
     }
 
     // Ultimate fallback to English
@@ -948,7 +971,7 @@ export class WaitingPhrasesService {
    */
   _handleTranslationError(error, phrase, targetLanguage) {
     console.error(`Translation service error for "${phrase}" to ${targetLanguage}:`, error);
-    
+
     // Log error details for debugging
     const errorInfo = {
       message: error.message,
@@ -957,17 +980,17 @@ export class WaitingPhrasesService {
       timestamp: new Date().toISOString(),
       stack: error.stack
     };
-    
+
     console.error('Translation error details:', errorInfo);
-    
+
     // Return appropriate fallback
     if (targetLanguage === 'en') {
       return phrase; // Return original if target is English
     }
-    
+
     // Try to get a hardcoded fallback for the language
-    const fallback = this._getFallbackPhrase(targetLanguage, 'general');
-    
+    const fallback = this._getFallbackPhrase(targetLanguage, DEFAULT_CATEGORY);
+
     console.log(`Using hardcoded fallback for ${targetLanguage}: "${fallback}"`);
     return fallback;
   }
@@ -982,9 +1005,9 @@ export class WaitingPhrasesService {
     }
 
     console.log('Pre-caching common phrases...');
-    
+
     // Cache phrases for supported languages and common categories
-    const commonCategories = ['general', 'math', 'creative'];
+    const commonCategories = Object.keys(this.config.phrases);
     const supportedLangs = Array.from(this.supportedLanguages);
 
     for (const language of supportedLangs) {
@@ -1033,7 +1056,7 @@ export class WaitingPhrasesService {
    */
   _getCachedPhrases(cacheKey) {
     const cacheEntry = this.phraseCache.get(cacheKey);
-    
+
     if (!cacheEntry) {
       return null;
     }
@@ -1051,27 +1074,32 @@ export class WaitingPhrasesService {
    */
   _manageCacheSize() {
     const maxCacheSize = 50; // Maximum number of cached phrase collections
-    
+
     if (this.phraseCache.size <= maxCacheSize) {
       return;
     }
 
-    console.log(`Cache size (${this.phraseCache.size}) exceeds limit (${maxCacheSize}), evicting entries...`);
+    console.log(
+      `Cache size (${this.phraseCache.size}) exceeds limit (${maxCacheSize}), evicting entries...`
+    );
 
     // Convert to array and sort by last accessed time (oldest first)
-    const entries = Array.from(this.phraseCache.entries())
-      .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
+    const entries = Array.from(this.phraseCache.entries()).sort(
+      (a, b) => a[1].lastAccessed - b[1].lastAccessed
+    );
 
     // Remove oldest entries until we're under the limit
     const entriesToRemove = this.phraseCache.size - maxCacheSize + 5; // Remove a few extra to avoid frequent evictions
-    
+
     for (let i = 0; i < entriesToRemove && i < entries.length; i++) {
       const [key] = entries[i];
       this.phraseCache.delete(key);
       this.cacheStats.evictions++;
     }
 
-    console.log(`Evicted ${entriesToRemove} cache entries. New cache size: ${this.phraseCache.size}`);
+    console.log(
+      `Evicted ${entriesToRemove} cache entries. New cache size: ${this.phraseCache.size}`
+    );
   }
 
   /**
@@ -1103,7 +1131,7 @@ export class WaitingPhrasesService {
       console.log(`Warming up cache for language: ${targetLanguage}`);
 
       const categories = this.getAvailableCategories();
-      
+
       for (const category of categories) {
         const phrases = getPhrasesForLanguage(this.config, targetLanguage, category);
         if (phrases && phrases.length > 0) {
@@ -1113,7 +1141,6 @@ export class WaitingPhrasesService {
       }
 
       console.log(`Cache warmed up for ${targetLanguage}. Cache size: ${this.phraseCache.size}`);
-      
     } catch (error) {
       console.error('Error warming up cache:', error);
     }
@@ -1162,27 +1189,29 @@ export class WaitingPhrasesService {
    */
   optimizeCache() {
     console.log('Optimizing phrase cache...');
-    
+
     const now = Date.now();
     const maxAge = 30 * 60 * 1000; // 30 minutes
     const minAccessCount = 1;
-    
+
     let removedCount = 0;
-    
+
     // Remove old or unused entries
     for (const [key, entry] of this.phraseCache.entries()) {
       const age = now - entry.timestamp;
       const isOld = age > maxAge;
       const isUnused = entry.accessCount < minAccessCount && age > 5 * 60 * 1000; // 5 minutes
-      
+
       if (isOld || isUnused) {
         this.phraseCache.delete(key);
         removedCount++;
       }
     }
-    
-    console.log(`Cache optimization complete. Removed ${removedCount} entries. Current size: ${this.phraseCache.size}`);
-    
+
+    console.log(
+      `Cache optimization complete. Removed ${removedCount} entries. Current size: ${this.phraseCache.size}`
+    );
+
     // Update eviction stats
     this.cacheStats.evictions += removedCount;
   }

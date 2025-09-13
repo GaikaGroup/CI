@@ -14,6 +14,12 @@ import {
   buildOCRContextForChat,
   initializeOCRService
 } from '$lib/modules/document/OCRService';
+import {
+  WAITING_PHRASES_DEFAULT,
+  WAITING_PHRASES_DETAILED,
+  OPENAI_CONFIG
+} from '$lib/config/api.js';
+import { waitingPhrasesService } from './waitingPhrasesService.js';
 
 // Initialize OCR service when this module is imported
 if (typeof window !== 'undefined') {
@@ -26,12 +32,24 @@ if (typeof window !== 'undefined') {
  * @param {Array} images - Array of image URLs
  * @returns {Promise<boolean>} - Promise that resolves when the message is sent
  */
-export async function sendMessageWithOCRContext(content, images = []) {
+export async function sendMessageWithOCRContext(content, images = [], maxTokens = null) {
+  let waitingMessageId;
   try {
     console.log('sendMessageWithOCRContext called with content:', content);
     console.log('sendMessageWithOCRContext called with images:', images?.length || 0);
 
     setLoading(true);
+
+    const phraseCategory =
+      maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS
+        ? WAITING_PHRASES_DETAILED
+        : WAITING_PHRASES_DEFAULT;
+    const waitingPhrase = await waitingPhrasesService.selectWaitingPhrase(
+      get(selectedLanguage),
+      phraseCategory
+    );
+    waitingMessageId = Date.now();
+    addMessage('tutor', waitingPhrase, null, waitingMessageId, { waiting: true });
 
     // Generate a unique message ID for this message
     const messageId = Date.now().toString();
@@ -139,7 +157,8 @@ export async function sendMessageWithOCRContext(content, images = []) {
         content: enhancedContent, // Send enhanced content with OCR context
         images: base64Images,
         recognizedText, // Send the already processed text
-        language: get(selectedLanguage)
+        language: get(selectedLanguage),
+        ...(maxTokens ? { maxTokens } : {})
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 
@@ -169,7 +188,7 @@ export async function sendMessageWithOCRContext(content, images = []) {
 
       console.log('Adding AI response to chat');
       // Add the AI's response to the chat
-      addMessage('tutor', data.response);
+      updateMessage(waitingMessageId, { content: data.response, waiting: false });
 
       // Synthesize speech for the AI response if in voice mode
       console.log('Checking if speech synthesis is needed for OCR response');
@@ -188,7 +207,8 @@ export async function sendMessageWithOCRContext(content, images = []) {
         body: JSON.stringify({
           content,
           images: [],
-          language: get(selectedLanguage)
+          language: get(selectedLanguage),
+          ...(maxTokens ? { maxTokens } : {})
         })
       });
 
@@ -199,7 +219,7 @@ export async function sendMessageWithOCRContext(content, images = []) {
       const data = await response.json();
 
       // Add the AI's response to the chat
-      addMessage('tutor', data.response);
+      updateMessage(waitingMessageId, { content: data.response, waiting: false });
 
       return true;
     }
@@ -214,6 +234,7 @@ export async function sendMessageWithOCRContext(content, images = []) {
     // Set a more descriptive error message for the user
     const errorMessage = error.message || 'Unknown error occurred';
     setError(`Failed to send message: ${errorMessage}. Please try again.`);
+    updateMessage(waitingMessageId, { content: `Error: ${errorMessage}`, waiting: false });
     return false;
   } finally {
     console.log('sendMessageWithOCRContext function completed, setting loading to false');

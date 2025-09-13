@@ -20,6 +20,7 @@
   import { setVoiceModeActive } from '../voiceServices';
   import { container } from '$lib/shared/di/container';
   import { LLM_FEATURES } from '$lib/config/llm';
+  import { OPENAI_CONFIG } from '$lib/config/api';
   import LanguageSelector from '$modules/i18n/components/LanguageSelector.svelte';
   import MessageList from './MessageList.svelte';
   import MessageInput from './MessageInput.svelte';
@@ -32,6 +33,8 @@
   let sessionId;
 
   let showLanguageSelector = false;
+  let showDetailedPrompt = false;
+  let lastQuestion = '';
 
   // Provider selection
   let selectedProvider = null;
@@ -291,6 +294,7 @@
   function handleSendMessage(event) {
     const { content, images } = event.detail;
 
+    showDetailedPrompt = false;
     // Add user message
     const messageId = Date.now(); // Generate a unique ID for the message
 
@@ -309,11 +313,16 @@
       // Don't set processing state here, let processImages handle it
 
       // Pass the image URLs to processImages
-      processImages(content, imageUrls, messageId).catch((error) => {
-        console.error('Failed to process images:', error);
-        // Make sure to reset processing state on error
-        setProcessingImages(messageId, false);
-      });
+      processImages(content, imageUrls, messageId)
+        .then(() => {
+          lastQuestion = content;
+          showDetailedPrompt = true;
+        })
+        .catch((error) => {
+          console.error('Failed to process images:', error);
+          // Make sure to reset processing state on error
+          setProcessingImages(messageId, false);
+        });
     } else {
       // If no images, just send the message normally but with enhanced context
       addMessage(MESSAGE_TYPES.USER, content, images, messageId);
@@ -327,22 +336,55 @@
           // Pass selected provider if provider switching is enabled
           if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
             console.log(`Using selected provider: ${selectedProvider}`);
-            sendMessage(content, [], sessionId, selectedProvider);
+            sendMessage(content, [], sessionId, selectedProvider).then(() => {
+              lastQuestion = content;
+              showDetailedPrompt = true;
+            });
           } else {
-            sendMessage(content, [], sessionId);
+            sendMessage(content, [], sessionId).then(() => {
+              lastQuestion = content;
+              showDetailedPrompt = true;
+            });
           }
         } else {
           console.log('Sending message without session ID');
           // Pass selected provider if provider switching is enabled
           if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
             console.log(`Using selected provider: ${selectedProvider}`);
-            sendMessage(content, [], null, selectedProvider);
+            sendMessage(content, [], null, selectedProvider).then(() => {
+              lastQuestion = content;
+              showDetailedPrompt = true;
+            });
           } else {
-            sendMessageWithOCRContext(content, []);
+            sendMessageWithOCRContext(content, []).then(() => {
+              lastQuestion = content;
+              showDetailedPrompt = true;
+            });
           }
         }
       });
     }
+  }
+
+  function requestDetailed() {
+    showDetailedPrompt = false;
+    import('../services').then(({ sendMessage }) => {
+      if (sessionId) {
+        if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
+          sendMessage(
+            lastQuestion,
+            [],
+            sessionId,
+            selectedProvider,
+            OPENAI_CONFIG.DETAILED_MAX_TOKENS
+          );
+        } else {
+          sendMessage(lastQuestion, [], sessionId, null, OPENAI_CONFIG.DETAILED_MAX_TOKENS);
+        }
+      } else {
+        sendMessageWithOCRContext(lastQuestion, [], OPENAI_CONFIG.DETAILED_MAX_TOKENS);
+      }
+    });
   }
 
   // These functions are now just for logging purposes
@@ -443,6 +485,13 @@
       <LanguageSelector bind:showSelector={showLanguageSelector} />
     {:else if $chatMode === CHAT_MODES.TEXT}
       <MessageList />
+      {#if showDetailedPrompt}
+        <div class="px-4 py-2 text-center">
+          <button class="text-sm text-amber-600 underline" on:click={requestDetailed}>
+            Need a more detailed explanation?
+          </button>
+        </div>
+      {/if}
       <MessageInput on:send={handleSendMessage} />
     {:else if $chatMode === CHAT_MODES.VOICE}
       <VoiceChat on:startRecording={handleStartRecording} on:stopRecording={handleStopRecording} />
