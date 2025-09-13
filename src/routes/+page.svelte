@@ -2,10 +2,12 @@
   import { onMount } from 'svelte';
   import ChatInterface from '$modules/chat/components/ChatInterface.svelte';
   import { checkAuth } from '$modules/auth/stores';
+  import { setMode } from '$lib/stores/mode';
 
-  // Check if user is already logged in
+  // Check if user is already logged in and set fun mode
   onMount(() => {
     checkAuth();
+    setMode('fun');
   });
 </script>
 

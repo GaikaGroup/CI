@@ -1,10 +1,15 @@
 <script>
   import { login } from '$modules/auth/stores';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { setMode } from '$lib/stores/mode';
   let email = '';
   let password = '';
   let remember = false;
   let error = '';
+  let redirect = '/';
+
+  $: redirect = $page.url.searchParams.get('redirect') || '/';
 
   async function handleSignIn() {
     error = '';
@@ -14,7 +19,8 @@
     }
     try {
       await login(email, password);
-      goto('/');
+      setMode(redirect === '/learn' ? 'learn' : 'fun');
+      goto(redirect);
     } catch (e) {
       error = 'Invalid credentials';
     }
