@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { MessageCircle, Mic, Globe, RotateCcw, Server } from 'lucide-svelte';
+  import { MessageCircle, Mic, Globe, RotateCcw } from 'lucide-svelte';
   import {
     chatMode,
     messages,
@@ -26,6 +26,7 @@
   import VoiceChat from './VoiceChat.svelte';
   import Button from '$shared/components/Button.svelte';
   import { browser } from '$app/environment';
+  import { appMode } from '$lib/stores/mode';
 
   // Session ID for maintaining conversation context
   let sessionId;
@@ -35,7 +36,6 @@
   // Provider selection
   let selectedProvider = null;
   let availableProviders = [];
-  let showProviderSelector = false;
 
   // Get available providers on mount
   onMount(async () => {
@@ -54,7 +54,8 @@
   // Initialize chat when language is selected
   $: if ($selectedLanguage && $messages.length === 0) {
     const welcomeMessage = getTranslation($selectedLanguage, 'welcomeMessage');
-    initializeChat(welcomeMessage);
+    const modeNote = $appMode === 'learn' ? 'You are in Learn mode.' : 'You are in Fun mode.';
+    initializeChat(`${welcomeMessage} ${modeNote}`);
   }
 
   // Process images for a message
@@ -182,7 +183,7 @@
       // Load chat history from session if available
       if (sessionId && $messages.length === 0) {
         import('../services').then(({ getChatHistory }) => {
-          getChatHistory(sessionId).then(history => {
+          getChatHistory(sessionId).then((history) => {
             if (history && history.length > 0) {
               console.log('Loaded chat history from session:', history.length, 'messages');
               // Replace messages store with history
