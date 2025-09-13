@@ -4,7 +4,8 @@
   import { getTranslation } from '$modules/i18n/translations';
   import ThemeToggle from '$modules/theme/components/ThemeToggle.svelte';
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
-  import { appMode, requireAuth } from '$lib/stores/mode';
+  import ModeToggle from './ModeToggle.svelte';
+  import { requireAuth } from '$lib/stores/mode';
 
   let mobileMenuOpen = false;
 
@@ -27,24 +28,7 @@
 
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center space-x-8">
-        <button
-          on:click={() => requireAuth('fun')}
-          class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors {$appMode ===
-          'fun'
-            ? 'font-bold underline'
-            : ''}"
-        >
-          Fun
-        </button>
-        <button
-          on:click={() => requireAuth('learn')}
-          class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors {$appMode ===
-          'learn'
-            ? 'font-bold underline'
-            : ''}"
-        >
-          Learn
-        </button>
+        <ModeToggle on:change={(e) => requireAuth(e.detail.mode)} />
         <a
           href="/about"
           class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
@@ -63,6 +47,7 @@
 
       <!-- Mobile Menu Button -->
       <div class="md:hidden flex items-center space-x-2">
+        <ModeToggle size="compact" on:change={(e) => requireAuth(e.detail.mode)} />
         <ThemeToggle />
         <button
           on:click={toggleMobileMenu}
@@ -83,30 +68,15 @@
   {#if mobileMenuOpen}
     <div class="md:hidden dark:bg-gray-800 dark:border-gray-700 bg-white border-stone-200 border-t">
       <div class="px-2 pt-2 pb-3 space-y-1">
-        <button
-          on:click={() => {
-            requireAuth('fun');
-            mobileMenuOpen = false;
-          }}
-          class="block px-3 py-2 w-full text-left dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 {$appMode ===
-          'fun'
-            ? 'font-bold underline'
-            : ''}"
-        >
-          Fun
-        </button>
-        <button
-          on:click={() => {
-            requireAuth('learn');
-            mobileMenuOpen = false;
-          }}
-          class="block px-3 py-2 w-full text-left dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 {$appMode ===
-          'learn'
-            ? 'font-bold underline'
-            : ''}"
-        >
-          Learn
-        </button>
+        <div class="px-3 py-2">
+          <ModeToggle
+            size="compact"
+            on:change={(e) => {
+              requireAuth(e.detail.mode);
+              mobileMenuOpen = false;
+            }}
+          />
+        </div>
         <a
           href="/about"
           class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
