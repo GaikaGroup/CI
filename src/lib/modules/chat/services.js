@@ -25,7 +25,9 @@ export async function sendMessage(
   images = [],
   sessionId = null,
   provider = null,
-  maxTokens = null
+  maxTokens = null,
+  detailLevel = null,
+  minWords = null
 ) {
   let waitingMessageId;
   try {
@@ -39,7 +41,7 @@ export async function sendMessage(
 
     // Select appropriate waiting phrase
     const phraseCategory =
-      maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS
+      (maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS) || detailLevel === 'detailed'
         ? WAITING_PHRASES_DETAILED
         : WAITING_PHRASES_DEFAULT;
     const waitingPhrase = await waitingPhrasesService.selectWaitingPhrase(
@@ -144,7 +146,9 @@ export async function sendMessage(
         language: get(selectedLanguage),
         sessionContext, // Include session context in the request
         provider, // Include provider selection if specified
-        ...(maxTokens ? { maxTokens } : {})
+        ...(maxTokens ? { maxTokens } : {}),
+        ...(detailLevel ? { detailLevel } : {}),
+        ...(minWords ? { minWords } : {})
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 
@@ -236,7 +240,9 @@ export async function sendMessage(
           language: get(selectedLanguage),
           sessionContext, // Include session context in the request
           provider, // Include provider selection if specified
-          ...(maxTokens ? { maxTokens } : {})
+          ...(maxTokens ? { maxTokens } : {}),
+          ...(detailLevel ? { detailLevel } : {}),
+          ...(minWords ? { minWords } : {})
         })
       });
 

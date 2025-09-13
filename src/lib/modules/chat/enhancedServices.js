@@ -32,7 +32,13 @@ if (typeof window !== 'undefined') {
  * @param {Array} images - Array of image URLs
  * @returns {Promise<boolean>} - Promise that resolves when the message is sent
  */
-export async function sendMessageWithOCRContext(content, images = [], maxTokens = null) {
+export async function sendMessageWithOCRContext(
+  content,
+  images = [],
+  maxTokens = null,
+  detailLevel = null,
+  minWords = null
+) {
   let waitingMessageId;
   try {
     console.log('sendMessageWithOCRContext called with content:', content);
@@ -41,7 +47,7 @@ export async function sendMessageWithOCRContext(content, images = [], maxTokens 
     setLoading(true);
 
     const phraseCategory =
-      maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS
+      (maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS) || detailLevel === 'detailed'
         ? WAITING_PHRASES_DETAILED
         : WAITING_PHRASES_DEFAULT;
     const waitingPhrase = await waitingPhrasesService.selectWaitingPhrase(
@@ -158,7 +164,9 @@ export async function sendMessageWithOCRContext(content, images = [], maxTokens 
         images: base64Images,
         recognizedText, // Send the already processed text
         language: get(selectedLanguage),
-        ...(maxTokens ? { maxTokens } : {})
+        ...(maxTokens ? { maxTokens } : {}),
+        ...(detailLevel ? { detailLevel } : {}),
+        ...(minWords ? { minWords } : {})
       };
       console.log('Request body size (approximate):', JSON.stringify(requestBody).length);
 
@@ -208,7 +216,9 @@ export async function sendMessageWithOCRContext(content, images = [], maxTokens 
           content,
           images: [],
           language: get(selectedLanguage),
-          ...(maxTokens ? { maxTokens } : {})
+          ...(maxTokens ? { maxTokens } : {}),
+          ...(detailLevel ? { detailLevel } : {}),
+          ...(minWords ? { minWords } : {})
         })
       });
 

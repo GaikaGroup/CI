@@ -368,21 +368,38 @@
 
   function requestDetailed() {
     showDetailedPrompt = false;
+
+    // Build a more explicit prompt for detailed explanations
+    const prompt =
+      lastQuestion + '\n\nPlease provide an in-depth, multi-paragraph explanation with examples.';
+
+    // Detect explicit word count requests (e.g., "2000 words")
+    const match = lastQuestion.match(/(\d+)\s+words?/i);
+    const requestedWords = match ? parseInt(match[1]) : null;
+
+    // Estimate needed tokens (approx. 1.3 tokens per word)
+    let tokenEstimate = requestedWords
+      ? Math.ceil(requestedWords * 1.3)
+      : OPENAI_CONFIG.DETAILED_MAX_TOKENS;
+    tokenEstimate = Math.min(tokenEstimate, OPENAI_CONFIG.DETAILED_MAX_TOKENS);
+
     import('../services').then(({ sendMessage }) => {
       if (sessionId) {
         if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && selectedProvider) {
           sendMessage(
-            lastQuestion,
+            prompt,
             [],
             sessionId,
             selectedProvider,
-            OPENAI_CONFIG.DETAILED_MAX_TOKENS
+            tokenEstimate,
+            'detailed',
+            requestedWords
           );
         } else {
-          sendMessage(lastQuestion, [], sessionId, null, OPENAI_CONFIG.DETAILED_MAX_TOKENS);
+          sendMessage(prompt, [], sessionId, null, tokenEstimate, 'detailed', requestedWords);
         }
       } else {
-        sendMessageWithOCRContext(lastQuestion, [], OPENAI_CONFIG.DETAILED_MAX_TOKENS);
+        sendMessageWithOCRContext(prompt, [], tokenEstimate, 'detailed', requestedWords);
       }
     });
   }

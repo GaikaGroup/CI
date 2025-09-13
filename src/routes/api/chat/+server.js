@@ -17,7 +17,9 @@ export async function POST({ request }) {
       recognizedText: clientRecognizedText,
       language,
       sessionContext,
-      maxTokens
+      maxTokens,
+      detailLevel,
+      minWords
     } = requestBody;
 
     // Log session context if available
@@ -144,6 +146,21 @@ Your task:
         content: fullContent
       }
     ];
+
+    if (detailLevel === 'detailed') {
+      messages.unshift({
+        role: 'system',
+        content:
+          'The student requested a detailed explanation. Respond comprehensively with background, step-by-step reasoning, and relevant examples.'
+      });
+    }
+
+    if (minWords) {
+      messages.unshift({
+        role: 'system',
+        content: `The student expects a detailed essay of at least ${minWords} words. Do not stop early.`
+      });
+    }
 
     // Options for the LLM request
     const options = {
