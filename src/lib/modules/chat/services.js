@@ -12,6 +12,11 @@ import {
 } from '$lib/config/api.js';
 import { waitingPhrasesService } from './waitingPhrasesService.js';
 
+// Helper to synchronously store a conversation turn in session memory
+function storeConversation(adapter, sessionId, message, reply) {
+  return adapter.handleUserMessage(message, sessionId, () => reply);
+}
+
 /**
  * Display a waiting phrase sentence by sentence.
  * Each sentence is emitted as a separate message bubble with its own ID.
@@ -218,11 +223,7 @@ export async function sendMessage(
       if (sessionStorageAdapter && sessionId) {
         console.log(`[Session] Storing conversation in session ${sessionId}`);
         // Store user message
-        sessionStorageAdapter.handleUserMessage(content, sessionId, async (message, context) => {
-          console.log(`[Session] Generating response for message: ${message}`);
-          console.log(`[Session] Using context:`, context);
-          return data.response;
-        });
+        await storeConversation(sessionStorageAdapter, sessionId, content, data.response);
       }
 
       // If OCR text was returned, update the original message with it
@@ -290,11 +291,7 @@ export async function sendMessage(
       if (sessionStorageAdapter && sessionId) {
         console.log(`[Session] Storing conversation in session ${sessionId}`);
         // Store user message
-        sessionStorageAdapter.handleUserMessage(content, sessionId, async (message, context) => {
-          console.log(`[Session] Generating response for message: ${message}`);
-          console.log(`[Session] Using context:`, context);
-          return data.response;
-        });
+        await storeConversation(sessionStorageAdapter, sessionId, content, data.response);
       }
 
       return true;
