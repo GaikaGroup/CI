@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WaitingPhrasesService } from '../../../src/lib/modules/chat/waitingPhrasesService.js';
 import { translationBridge } from '../../../src/lib/modules/chat/translationBridge.js';
 import { emitWaitingPhraseIncrementally } from '../../../src/lib/modules/chat/services.js';
-import { addMessage, updateMessage } from '../../../src/lib/modules/chat/stores';
+import { addMessage } from '../../../src/lib/modules/chat/stores';
 
 // Mock svelte/store
 vi.mock('svelte/store', async () => {
@@ -55,6 +55,10 @@ vi.mock('../../../src/lib/modules/chat/stores', () => ({
   messages: {
     get: () => mockMessages
   }
+}));
+
+vi.mock('../../../src/lib/modules/chat/voiceServices.js', () => ({
+  synthesizeWaitingPhrase: vi.fn(() => Promise.resolve())
 }));
 
 vi.mock('../../../src/lib/modules/i18n/stores', () => ({
@@ -474,22 +478,21 @@ describe('WaitingPhrasesService', () => {
       vi.useFakeTimers();
 
       const phrase = 'First sentence. Second sentence? Third sentence!';
-      const messageId = 1;
+      const ids = emitWaitingPhraseIncrementally(phrase, 100);
 
-      emitWaitingPhraseIncrementally(phrase, messageId, 100);
-
-      expect(addMessage).toHaveBeenCalledWith('tutor', 'First sentence.', null, messageId, {
+      expect(ids).toHaveLength(3);
+      expect(addMessage).toHaveBeenNthCalledWith(1, 'tutor', 'First sentence.', null, ids[0], {
         waiting: true
       });
 
       await vi.advanceTimersByTimeAsync(100);
-      expect(updateMessage).toHaveBeenNthCalledWith(1, messageId, {
-        content: 'First sentence. Second sentence?'
+      expect(addMessage).toHaveBeenNthCalledWith(2, 'tutor', 'Second sentence?', null, ids[1], {
+        waiting: true
       });
 
       await vi.advanceTimersByTimeAsync(100);
-      expect(updateMessage).toHaveBeenNthCalledWith(2, messageId, {
-        content: 'First sentence. Second sentence? Third sentence!'
+      expect(addMessage).toHaveBeenNthCalledWith(3, 'tutor', 'Third sentence!', null, ids[2], {
+        waiting: true
       });
 
       vi.useRealTimers();

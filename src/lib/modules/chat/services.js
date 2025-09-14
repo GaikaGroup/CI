@@ -1,4 +1,5 @@
 import { addMessage, updateMessage, messages } from './stores';
+import { synthesizeWaitingPhrase } from './voiceServices.js';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
@@ -13,31 +14,35 @@ import { waitingPhrasesService } from './waitingPhrasesService.js';
 
 /**
  * Display a waiting phrase sentence by sentence.
- * The first sentence is added immediately as a waiting message and subsequent
- * sentences are appended with small delays to simulate incremental thinking.
+ * Each sentence is emitted as a separate message bubble with its own ID.
+ * The full phrase is also sent to voiceServices for TTS handling.
  *
  * @param {string} phrase - Full waiting phrase
- * @param {number} messageId - Message identifier
  * @param {number} delay - Delay in milliseconds between sentence additions
+ * @returns {number[]} Array of message IDs created for the waiting phrase
  */
-export function emitWaitingPhraseIncrementally(phrase, messageId, delay = 500) {
+export function emitWaitingPhraseIncrementally(phrase, delay = 500) {
   const sentences = phrase.match(/[^.!?]+[.!?]+/g) || [phrase];
-  const first = sentences[0].trim();
+  const ids = [];
 
-  addMessage('tutor', first, null, messageId, { waiting: true });
+  // Pass full phrase to voice services for TTS
+  synthesizeWaitingPhrase(phrase).catch((e) =>
+    console.warn('Failed to synthesize waiting phrase:', e)
+  );
 
-  (async () => {
-    let content = first;
-    for (const sentence of sentences.slice(1)) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
+  sentences.forEach((sentence, index) => {
+    const id = Date.now() + index;
+    ids.push(id);
 
-      const current = get(messages).find((m) => m.id === messageId);
-      if (!current || !current.waiting) return; // message replaced
-
-      content += ' ' + sentence.trim();
-      updateMessage(messageId, { content });
+    const emit = () => addMessage('tutor', sentence.trim(), null, id, { waiting: true });
+    if (index === 0) {
+      emit();
+    } else {
+      setTimeout(emit, delay * index);
     }
-  })();
+  });
+
+  return ids;
 }
 
 /**
@@ -58,7 +63,7 @@ export async function sendMessage(
   detailLevel = null,
   minWords = null
 ) {
-  let waitingMessageId;
+  let waitingMessageIds = [];
   try {
     console.log('sendMessage called with content:', content);
     console.log('sendMessage called with images:', images.length);
@@ -77,8 +82,7 @@ export async function sendMessage(
       get(selectedLanguage),
       phraseCategory
     );
-    waitingMessageId = Date.now();
-    emitWaitingPhraseIncrementally(waitingPhrase, waitingMessageId);
+    waitingMessageIds = emitWaitingPhraseIncrementally(waitingPhrase);
 
     // Get session storage adapter if available
     const sessionStorageAdapter = container.has('sessionStorageAdapter')
@@ -207,11 +211,8 @@ export async function sendMessage(
 
       console.log('Adding AI response to chat');
       // Add the AI's response to the chat with provider info if available
-      updateMessage(waitingMessageId, {
-        content: data.response,
-        waiting: false,
-        provider: data.provider
-      });
+      messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
+      addMessage('tutor', data.response, null, Date.now(), { provider: data.provider });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
@@ -282,11 +283,8 @@ export async function sendMessage(
       const data = await response.json();
 
       // Add the AI's response to the chat with provider info if available
-      updateMessage(waitingMessageId, {
-        content: data.response,
-        waiting: false,
-        provider: data.provider
-      });
+      messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
+      addMessage('tutor', data.response, null, Date.now(), { provider: data.provider });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
@@ -312,7 +310,8 @@ export async function sendMessage(
     // Set a more descriptive error message for the user
     const errorMessage = error.message || 'Unknown error occurred';
     setError(`Failed to send message: ${errorMessage}. Please try again.`);
-    updateMessage(waitingMessageId, { content: `Error: ${errorMessage}`, waiting: false });
+    messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
+    addMessage('tutor', `Error: ${errorMessage}`, null, Date.now(), { waiting: false });
     return false;
   } finally {
     console.log('sendMessage function completed, setting loading to false');
