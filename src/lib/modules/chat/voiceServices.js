@@ -23,36 +23,37 @@ let voiceModeCleanupCallbacks = [];
  */
 export function setVoiceModeActive(active, options = {}) {
   const currentState = get(isVoiceModeActive);
-  
+
   if (currentState === active) {
     console.log(`Voice mode already ${active ? 'active' : 'inactive'}, no change needed`);
     return;
   }
 
   console.log(`Setting voice mode ${active ? 'active' : 'inactive'}`);
-  
+
   if (active) {
     // Activating voice mode
     voiceModeStartTime = Date.now();
     voiceModeSessionId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     console.log(`Voice mode activated (session: ${voiceModeSessionId})`);
-    
+
     // Initialize voice mode components
     initializeVoiceMode(options);
-    
   } else {
     // Deactivating voice mode
     const sessionDuration = voiceModeStartTime ? Date.now() - voiceModeStartTime : 0;
-    console.log(`Voice mode deactivated (session: ${voiceModeSessionId}, duration: ${sessionDuration}ms)`);
-    
+    console.log(
+      `Voice mode deactivated (session: ${voiceModeSessionId}, duration: ${sessionDuration}ms)`
+    );
+
     // Clean up voice mode components
     cleanupVoiceMode();
-    
+
     voiceModeStartTime = null;
     voiceModeSessionId = null;
   }
-  
+
   isVoiceModeActive.set(active);
 }
 
@@ -63,27 +64,26 @@ export function setVoiceModeActive(active, options = {}) {
 function initializeVoiceMode(options = {}) {
   try {
     console.log('Initializing voice mode components...');
-    
+
     // Initialize audio context if not already done
     initAudioContext();
-    
+
     // Clear any existing audio queue to start fresh
     if (options.clearQueue !== false) {
       clearAudioQueue();
     }
-    
+
     // Reset audio state
     isSpeaking.set(false);
     currentEmotion.set('neutral');
     audioAmplitude.set(0);
-    
+
     // Initialize waiting phrases service if needed
     if (options.initWaitingPhrases !== false) {
       initializeWaitingPhrasesForVoiceMode();
     }
-    
+
     console.log('Voice mode components initialized successfully');
-    
   } catch (error) {
     console.error('Error initializing voice mode components:', error);
   }
@@ -95,37 +95,36 @@ function initializeVoiceMode(options = {}) {
 function cleanupVoiceMode() {
   try {
     console.log('Cleaning up voice mode components...');
-    
+
     // Stop any ongoing audio playback
     if (audioPlayer && !audioPlayer.paused) {
       audioPlayer.pause();
       audioPlayer.currentTime = 0;
     }
-    
+
     // Clear audio queue
     clearAudioQueue();
-    
+
     // Reset audio state
     isSpeaking.set(false);
     currentEmotion.set('neutral');
     audioAmplitude.set(0);
-    
+
     // Reset queue state
     isPlayingSequence = false;
     waitingPhraseActive = false;
     queueState.pendingInterruption = false;
-    
+
     // Execute cleanup callbacks
-    voiceModeCleanupCallbacks.forEach(callback => {
+    voiceModeCleanupCallbacks.forEach((callback) => {
       try {
         callback();
       } catch (error) {
         console.error('Error in voice mode cleanup callback:', error);
       }
     });
-    
+
     console.log('Voice mode cleanup completed');
-    
   } catch (error) {
     console.error('Error during voice mode cleanup:', error);
   }
@@ -137,20 +136,19 @@ function cleanupVoiceMode() {
 async function initializeWaitingPhrasesForVoiceMode() {
   try {
     console.log('Initializing waiting phrases service for voice mode...');
-    
+
     // Ensure waiting phrases service is initialized
     if (!waitingPhrasesService.isServiceInitialized()) {
       await waitingPhrasesService.initializeWaitingPhrases();
     }
-    
+
     // Warm up translation cache for current language
     const currentLanguage = get(selectedLanguage);
     if (currentLanguage && currentLanguage !== 'en') {
       await waitingPhrasesService.warmUpTranslationCache(currentLanguage);
     }
-    
+
     console.log('Waiting phrases service ready for voice mode');
-    
   } catch (error) {
     console.error('Error initializing waiting phrases for voice mode:', error);
     // Don't throw - voice mode can work without waiting phrases
@@ -163,7 +161,7 @@ async function initializeWaitingPhrasesForVoiceMode() {
 function clearAudioQueue() {
   const queueLength = phraseQueue.length;
   phraseQueue.length = 0; // Clear array
-  
+
   if (queueLength > 0) {
     console.log(`Cleared ${queueLength} items from audio queue`);
   }
@@ -213,17 +211,17 @@ export function isVoiceModeReady() {
   if (!get(isVoiceModeActive)) {
     return false;
   }
-  
+
   // Check if audio context is ready
   if (!audioContext || audioContext.state !== 'running') {
     return false;
   }
-  
+
   // Check if audio player is available
   if (!audioPlayer) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -237,12 +235,12 @@ export function ensureVoiceModeActive(operation = 'voice operation') {
     console.warn(`Attempted ${operation} while voice mode is inactive`);
     return false;
   }
-  
+
   if (!isVoiceModeReady()) {
     console.warn(`Attempted ${operation} while voice mode is not ready`);
     return false;
   }
-  
+
   return true;
 }
 
@@ -456,17 +454,20 @@ export async function stopRecording() {
  */
 function detectLanguageFromText(text) {
   if (!text || text.length < 3) return null;
-  
+
   // Russian detection - look for Cyrillic characters
   if (/[а-яё]/i.test(text)) {
     return 'ru';
   }
-  
+
   // Spanish detection - look for Spanish-specific characters and patterns
-  if (/[ñáéíóúü¿¡]/i.test(text) || /\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están)\b/i.test(text)) {
+  if (
+    /[ñáéíóúü¿¡]/i.test(text) ||
+    /\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están)\b/i.test(text)
+  ) {
     return 'es';
   }
-  
+
   // Default to English for other cases
   return 'en';
 }
@@ -494,20 +495,24 @@ async function transcribeAudio(audioBlob) {
     }
 
     const data = await response.json();
-    
+
     // Update selectedLanguage if the API detected a different language
     if (data.detectedLanguage && data.detectedLanguage !== get(selectedLanguage)) {
-      console.log(`Language detected: ${data.detectedLanguage}, updating from ${get(selectedLanguage)}`);
+      console.log(
+        `Language detected: ${data.detectedLanguage}, updating from ${get(selectedLanguage)}`
+      );
       selectedLanguage.set(data.detectedLanguage);
     } else {
       // Fallback: simple language detection based on text content
       const detectedLang = detectLanguageFromText(data.transcription);
       if (detectedLang && detectedLang !== get(selectedLanguage)) {
-        console.log(`Language detected from text: ${detectedLang}, updating from ${get(selectedLanguage)}`);
+        console.log(
+          `Language detected from text: ${detectedLang}, updating from ${get(selectedLanguage)}`
+        );
         selectedLanguage.set(detectedLang);
       }
     }
-    
+
     return data.transcription;
   } catch (error) {
     console.error('Error transcribing audio:', error);
@@ -549,7 +554,10 @@ export async function sendTranscribedText(transcription) {
       await triggerWaitingPhrase();
     } catch (waitingPhraseError) {
       // Don't let waiting phrase errors interrupt the main flow
-      console.warn('Waiting phrase failed, continuing with response generation:', waitingPhraseError);
+      console.warn(
+        'Waiting phrase failed, continuing with response generation:',
+        waitingPhraseError
+      );
     }
 
     // Start async AI response generation
@@ -645,7 +653,7 @@ async function triggerWaitingPhrase() {
   let phraseSelectionTime = 0;
   let synthesisTime = 0;
   const startTime = Date.now();
-  
+
   try {
     // Ensure voice mode is active and ready
     if (!ensureVoiceModeActive('waiting phrase trigger')) {
@@ -653,63 +661,64 @@ async function triggerWaitingPhrase() {
     }
 
     console.log('Selecting and playing waiting phrase...');
-    
+
     // Get current language
     const currentLanguage = get(selectedLanguage);
-    
+
     // Step 1: Select a waiting phrase with error handling
     let waitingPhrase = null;
     const phraseStartTime = Date.now();
-    
+
     try {
       waitingPhrase = await waitingPhrasesService.selectWaitingPhrase(currentLanguage);
       phraseSelectionTime = Date.now() - phraseStartTime;
-      
+
       if (!waitingPhrase) {
         console.warn('No waiting phrase selected, using fallback');
         waitingPhrase = getFallbackWaitingPhrase(currentLanguage);
       }
-      
     } catch (phraseError) {
       phraseSelectionTime = Date.now() - phraseStartTime;
       console.error('Error selecting waiting phrase:', phraseError);
-      
+
       // Use fallback phrase
       waitingPhrase = getFallbackWaitingPhrase(currentLanguage);
       console.log(`Using fallback waiting phrase: "${waitingPhrase}"`);
     }
-    
+
     if (waitingPhrase) {
-      console.log(`Selected waiting phrase: "${waitingPhrase.substring(0, 50)}..." (selection time: ${phraseSelectionTime}ms)`);
-      
+      console.log(
+        `Selected waiting phrase: "${waitingPhrase.substring(0, 50)}..." (selection time: ${phraseSelectionTime}ms)`
+      );
+
       // Step 2: Synthesize and play the waiting phrase with error handling
       const synthesisStartTime = Date.now();
-      
+
       try {
         await synthesizeWaitingPhraseWithErrorHandling(waitingPhrase, currentLanguage);
         synthesisTime = Date.now() - synthesisStartTime;
-        
+
         const totalTime = Date.now() - startTime;
-        console.log(`Waiting phrase completed successfully (total time: ${totalTime}ms, synthesis: ${synthesisTime}ms)`);
-        
+        console.log(
+          `Waiting phrase completed successfully (total time: ${totalTime}ms, synthesis: ${synthesisTime}ms)`
+        );
       } catch (synthesisError) {
         synthesisTime = Date.now() - synthesisStartTime;
         console.error('Error synthesizing waiting phrase:', synthesisError);
-        
+
         // Log synthesis error details
         logSynthesisError(synthesisError, waitingPhrase, currentLanguage, synthesisTime);
-        
+
         // Don't throw - continue with main flow
         console.log('Continuing without waiting phrase due to synthesis error');
       }
     } else {
       console.warn('No waiting phrase available (including fallback)');
     }
-    
   } catch (error) {
     const totalTime = Date.now() - startTime;
     console.error(`Error in waiting phrase flow after ${totalTime}ms:`, error);
-    
+
     // Log comprehensive error details
     const errorDetails = {
       message: error.message,
@@ -722,7 +731,7 @@ async function triggerWaitingPhrase() {
       timestamp: new Date().toISOString()
     };
     console.error('Waiting phrase error details:', errorDetails);
-    
+
     // Don't throw - let the main flow continue
   }
 }
@@ -734,11 +743,11 @@ async function triggerWaitingPhrase() {
  */
 function getFallbackWaitingPhrase(language) {
   const fallbacks = {
-    en: "Please wait...",
-    ru: "Подождите...",
-    es: "Por favor espere..."
+    en: 'Please wait...',
+    ru: 'Подождите...',
+    es: 'Por favor espere...'
   };
-  
+
   return fallbacks[language] || fallbacks.en;
 }
 
@@ -751,29 +760,28 @@ function getFallbackWaitingPhrase(language) {
 async function synthesizeWaitingPhraseWithErrorHandling(text, language) {
   const maxRetries = 2;
   let lastError = null;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`Synthesis attempt ${attempt}/${maxRetries} for waiting phrase`);
-      
+
       await synthesizeWaitingPhrase(text, language);
-      
+
       console.log(`Waiting phrase synthesis successful on attempt ${attempt}`);
       return; // Success
-      
     } catch (error) {
       lastError = error;
       console.warn(`Synthesis attempt ${attempt} failed:`, error);
-      
+
       if (attempt < maxRetries) {
         // Wait before retry with exponential backoff
         const delay = Math.pow(2, attempt - 1) * 200; // 200ms, 400ms
         console.log(`Waiting ${delay}ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
-  
+
   // All attempts failed
   console.error(`All synthesis attempts failed for waiting phrase: "${text}"`);
   throw lastError || new Error('Synthesis failed after all retries');
@@ -798,9 +806,9 @@ function logSynthesisError(error, text, language, synthesisTime) {
     audioQueueStatus: getAudioQueueStatus(),
     stack: error.stack
   };
-  
+
   console.error('Synthesis error details:', errorInfo);
-  
+
   // Could send to error tracking service here
   // trackError('waiting-phrase-synthesis', errorInfo);
 }
@@ -818,15 +826,24 @@ async function synthesizeSpeech(text, options = {}) {
   const startTime = Date.now();
   let networkTime = 0;
   let processingTime = 0;
-  
-  try {
-    const {
-      isWaitingPhrase = false,
-      language = get(selectedLanguage),
-      priority = isWaitingPhrase ? 2 : 1 // Waiting phrases have medium priority
-    } = options;
 
-    console.log(`Synthesizing ${isWaitingPhrase ? 'waiting phrase' : 'response'}: "${text.substring(0, 50)}..." (language: ${language}, priority: ${priority})`);
+  // Extract options outside the try block so they are available in error handling
+  const {
+    isWaitingPhrase = false,
+    language = get(selectedLanguage),
+    priority = isWaitingPhrase ? 2 : 1 // Waiting phrases have medium priority
+  } = options;
+
+  // Skip synthesis entirely when voice mode is not active
+  if (!get(isVoiceModeActive)) {
+    console.warn('Voice mode inactive, skipping speech synthesis');
+    return;
+  }
+
+  try {
+    console.log(
+      `Synthesizing ${isWaitingPhrase ? 'waiting phrase' : 'response'}: "${text.substring(0, 50)}..." (language: ${language}, priority: ${priority})`
+    );
 
     // Validate inputs
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -834,18 +851,23 @@ async function synthesizeSpeech(text, options = {}) {
     }
 
     if (text.length > 5000) {
-      console.warn(`Text is very long (${text.length} characters), this may cause synthesis issues`);
+      console.warn(
+        `Text is very long (${text.length} characters), this may cause synthesis issues`
+      );
     }
 
     setLoading(true);
 
     const networkStartTime = Date.now();
-    
+
     // Make synthesis request with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, isWaitingPhrase ? 5000 : 15000); // Shorter timeout for waiting phrases
+    const timeoutId = setTimeout(
+      () => {
+        controller.abort();
+      },
+      isWaitingPhrase ? 5000 : 15000
+    ); // Shorter timeout for waiting phrases
 
     try {
       const response = await fetch('/api/synthesize', {
@@ -879,7 +901,8 @@ async function synthesizeSpeech(text, options = {}) {
         throw new Error('Received empty audio blob from synthesis API');
       }
 
-      if (audioBlob.size > 10 * 1024 * 1024) { // 10MB limit
+      if (audioBlob.size > 10 * 1024 * 1024) {
+        // 10MB limit
         console.warn(`Audio blob is very large (${Math.round(audioBlob.size / 1024 / 1024)}MB)`);
       }
 
@@ -899,51 +922,53 @@ async function synthesizeSpeech(text, options = {}) {
         }
       };
 
-      console.log(`Synthesis completed successfully (total: ${Date.now() - startTime}ms, network: ${networkTime}ms, processing: ${processingTime}ms, size: ${Math.round(audioBlob.size / 1024)}KB)`);
+      console.log(
+        `Synthesis completed successfully (total: ${Date.now() - startTime}ms, network: ${networkTime}ms, processing: ${processingTime}ms, size: ${Math.round(audioBlob.size / 1024)}KB)`
+      );
 
       playAudioWithMetadata(audioWithMetadata);
-      
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
+
       if (fetchError.name === 'AbortError') {
         throw new Error(`Synthesis request timed out after ${isWaitingPhrase ? 5 : 15} seconds`);
       }
-      
+
       throw fetchError;
     }
-    
   } catch (error) {
     const totalTime = Date.now() - startTime;
     console.error(`Error synthesizing speech after ${totalTime}ms:`, error);
-    
+
     // Log detailed error information
     const errorDetails = {
       type: isWaitingPhrase ? 'waiting-phrase-synthesis' : 'response-synthesis',
       message: error.message,
       text: text.substring(0, 100),
-      language: options.language || get(selectedLanguage),
-      isWaitingPhrase: options.isWaitingPhrase || false,
-      priority: options.priority || 1,
+      language,
+      isWaitingPhrase,
+      priority,
       totalTime,
       networkTime,
       processingTime,
       timestamp: new Date().toISOString(),
       stack: error.stack
     };
-    
+
     console.error('Synthesis error details:', errorDetails);
-    
+
     // Handle error based on type
-    if (options.isWaitingPhrase) {
+    if (isWaitingPhrase) {
       // For waiting phrases, fail gracefully
       console.warn('Waiting phrase synthesis failed, continuing without phrase');
-      
+
       // Try to use a simpler fallback phrase if the original was complex
       if (text.length > 50 || text.includes(',') || text.includes(';')) {
         console.log('Attempting synthesis with simpler fallback phrase...');
         try {
-          const simpleFallback = getFallbackWaitingPhrase(options.language || get(selectedLanguage));
+          const simpleFallback = getFallbackWaitingPhrase(
+            options.language || get(selectedLanguage)
+          );
           if (simpleFallback !== text) {
             // Recursive call with simpler text (prevent infinite recursion)
             await synthesizeSpeech(simpleFallback, { ...options, _isRetry: true });
@@ -953,17 +978,16 @@ async function synthesizeSpeech(text, options = {}) {
           console.error('Fallback synthesis also failed:', fallbackError);
         }
       }
-      
+
       return; // Fail silently for waiting phrases
     } else {
       // For AI responses, show error to user but don't throw
       console.error('AI response synthesis failed, user will see text-only response');
       setError('Speech synthesis failed. You can see the text response above.');
-      
+
       // Could implement text-to-speech fallback here
       // tryFallbackTTS(text, options);
     }
-    
   } finally {
     setLoading(false);
   }
@@ -977,9 +1001,9 @@ async function synthesizeSpeech(text, options = {}) {
  */
 export async function synthesizeWaitingPhrase(text, language = null) {
   const targetLanguage = language || get(selectedLanguage);
-  
+
   console.log(`Synthesizing waiting phrase in ${targetLanguage}: "${text}"`);
-  
+
   return synthesizeSpeech(text, {
     isWaitingPhrase: true,
     language: targetLanguage,
@@ -1032,19 +1056,21 @@ export function getCurrentAudioInfo() {
  * @returns {Object} Queue status information
  */
 export function getAudioQueueStatus() {
-  const waitingPhrases = phraseQueue.filter(item => item.metadata?.isWaitingPhrase).length;
-  const responses = phraseQueue.filter(item => !item.metadata?.isWaitingPhrase).length;
-  
+  const waitingPhrases = phraseQueue.filter((item) => item.metadata?.isWaitingPhrase).length;
+  const responses = phraseQueue.filter((item) => !item.metadata?.isWaitingPhrase).length;
+
   return {
     totalItems: phraseQueue.length,
     waitingPhrases,
     responses,
     isPlaying: isPlayingSequence,
-    currentlyPlaying: currentlyPlayingMetadata ? {
-      type: currentlyPlayingMetadata.isWaitingPhrase ? 'waiting_phrase' : 'response',
-      language: currentlyPlayingMetadata.language,
-      priority: currentlyPlayingMetadata.priority
-    } : null
+    currentlyPlaying: currentlyPlayingMetadata
+      ? {
+          type: currentlyPlayingMetadata.isWaitingPhrase ? 'waiting_phrase' : 'response',
+          language: currentlyPlayingMetadata.language,
+          priority: currentlyPlayingMetadata.priority
+        }
+      : null
   };
 }
 
@@ -1054,13 +1080,13 @@ export function getAudioQueueStatus() {
  */
 export function clearWaitingPhrasesFromQueue() {
   const originalLength = phraseQueue.length;
-  phraseQueue = phraseQueue.filter(item => !item.metadata?.isWaitingPhrase);
+  phraseQueue = phraseQueue.filter((item) => !item.metadata?.isWaitingPhrase);
   const removed = originalLength - phraseQueue.length;
-  
+
   if (removed > 0) {
     console.log(`Cleared ${removed} waiting phrases from audio queue`);
   }
-  
+
   return removed;
 }
 
@@ -1071,14 +1097,14 @@ export function clearWaitingPhrasesFromQueue() {
 function manageQueueTransition(audioWithMetadata) {
   const isResponse = !audioWithMetadata.metadata.isWaitingPhrase;
   const isWaitingPhrase = audioWithMetadata.metadata.isWaitingPhrase;
-  
+
   // If this is an AI response and we have waiting phrases in queue or playing
   if (isResponse) {
     console.log('AI response ready, managing transition from waiting phrases');
-    
+
     // Mark that we have a pending interruption
     queueState.pendingInterruption = true;
-    
+
     // If a waiting phrase is currently playing, we'll let it finish naturally
     // but clear any queued waiting phrases
     if (waitingPhraseActive) {
@@ -1088,10 +1114,9 @@ function manageQueueTransition(audioWithMetadata) {
       // No waiting phrase playing, clear queue and add response immediately
       clearWaitingPhrasesFromQueue();
     }
-    
+
     // Add response with high priority
     phraseQueue.unshift(audioWithMetadata);
-    
   } else if (isWaitingPhrase) {
     // Only add waiting phrase if no response is pending
     if (!queueState.pendingInterruption && !hasResponseInQueue()) {
@@ -1108,7 +1133,7 @@ function manageQueueTransition(audioWithMetadata) {
  * @returns {boolean} True if response is in queue
  */
 function hasResponseInQueue() {
-  return phraseQueue.some(item => !item.metadata?.isWaitingPhrase);
+  return phraseQueue.some((item) => !item.metadata?.isWaitingPhrase);
 }
 
 /**
@@ -1118,7 +1143,7 @@ function handleAudioTransition() {
   const now = Date.now();
   const timeSinceLastTransition = now - queueState.lastTransitionTime;
   const minTransitionInterval = 100; // Minimum 100ms between transitions
-  
+
   // Prevent rapid transitions that could cause audio glitches
   if (timeSinceLastTransition < minTransitionInterval && queueState.transitionInProgress) {
     console.log('Transition too rapid, delaying...');
@@ -1129,15 +1154,15 @@ function handleAudioTransition() {
     }, minTransitionInterval - timeSinceLastTransition);
     return;
   }
-  
+
   queueState.transitionInProgress = true;
   queueState.lastTransitionTime = now;
-  
+
   // Apply fade-out effect if supported
   if (audioPlayer && !audioPlayer.paused) {
     applyAudioFadeTransition();
   }
-  
+
   // Reset transition state after a short delay
   setTimeout(() => {
     queueState.transitionInProgress = false;
@@ -1153,7 +1178,7 @@ function applyAudioFadeTransition() {
     if (audioContext && audioContext.state === 'running') {
       const currentTime = audioContext.currentTime;
       const fadeTime = 0.1; // 100ms fade
-      
+
       // Create a gain node for smooth transitions
       if (audioPlayer.gainNode) {
         audioPlayer.gainNode.gain.setValueAtTime(1, currentTime);
@@ -1190,12 +1215,15 @@ export function getEnhancedAudioState() {
   return {
     queue: {
       total: phraseQueue.length,
-      waitingPhrases: phraseQueue.filter(item => item.metadata?.isWaitingPhrase).length,
-      responses: phraseQueue.filter(item => !item.metadata?.isWaitingPhrase).length,
-      nextItem: phraseQueue.length > 0 ? {
-        type: phraseQueue[0].metadata?.isWaitingPhrase ? 'waiting_phrase' : 'response',
-        priority: phraseQueue[0].metadata?.priority || 1
-      } : null
+      waitingPhrases: phraseQueue.filter((item) => item.metadata?.isWaitingPhrase).length,
+      responses: phraseQueue.filter((item) => !item.metadata?.isWaitingPhrase).length,
+      nextItem:
+        phraseQueue.length > 0
+          ? {
+              type: phraseQueue[0].metadata?.isWaitingPhrase ? 'waiting_phrase' : 'response',
+              priority: phraseQueue[0].metadata?.priority || 1
+            }
+          : null
     },
     playback: {
       isPlaying: isPlayingSequence,
@@ -1222,10 +1250,10 @@ export function forceAudioTransition() {
   }
 
   console.log('Forcing immediate transition from waiting phrase to response');
-  
+
   // Apply quick fade out
   applyAudioFadeTransition();
-  
+
   // Skip to next item in queue after a brief moment
   setTimeout(() => {
     if (audioPlayer && !audioPlayer.paused) {
@@ -1233,7 +1261,7 @@ export function forceAudioTransition() {
       audioPlayer.currentTime = audioPlayer.duration || 0; // Jump to end
     }
   }, 50);
-  
+
   return true;
 }
 
@@ -1242,10 +1270,10 @@ export function forceAudioTransition() {
  */
 export function optimizeAudioQueue() {
   const originalLength = phraseQueue.length;
-  
+
   // Remove duplicate waiting phrases
   const seen = new Set();
-  phraseQueue = phraseQueue.filter(item => {
+  phraseQueue = phraseQueue.filter((item) => {
     if (item.metadata?.isWaitingPhrase) {
       const key = `${item.metadata.originalText}:${item.metadata.language}`;
       if (seen.has(key)) {
@@ -1255,23 +1283,23 @@ export function optimizeAudioQueue() {
     }
     return true;
   });
-  
+
   // Limit waiting phrases to prevent queue buildup
   const maxWaitingPhrases = 2;
   let waitingPhraseCount = 0;
-  phraseQueue = phraseQueue.filter(item => {
+  phraseQueue = phraseQueue.filter((item) => {
     if (item.metadata?.isWaitingPhrase) {
       waitingPhraseCount++;
       return waitingPhraseCount <= maxWaitingPhrases;
     }
     return true;
   });
-  
+
   const removed = originalLength - phraseQueue.length;
   if (removed > 0) {
     console.log(`Optimized audio queue: removed ${removed} items`);
   }
-  
+
   return removed;
 }
 
@@ -1373,34 +1401,16 @@ function analyzeAudio() {
 }
 
 /**
- * Play audio from blob with optimized lip sync (legacy function)
- * @param {Blob} audioBlob - Audio blob to play
- */
-function playAudio(audioBlob) {
-  // Convert to new format for backward compatibility
-  const audioWithMetadata = {
-    blob: audioBlob,
-    metadata: {
-      isWaitingPhrase: false,
-      originalText: '',
-      language: get(selectedLanguage),
-      priority: 1,
-      timestamp: Date.now()
-    }
-  };
-  
-  playAudioWithMetadata(audioWithMetadata);
-}
-
-/**
  * Play audio with metadata and priority handling
  * @param {Object} audioWithMetadata - Audio object with metadata
  * @param {Blob} audioWithMetadata.blob - Audio blob to play
  * @param {Object} audioWithMetadata.metadata - Audio metadata
  */
 function playAudioWithMetadata(audioWithMetadata) {
-  console.log(`Queuing audio: ${audioWithMetadata.metadata.isWaitingPhrase ? 'waiting phrase' : 'response'} (priority: ${audioWithMetadata.metadata.priority})`);
-  
+  console.log(
+    `Queuing audio: ${audioWithMetadata.metadata.isWaitingPhrase ? 'waiting phrase' : 'response'} (priority: ${audioWithMetadata.metadata.priority})`
+  );
+
   // Use enhanced queue management for smooth transitions
   manageQueueTransition(audioWithMetadata);
 
@@ -1417,44 +1427,6 @@ function playAudioWithMetadata(audioWithMetadata) {
 }
 
 /**
- * Insert audio into queue based on priority
- * @param {Object} audioWithMetadata - Audio object with metadata
- */
-function insertIntoQueueByPriority(audioWithMetadata) {
-  const priority = audioWithMetadata.metadata.priority;
-  
-  // Priority 1 (highest) - AI responses, should interrupt waiting phrases
-  // Priority 2 (medium) - Waiting phrases
-  // Priority 3 (lowest) - Background audio
-  
-  if (priority === 1) {
-    // High priority - insert at beginning, but after any currently playing audio
-    if (isPlayingSequence && phraseQueue.length > 0) {
-      // If there are waiting phrases in queue, replace them with the response
-      const waitingPhraseIndices = [];
-      phraseQueue.forEach((item, index) => {
-        if (item.metadata && item.metadata.isWaitingPhrase) {
-          waitingPhraseIndices.push(index);
-        }
-      });
-      
-      // Remove waiting phrases from queue (they'll be interrupted)
-      for (let i = waitingPhraseIndices.length - 1; i >= 0; i--) {
-        phraseQueue.splice(waitingPhraseIndices[i], 1);
-      }
-    }
-    
-    // Add high priority item at the beginning
-    phraseQueue.unshift(audioWithMetadata);
-  } else {
-    // Medium/low priority - add to end of queue
-    phraseQueue.push(audioWithMetadata);
-  }
-  
-  console.log(`Queue updated. Length: ${phraseQueue.length}, waiting phrases: ${phraseQueue.filter(item => item.metadata?.isWaitingPhrase).length}`);
-}
-
-/**
  * Play the next audio blob in the queue with improved synchronization
  */
 function playNextInQueue() {
@@ -1467,7 +1439,7 @@ function playNextInQueue() {
 
   isPlayingSequence = true;
   const audioItem = phraseQueue.shift();
-  
+
   // Handle both old format (just blob) and new format (with metadata)
   const audioBlob = audioItem.blob || audioItem;
   const metadata = audioItem.metadata || {
@@ -1477,14 +1449,16 @@ function playNextInQueue() {
     priority: 1,
     timestamp: Date.now()
   };
-  
+
   // Clear pending interruption if we're playing a response
   if (!metadata.isWaitingPhrase) {
     queueState.pendingInterruption = false;
   }
-  
-  console.log(`Playing ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}: "${metadata.originalText.substring(0, 30)}..."`);
-  
+
+  console.log(
+    `Playing ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}: "${metadata.originalText.substring(0, 30)}..."`
+  );
+
   const audioUrl = URL.createObjectURL(audioBlob);
 
   // Set speaking state immediately if not already speaking
@@ -1548,14 +1522,14 @@ function playNextInQueue() {
     // Update currently playing metadata and waiting phrase status
     currentlyPlayingMetadata = metadata;
     waitingPhraseActive = metadata.isWaitingPhrase;
-    
+
     console.log(`Started playing ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}`);
-    
+
     // Connect audio player to analyzer if not already connected
     if (audioContext && audioAnalyser && audioPlayer) {
       try {
         const source = audioContext.createMediaElementSource(audioPlayer);
-        
+
         // Connect through gain node for smooth transitions if available
         if (audioPlayer.gainNode) {
           source.connect(audioPlayer.gainNode);
@@ -1594,13 +1568,14 @@ function playNextInQueue() {
 
   // Modify the onended handler
   audioPlayer.onended = () => {
-    console.log(`Finished playing ${currentlyPlayingMetadata?.isWaitingPhrase ? 'waiting phrase' : 'response'}`);
-    
+    console.log(
+      `Finished playing ${currentlyPlayingMetadata?.isWaitingPhrase ? 'waiting phrase' : 'response'}`
+    );
+
     // Clear currently playing metadata
-    const wasWaitingPhrase = currentlyPlayingMetadata?.isWaitingPhrase || false;
     currentlyPlayingMetadata = null;
     waitingPhraseActive = false;
-    
+
     // If there are more phrases in the queue, play the next one
     if (phraseQueue.length > 0) {
       // Keep speaking state true between phrases
