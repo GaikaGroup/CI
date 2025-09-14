@@ -12,6 +12,35 @@ import {
 import { waitingPhrasesService } from './waitingPhrasesService.js';
 
 /**
+ * Display a waiting phrase sentence by sentence.
+ * The first sentence is added immediately as a waiting message and subsequent
+ * sentences are appended with small delays to simulate incremental thinking.
+ *
+ * @param {string} phrase - Full waiting phrase
+ * @param {number} messageId - Message identifier
+ * @param {number} delay - Delay in milliseconds between sentence additions
+ */
+export function emitWaitingPhraseIncrementally(phrase, messageId, delay = 500) {
+  const sentences = phrase.match(/[^.!?]+[.!?]+/g) || [phrase];
+  const first = sentences[0].trim();
+
+  addMessage('tutor', first, null, messageId, { waiting: true });
+
+  (async () => {
+    let content = first;
+    for (const sentence of sentences.slice(1)) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      const current = get(messages).find((m) => m.id === messageId);
+      if (!current || !current.waiting) return; // message replaced
+
+      content += ' ' + sentence.trim();
+      updateMessage(messageId, { content });
+    }
+  })();
+}
+
+/**
  * Send a message to the AI tutor
  * @param {string} content - The message content
  * @param {Array} images - Array of image URLs
@@ -49,7 +78,7 @@ export async function sendMessage(
       phraseCategory
     );
     waitingMessageId = Date.now();
-    addMessage('tutor', waitingPhrase, null, waitingMessageId, { waiting: true });
+    emitWaitingPhraseIncrementally(waitingPhrase, waitingMessageId);
 
     // Get session storage adapter if available
     const sessionStorageAdapter = container.has('sessionStorageAdapter')
