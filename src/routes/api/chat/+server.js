@@ -75,15 +75,6 @@ export async function POST({ request }) {
           }
         });
       }
-
-      // Add conversation history
-      if (sessionContext.history && sessionContext.history.length > 0) {
-        fullContent += `Conversation history:\n`;
-        sessionContext.history.forEach((entry) => {
-          fullContent += `${entry.role === 'user' ? 'Student' : 'Tutor'}: ${entry.content}\n`;
-        });
-        fullContent += `\n`;
-      }
     }
 
     // Format according to the specified structure
@@ -114,18 +105,13 @@ export async function POST({ request }) {
         role: 'system',
         content: `You are a helpful AI tutor. Respond in ${language || 'English'}.
 
-You will receive input in this format:
-
-Previous documents:
-[Text extracted from previously uploaded documents]
-
-Conversation history:
-Student: [Previous question from the student]
-Tutor: [Your previous response]
-...
+Use the prior conversation messages and any provided documents to maintain context.
 
 Student question:
 [The student's current question about their exercise or homework]
+
+Previous documents:
+[Text extracted from previously uploaded documents]
 
 Exercise (from photo):
 [Text extracted from the uploaded image]
@@ -140,12 +126,18 @@ Your task:
 7. Always be helpful and supportive, even if the text recognition was not perfect.
 8. IMPORTANT: If you see a note about "Image processing will be performed in the browser", this means the image is already uploaded and is being processed. Respond with: "I can see you've uploaded an image. I'll analyze the content once the image processing is complete. Please wait a moment."
 9. CRITICAL: If there are NO images attached to the message (i.e., no OCR Processing Note is present), do NOT mention image processing or image analysis in your response. Only mention images if they are actually present in the user's message.`
-      },
-      {
-        role: 'user',
-        content: fullContent
       }
     ];
+
+    // Add conversation history as individual messages
+    if (sessionContext?.history && sessionContext.history.length > 0) {
+      sessionContext.history.forEach((entry) => {
+        messages.push({ role: entry.role, content: entry.content });
+      });
+    }
+
+    // Add the current user question
+    messages.push({ role: 'user', content: fullContent });
 
     if (detailLevel === 'detailed') {
       messages.unshift({
