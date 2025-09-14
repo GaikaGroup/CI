@@ -1,23 +1,34 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WaitingPhrasesService } from '../../../src/lib/modules/chat/waitingPhrasesService.js';
 import { translationBridge } from '../../../src/lib/modules/chat/translationBridge.js';
+import { emitWaitingPhraseIncrementally } from '../../../src/lib/modules/chat/services.js';
+import { addMessage, updateMessage } from '../../../src/lib/modules/chat/stores';
 
 // Mock svelte/store
-vi.mock('svelte/store', () => ({
-  get: vi.fn((store) => {
-    if (store && typeof store.get === 'function') {
-      return store.get();
-    }
-    return 'en'; // Default fallback
-  })
-}));
+vi.mock('svelte/store', async () => {
+  const actual = await vi.importActual('svelte/store');
+  return {
+    ...actual,
+    get: vi.fn((store) => {
+      if (store && typeof store.get === 'function') {
+        return store.get();
+      }
+      return 'en';
+    })
+  };
+});
 
 // Mock the dependencies
 vi.mock('../../../src/lib/modules/chat/waitingPhrasesConfig.js', () => ({
   loadWaitingPhrasesConfig: vi.fn(),
   getPhrasesForLanguage: vi.fn((config, language, category) => {
     // Mock implementation that returns phrases for language/category
-    if (!config || !config.phrases || !config.phrases[category] || !config.phrases[category][language]) {
+    if (
+      !config ||
+      !config.phrases ||
+      !config.phrases[category] ||
+      !config.phrases[category][language]
+    ) {
       return [];
     }
     return config.phrases[category][language];
@@ -27,12 +38,27 @@ vi.mock('../../../src/lib/modules/chat/waitingPhrasesConfig.js', () => ({
     if (!config || !config.phrases || !config.phrases[category]) {
       return language === 'en';
     }
-    return config.phrases[category].hasOwnProperty(language);
+    return Object.prototype.hasOwnProperty.call(config.phrases[category], language);
   })
 }));
 
+// Mock chat stores for incremental waiting phrase tests
+const mockMessages = [];
+vi.mock('../../../src/lib/modules/chat/stores', () => ({
+  addMessage: vi.fn((type, content, _images, id, meta) => {
+    mockMessages.push({ id, type, content, ...meta });
+  }),
+  updateMessage: vi.fn((id, updates) => {
+    const msg = mockMessages.find((m) => m.id === id);
+    if (msg) Object.assign(msg, updates);
+  }),
+  messages: {
+    get: () => mockMessages
+  }
+}));
+
 vi.mock('../../../src/lib/modules/i18n/stores', () => ({
-  selectedLanguage: { 
+  selectedLanguage: {
     subscribe: vi.fn(),
     get: vi.fn(() => 'en')
   },
@@ -61,7 +87,7 @@ describe('WaitingPhrasesService', () => {
   beforeEach(() => {
     // Create fresh service instance for each test
     service = new WaitingPhrasesService();
-    
+
     // Mock console methods
     mockConsole = {
       log: vi.fn(),
@@ -79,19 +105,11 @@ describe('WaitingPhrasesService', () => {
             'Give me a moment to process this...',
             'Hmm, interesting question...'
           ],
-          es: [
-            'Déjame pensar en esto...',
-            'Dame un momento para procesar esto...'
-          ],
-          ru: [
-            'Позвольте мне подумать об этом...'
-          ]
+          es: ['Déjame pensar en esto...', 'Dame un momento para procesar esto...'],
+          ru: ['Позвольте мне подумать об этом...']
         },
         math: {
-          en: [
-            'Calculating this problem...',
-            'Working on the math...'
-          ]
+          en: ['Calculating this problem...', 'Working on the math...']
         }
       },
       settings: {
@@ -112,24 +130,25 @@ describe('WaitingPhrasesService', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    mockMessages.length = 0;
   });
 
   describe('Phrase Selection Logic', () => {
     it('should select random phrase without consecutive repeats', () => {
       const phrases = ['phrase1', 'phrase2', 'phrase3'];
-      
+
       // First selection
       const first = service._selectRandomPhrase(phrases, 'general');
       expect(phrases).toContain(first);
-      
+
       // Update history to simulate previous selection
       service.lastSelectedPhrase = first;
       service.lastSelectedCategory = 'general';
-      
+
       // Second selection should avoid the first phrase
       const second = service._selectRandomPhrase(phrases, 'general');
       expect(phrases).toContain(second);
-      
+
       // With 3 phrases and avoiding 1, we should get a different phrase most of the time
       // Run multiple times to increase confidence
       let differentCount = 0;
@@ -158,7 +177,7 @@ describe('WaitingPhrasesService', () => {
       expect(() => {
         service._selectRandomPhrase(null, 'general');
       }).toThrow('No phrases available for selection');
-      
+
       expect(() => {
         service._selectRandomPhrase(undefined, 'general');
       }).toThrow('No phrases available for selection');
@@ -170,11 +189,11 @@ describe('WaitingPhrasesService', () => {
       // Test explicit language
       const result1 = service._detectTargetLanguage('es');
       expect(result1).toBe('es');
-      
+
       // Test fallback to English for invalid language
       const result2 = service._detectTargetLanguage('invalid');
       expect(result2).toBe('en');
-      
+
       // Test null language
       const result3 = service._detectTargetLanguage(null);
       expect(result3).toBe('en');
@@ -194,9 +213,9 @@ describe('WaitingPhrasesService', () => {
     it('should update phrase history correctly', () => {
       const phrase = 'Test phrase';
       const category = 'general';
-      
+
       service._updatePhraseHistory(phrase, category);
-      
+
       expect(service.phraseHistory).toHaveLength(1);
       expect(service.phraseHistory[0].phrase).toBe(phrase);
       expect(service.phraseHistory[0].category).toBe(category);
@@ -207,14 +226,14 @@ describe('WaitingPhrasesService', () => {
 
     it('should maintain history size limit', () => {
       const maxSize = service.config.settings.maxHistorySize;
-      
+
       // Add more phrases than the limit
       for (let i = 0; i < maxSize + 3; i++) {
         service._updatePhraseHistory(`phrase ${i}`, 'general');
       }
-      
+
       expect(service.phraseHistory).toHaveLength(maxSize);
-      
+
       // Check that the oldest entries were removed
       const firstEntry = service.phraseHistory[0];
       expect(firstEntry.phrase).toBe(`phrase ${3}`); // Should start from phrase 3
@@ -223,9 +242,9 @@ describe('WaitingPhrasesService', () => {
     it('should clear history correctly', () => {
       service._updatePhraseHistory('test phrase', 'general');
       expect(service.phraseHistory).toHaveLength(1);
-      
+
       service.clearPhraseHistory();
-      
+
       expect(service.phraseHistory).toHaveLength(0);
       expect(service.lastSelectedPhrase).toBeNull();
       expect(service.lastSelectedCategory).toBeNull();
@@ -234,10 +253,10 @@ describe('WaitingPhrasesService', () => {
     it('should return copy of history', () => {
       service._updatePhraseHistory('test phrase', 'general');
       const history = service.getPhraseHistory();
-      
+
       expect(history).toHaveLength(1);
       expect(history).not.toBe(service.phraseHistory); // Should be a copy
-      
+
       // Modifying returned history should not affect internal history
       history.push({ phrase: 'new phrase' });
       expect(service.phraseHistory).toHaveLength(1);
@@ -249,11 +268,11 @@ describe('WaitingPhrasesService', () => {
       const phrase = 'Test phrase';
       const targetLanguage = 'es';
       const translatedPhrase = 'Frase de prueba';
-      
+
       translationBridge.translatePhrase.mockResolvedValue(translatedPhrase);
-      
+
       const result = await service._translatePhrase(phrase, targetLanguage);
-      
+
       expect(translationBridge.translatePhrase).toHaveBeenCalledWith(phrase, targetLanguage);
       expect(result).toBe(translatedPhrase);
     });
@@ -261,24 +280,27 @@ describe('WaitingPhrasesService', () => {
     it('should handle translation errors gracefully', async () => {
       const phrase = 'Test phrase';
       const targetLanguage = 'es';
-      
+
       translationBridge.translatePhrase.mockRejectedValue(new Error('Translation failed'));
-      
+
       const result = await service._translatePhrase(phrase, targetLanguage);
-      
+
       expect(result).toBeNull();
-      expect(mockConsole.error).toHaveBeenCalledWith('Error translating phrase:', expect.any(Error));
+      expect(mockConsole.error).toHaveBeenCalledWith(
+        'Error translating phrase:',
+        expect.any(Error)
+      );
     });
 
     it('should warm up translation cache', async () => {
       await service.warmUpTranslationCache('es');
-      
+
       expect(translationBridge.warmUpCache).toHaveBeenCalledWith(['es'], expect.any(Array));
     });
 
     it('should skip warmup for English', async () => {
       await service.warmUpTranslationCache('en');
-      
+
       expect(translationBridge.warmUpCache).not.toHaveBeenCalled();
     });
   });
@@ -288,9 +310,9 @@ describe('WaitingPhrasesService', () => {
       const error = new Error('Translation service down');
       const phrase = 'Test phrase';
       const targetLanguage = 'es';
-      
+
       const result = service._handleTranslationError(error, phrase, targetLanguage);
-      
+
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
       expect(mockConsole.error).toHaveBeenCalled();
@@ -300,9 +322,9 @@ describe('WaitingPhrasesService', () => {
       const error = new Error('Some error');
       const phrase = 'Test phrase';
       const targetLanguage = 'en';
-      
+
       const result = service._handleTranslationError(error, phrase, targetLanguage);
-      
+
       expect(result).toBe(phrase);
     });
 
@@ -310,11 +332,11 @@ describe('WaitingPhrasesService', () => {
       const fallbackEn = service._getFallbackPhrase('en', 'general');
       const fallbackEs = service._getFallbackPhrase('es', 'general');
       const fallbackRu = service._getFallbackPhrase('ru', 'general');
-      
+
       expect(fallbackEn).toBeDefined();
       expect(fallbackEs).toBeDefined();
       expect(fallbackRu).toBeDefined();
-      
+
       expect(typeof fallbackEn).toBe('string');
       expect(typeof fallbackEs).toBe('string');
       expect(typeof fallbackRu).toBe('string');
@@ -322,18 +344,18 @@ describe('WaitingPhrasesService', () => {
 
     it('should check translation service availability', async () => {
       translationBridge.translatePhrase.mockResolvedValue('Translated');
-      
+
       const isAvailable = await service.isTranslationServiceAvailable('es');
-      
+
       expect(isAvailable).toBe(true);
       expect(translationBridge.translatePhrase).toHaveBeenCalledWith('Hello', 'es');
     });
 
     it('should detect translation service unavailability', async () => {
       translationBridge.translatePhrase.mockRejectedValue(new Error('Service down'));
-      
+
       const isAvailable = await service.isTranslationServiceAvailable('es');
-      
+
       expect(isAvailable).toBe(false);
     });
   });
@@ -342,9 +364,9 @@ describe('WaitingPhrasesService', () => {
     it('should cache phrases correctly', () => {
       const cacheKey = 'en:general';
       const phrases = ['phrase1', 'phrase2'];
-      
+
       service._cachePhrases(cacheKey, phrases);
-      
+
       const cached = service._getCachedPhrases(cacheKey);
       expect(cached).toEqual(phrases);
     });
@@ -359,7 +381,7 @@ describe('WaitingPhrasesService', () => {
       for (let i = 0; i < 60; i++) {
         service._cachePhrases(`key${i}:category`, [`phrase${i}`]);
       }
-      
+
       // Cache should be limited
       expect(service.phraseCache.size).toBeLessThanOrEqual(50);
     });
@@ -367,13 +389,13 @@ describe('WaitingPhrasesService', () => {
     it('should update access statistics', () => {
       const cacheKey = 'en:general';
       const phrases = ['phrase1', 'phrase2'];
-      
+
       service._cachePhrases(cacheKey, phrases);
-      
+
       // Access the cache multiple times
       service._getCachedPhrases(cacheKey);
       service._getCachedPhrases(cacheKey);
-      
+
       const cacheEntry = service.phraseCache.get(cacheKey);
       expect(cacheEntry.accessCount).toBe(2);
     });
@@ -386,12 +408,12 @@ describe('WaitingPhrasesService', () => {
         accessCount: 0,
         lastAccessed: Date.now() - 40 * 60 * 1000
       };
-      
+
       service.phraseCache.set('old:key', oldEntry);
-      
+
       const initialSize = service.phraseCache.size;
       service.optimizeCache();
-      
+
       expect(service.phraseCache.size).toBeLessThan(initialSize);
       expect(service.phraseCache.has('old:key')).toBe(false);
     });
@@ -422,7 +444,7 @@ describe('WaitingPhrasesService', () => {
 
     it('should return cache statistics', () => {
       const stats = service.getCacheStats();
-      
+
       expect(stats).toHaveProperty('size');
       expect(stats).toHaveProperty('historySize');
       expect(stats).toHaveProperty('currentLanguage');
@@ -433,7 +455,7 @@ describe('WaitingPhrasesService', () => {
   describe('Initialization and State', () => {
     it('should report initialization status correctly', () => {
       expect(service.isServiceInitialized()).toBe(true);
-      
+
       service.isInitialized = false;
       expect(service.isServiceInitialized()).toBe(false);
     });
@@ -441,9 +463,36 @@ describe('WaitingPhrasesService', () => {
     it('should handle uninitialized state gracefully', () => {
       service.isInitialized = false;
       service.config = null;
-      
+
       const categories = service.getAvailableCategories();
-      expect(categories).toEqual(['general']);
+      expect(categories).toEqual(['DefaultWaitingAnswer']);
+    });
+  });
+
+  describe('emitWaitingPhraseIncrementally', () => {
+    it('should emit sentences sequentially with delays', async () => {
+      vi.useFakeTimers();
+
+      const phrase = 'First sentence. Second sentence? Third sentence!';
+      const messageId = 1;
+
+      emitWaitingPhraseIncrementally(phrase, messageId, 100);
+
+      expect(addMessage).toHaveBeenCalledWith('tutor', 'First sentence.', null, messageId, {
+        waiting: true
+      });
+
+      await vi.advanceTimersByTimeAsync(100);
+      expect(updateMessage).toHaveBeenNthCalledWith(1, messageId, {
+        content: 'First sentence. Second sentence?'
+      });
+
+      await vi.advanceTimersByTimeAsync(100);
+      expect(updateMessage).toHaveBeenNthCalledWith(2, messageId, {
+        content: 'First sentence. Second sentence? Third sentence!'
+      });
+
+      vi.useRealTimers();
     });
   });
 });
