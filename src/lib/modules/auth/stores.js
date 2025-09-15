@@ -1,10 +1,27 @@
 import { writable } from 'svelte/store';
+import { STORAGE_KEYS } from '$shared/utils/constants';
 
 // User store
 export const user = writable(null);
 
 // Authentication status
 export const isAuthenticated = writable(false);
+
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+
+function persistUserSession(userData) {
+  user.set(userData);
+  isAuthenticated.set(true);
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+  }
+
+  if (typeof document !== 'undefined') {
+    const cookieValue = encodeURIComponent(JSON.stringify(userData));
+    document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  }
+}
 
 // Mock login function (for demonstration)
 export function login(email, password) {
@@ -19,14 +36,7 @@ export function login(email, password) {
           role: 'admin'
         };
 
-        user.set(userData);
-        isAuthenticated.set(true);
-
-        // Store in localStorage for persistence
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-
+        persistUserSession(userData);
         resolve(userData);
       } else if (email === 'admin@example.com' && password === 'password') {
         const userData = {
@@ -36,14 +46,7 @@ export function login(email, password) {
           role: 'admin'
         };
 
-        user.set(userData);
-        isAuthenticated.set(true);
-
-        // Store in localStorage for persistence
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-
+        persistUserSession(userData);
         resolve(userData);
       } else if (email === 'student@example.com' && password === 'password') {
         const userData = {
@@ -53,14 +56,7 @@ export function login(email, password) {
           role: 'student'
         };
 
-        user.set(userData);
-        isAuthenticated.set(true);
-
-        // Store in localStorage for persistence
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(userData));
-        }
-
+        persistUserSession(userData);
         resolve(userData);
       } else {
         reject(new Error('Invalid credentials'));
@@ -76,14 +72,18 @@ export function logout() {
 
   // Remove from localStorage
   if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem('user');
+    localStorage.removeItem(STORAGE_KEYS.USER);
+  }
+
+  if (typeof document !== 'undefined') {
+    document.cookie = `${STORAGE_KEYS.USER}=; path=/; max-age=0; SameSite=Lax`;
   }
 }
 
 // Check if user is already logged in from localStorage
 export function checkAuth() {
   if (typeof localStorage !== 'undefined') {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
