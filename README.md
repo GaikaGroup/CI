@@ -39,6 +39,12 @@ These features make the project a strong starting point for experimenting with A
 
 A provider manager selects between OpenAI and local Ollama models, enabling fallback and provider switching in development.
 
+#### Admin Finance Dashboard
+
+Administrators can review per-model usage counts and estimated OpenAI spend on the Finance page. Usage metrics are stored in-memory inside the application server; restart events clear the history. For production deployments consider persisting these aggregates to a database or analytics warehouse to avoid data loss.
+
+OpenAI costs are calculated using the official [per-million token pricing](https://openai.com/api/pricing/) (e.g. $0.50 per 1M prompt tokens and $1.50 per 1M completion tokens for `gpt-3.5-turbo-0125`). Totals are tracked and displayed to eight decimal places so even micro-dollar spending is visible to administrators.
+
 #### Voice Mode
 
 Speech‑to‑text uses the OpenAI Whisper API, while text‑to‑speech uses the OpenAI TTS API (or a simulated response in development). The animated cat avatar with lip‑syncing and emotion detection is documented in `docs/cat-avatar-implementation.md`.
