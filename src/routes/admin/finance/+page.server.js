@@ -8,6 +8,18 @@ import { STORAGE_KEYS } from '$shared/utils/constants';
 export const load = async ({ locals, cookies, fetch, url }) => {
   let user = locals.user;
 
+  const emptyCosts = {
+    models: [],
+    totals: {
+      totalRequests: 0,
+      paidRequests: 0,
+      promptTokens: 0,
+      completionTokens: 0,
+      totalTokens: 0,
+      totalCost: 0
+    }
+  };
+
   if (!user) {
     const cookieUser = cookies.get(STORAGE_KEYS.USER);
     if (cookieUser) {
@@ -30,7 +42,7 @@ export const load = async ({ locals, cookies, fetch, url }) => {
       console.error('Failed to load finance costs', response.status, response.statusText);
       return {
         user,
-        costs: { models: [] },
+        costs: emptyCosts,
         costsError: 'Unable to load usage metrics. Please try again later.'
       };
     }
@@ -41,7 +53,7 @@ export const load = async ({ locals, cookies, fetch, url }) => {
     console.error('Error fetching finance costs', error);
     return {
       user,
-      costs: { models: [] },
+      costs: emptyCosts,
       costsError: 'Unable to load usage metrics. Please try again later.'
     };
   }

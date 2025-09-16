@@ -3,6 +3,31 @@
 
   const models = data?.costs?.models ?? [];
   const costsError = data?.costsError;
+
+  const totals = data?.costs?.totals ?? {
+    totalRequests: 0,
+    paidRequests: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    totalTokens: 0,
+    totalCost: 0
+  };
+
+  const currencyFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const sanitizeNumber = (value) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : 0;
+
+  const formatCurrency = (value) => currencyFormatter.format(sanitizeNumber(value));
+
+  $: totalCost = sanitizeNumber(totals?.totalCost);
+  $: computedTotalCost =
+    totalCost || models.reduce((sum, entry) => sum + sanitizeNumber(entry.totalCost), 0);
 </script>
 
 <svelte:head>
@@ -58,6 +83,12 @@
               >
                 Paid Requests
               </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-gray-400"
+              >
+                Total Cost (USD)
+              </th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-stone-200 dark:divide-gray-700">
@@ -74,10 +105,20 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600 dark:text-gray-300">
                   {modelEntry.paid}
                 </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300"
+                >
+                  {formatCurrency(modelEntry.totalCost)}
+                </td>
               </tr>
             {/each}
           </tbody>
         </table>
+      </div>
+      <div class="px-6 py-4 border-t border-stone-200 dark:border-gray-700 flex justify-end">
+        <span class="text-sm font-semibold text-stone-700 dark:text-gray-200">
+          Total cost: {formatCurrency(computedTotalCost)}
+        </span>
       </div>
     {/if}
   </section>

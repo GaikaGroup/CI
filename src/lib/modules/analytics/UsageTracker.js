@@ -7,12 +7,45 @@ export class UsageTracker {
   }
 
   /**
+   * Normalize numeric values ensuring they are finite and non-negative.
+   * @param {number|undefined|null} value
+   * @param {boolean} [allowZero=true] When false, zero will be coerced to the fallback value
+   * @param {number} [fallback=0]
+   * @returns {number}
+   */
+  _sanitizeNumber(value, allowZero = true, fallback = 0) {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+    if (!allowZero && value === 0) return fallback;
+    return value < 0 ? fallback : value;
+  }
+
+  /**
    * Record a successful LLM request.
+   * Back-compat:
+   *   record(provider, model, true)              // legacy boolean for paid
+   * Preferred:
+   *   record(provider, model, { isPaid, tokens, cost })
+   *
    * @param {string} provider
    * @param {string} model
-   * @param {boolean} isPaid
+   * @param {boolean | {
+   *   isPaid?: boolean,
+   *   tokens?: { prompt?: number, completion?: number, total?: number, prompt_tokens?: number, completion_tokens?: number, total_tokens?: number },
+   *   cost?: number
+   * }} [options]
    */
-  record(provider, model, isPaid) {
+  record(provider, model, options) {
+    let isPaid = false;
+    let tokens;
+    let cost;
+
+    if (typeof options === 'boolean') {
+      // Legacy signature: (provider, model, isPaid)
+      isPaid = options;
+    } else if (options && typeof options === 'object') {
+      ({ isPaid = false, tokens, cost } = options);
+    }
+
     const normalizedModel = model || 'Unknown model';
     const key = `${provider || 'unknown'}::${normalizedModel}`;
 
@@ -21,29 +54,94 @@ export class UsageTracker {
         model: normalizedModel,
         provider: provider || 'unknown',
         totalRequests: 0,
-        paidRequests: 0
+        paidRequests: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        totalCost: 0
       });
     }
 
     const entry = this._modelUsage.get(key);
     entry.totalRequests += 1;
-    if (isPaid) {
-      entry.paidRequests += 1;
+    if (isPaid) entry.paidRequests += 1;
+
+    if (tokens) {
+      const promptTokens = this._sanitizeNumber(tokens.prompt ?? tokens.prompt_tokens ?? 0);
+      const completionTokens = this._sanitizeNumber(tokens.completion ?? tokens.completion_tokens ?? 0);
+      const totalTokens = this._sanitizeNumber(
+        tokens.total ?? tokens.total_tokens ?? promptTokens + completionTokens
+      );
+
+      entry.promptTokens += promptTokens;
+      entry.completionTokens += completionTokens;
+      entry.totalTokens += totalTokens;
+    }
+
+    if (typeof cost !== 'undefined') {
+      const sanitizedCost = this._sanitizeNumber(cost, true, 0);
+      entry.totalCost = Number((entry.totalCost + sanitizedCost).toFixed(6));
     }
   }
 
   /**
    * Return aggregated usage summary for presentation.
-   * @returns {{ models: Array<{ model: string, total: number, paid: number }> }}
+   * @returns {{
+   *   models: Array<{
+   *     provider: string,
+   *     model: string,
+   *     total: number,
+   *     paid: number,
+   *     promptTokens: number,
+   *     completionTokens: number,
+   *     totalTokens: number,
+   *     totalCost: number
+   *   }>,
+   *   totals: {
+   *     totalRequests: number,
+   *     paidRequests: number,
+   *     promptTokens: number,
+   *     completionTokens: number,
+   *     totalTokens: number,
+   *     totalCost: number
+   *   }
+   * }}
    */
   summary() {
-    return {
-      models: Array.from(this._modelUsage.values()).map((entry) => ({
-        model: entry.model,
-        total: entry.totalRequests,
-        paid: entry.paidRequests
-      }))
-    };
+    const models = Array.from(this._modelUsage.values()).map((entry) => ({
+      provider: entry.provider,
+      model: entry.model,
+      total: entry.totalRequests,
+      paid: entry.paidRequests,
+      promptTokens: entry.promptTokens,
+      completionTokens: entry.completionTokens,
+      totalTokens: entry.totalTokens,
+      totalCost: entry.totalCost
+    }));
+
+    const totals = models.reduce(
+      (acc, e) => {
+        acc.totalRequests += e.total;
+        acc.paidRequests += e.paid;
+        acc.promptTokens += e.promptTokens;
+        acc.completionTokens += e.completionTokens;
+        acc.totalTokens += e.totalTokens;
+        acc.totalCost += e.totalCost;
+        return acc;
+      },
+      {
+        totalRequests: 0,
+        paidRequests: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        totalCost: 0
+      }
+    );
+
+    totals.totalCost = Number(totals.totalCost.toFixed(6));
+
+    return { models, totals };
   }
 
   /**

@@ -7,6 +7,7 @@
 import { OpenAIProvider } from './providers/OpenAIProvider';
 import { OllamaProvider } from './providers/OllamaProvider';
 import { LLM_FEATURES, PROVIDER_CONFIG } from '$lib/config/llm';
+import { calculateOpenAICost } from '$lib/config/pricing';
 import { usageTracker } from '$modules/analytics/UsageTracker';
 
 /**
@@ -100,7 +101,6 @@ export class ProviderManager {
     }
 
     // If no provider is available, return the default provider anyway
-    // (it will fail, but at least we tried)
     console.warn(`No available LLM providers found, using default: ${this.defaultProvider}`);
     return this.defaultProvider;
   }
@@ -120,7 +120,23 @@ export class ProviderManager {
       const resolvedProvider = result.provider || name;
       const modelName = result.model || requestOptions?.model;
 
-      usageTracker.record(resolvedProvider, modelName, resolvedProvider === 'openai');
+      // Normalize usage fields from various providers
+      const usage = result.usage || {};
+      const tokens = {
+        prompt: usage.prompt_tokens ?? usage.promptTokens ?? 0,
+        completion: usage.completion_tokens ?? usage.completionTokens ?? 0,
+        total: usage.total_tokens ?? usage.totalTokens ?? 0
+      };
+
+      // Paid usage + cost calc (OpenAI is paid; Ollama local is not)
+      const isPaid = resolvedProvider === 'openai';
+      const cost = isPaid ? calculateOpenAICost(modelName, tokens) : 0;
+
+      usageTracker.record(resolvedProvider, modelName, {
+        isPaid,
+        tokens,
+        cost
+      });
 
       return {
         ...result,
