@@ -2,25 +2,29 @@
  * Pricing configuration for paid AI providers.
  */
 
+const TOKENS_PER_MILLION = 1000000;
+export const USD_MICRO_PRECISION = 100000000; // 8 decimal places
+
 /**
  * OpenAI chat completion pricing.
  *
  * Rates sourced from the official pricing table:
  * https://openai.com/api/pricing/
  *
- * Prices are expressed in USD per 1,000 tokens.
+ * Prices are expressed in USD per 1,000,000 tokens to match the official
+ * documentation. Helper utilities derive per-token rates from these values.
  */
 export const OPENAI_PRICING = {
   'gpt-3.5-turbo-0125': {
-    prompt: 0.0005,
-    completion: 0.0015
+    promptPerMillion: 0.5,
+    completionPerMillion: 1.5
   }
 };
 
 /**
  * Look up pricing data for an OpenAI model.
  * @param {string} model
- * @returns {{ prompt: number, completion: number } | null}
+ * @returns {{ promptPerMillion: number, completionPerMillion: number } | null}
  */
 export function getOpenAIModelPricing(model) {
   if (!model) {
@@ -31,15 +35,46 @@ export function getOpenAIModelPricing(model) {
 }
 
 /**
+ * Derive per-token pricing data for an OpenAI model.
+ * @param {string} model
+ * @returns {{ promptPerToken: number, completionPerToken: number } | null}
+ */
+export function getOpenAIModelPerTokenRates(model) {
+  const pricing = getOpenAIModelPricing(model);
+
+  if (!pricing) {
+    return null;
+  }
+
+  return {
+    promptPerToken: pricing.promptPerMillion / TOKENS_PER_MILLION,
+    completionPerToken: pricing.completionPerMillion / TOKENS_PER_MILLION
+  };
+}
+
+/**
+ * Round a USD value to the configured micro-dollar precision.
+ * @param {number} value
+ * @returns {number}
+ */
+export function roundUSDToPrecision(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.round(value * USD_MICRO_PRECISION) / USD_MICRO_PRECISION;
+}
+
+/**
  * Calculate the USD cost for an OpenAI response using token counts.
  * @param {string} model
  * @param {{ prompt?: number, completion?: number }} tokens
  * @returns {number}
  */
 export function calculateOpenAICost(model, tokens = {}) {
-  const pricing = getOpenAIModelPricing(model);
+  const rates = getOpenAIModelPerTokenRates(model);
 
-  if (!pricing) {
+  if (!rates) {
     return 0;
   }
 
@@ -52,8 +87,8 @@ export function calculateOpenAICost(model, tokens = {}) {
       ? Math.max(tokens.completion, 0)
       : 0;
 
-  const promptCost = (promptTokens / 1000) * pricing.prompt;
-  const completionCost = (completionTokens / 1000) * pricing.completion;
+  const promptCost = promptTokens * rates.promptPerToken;
+  const completionCost = completionTokens * rates.completionPerToken;
 
-  return promptCost + completionCost;
+  return roundUSDToPrecision(promptCost + completionCost);
 }

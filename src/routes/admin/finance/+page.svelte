@@ -16,18 +16,20 @@
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    minimumFractionDigits: 6,
+    maximumFractionDigits: 8
   });
+  const tokenFormatter = new Intl.NumberFormat('en-US');
 
   const sanitizeNumber = (value) =>
     typeof value === 'number' && Number.isFinite(value) ? value : 0;
-
   const formatCurrency = (value) => currencyFormatter.format(sanitizeNumber(value));
+  const formatTokens = (value) => tokenFormatter.format(Math.round(sanitizeNumber(value)));
 
-  $: totalCost = sanitizeNumber(totals?.totalCost);
-  $: computedTotalCost =
-    totalCost || models.reduce((sum, entry) => sum + sanitizeNumber(entry.totalCost), 0);
+  $: hasTotalsCost = typeof totals?.totalCost === 'number' && Number.isFinite(totals.totalCost);
+  $: computedTotalCost = hasTotalsCost
+    ? totals.totalCost
+    : Number(models.reduce((sum, entry) => sum + sanitizeNumber(entry.totalCost), 0).toFixed(8));
 </script>
 
 <svelte:head>
@@ -51,7 +53,7 @@
       <div>
         <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">Costs</h2>
         <p class="text-sm text-stone-500 dark:text-gray-400">
-          Usage statistics per language model and how many calls are billable.
+          Usage statistics per language model, token consumption, and how many calls are billable.
         </p>
       </div>
     </div>
@@ -87,12 +89,24 @@
                 scope="col"
                 class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-gray-400"
               >
+                Prompt Tokens
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-gray-400"
+              >
+                Completion Tokens
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-gray-400"
+              >
                 Total Cost (USD)
               </th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-stone-200 dark:divide-gray-700">
-            {#each models as modelEntry (modelEntry.model)}
+            {#each models as modelEntry (`${modelEntry.provider}::${modelEntry.model}`)}
               <tr>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-800 dark:text-gray-100"
@@ -104,6 +118,16 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600 dark:text-gray-300">
                   {modelEntry.paid}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300"
+                >
+                  {formatTokens(modelEntry.promptTokens)}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300"
+                >
+                  {formatTokens(modelEntry.completionTokens)}
                 </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300"

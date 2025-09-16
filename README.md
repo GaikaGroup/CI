@@ -13,13 +13,13 @@ This README is split into two parts:
 
 ## 1. Product Summary
 
-- **Conversational tutoring** – learners interact with an AI tutor that keeps track of the conversation and previously uploaded materials to provide contextual answers.
-- **Voice experience** – the app converts speech to text, speaks the response back, and shows an animated cat avatar that lip‑syncs and displays emotions. While the tutor thinks, it plays a friendly “waiting phrase” so the student knows something is happening.
-- **Document understanding** – students can attach pictures or PDFs of their assignments. Optical Character Recognition (OCR) extracts the text so the AI can refer to it in explanations.
-- **Multi‑language interface** – user interface strings are available in English, Russian and Spanish, making the tutor approachable to a wider audience.
-- **Flexible AI providers** – the tutor can run completely locally for privacy and cost savings or fall back to OpenAI’s API when more capability is required.
+* **Conversational tutoring** – learners interact with an AI tutor that keeps track of the conversation and previously uploaded materials to provide contextual answers.
+* **Voice experience** – the app converts speech to text, speaks the response back, and shows an animated cat avatar that lip-syncs and displays emotions. While the tutor thinks, it plays a friendly “waiting phrase” so the student knows something is happening.
+* **Document understanding** – students can attach pictures or PDFs of their assignments. Optical Character Recognition (OCR) extracts the text so the AI can refer to it in explanations.
+* **Multi-language interface** – user interface strings are available in English, Russian and Spanish, making the tutor approachable to a wider audience.
+* **Flexible AI providers** – the tutor can run completely locally for privacy and cost savings or fall back to OpenAI’s API when more capability is required.
 
-These features make the project a strong starting point for experimenting with AI‑enhanced education tools, proof‑of‑concepts or bespoke tutoring products.
+These features make the project a strong starting point for experimenting with AI-enhanced education tools, proof-of-concepts or bespoke tutoring products.
 
 ---
 
@@ -27,11 +27,11 @@ These features make the project a strong starting point for experimenting with A
 
 ### Technology Stack
 
-- [SvelteKit](https://kit.svelte.dev/) for the web application framework
-- [Vite](https://vitejs.dev/) for development and building
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) for unit, integration and e2e tests
-- Optional local LLM support through [Ollama](https://ollama.ai)
+* [SvelteKit](https://kit.svelte.dev/) for the web application framework
+* [Vite](https://vitejs.dev/) for development and building
+* [Tailwind CSS](https://tailwindcss.com/) for styling
+* [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) for unit, integration and e2e tests
+* Optional local LLM support through [Ollama](https://ollama.ai)
 
 ### Key Features and Architecture
 
@@ -43,9 +43,11 @@ A provider manager selects between OpenAI and local Ollama models, enabling fall
 
 Administrators can review per-model usage counts and estimated OpenAI spend on the Finance page. Usage metrics are stored in-memory inside the application server; restart events clear the history. For production deployments consider persisting these aggregates to a database or analytics warehouse to avoid data loss.
 
+OpenAI costs are calculated using the official [per-million token pricing](https://openai.com/api/pricing/) (e.g. \$0.50 per 1M prompt tokens and \$1.50 per 1M completion tokens for `gpt-3.5-turbo-0125`). Totals are tracked and displayed to eight decimal places so even micro-dollar spending is visible to administrators.
+
 #### Voice Mode
 
-Speech‑to‑text uses the OpenAI Whisper API, while text‑to‑speech uses the OpenAI TTS API (or a simulated response in development). The animated cat avatar with lip‑syncing and emotion detection is documented in `docs/cat-avatar-implementation.md`.
+Speech-to-text uses the OpenAI Whisper API, while text-to-speech uses the OpenAI TTS API (or a simulated response in development). The animated cat avatar with lip-syncing and emotion detection is documented in `docs/cat-avatar-implementation.md`.
 
 #### Document Processing
 
@@ -76,27 +78,31 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 
 ### Prerequisites / System Requirements
 
-- **Node.js**: version 18 or later
-- **npm**: version 9 or later
-- **Optional local models**: [Ollama](https://ollama.ai) running locally (8 GB RAM recommended)
-- **Browsers**: recent Chrome, Firefox, Safari or Edge
-- **Audio hardware**: microphone and speakers for voice mode
+* **Node.js**: version 18 or later
+* **npm**: version 9 or later
+* **Optional local models**: [Ollama](https://ollama.ai) running locally (8 GB RAM recommended)
+* **Browsers**: recent Chrome, Firefox, Safari or Edge
+* **Audio hardware**: microphone and speakers for voice mode
 
 ### Getting Started
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
 2. **Copy environment template**
+
    ```bash
    cp .env.example .env
    ```
 3. **Start development server**
+
    ```bash
    npm run dev
    ```
 4. **Build for production preview**
+
    ```bash
    npm run build
    npm run preview
@@ -104,10 +110,10 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 
 ### Installation Troubleshooting
 
-- Use the required Node version (`node -v`) if `npm install` fails
-- Run `npm cache clean --force` and reinstall if dependency resolution errors appear
-- Ensure `VITE_OPENAI_API_KEY` is set to avoid 401 errors from OpenAI
-- If Ollama is unreachable, verify it is running and matches `VITE_OLLAMA_API_URL`
+* Use the required Node version (`node -v`) if `npm install` fails
+* Run `npm cache clean --force` and reinstall if dependency resolution errors appear
+* Ensure `VITE_OPENAI_API_KEY` is set to avoid 401 errors from OpenAI
+* If Ollama is unreachable, verify it is running and matches `VITE_OLLAMA_API_URL`
 
 ### Configuration
 
@@ -128,7 +134,7 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 | `VITE_OLLAMA_STRICT`               | Restrict to MODELS list             | `true`                    | No       |
 | `VITE_OLLAMA_REPEAT_PENALTY`       | Repetition penalty                  | `1.1`                     | No       |
 | `VITE_OLLAMA_TOP_P`                | Nucleus sampling parameter          | `0.9`                     | No       |
-| `VITE_OLLAMA_TOP_K`                | Top‑k sampling size                 | `40`                      | No       |
+| `VITE_OLLAMA_TOP_K`                | Top-k sampling size                 | `40`                      | No       |
 | `VITE_LLM_MEMORY_THRESHOLD`        | MB before switching to cloud        | `2048`                    | No       |
 | `VITE_LLM_CPU_THRESHOLD`           | CPU load threshold                  | `0.95`                    | No       |
 | `VITE_LLM_RESOURCE_CHECK_INTERVAL` | Resource check ms                   | `5000`                    | No       |
@@ -179,51 +185,56 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 
 ### Usage Examples
 
-- **Text chat** – open the app and type a question to start a conversation
-- **Voice chat** – click the microphone button, speak your question and listen to the tutor's spoken reply
-- **Document upload** – attach an image or PDF via the paperclip icon; recognized text becomes part of the session context
+* **Text chat** – open the app and type a question to start a conversation
+* **Voice chat** – click the microphone button, speak your question and listen to the tutor's spoken reply
+* **Document upload** – attach an image or PDF via the paperclip icon; recognized text becomes part of the session context
 
 ### API Documentation
 
-_To be documented in a future update._
+*To be documented in a future update.*
 
 ### Deployment Guide
 
 1. Ensure required environment variables are set as in `.env`
 2. Build the application
+
    ```bash
    npm run build
    ```
 3. Run the production server (uses `adapter-auto`)
+
    ```bash
    node build
    ```
 4. For previewing locally
+
    ```bash
    npm run preview
    ```
 
 ### Testing & Quality
 
-- **Unit/Integration tests**
+* **Unit/Integration tests**
+
   ```bash
   npm test          # run auth tests
   npm run test:run  # run entire test suite
   ```
-- **Lint selected files**
+* **Lint selected files**
+
   ```bash
   npm run lint
   ```
 
 ### Performance & Limitations
 
-- File uploads are limited to 10 MB and common image/PDF formats
-- Local LLM models should be small enough for available RAM (8 GB machines are assumed)
-- Throughput depends on external APIs; concurrent users are limited by server resources
+* File uploads are limited to 10 MB and common image/PDF formats
+* Local LLM models should be small enough for available RAM (8 GB machines are assumed)
+* Throughput depends on external APIs; concurrent users are limited by server resources
 
 ### Security Considerations
 
-_Security best practices and threat models will be documented later._
+*Security best practices and threat models will be documented later.*
 
 ### Changelog / Version History
 
@@ -231,10 +242,10 @@ See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 
 ### FAQ / Troubleshooting
 
-- **App fails to start** – reinstall dependencies and verify Node version
-- **OCR results are poor** – ensure the image is clear and under 10 MB
-- **No response from tutor** – check network connectivity and API keys, or disable local provider to force OpenAI
-- **Debugging** – run `npm run dev` and inspect browser console or server output for logs
+* **App fails to start** – reinstall dependencies and verify Node version
+* **OCR results are poor** – ensure the image is clear and under 10 MB
+* **No response from tutor** – check network connectivity and API keys, or disable local provider to force OpenAI
+* **Debugging** – run `npm run dev` and inspect browser console or server output for logs
 
 ### Architecture Diagrams
 
@@ -252,8 +263,8 @@ flowchart LR
 
 Further design notes and troubleshooting guides live in the `docs/` folder:
 
-- `cat-avatar-implementation.md` – animated avatar and lip‑sync feature
-- `waiting-phrases.md` and `waiting-phrases-troubleshooting.md` – configuration for the “waiting” messages
+* `cat-avatar-implementation.md` – animated avatar and lip-sync feature
+* `waiting-phrases.md` and `waiting-phrases-troubleshooting.md` – configuration for the “waiting” messages
 
 ### Contributing
 
@@ -263,6 +274,5 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for coding gui
 
 This project is released under the [MIT License](LICENSE).
 
----
 
-Happy hacking and teaching!
+Happy teaching!

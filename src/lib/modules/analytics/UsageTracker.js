@@ -1,3 +1,5 @@
+import { USD_MICRO_PRECISION, roundUSDToPrecision } from '$lib/config/pricing';
+
 /**
  * Tracks usage metrics for LLM provider requests.
  */
@@ -14,13 +16,18 @@ export class UsageTracker {
    * @returns {number}
    */
   _sanitizeNumber(value, allowZero = true, fallback = 0) {
-    if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
-    if (!allowZero && value === 0) return fallback;
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      return fallback;
+    }
+    if (!allowZero && value === 0) {
+      return fallback;
+    }
     return value < 0 ? fallback : value;
   }
 
   /**
    * Record a successful LLM request.
+   *
    * Back-compat:
    *   record(provider, model, true)              // legacy boolean for paid
    * Preferred:
@@ -58,17 +65,21 @@ export class UsageTracker {
         promptTokens: 0,
         completionTokens: 0,
         totalTokens: 0,
-        totalCost: 0
+        totalCostMicro: 0
       });
     }
 
     const entry = this._modelUsage.get(key);
     entry.totalRequests += 1;
-    if (isPaid) entry.paidRequests += 1;
+    if (isPaid) {
+      entry.paidRequests += 1;
+    }
 
     if (tokens) {
       const promptTokens = this._sanitizeNumber(tokens.prompt ?? tokens.prompt_tokens ?? 0);
-      const completionTokens = this._sanitizeNumber(tokens.completion ?? tokens.completion_tokens ?? 0);
+      const completionTokens = this._sanitizeNumber(
+        tokens.completion ?? tokens.completion_tokens ?? 0
+      );
       const totalTokens = this._sanitizeNumber(
         tokens.total ?? tokens.total_tokens ?? promptTokens + completionTokens
       );
@@ -80,7 +91,8 @@ export class UsageTracker {
 
     if (typeof cost !== 'undefined') {
       const sanitizedCost = this._sanitizeNumber(cost, true, 0);
-      entry.totalCost = Number((entry.totalCost + sanitizedCost).toFixed(6));
+      const microValue = Math.round(sanitizedCost * USD_MICRO_PRECISION);
+      entry.totalCostMicro += microValue;
     }
   }
 
@@ -108,40 +120,48 @@ export class UsageTracker {
    * }}
    */
   summary() {
-    const models = Array.from(this._modelUsage.values()).map((entry) => ({
-      provider: entry.provider,
-      model: entry.model,
-      total: entry.totalRequests,
-      paid: entry.paidRequests,
-      promptTokens: entry.promptTokens,
-      completionTokens: entry.completionTokens,
-      totalTokens: entry.totalTokens,
-      totalCost: entry.totalCost
-    }));
+    let totalsCostMicro = 0;
+
+    const models = Array.from(this._modelUsage.values()).map((entry) => {
+      totalsCostMicro += entry.totalCostMicro;
+
+      return {
+        provider: entry.provider,
+        model: entry.model,
+        total: entry.totalRequests,
+        paid: entry.paidRequests,
+        promptTokens: entry.promptTokens,
+        completionTokens: entry.completionTokens,
+        totalTokens: entry.totalTokens,
+        totalCost: roundUSDToPrecision(entry.totalCostMicro / USD_MICRO_PRECISION)
+      };
+    });
 
     const totals = models.reduce(
-      (acc, e) => {
-        acc.totalRequests += e.total;
-        acc.paidRequests += e.paid;
-        acc.promptTokens += e.promptTokens;
-        acc.completionTokens += e.completionTokens;
-        acc.totalTokens += e.totalTokens;
-        acc.totalCost += e.totalCost;
-        return acc;
+      (accumulator, entry) => {
+        accumulator.totalRequests += entry.total;
+        accumulator.paidRequests += entry.paid;
+        accumulator.promptTokens += entry.promptTokens;
+        accumulator.completionTokens += entry.completionTokens;
+        accumulator.totalTokens += entry.totalTokens;
+        return accumulator;
       },
       {
         totalRequests: 0,
         paidRequests: 0,
         promptTokens: 0,
         completionTokens: 0,
-        totalTokens: 0,
-        totalCost: 0
+        totalTokens: 0
       }
     );
 
-    totals.totalCost = Number(totals.totalCost.toFixed(6));
-
-    return { models, totals };
+    return {
+      models,
+      totals: {
+        ...totals,
+        totalCost: roundUSDToPrecision(totalsCostMicro / USD_MICRO_PRECISION)
+      }
+    };
   }
 
   /**
