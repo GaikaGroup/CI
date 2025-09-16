@@ -3,6 +3,7 @@
 
   const models = data?.costs?.models ?? [];
   const costsError = data?.costsError;
+
   const totals = data?.costs?.totals ?? {
     totalRequests: 0,
     paidRequests: 0,
@@ -21,6 +22,7 @@
 
   const sanitizeNumber = (value) =>
     typeof value === 'number' && Number.isFinite(value) ? value : 0;
+
   const formatCurrency = (value) => currencyFormatter.format(sanitizeNumber(value));
 
   $: totalCost = sanitizeNumber(totals?.totalCost);

@@ -9,33 +9,43 @@ export class UsageTracker {
   /**
    * Normalize numeric values ensuring they are finite and non-negative.
    * @param {number|undefined|null} value
-   * @param {boolean} allowZero When false, zero will be coerced to the fallback value
-   * @param {number} fallback
+   * @param {boolean} [allowZero=true] When false, zero will be coerced to the fallback value
+   * @param {number} [fallback=0]
    * @returns {number}
    */
   _sanitizeNumber(value, allowZero = true, fallback = 0) {
-    if (typeof value !== 'number' || !Number.isFinite(value)) {
-      return fallback;
-    }
-
-    if (!allowZero && value === 0) {
-      return fallback;
-    }
-
+    if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+    if (!allowZero && value === 0) return fallback;
     return value < 0 ? fallback : value;
   }
 
   /**
    * Record a successful LLM request.
+   * Back-compat:
+   *   record(provider, model, true)              // legacy boolean for paid
+   * Preferred:
+   *   record(provider, model, { isPaid, tokens, cost })
+   *
    * @param {string} provider
    * @param {string} model
-   * @param {{
+   * @param {boolean | {
    *   isPaid?: boolean,
-   *   tokens?: { prompt?: number, completion?: number, total?: number },
+   *   tokens?: { prompt?: number, completion?: number, total?: number, prompt_tokens?: number, completion_tokens?: number, total_tokens?: number },
    *   cost?: number
-   * }} metrics
+   * }} [options]
    */
-  record(provider, model, { isPaid = false, tokens, cost } = {}) {
+  record(provider, model, options) {
+    let isPaid = false;
+    let tokens;
+    let cost;
+
+    if (typeof options === 'boolean') {
+      // Legacy signature: (provider, model, isPaid)
+      isPaid = options;
+    } else if (options && typeof options === 'object') {
+      ({ isPaid = false, tokens, cost } = options);
+    }
+
     const normalizedModel = model || 'Unknown model';
     const key = `${provider || 'unknown'}::${normalizedModel}`;
 
@@ -54,15 +64,11 @@ export class UsageTracker {
 
     const entry = this._modelUsage.get(key);
     entry.totalRequests += 1;
-    if (isPaid) {
-      entry.paidRequests += 1;
-    }
+    if (isPaid) entry.paidRequests += 1;
 
     if (tokens) {
       const promptTokens = this._sanitizeNumber(tokens.prompt ?? tokens.prompt_tokens ?? 0);
-      const completionTokens = this._sanitizeNumber(
-        tokens.completion ?? tokens.completion_tokens ?? 0
-      );
+      const completionTokens = this._sanitizeNumber(tokens.completion ?? tokens.completion_tokens ?? 0);
       const totalTokens = this._sanitizeNumber(
         tokens.total ?? tokens.total_tokens ?? promptTokens + completionTokens
       );
@@ -114,14 +120,14 @@ export class UsageTracker {
     }));
 
     const totals = models.reduce(
-      (accumulator, entry) => {
-        accumulator.totalRequests += entry.total;
-        accumulator.paidRequests += entry.paid;
-        accumulator.promptTokens += entry.promptTokens;
-        accumulator.completionTokens += entry.completionTokens;
-        accumulator.totalTokens += entry.totalTokens;
-        accumulator.totalCost += entry.totalCost;
-        return accumulator;
+      (acc, e) => {
+        acc.totalRequests += e.total;
+        acc.paidRequests += e.paid;
+        acc.promptTokens += e.promptTokens;
+        acc.completionTokens += e.completionTokens;
+        acc.totalTokens += e.totalTokens;
+        acc.totalCost += e.totalCost;
+        return acc;
       },
       {
         totalRequests: 0,
