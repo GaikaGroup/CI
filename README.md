@@ -39,6 +39,10 @@ These features make the project a strong starting point for experimenting with A
 
 A provider manager selects between OpenAI and local Ollama models, enabling fallback and provider switching in development.
 
+#### Admin Finance Dashboard
+
+Administrators can review per-model usage counts and estimated OpenAI spend on the Finance page. Usage metrics are stored in-memory inside the application server; restart events clear the history. For production deployments consider persisting these aggregates to a database or analytics warehouse to avoid data loss.
+
 #### Voice Mode
 
 Speech‑to‑text uses the OpenAI Whisper API, while text‑to‑speech uses the OpenAI TTS API (or a simulated response in development). The animated cat avatar with lip‑syncing and emotion detection is documented in `docs/cat-avatar-implementation.md`.

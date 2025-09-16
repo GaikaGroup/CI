@@ -6,6 +6,7 @@
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
   import { requireAuth } from '$lib/stores/mode';
+  import { user } from '$modules/auth/stores';
 
   let mobileMenuOpen = false;
 
@@ -41,6 +42,14 @@
         >
           {getTranslation($selectedLanguage, 'contacts')}
         </a>
+        {#if $user?.role === 'admin'}
+          <a
+            href="/admin/finance"
+            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
+          >
+            Finance
+          </a>
+        {/if}
         <ThemeToggle />
         <AuthButton />
       </div>
@@ -89,6 +98,17 @@
         >
           {getTranslation($selectedLanguage, 'contacts')}
         </a>
+        {#if $user?.role === 'admin'}
+          <a
+            href="/admin/finance"
+            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
+            on:click={() => {
+              mobileMenuOpen = false;
+            }}
+          >
+            Finance
+          </a>
+        {/if}
         <div class="px-3 py-2">
           <AuthButton buttonClass="block w-full text-left" />
         </div>
