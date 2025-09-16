@@ -3,6 +3,7 @@
 
   const models = data?.costs?.models ?? [];
   const costsError = data?.costsError;
+
   const totals = data?.costs?.totals ?? {
     totalRequests: 0,
     paidRequests: 0,

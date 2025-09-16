@@ -101,7 +101,6 @@ export class ProviderManager {
     }
 
     // If no provider is available, return the default provider anyway
-    // (it will fail, but at least we tried)
     console.warn(`No available LLM providers found, using default: ${this.defaultProvider}`);
     return this.defaultProvider;
   }
@@ -121,6 +120,7 @@ export class ProviderManager {
       const resolvedProvider = result.provider || name;
       const modelName = result.model || requestOptions?.model;
 
+      // Normalize usage fields from various providers
       const usage = result.usage || {};
       const tokens = {
         prompt: usage.prompt_tokens ?? usage.promptTokens ?? 0,
@@ -128,6 +128,7 @@ export class ProviderManager {
         total: usage.total_tokens ?? usage.totalTokens ?? 0
       };
 
+      // Paid usage + cost calc (OpenAI is paid; Ollama local is not)
       const isPaid = resolvedProvider === 'openai';
       const cost = isPaid ? calculateOpenAICost(modelName, tokens) : 0;
 

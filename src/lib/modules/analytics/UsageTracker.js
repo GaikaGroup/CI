@@ -11,33 +11,48 @@ export class UsageTracker {
   /**
    * Normalize numeric values ensuring they are finite and non-negative.
    * @param {number|undefined|null} value
-   * @param {boolean} allowZero When false, zero will be coerced to the fallback value
-   * @param {number} fallback
+   * @param {boolean} [allowZero=true] When false, zero will be coerced to the fallback value
+   * @param {number} [fallback=0]
    * @returns {number}
    */
   _sanitizeNumber(value, allowZero = true, fallback = 0) {
     if (typeof value !== 'number' || !Number.isFinite(value)) {
       return fallback;
     }
-
     if (!allowZero && value === 0) {
       return fallback;
     }
-
     return value < 0 ? fallback : value;
   }
 
   /**
    * Record a successful LLM request.
+   *
+   * Back-compat:
+   *   record(provider, model, true)              // legacy boolean for paid
+   * Preferred:
+   *   record(provider, model, { isPaid, tokens, cost })
+   *
    * @param {string} provider
    * @param {string} model
-   * @param {{
+   * @param {boolean | {
    *   isPaid?: boolean,
-   *   tokens?: { prompt?: number, completion?: number, total?: number },
+   *   tokens?: { prompt?: number, completion?: number, total?: number, prompt_tokens?: number, completion_tokens?: number, total_tokens?: number },
    *   cost?: number
-   * }} metrics
+   * }} [options]
    */
-  record(provider, model, { isPaid = false, tokens, cost } = {}) {
+  record(provider, model, options) {
+    let isPaid = false;
+    let tokens;
+    let cost;
+
+    if (typeof options === 'boolean') {
+      // Legacy signature: (provider, model, isPaid)
+      isPaid = options;
+    } else if (options && typeof options === 'object') {
+      ({ isPaid = false, tokens, cost } = options);
+    }
+
     const normalizedModel = model || 'Unknown model';
     const key = `${provider || 'unknown'}::${normalizedModel}`;
 
