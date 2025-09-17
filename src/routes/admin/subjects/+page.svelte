@@ -19,13 +19,15 @@
     examInstructions: '',
     examFollowUp: '',
     examMinWords: '',
-    examMaxTokens: ''
+    examMaxTokens: '',
+    settingsText: ''
   });
 
   let subjects = [];
   let form = emptyForm();
   let editingId = null;
   let showResetConfirm = false;
+  let formError = '';
 
   const parseList = (value) =>
     value
@@ -41,6 +43,7 @@
   const resetForm = () => {
     form = emptyForm();
     editingId = null;
+    formError = '';
   };
 
   const cancelEdit = () => {
@@ -65,21 +68,39 @@
   });
 
   const buildPayload = () => {
+    formError = '';
+
     const skills = parseList(form.skillsText);
-    const practice = {
+    let settings = null;
+
+    if (form.settingsText && form.settingsText.trim().length > 0) {
+      try {
+        settings = JSON.parse(form.settingsText);
+      } catch (error) {
+        formError = 'Subject settings JSON is invalid. Please correct the syntax and try again.';
+        console.warn('[Admin/Subjects] Failed to parse subject settings JSON', error);
+        return null;
+      }
+    }
+
+    const manualPractice = {
       summary: form.practiceSummary,
       instructions: form.practiceInstructions,
       followUp: form.practiceFollowUp,
       minWords: toNumber(form.practiceMinWords),
       maxTokens: toNumber(form.practiceMaxTokens)
     };
-    const exam = {
+
+    const manualExam = {
       summary: form.examSummary,
       instructions: form.examInstructions,
       followUp: form.examFollowUp,
       minWords: toNumber(form.examMinWords),
       maxTokens: toNumber(form.examMaxTokens)
     };
+
+    const practice = settings?.practice_mode ?? manualPractice;
+    const exam = settings?.exam_mode ?? manualExam;
 
     return {
       id: editingId || undefined,
@@ -89,7 +110,8 @@
       level: form.level,
       skills,
       practice,
-      exam
+      exam,
+      settings
     };
   };
 
@@ -97,7 +119,7 @@
     event.preventDefault();
     const payload = buildPayload();
 
-    if (!payload.name || !payload.description) {
+    if (!payload || !payload.name || !payload.description) {
       return;
     }
 
@@ -128,8 +150,10 @@
       examInstructions: subject.exam?.instructions ?? '',
       examFollowUp: subject.exam?.followUp ?? '',
       examMinWords: subject.exam?.minWords ?? '',
-      examMaxTokens: subject.exam?.maxTokens ?? ''
+      examMaxTokens: subject.exam?.maxTokens ?? '',
+      settingsText: subject.settings ? JSON.stringify(subject.settings, null, 2) : ''
     };
+    formError = '';
   };
 
   const removeSubject = (id) => {
@@ -247,6 +271,14 @@
     </p>
 
     <form class="mt-6 space-y-6" on:submit|preventDefault={handleSubmit}>
+      {#if formError}
+        <div
+          class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200"
+        >
+          {formError}
+        </div>
+      {/if}
+
       <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-2">
           <label class="text-sm font-medium text-stone-700 dark:text-gray-200" for="name"
@@ -412,7 +444,7 @@
               bind:value={form.examMinWords}
             />
           </div>
-          <div class="space-y-2">
+            <div class="space-y-2">
             <label class="text-sm font-medium text-stone-700 dark:text-gray-200" for="examMaxTokens"
               >Max tokens</label
             >
@@ -425,6 +457,23 @@
             />
           </div>
         </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-stone-700 dark:text-gray-200" for="settingsJson"
+          >Advanced subject settings (JSON)</label
+        >
+        <textarea
+          id="settingsJson"
+          class="h-64 w-full rounded-lg border border-stone-200 px-3 py-2 font-mono text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+          bind:value={form.settingsText}
+          placeholder="Paste subject settings JSON that follows the universal exam schema"
+        />
+        <p class="text-xs text-stone-500 dark:text-gray-400">
+          Optional: provide the complete universal exam configuration to control navigation codes,
+          consent flows, menus, and compliance prompts. When supplied, these settings take
+          precedence over the quick summaries above.
+        </p>
       </div>
 
       <div class="flex flex-wrap gap-3">

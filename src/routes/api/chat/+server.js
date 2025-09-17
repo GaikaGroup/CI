@@ -3,6 +3,210 @@ import { container } from '$lib/shared/di/container';
 import { OPENAI_CONFIG } from '$lib/config/api';
 import { LLM_FEATURES } from '$lib/config/llm';
 
+const INTERFACE_LANGUAGE_MAP = {
+  en: 'english',
+  es: 'spanish',
+  ru: 'russian'
+};
+
+function mapInterfaceLanguage(languageCode) {
+  if (!languageCode || typeof languageCode !== 'string') {
+    return null;
+  }
+  const normalised = languageCode.toLowerCase();
+  return INTERFACE_LANGUAGE_MAP[normalised] ?? null;
+}
+
+function getLocalizedValue(value, languageKey) {
+  if (!value) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (languageKey && typeof value[languageKey] === 'string') {
+    return value[languageKey];
+  }
+
+  if (typeof value.english === 'string') {
+    return value.english;
+  }
+
+  const firstString = Object.values(value).find((entry) => typeof entry === 'string');
+  return firstString ?? null;
+}
+
+function formatModeDetails(mode, label) {
+  if (!mode || typeof mode !== 'object') {
+    return null;
+  }
+
+  const lines = [];
+
+  if (mode.summary) {
+    lines.push(`${label} summary: ${mode.summary}`);
+  }
+  if (mode.instructions) {
+    lines.push(`${label} instructions: ${mode.instructions}`);
+  }
+
+  const followUp =
+    mode.follow_up_guidance ?? mode.followUpGuidance ?? mode.follow_up ?? mode.followUp ?? null;
+  if (followUp) {
+    lines.push(`${label} follow-up guidance: ${followUp}`);
+  }
+
+  const minWords = mode.min_words ?? mode.minWords ?? null;
+  if (minWords) {
+    lines.push(`${label} minimum word expectation: ${minWords}`);
+  }
+
+  const maxTokens = mode.max_tokens ?? mode.maxTokens ?? null;
+  if (maxTokens) {
+    lines.push(`${label} maximum token guidance: ${maxTokens}`);
+  }
+
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
+function formatSubjectSettings(settings, interfaceLanguageCode, activeMode) {
+  if (!settings || typeof settings !== 'object') {
+    return null;
+  }
+
+  const languageKey = mapInterfaceLanguage(interfaceLanguageCode);
+  const lines = [];
+
+  if (settings.name || settings.level || settings.language) {
+    const headerParts = [];
+    if (settings.name) {
+      headerParts.push(`Subject: ${settings.name}`);
+    }
+    if (settings.level) {
+      headerParts.push(`Level: ${settings.level}`);
+    }
+    if (settings.language) {
+      headerParts.push(`Primary interface language: ${settings.language}`);
+    }
+    lines.push(headerParts.join(' · '));
+  }
+
+  if (Array.isArray(settings.focus_skills) && settings.focus_skills.length > 0) {
+    lines.push(`Focus skills: ${settings.focus_skills.join(', ')}`);
+  }
+
+  if (settings.navigation_codes?.quick_navigation) {
+    lines.push(`Navigation quick codes:\n${settings.navigation_codes.quick_navigation}`);
+  }
+
+  if (settings.navigation_codes?.code_processing_rules) {
+    lines.push(
+      `Navigation code handling rules:\n${settings.navigation_codes.code_processing_rules}`
+    );
+  }
+
+  const languageSelection = settings.startup_sequence?.language_selection_interface;
+  if (languageSelection) {
+    lines.push(`Language selection interface:\n${languageSelection}`);
+  }
+
+  const welcomeProtocol = getLocalizedValue(
+    settings.startup_sequence?.welcome_message_protocol,
+    languageKey
+  );
+  if (welcomeProtocol) {
+    lines.push(`Welcome message protocol:\n${welcomeProtocol}`);
+  }
+
+  if (settings.consent_protocol?.content) {
+    lines.push(`Consent protocol:\n${settings.consent_protocol.content}`);
+  }
+
+  if (settings.consent_protocol?.consent_processing_rules) {
+    lines.push(`Consent handling rules:\n${settings.consent_protocol.consent_processing_rules}`);
+  }
+
+  const addressingPrompt = getLocalizedValue(settings.addressing_protocol, languageKey);
+  if (addressingPrompt) {
+    lines.push(`Addressing protocol:\n${addressingPrompt}`);
+  }
+
+  const assessmentBrief = getLocalizedValue(settings.initial_assessment_briefing, languageKey);
+  if (assessmentBrief) {
+    lines.push(`Initial assessment briefing:\n${assessmentBrief}`);
+  }
+
+  const mainMenu = getLocalizedValue(settings.main_menu, languageKey);
+  if (mainMenu) {
+    lines.push(`Main navigation menu:\n${mainMenu}`);
+  }
+
+  if (settings.help_system) {
+    lines.push(`Help system overview:\n${settings.help_system}`);
+  }
+
+  if (settings.code_processing_system?.input_recognition) {
+    lines.push(`Code recognition details:\n${settings.code_processing_system.input_recognition}`);
+  }
+
+  if (settings.code_processing_system?.response_format) {
+    lines.push(`Code response format:\n${settings.code_processing_system.response_format}`);
+  }
+
+  if (settings.code_processing_system?.error_handling) {
+    lines.push(`Code error handling:\n${settings.code_processing_system.error_handling}`);
+  }
+
+  if (settings.code_processing_system?.context_aware_restrictions) {
+    lines.push(
+      `Context-aware restrictions:\n${settings.code_processing_system.context_aware_restrictions}`
+    );
+  }
+
+  if (settings.official_exam_specifications) {
+    lines.push(`Official exam specifications:\n${settings.official_exam_specifications}`);
+  }
+
+  if (settings.official_scoring_methodology) {
+    lines.push(`Official scoring methodology:\n${settings.official_scoring_methodology}`);
+  }
+
+  if (settings.session_methodology) {
+    lines.push(`Session methodology:\n${settings.session_methodology}`);
+  }
+
+  if (settings.feedback_and_assessment_protocol) {
+    lines.push(`Feedback and assessment protocol:\n${settings.feedback_and_assessment_protocol}`);
+  }
+
+  if (settings.quality_assurance) {
+    lines.push(`Quality assurance notes:\n${settings.quality_assurance}`);
+  }
+
+  if (settings.compliance_checklist) {
+    lines.push(`Compliance checklist:\n${settings.compliance_checklist}`);
+  }
+
+  const practiceDetails = formatModeDetails(settings.practice_mode, 'Practice mode');
+  if (practiceDetails) {
+    lines.push(practiceDetails);
+  }
+
+  const examDetails = formatModeDetails(settings.exam_mode, 'Exam mode');
+  if (examDetails) {
+    lines.push(examDetails);
+  }
+
+  if (activeMode && typeof activeMode === 'string') {
+    const activeLabel = activeMode === 'exam' ? 'Exam mode' : 'Practice mode';
+    lines.push(`Active mode for this session: ${activeLabel}.`);
+  }
+
+  return lines.length > 0 ? lines.join('\n\n') : null;
+}
+
 /**
  * Handle POST requests to the chat API
  * @param {Request} request - The request object
@@ -64,6 +268,7 @@ export async function POST({ request }) {
 
     const sessionExamProfile = sessionContext?.context?.examProfile;
     const activeExamProfile = requestExamProfile || sessionExamProfile || null;
+    const subjectSettings = activeExamProfile?.settings ?? null;
 
     const activeModeConfig =
       activeExamProfile && activeExamProfile.mode === 'exam'
@@ -111,7 +316,9 @@ export async function POST({ request }) {
         activeExamProfile.skills && activeExamProfile.skills.length > 0
           ? `Skills in focus: ${activeExamProfile.skills.join(', ')}.`
           : '';
-      const modeLine = `Mode: ${activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'}.`;
+      const modeLine = `Mode: ${
+        activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'
+      }.`;
       fullContent += `${subjectLine}${level ? level : ''}\n${modeLine}`;
       if (languageLine) fullContent += `\n${languageLine}`;
       if (skillsLine) fullContent += `\n${skillsLine}`;
@@ -186,6 +393,16 @@ Your task:
     }
 
     if (activeExamProfile) {
+      // Inject fully formatted universal exam settings (if provided)
+      const formattedSettings = formatSubjectSettings(
+        subjectSettings,
+        language,
+        activeExamProfile.mode
+      );
+      if (formattedSettings) {
+        messages.push({ role: 'system', content: formattedSettings });
+      }
+
       const skillFocus =
         activeExamProfile.skills && activeExamProfile.skills.length > 0
           ? `Focus skills: ${activeExamProfile.skills.join(', ')}`
@@ -275,12 +492,15 @@ Your task:
     let errorMessage = 'Internal server error';
     let statusCode = 500;
 
-    if (error.message.includes('API key')) {
+    if (error.message?.includes?.('API key')) {
       errorMessage = 'API configuration error';
-    } else if (error.message.includes('timed out')) {
+    } else if (error.message?.includes?.('timed out')) {
       errorMessage = 'Request timed out';
       statusCode = 504;
-    } else if (error.message.includes('not running') || error.message.includes('not accessible')) {
+    } else if (
+      error.message?.includes?.('not running') ||
+      error.message?.includes?.('not accessible')
+    ) {
       errorMessage = 'Local LLM service is not available';
       statusCode = 503;
     }

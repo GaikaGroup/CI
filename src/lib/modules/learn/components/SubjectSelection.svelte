@@ -75,6 +75,17 @@
                 )}
               </p>
             </div>
+
+            {#if subject.settings?.navigation_codes?.quick_navigation}
+              <div class="space-y-2 rounded-xl bg-stone-100 p-4 text-xs dark:bg-gray-900/70">
+                <p class="font-semibold uppercase tracking-wide text-stone-600 dark:text-gray-200">
+                  {getTranslation($selectedLanguage, 'learnNavigationCodesHeading')}
+                </p>
+                <p class="whitespace-pre-line text-stone-600 dark:text-gray-300">
+                  {subject.settings.navigation_codes.quick_navigation}
+                </p>
+              </div>
+            {/if}
           </div>
 
           <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">

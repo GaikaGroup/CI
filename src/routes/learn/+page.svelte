@@ -33,7 +33,8 @@
       mode,
       practice: subject.practice,
       exam: subject.exam,
-      activeMode
+      activeMode,
+      settings: subject.settings ?? null
     };
   };
 
@@ -115,6 +116,9 @@
         activeMode.minWords
       )
     : null;
+
+  $: navigationSummary = $examProfile?.settings?.navigation_codes?.quick_navigation ?? '';
+  $: navigationRules = $examProfile?.settings?.navigation_codes?.code_processing_rules ?? '';
 </script>
 
 <div class="min-h-screen">
@@ -198,6 +202,26 @@
                   {getTranslation($selectedLanguage, 'learnModeActiveFollowUp')}
                 </p>
                 <p class="text-sm text-stone-700 dark:text-gray-200">{activeMode.followUp}</p>
+              </div>
+            {/if}
+
+            {#if navigationSummary}
+              <div
+                class="space-y-2 rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-gray-900/60 md:col-span-2"
+              >
+                <p
+                  class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300"
+                >
+                  {getTranslation($selectedLanguage, 'learnNavigationCodesHeading')}
+                </p>
+                <p class="whitespace-pre-line text-sm text-stone-700 dark:text-gray-200">
+                  {navigationSummary}
+                </p>
+                {#if navigationRules}
+                  <p class="whitespace-pre-line text-xs text-stone-500 dark:text-gray-400">
+                    {navigationRules}
+                  </p>
+                {/if}
               </div>
             {/if}
           </div>

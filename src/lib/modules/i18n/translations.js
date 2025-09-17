@@ -42,7 +42,8 @@ export const translations = {
     learnModeActiveInstructions: 'Guidance',
     learnModeActiveFollowUp: 'Follow-up expectations',
     learnModeActiveWordGoal: 'Target length',
-    learnModeActiveSkills: 'Skills in focus'
+    learnModeActiveSkills: 'Skills in focus',
+    learnNavigationCodesHeading: 'Universal navigation codes'
   },
   ru: {
     title: 'ИИ Преподаватель',
@@ -86,7 +87,8 @@ export const translations = {
     learnModeActiveInstructions: 'Инструкции',
     learnModeActiveFollowUp: 'Что ожидается далее',
     learnModeActiveWordGoal: 'Целевой объём',
-    learnModeActiveSkills: 'Акцент на навыках'
+    learnModeActiveSkills: 'Акцент на навыках',
+    learnNavigationCodesHeading: 'Универсальные коды навигации'
   },
   es: {
     title: 'Tutor IA',
@@ -130,7 +132,8 @@ export const translations = {
     learnModeActiveInstructions: 'Indicaciones',
     learnModeActiveFollowUp: 'Próximos pasos',
     learnModeActiveWordGoal: 'Objetivo de longitud',
-    learnModeActiveSkills: 'Habilidades en foco'
+    learnModeActiveSkills: 'Habilidades en foco',
+    learnNavigationCodesHeading: 'Códigos rápidos universales'
   }
 };
 
