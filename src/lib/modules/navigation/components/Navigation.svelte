@@ -49,6 +49,12 @@
           >
             Finance
           </a>
+          <a
+            href="/admin/subjects"
+            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
+          >
+            Subjects
+          </a>
         {/if}
         <ThemeToggle />
         <AuthButton />
@@ -107,6 +113,15 @@
             }}
           >
             Finance
+          </a>
+          <a
+            href="/admin/subjects"
+            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
+            on:click={() => {
+              mobileMenuOpen = false;
+            }}
+          >
+            Subjects
           </a>
         {/if}
         <div class="px-3 py-2">

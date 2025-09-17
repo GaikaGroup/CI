@@ -9,6 +9,7 @@ import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
 import { synthesizeResponseSpeech } from './voiceServices';
+import { examProfile } from '$lib/stores/examProfile';
 import {
   processOCRWithMemory,
   buildOCRContextForChat,
@@ -45,6 +46,8 @@ export async function sendMessageWithOCRContext(
     console.log('sendMessageWithOCRContext called with images:', images?.length || 0);
 
     setLoading(true);
+
+    const activeExamProfile = get(examProfile);
 
     const phraseCategory =
       (maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS) || detailLevel === 'detailed'
@@ -164,6 +167,7 @@ export async function sendMessageWithOCRContext(
         images: base64Images,
         recognizedText, // Send the already processed text
         language: get(selectedLanguage),
+        ...(activeExamProfile ? { examProfile: activeExamProfile } : {}),
         ...(maxTokens ? { maxTokens } : {}),
         ...(detailLevel ? { detailLevel } : {}),
         ...(minWords ? { minWords } : {})

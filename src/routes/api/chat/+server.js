@@ -19,7 +19,8 @@ export async function POST({ request }) {
       sessionContext,
       maxTokens,
       detailLevel,
-      minWords
+      minWords,
+      examProfile: requestExamProfile
     } = requestBody;
 
     // Log session context if available
@@ -61,6 +62,28 @@ export async function POST({ request }) {
       ocrError = null;
     }
 
+    const sessionExamProfile = sessionContext?.context?.examProfile;
+    const activeExamProfile = requestExamProfile || sessionExamProfile || null;
+
+    const activeModeConfig =
+      activeExamProfile && activeExamProfile.mode === 'exam'
+        ? activeExamProfile.exam
+        : activeExamProfile?.practice;
+
+    let adjustedMinWords = minWords;
+    if (activeModeConfig?.minWords) {
+      adjustedMinWords = adjustedMinWords
+        ? Math.max(adjustedMinWords, activeModeConfig.minWords)
+        : activeModeConfig.minWords;
+    }
+
+    let adjustedMaxTokens = maxTokens;
+    if (activeModeConfig?.maxTokens) {
+      adjustedMaxTokens = adjustedMaxTokens
+        ? Math.max(adjustedMaxTokens, activeModeConfig.maxTokens)
+        : activeModeConfig.maxTokens;
+    }
+
     // Combine original content with recognized text, session context, and any OCR errors
     let fullContent = '';
 
@@ -78,6 +101,32 @@ export async function POST({ request }) {
     }
 
     // Format according to the specified structure
+    if (activeExamProfile) {
+      const subjectLine = `Exam subject: ${activeExamProfile.subjectName}`;
+      const level = activeExamProfile.level ? ` (Level: ${activeExamProfile.level})` : '';
+      const languageLine = activeExamProfile.language
+        ? `Target language: ${activeExamProfile.language}.`
+        : '';
+      const skillsLine =
+        activeExamProfile.skills && activeExamProfile.skills.length > 0
+          ? `Skills in focus: ${activeExamProfile.skills.join(', ')}.`
+          : '';
+      const modeLine = `Mode: ${activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'}.`;
+      fullContent += `${subjectLine}${level ? level : ''}\n${modeLine}`;
+      if (languageLine) fullContent += `\n${languageLine}`;
+      if (skillsLine) fullContent += `\n${skillsLine}`;
+      if (activeModeConfig?.summary) {
+        fullContent += `\nMode focus: ${activeModeConfig.summary}`;
+      }
+      if (activeModeConfig?.instructions) {
+        fullContent += `\nGuidance: ${activeModeConfig.instructions}`;
+      }
+      if (activeModeConfig?.followUp) {
+        fullContent += `\nFollow-up expectation: ${activeModeConfig.followUp}`;
+      }
+      fullContent += '\n\n';
+    }
+
     fullContent += `Student question:\n${content}`;
 
     if (recognizedText) {
@@ -136,6 +185,33 @@ Your task:
       });
     }
 
+    if (activeExamProfile) {
+      const skillFocus =
+        activeExamProfile.skills && activeExamProfile.skills.length > 0
+          ? `Focus skills: ${activeExamProfile.skills.join(', ')}`
+          : null;
+      const examSystemLines = [
+        `Learner is preparing for ${activeExamProfile.subjectName}${
+          activeExamProfile.level ? ` (${activeExamProfile.level})` : ''
+        }.`,
+        activeExamProfile.language ? `Target language: ${activeExamProfile.language}.` : null,
+        `Mode: ${activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice workshop'}.`,
+        activeModeConfig?.summary ? `Mode summary: ${activeModeConfig.summary}` : null,
+        activeModeConfig?.instructions
+          ? `Guidance to follow: ${activeModeConfig.instructions}`
+          : null,
+        activeModeConfig?.followUp ? `After responding, ${activeModeConfig.followUp}` : null,
+        skillFocus
+      ].filter(Boolean);
+
+      if (examSystemLines.length > 0) {
+        messages.push({
+          role: 'system',
+          content: examSystemLines.join('\n')
+        });
+      }
+    }
+
     // Add the current user question
     messages.push({ role: 'user', content: fullContent });
 
@@ -147,10 +223,10 @@ Your task:
       });
     }
 
-    if (minWords) {
+    if (adjustedMinWords) {
       messages.unshift({
         role: 'system',
-        content: `The student expects a detailed essay of at least ${minWords} words. Do not stop early.`
+        content: `The student expects a detailed essay of at least ${adjustedMinWords} words. Do not stop early.`
       });
     }
 
@@ -158,9 +234,9 @@ Your task:
     const options = {
       temperature: OPENAI_CONFIG.TEMPERATURE,
       maxTokens:
-        maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS
-          ? Math.min(maxTokens, OPENAI_CONFIG.DETAILED_MAX_TOKENS)
-          : OPENAI_CONFIG.MAX_TOKENS
+        adjustedMaxTokens && adjustedMaxTokens > OPENAI_CONFIG.MAX_TOKENS
+          ? Math.min(adjustedMaxTokens, OPENAI_CONFIG.DETAILED_MAX_TOKENS)
+          : adjustedMaxTokens || OPENAI_CONFIG.MAX_TOKENS
     };
 
     // If a specific provider was requested and provider switching is enabled, use it
@@ -184,6 +260,7 @@ Your task:
     return json({
       response: aiResponse,
       ocrText: recognizedText,
+      ...(activeExamProfile && { examProfile: activeExamProfile }),
       ...(includeProviderInfo && {
         provider: {
           name: result.provider,
