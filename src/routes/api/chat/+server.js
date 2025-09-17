@@ -316,7 +316,9 @@ export async function POST({ request }) {
         activeExamProfile.skills && activeExamProfile.skills.length > 0
           ? `Skills in focus: ${activeExamProfile.skills.join(', ')}.`
           : '';
-      const modeLine = `Mode: ${activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'}.`;
+      const modeLine = `Mode: ${
+        activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'
+      }.`;
       fullContent += `${subjectLine}${level ? level : ''}\n${modeLine}`;
       if (languageLine) fullContent += `\n${languageLine}`;
       if (skillsLine) fullContent += `\n${skillsLine}`;
@@ -391,6 +393,7 @@ Your task:
     }
 
     if (activeExamProfile) {
+      // Inject fully formatted universal exam settings (if provided)
       const formattedSettings = formatSubjectSettings(
         subjectSettings,
         language,
@@ -489,12 +492,15 @@ Your task:
     let errorMessage = 'Internal server error';
     let statusCode = 500;
 
-    if (error.message.includes('API key')) {
+    if (error.message?.includes?.('API key')) {
       errorMessage = 'API configuration error';
-    } else if (error.message.includes('timed out')) {
+    } else if (error.message?.includes?.('timed out')) {
       errorMessage = 'Request timed out';
       statusCode = 504;
-    } else if (error.message.includes('not running') || error.message.includes('not accessible')) {
+    } else if (
+      error.message?.includes?.('not running') ||
+      error.message?.includes?.('not accessible')
+    ) {
       errorMessage = 'Local LLM service is not available';
       statusCode = 503;
     }
