@@ -77,7 +77,9 @@ function formatSubjectSettings(settings, interfaceLanguageCode, activeMode) {
   }
 
   const languageKey = mapInterfaceLanguage(interfaceLanguageCode);
-  const lines = [];
+  const lines = {};
+
+  const out = [];
 
   if (settings.name || settings.level || settings.language) {
     const headerParts = [];
@@ -90,26 +92,26 @@ function formatSubjectSettings(settings, interfaceLanguageCode, activeMode) {
     if (settings.language) {
       headerParts.push(`Primary interface language: ${settings.language}`);
     }
-    lines.push(headerParts.join(' · '));
+    out.push(headerParts.join(' · '));
   }
 
   if (Array.isArray(settings.focus_skills) && settings.focus_skills.length > 0) {
-    lines.push(`Focus skills: ${settings.focus_skills.join(', ')}`);
+    out.push(`Focus skills: ${settings.focus_skills.join(', ')}`);
   }
 
   if (settings.navigation_codes?.quick_navigation) {
-    lines.push(`Navigation quick codes:\n${settings.navigation_codes.quick_navigation}`);
+    out.push(`Navigation quick codes:\n${settings.navigation_codes.quick_navigation}`);
   }
 
   if (settings.navigation_codes?.code_processing_rules) {
-    lines.push(
+    out.push(
       `Navigation code handling rules:\n${settings.navigation_codes.code_processing_rules}`
     );
   }
 
   const languageSelection = settings.startup_sequence?.language_selection_interface;
   if (languageSelection) {
-    lines.push(`Language selection interface:\n${languageSelection}`);
+    out.push(`Language selection interface:\n${languageSelection}`);
   }
 
   const welcomeProtocol = getLocalizedValue(
@@ -117,94 +119,94 @@ function formatSubjectSettings(settings, interfaceLanguageCode, activeMode) {
     languageKey
   );
   if (welcomeProtocol) {
-    lines.push(`Welcome message protocol:\n${welcomeProtocol}`);
+    out.push(`Welcome message protocol:\n${welcomeProtocol}`);
   }
 
   if (settings.consent_protocol?.content) {
-    lines.push(`Consent protocol:\n${settings.consent_protocol.content}`);
+    out.push(`Consent protocol:\n${settings.consent_protocol.content}`);
   }
 
   if (settings.consent_protocol?.consent_processing_rules) {
-    lines.push(`Consent handling rules:\n${settings.consent_protocol.consent_processing_rules}`);
+    out.push(`Consent handling rules:\n${settings.consent_protocol.consent_processing_rules}`);
   }
 
   const addressingPrompt = getLocalizedValue(settings.addressing_protocol, languageKey);
   if (addressingPrompt) {
-    lines.push(`Addressing protocol:\n${addressingPrompt}`);
+    out.push(`Addressing protocol:\n${addressingPrompt}`);
   }
 
   const assessmentBrief = getLocalizedValue(settings.initial_assessment_briefing, languageKey);
   if (assessmentBrief) {
-    lines.push(`Initial assessment briefing:\n${assessmentBrief}`);
+    out.push(`Initial assessment briefing:\n${assessmentBrief}`);
   }
 
   const mainMenu = getLocalizedValue(settings.main_menu, languageKey);
   if (mainMenu) {
-    lines.push(`Main navigation menu:\n${mainMenu}`);
+    out.push(`Main navigation menu:\n${mainMenu}`);
   }
 
   if (settings.help_system) {
-    lines.push(`Help system overview:\n${settings.help_system}`);
+    out.push(`Help system overview:\n${settings.help_system}`);
   }
 
   if (settings.code_processing_system?.input_recognition) {
-    lines.push(`Code recognition details:\n${settings.code_processing_system.input_recognition}`);
+    out.push(`Code recognition details:\n${settings.code_processing_system.input_recognition}`);
   }
 
   if (settings.code_processing_system?.response_format) {
-    lines.push(`Code response format:\n${settings.code_processing_system.response_format}`);
+    out.push(`Code response format:\n${settings.code_processing_system.response_format}`);
   }
 
   if (settings.code_processing_system?.error_handling) {
-    lines.push(`Code error handling:\n${settings.code_processing_system.error_handling}`);
+    out.push(`Code error handling:\n${settings.code_processing_system.error_handling}`);
   }
 
   if (settings.code_processing_system?.context_aware_restrictions) {
-    lines.push(
+    out.push(
       `Context-aware restrictions:\n${settings.code_processing_system.context_aware_restrictions}`
     );
   }
 
   if (settings.official_exam_specifications) {
-    lines.push(`Official exam specifications:\n${settings.official_exam_specifications}`);
+    out.push(`Official exam specifications:\n${settings.official_exam_specifications}`);
   }
 
   if (settings.official_scoring_methodology) {
-    lines.push(`Official scoring methodology:\n${settings.official_scoring_methodology}`);
+    out.push(`Official scoring methodology:\n${settings.official_scoring_methodology}`);
   }
 
   if (settings.session_methodology) {
-    lines.push(`Session methodology:\n${settings.session_methodology}`);
+    out.push(`Session methodology:\n${settings.session_methodology}`);
   }
 
   if (settings.feedback_and_assessment_protocol) {
-    lines.push(`Feedback and assessment protocol:\n${settings.feedback_and_assessment_protocol}`);
+    out.push(`Feedback and assessment protocol:\n${settings.feedback_and_assessment_protocol}`);
   }
 
   if (settings.quality_assurance) {
-    lines.push(`Quality assurance notes:\n${settings.quality_assurance}`);
+    out.push(`Quality assurance notes:\n${settings.quality_assurance}`);
   }
 
   if (settings.compliance_checklist) {
-    lines.push(`Compliance checklist:\n${settings.compliance_checklist}`);
+    out.push(`Compliance checklist:\n${settings.compliance_checklist}`);
   }
 
   const practiceDetails = formatModeDetails(settings.practice_mode, 'Practice mode');
   if (practiceDetails) {
-    lines.push(practiceDetails);
+    out.push(practiceDetails);
   }
 
   const examDetails = formatModeDetails(settings.exam_mode, 'Exam mode');
   if (examDetails) {
-    lines.push(examDetails);
+    out.push(examDetails);
   }
 
   if (activeMode && typeof activeMode === 'string') {
     const activeLabel = activeMode === 'exam' ? 'Exam mode' : 'Practice mode';
-    lines.push(`Active mode for this session: ${activeLabel}.`);
+    out.push(`Active mode for this session: ${activeLabel}.`);
   }
 
-  return lines.length > 0 ? lines.join('\n\n') : null;
+  return out.length > 0 ? out.join('\n\n') : null;
 }
 
 /**
@@ -316,7 +318,9 @@ export async function POST({ request }) {
         activeExamProfile.skills && activeExamProfile.skills.length > 0
           ? `Skills in focus: ${activeExamProfile.skills.join(', ')}.`
           : '';
-      const modeLine = `Mode: ${activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'}.`;
+      const modeLine = `Mode: ${
+        activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'
+      }.`;
       fullContent += `${subjectLine}${level ? level : ''}\n${modeLine}`;
       if (languageLine) fullContent += `\n${languageLine}`;
       if (skillsLine) fullContent += `\n${skillsLine}`;
@@ -391,6 +395,7 @@ Your task:
     }
 
     if (activeExamProfile) {
+      // Inject fully formatted universal exam settings (if provided)
       const formattedSettings = formatSubjectSettings(
         subjectSettings,
         language,
@@ -489,12 +494,15 @@ Your task:
     let errorMessage = 'Internal server error';
     let statusCode = 500;
 
-    if (error.message.includes('API key')) {
+    if (error.message?.includes?.('API key')) {
       errorMessage = 'API configuration error';
-    } else if (error.message.includes('timed out')) {
+    } else if (error.message?.includes?.('timed out')) {
       errorMessage = 'Request timed out';
       statusCode = 504;
-    } else if (error.message.includes('not running') || error.message.includes('not accessible')) {
+    } else if (
+      error.message?.includes?.('not running') ||
+      error.message?.includes?.('not accessible')
+    ) {
       errorMessage = 'Local LLM service is not available';
       statusCode = 503;
     }
