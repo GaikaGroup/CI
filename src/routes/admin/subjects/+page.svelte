@@ -40,6 +40,34 @@
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   };
 
+  // --- Normalization helpers (keep stricter branch) ---
+  const normaliseText = (value) => (typeof value === 'string' ? value.trim() : '');
+
+  const buildManualMode = (summary, instructions, followUp, minWordsValue, maxTokensValue) => {
+    const trimmedSummary = normaliseText(summary);
+    const trimmedInstructions = normaliseText(instructions);
+    const trimmedFollowUp = normaliseText(followUp);
+
+    const hasContent =
+      trimmedSummary.length > 0 ||
+      trimmedInstructions.length > 0 ||
+      trimmedFollowUp.length > 0 ||
+      minWordsValue !== null ||
+      maxTokensValue !== null;
+
+    if (!hasContent) {
+      return null;
+    }
+
+    return {
+      summary: trimmedSummary,
+      instructions: trimmedInstructions,
+      followUp: trimmedFollowUp,
+      minWords: minWordsValue,
+      maxTokens: maxTokensValue
+    };
+  };
+
   const resetForm = () => {
     form = emptyForm();
     editingId = null;
@@ -70,6 +98,10 @@
   const buildPayload = () => {
     formError = '';
 
+    const name = normaliseText(form.name);
+    const description = normaliseText(form.description);
+    const language = normaliseText(form.language);
+    const level = normaliseText(form.level);
     const skills = parseList(form.skillsText);
     let settings = null;
 
@@ -83,35 +115,45 @@
       }
     }
 
-    const manualPractice = {
-      summary: form.practiceSummary,
-      instructions: form.practiceInstructions,
-      followUp: form.practiceFollowUp,
-      minWords: toNumber(form.practiceMinWords),
-      maxTokens: toNumber(form.practiceMaxTokens)
-    };
+    if (!name) {
+      formError = 'Please provide a subject name.';
+      return null;
+    }
 
-    const manualExam = {
-      summary: form.examSummary,
-      instructions: form.examInstructions,
-      followUp: form.examFollowUp,
-      minWords: toNumber(form.examMinWords),
-      maxTokens: toNumber(form.examMaxTokens)
-    };
+    if (!description) {
+      formError = 'Please provide a short description for this subject.';
+      return null;
+    }
+
+    const manualPractice = buildManualMode(
+      form.practiceSummary,
+      form.practiceInstructions,
+      form.practiceFollowUp,
+      toNumber(form.practiceMinWords),
+      toNumber(form.practiceMaxTokens)
+    );
+
+    const manualExam = buildManualMode(
+      form.examSummary,
+      form.examInstructions,
+      form.examFollowUp,
+      toNumber(form.examMinWords),
+      toNumber(form.examMaxTokens)
+    );
 
     const practice = settings?.practice_mode ?? manualPractice;
     const exam = settings?.exam_mode ?? manualExam;
 
     return {
       id: editingId || undefined,
-      name: form.name,
-      description: form.description,
-      language: form.language,
-      level: form.level,
+      name,
+      description,
+      language,
+      level,
       skills,
-      practice,
-      exam,
-      settings
+      practice: practice ?? null,
+      exam: exam ?? null,
+      settings: settings ?? null
     };
   };
 
@@ -119,7 +161,7 @@
     event.preventDefault();
     const payload = buildPayload();
 
-    if (!payload || !payload.name || !payload.description) {
+    if (!payload) {
       return;
     }
 
@@ -228,10 +270,18 @@
                 >
                   Practice mode
                 </p>
-                <p class="mt-1 text-stone-700 dark:text-gray-200">{subject.practice?.summary}</p>
-                {#if subject.practice?.minWords}
+                {#if subject.practice}
+                  <p class="mt-1 text-stone-700 dark:text-gray-200">
+                    {subject.practice.summary}
+                  </p>
+                  {#if subject.practice.minWords}
+                    <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
+                      Target length: {subject.practice.minWords} words
+                    </p>
+                  {/if}
+                {:else}
                   <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
-                    Target length: {subject.practice.minWords} words
+                    No practice guidance configured yet.
                   </p>
                 {/if}
               </div>
@@ -241,10 +291,16 @@
                 >
                   Exam mode
                 </p>
-                <p class="mt-1 text-stone-700 dark:text-gray-200">{subject.exam?.summary}</p>
-                {#if subject.exam?.minWords}
+                {#if subject.exam}
+                  <p class="mt-1 text-stone-700 dark:text-gray-200">{subject.exam.summary}</p>
+                  {#if subject.exam.minWords}
+                    <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
+                      Target length: {subject.exam.minWords} words
+                    </p>
+                  {/if}
+                {:else}
                   <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
-                    Target length: {subject.exam.minWords} words
+                    No exam simulation guidance configured yet.
                   </p>
                 {/if}
               </div>
@@ -444,7 +500,7 @@
               bind:value={form.examMinWords}
             />
           </div>
-            <div class="space-y-2">
+          <div class="space-y-2">
             <label class="text-sm font-medium text-stone-700 dark:text-gray-200" for="examMaxTokens"
               >Max tokens</label
             >

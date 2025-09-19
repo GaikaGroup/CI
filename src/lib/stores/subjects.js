@@ -128,7 +128,7 @@ For neutral press 3
     spanish: `🎯 CONFIGURACIÓN DE TRATAMIENTO
 ══════════════════════════════
 
-En español la pregunta de preparación может быть "¿Listo?" (masculino), "¿Lista?" (femenino) 
+En español la pregunta de preparación puede ser "¿Listo?" (masculino), "¿Lista?" (femenino) 
 o una forma neutra. ¿Cómo prefieres que me dirija a ti? 
 Voy a usar esta forma en todas las sesiones.
 
@@ -350,17 +350,189 @@ Or type code again to confirm navigation`
   },
   official_exam_specifications: `**Prueba 1 — Comprensión de lectura (70 min, 25%)**
 Estructura: 5 tareas, 30 ítems total
-...`,
-  official_scoring_methodology: `**Conversión a escala de 25 puntos:** 
-...`,
+Tipo de ítems:
+- Selección múltiple (3 opciones)
+- Correspondencias
+- Completar
+- Cloze cerrado
+Textos auténticos adaptados: 1490-1820 palabras
+Calificación: 1 punto por correcta, 0 por incorrecta (sin penalización)
+
+Tareas:
+1. Relacionar declaraciones con textos (6 ítems, 40-60 palabras cada texto)
+2. Selección múltiple en texto informativo (6 ítems, 400-450 palabras)
+3. Relacionar textos con enunciados (6 ítems, 100-120 palabras cada texto)
+4. Completar párrafos con enunciados (6 ítems, 400-450 palabras)
+5. Cloze con selección múltiple (6 ítems, 150-200 palabras)
+
+**Prueba 2 — Comprensión auditiva (40 min, 25%)**
+Audio reproducido 2 veces con pausas
+Textos grabados en estudio: 1540-1930 palabras
+Calificación: 1 punto por correcta, 0 por incorrecta
+
+Tareas:
+1. Selección múltiple en monólogos cortos (6 ítems, 40-60 palabras)
+2. Selección múltiple en monólogo largo (6 ítems, 400-450 palabras)
+3. Selección múltiple en programa informativo (6 ítems, 350-400 palabras)
+4. Relacionar enunciados con textos (6 ítems, 50-70 palabras)
+5. Selección múltiple en conversación (6 ítems, 250-300 palabras)
+
+**Prueba 3 — Expresión e interacción escritas (60 min, 25%)**
+Estructura: 2 tareas, 230-270 palabras total
+Calificación: Holística (40%) + Analítica (60%)
+
+Tareas:
+1. Carta/mensaje (100-120 palabras) - Interacción escrita
+2. Redacción/composición (130-150 palabras) - Expresión escrita (2 opciones)
+
+**Prueba 4 — Expresión e interacción orales (15 min + 15 min prep, 25%)**
+2 examinadores: entrevistador + calificador
+Calificación: Holística (40%) + Analítica (60%)
+
+Tareas:
+1. Presentación breve preparada (2-3 min)
+2. Conversación sobre Tarea 1 (3-4 min)
+3. Describir fotografía + conversación (2-3 min)
+4. Diálogo situación simulada (2-3 min)`,
+  official_scoring_methodology: `**Conversión a escala de 25 puntos:**
+- Comprensión: (puntos obtenidos ÷ 30) × 25
+- Expresión: Escala 0-3 → (puntuación directa ÷ 3) × 25
+
+**Criterios "Apto":**
+- Grupo 1 (Lectura + Escritura): ≥ 30 puntos
+- Grupo 2 (Audición + Oral): ≥ 30 puntos
+- Ambos grupos deben superar 30 puntos para "Apto"
+
+**OFFICIAL SCORING SCALES — EXPRESIÓN E INTERACCIÓN ESCRITAS**
+(Verbatim from Guía del examen DELE B1)
+
+*Escala Analítica*
+**Adecuación al género discursivo:**
+- Nivel 3 (Apto - Sobresaliente): Textos claros y precisos con detalles en temas concretos/abstractos. Cartas/mensajes con registro adecuado.
+- Nivel 2 (Apto - Suficiente): Textos claros y sencillos. Respeta convenciones básicas (saludo/despedida).
+- Nivel 1 (No Apto - Limitado): Textos breves y básicos. Información desordenada o incompleta.
+- Nivel 0 (No Apto - Insuficiente): Frases aisladas, incomprensibles. No sigue puntos de orientación.
+
+**Coherencia:**
+- Nivel 3 (Apto): Textos estructurados con mecanismos de cohesión. Sintetiza información con claridad.
+- Nivel 2 (Apto): Secuencias lineales con conectores básicos («y», «pero»).
+- Nivel 1 (No Apto): Oraciones breves con errores. Discurso desordenado.
+- Nivel 0 (No Apto): Palabras aisladas sin estructura.
+
+**Corrección:**
+- Nivel 3 (Apto): Control gramatical bueno. Errores ocasionales no impiden comunicación.
+- Nivel 2 (Apto): Control aceptable de estructuras básicas. Algunos errores sistemáticos.
+- Nivel 1 (No Apto): Control limitado. Errores frecuentes impiden comunicación.
+- Nivel 0 (No Apto): Control muy limitado. Errores constantes.
+
+**Alcance:**
+- Nivel 3 (Apto): Repertorio lingüístico amplio y preciso. Vocabulario variado.
+- Nivel 2 (Apto): Repertorio básico suficiente para comunicarse. Algunas limitaciones.
+- Nivel 1 (No Apto): Repertorio básico limitado. Repeticiones y circunloquios.
+- Nivel 0 (No Apto): Repertorio muy básico. Comunicación muy limitada.
+
+*Escala Holística*
+- Nivel 3 (Apto - Sobresaliente): Texto claro y detallado. Argumentos bien desarrollados.
+- Nivel 2 (Apto - Suficiente): Cumple objetivos con lenguaje sencillo. Errores menores.
+- Nivel 1 (No Apto - Limitado): Información insuficiente. Errores básicos frecuentes.
+- Nivel 0 (No Apto - Insuficiente): Discurso incomprensible. No cumple objetivos.
+
+**OFFICIAL SCORING SCALES — EXPRESIÓN E INTERACCIÓN ORALES**
+
+*Escala Analítica*
+**Coherencia:**
+- Nivel 3 (Apto): Discurso claro с cohesión. Colabora con interlocutor.
+- Nivel 2 (Apto): Secuencias lineales con conectores («por eso»). Necesita aclaraciones ocasionales.
+- Nivel 1 (No Apto): Enunciados breves с ayuda constante.
+- Nivel 0 (No Apto): Respuestas desajustadas. Sin estructura.
+
+**Fluidez:**
+- Nivel 3 (Apto): Expresión fluida. Pausas mínimas. Pronunciación clara.
+- Nivel 2 (Apto): Comprensible con pausas para planificar.
+- Nivel 1 (No Apto): Dudas frecuentes. Pronunciación requiere esfuerzo.
+- Nivel 0 (No Apto): Solo frases memorizadas. Incomprensible sin repeticiones.
+
+**Corrección:**
+- Nivel 3 (Apto): Estructuras complejas con errores ocasionales.
+- Nivel 2 (Apto): Estructuras sencillas generalmente correctas.
+- Nivel 1 (No Apto): Errores básicos frecuentes impiden comunicación.
+- Nivel 0 (No Apto): Control muy limitado de estructuras básicas.
+
+**Alcance:**
+- Nivel 3 (Apto): Repertorio variado para expresar opiniones con precisión.
+- Nivel 2 (Apto): Repertorio suficiente para situaciones predecibles.
+- Nivel 1 (No Apto): Repertorio básico muy limitado.
+- Nivel 0 (No Apto): Repertorio inadecuado para comunicación básica.
+
+*Escala Holística*
+- Nivel 3 (Apto - Sobresaliente): Argumentos claros con ejemplos. Repertorio lingüístico amplio.
+- Nivel 2 (Apto - Suficiente): Cumple objetivos con lenguaje sencillo.
+- Nivel 1 (No Apto - Limitado): Información insuficiente. Necesita ayuda constante.
+- Nivel 0 (No Apto - Insuficiente): No comunica. Requiere repeticiones frecuentes.`,
   session_methodology: `**Standard Session Flow (35 min):**
-...`,
+1. Saludo y orientación (2 min): Recordatorio de transparencia AI
+2. Calentamiento (5 min): Ejercicio adaptativo por competencia  
+3. Simulación oficial (20 min): Timing exacto del examen real
+4. Evaluación inmediata (5 min): Scoring con escalas oficiales
+5. Tarea dirigida (3 min): Ejercicios focalizados para casa
+
+**Session Headers Format:**
+🎯 [SKILL] PRACTICE - [TIME REMAINING]
+═══════════════════════════════════
+[Exercise content]
+═══════════════════════════════════
+💡 00=menú | 99=ayuda | [relevant quick codes]
+⚠️ Navigation codes pause timer during exercises
+
+**Timing Enforcement Protocol:**
+- Avisos temporales: 75%, 90%, y 100% del tiempo
+- Corte automático al límite oficial  
+- Excepciones solo por acomodación registrada
+
+**Post-Exercise Integration:**
+✅ EJERCICIO COMPLETADO
+═════════════════════
+
+[Scoring and feedback]
+
+OPCIONES RÁPIDAS:
+101-104 = Nueva práctica por habilidad
+301 = Ver progreso detallado
+303 = Obtener recomendaciones  
+00 = Menú principal
+
+O presiona ENTER para continuar flujo estándar
+💡 00=menú | 99=ayuda`,
   feedback_and_assessment_protocol: `📊 REPORTE DE EVALUACIÓN
-...`,
+═══════════════════════
+
+Competencia evaluada: [Lectura/Escritura/Audición/Oral]
+Puntuación estimada: X/25 (X%)
+Banda estimada: [0/1/2/3] → [No apto/Apto/Sobresaliente]
+
+Análisis por descriptor oficial:
+• [Criterion]: Banda X - [Official descriptor]
+• [Criterion]: Banda X - [Official descriptor]
+
+Tarea para casa: 3 ejercicios focalizados
+
+ACCIONES RÁPIDAS:
+303 = Plan de estudio personalizado
+304 = Enfocar áreas problemáticas
+403 = Práctica de vocabulario específico
+💡 00=menú | 99=ayuda`,
   quality_assurance: `- AI-Human concordance: Monitoreada (>95% target)
-...`,
+- Calibration reviews: Mensual con evaluadores DELE certificados
+- User feedback: Rating post-sesión (1-5 estrellas)
+- Reporte de errores: dele-tutor-admin@example.com
+- Soporte técnico: Respuesta en <24h (técnicos), <48h (académicos)`,
   compliance_checklist: `✅ Transparencia (Art. 52): Identificación clara de AI
-...`,
+✅ Privacidad (GDPR Art. 13): Aviso completo
+✅ Supervisión humana (Art. 14): Procedimientos de revisión
+✅ Accesibilidad (EN 301 549): Cumplimiento declarado
+✅ Mitigación de sesgos: Auditorías mensuales
+✅ Minimización de datos: Solo lo necesario
+✅ Explicabilidad: Scoring con descriptores oficiales`,
   practice_mode: {
     summary: 'Guided practice with scaffolded feedback and strategy coaching.',
     instructions:
