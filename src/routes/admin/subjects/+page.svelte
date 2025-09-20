@@ -105,13 +105,23 @@
     const skills = parseList(form.skillsText);
     let settings = null;
 
-    if (form.settingsText && form.settingsText.trim().length > 0) {
-      try {
-        settings = JSON.parse(form.settingsText);
-      } catch (error) {
-        formError = 'Subject settings JSON is invalid. Please correct the syntax and try again.';
-        console.warn('[Admin/Subjects] Failed to parse subject settings JSON', error);
-        return null;
+    // stricter: only parse JSON if it looks like JSON; otherwise ignore with a warning
+    const rawSettingsText = normaliseText(form.settingsText);
+    if (rawSettingsText.length > 0) {
+      const looksLikeJson = rawSettingsText.startsWith('{') || rawSettingsText.startsWith('[');
+
+      if (!looksLikeJson) {
+        console.warn(
+          '[Admin/Subjects] Advanced settings ignored because the field does not contain JSON'
+        );
+      } else {
+        try {
+          settings = JSON.parse(rawSettingsText);
+        } catch (error) {
+          formError = 'Subject settings JSON is invalid. Please correct the syntax and try again.';
+          console.warn('[Admin/Subjects] Failed to parse subject settings JSON', error);
+          return null;
+        }
       }
     }
 

@@ -203,7 +203,7 @@ Presiona ENTER para continuar con diagnóstico estándar, o escribe cualquier c�
 101 - Только понимание текста
 102 - Только письменное выражение
 103 - Только понимание на слух
-104 - Только устная практика
+104 - Устная практика
 
 Нажмите ENTER для стандартной диагностики, или введите любой код выше.
 💡 00=полное меню | 99=помощь`
@@ -443,7 +443,7 @@ Tareas:
 **Coherencia:**
 - Nivel 3 (Apto): Discurso claro с cohesión. Colabora con interlocutor.
 - Nivel 2 (Apto): Secuencias lineales con conectores («por eso»). Necesita aclaraciones ocasionales.
-- Nivel 1 (No Apto): Enunciados breves с ayuda constante.
+- Nivel 1 (No Apto): Enunciados breves con ayuda constante.
 - Nivel 0 (No Apto): Respuestas desajustadas. Sin estructura.
 
 **Fluidez:**
