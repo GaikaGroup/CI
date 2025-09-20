@@ -40,6 +40,7 @@
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   };
 
+  // --- Normalization helpers (keep stricter branch) ---
   const normaliseText = (value) => (typeof value === 'string' ? value.trim() : '');
 
   const buildManualMode = (summary, instructions, followUp, minWordsValue, maxTokensValue) => {
@@ -104,6 +105,7 @@
     const skills = parseList(form.skillsText);
     let settings = null;
 
+    // stricter: only parse JSON if it looks like JSON; otherwise ignore with a warning
     const rawSettingsText = normaliseText(form.settingsText);
     if (rawSettingsText.length > 0) {
       const looksLikeJson = rawSettingsText.startsWith('{') || rawSettingsText.startsWith('[');

@@ -203,7 +203,7 @@ Presiona ENTER para continuar con diagnóstico estándar, o escribe cualquier c�
 101 - Только понимание текста
 102 - Только письменное выражение
 103 - Только понимание на слух
-104 - Только устная практика
+104 - Устная практика
 
 Нажмите ENTER для стандартной диагностики, или введите любой код выше.
 💡 00=полное меню | 99=помощь`
@@ -562,6 +562,60 @@ export const DEFAULT_SUBJECTS = normaliseSubjects([
     level: 'B1',
     skills: ['Reading', 'Listening', 'Writing', 'Speaking'],
     settings: DEFAULT_DELE_B1_SETTINGS
+  },
+  // Preserve sample subjects from main branch; they’ll be normalized.
+  {
+    id: 'dele-b2',
+    name: 'DELE B2 Spanish',
+    description:
+      'Spanish proficiency exam emphasising reading, listening, writing, and speaking for upper-intermediate learners.',
+    language: 'Spanish',
+    level: 'B2',
+    skills: ['Reading', 'Listening', 'Writing', 'Speaking'],
+    practice: {
+      summary: 'Guided practice with scaffolded feedback and strategy coaching.',
+      instructions:
+        'Act as a supportive Spanish coach. Break complex prompts into manageable steps, model high-quality responses, and highlight recurring grammar or vocabulary gaps with actionable corrections.',
+      followUp: 'Suggest targeted drills or micro-practice tasks for the next study block.',
+      minWords: 120,
+      maxTokens: 900
+    },
+    exam: {
+      summary: 'Full DELE B2 simulation with authentic task sequencing and scoring rubrics.',
+      instructions:
+        'Role-play as an official DELE examiner. Present prompts in the original Spanish, enforce time/word expectations, and evaluate answers using DELE assessment criteria with clear score rationales.',
+      followUp:
+        'Provide rubric-based score bands and one improvement priority for the next mock exam.',
+      minWords: 250,
+      maxTokens: 1400
+    }
+  },
+  {
+    id: 'toefl-ibt',
+    name: 'TOEFL iBT Academic English',
+    description:
+      'Academic English certification covering integrated reading, listening, speaking, and writing tasks for university readiness.',
+    language: 'English',
+    level: 'B2-C1',
+    skills: ['Reading', 'Listening', 'Speaking', 'Writing'],
+    practice: {
+      summary: 'Skill-specific drills with note-taking and vocabulary support.',
+      instructions:
+        'Coach the learner through TOEFL-style tasks. Emphasise paraphrasing, cohesive transitions, and integrated note usage while offering constructive, encouraging feedback.',
+      followUp:
+        'Recommend specific TOEFL sections or question types to revisit and provide quick warm-up prompts.',
+      minWords: 150,
+      maxTokens: 1000
+    },
+    exam: {
+      summary: 'Timed TOEFL mock exam adhering to ETS scoring descriptors.',
+      instructions:
+        'Adopt the perspective of an ETS rater. Simulate timing cues, require academic tone, and deliver score estimates for delivery, language use, and topic development.',
+      followUp:
+        'Summarise performance strengths and give two measurable goals for the next exam attempt.',
+      minWords: 300,
+      maxTokens: 1600
+    }
   }
 ]);
 
