@@ -28,6 +28,7 @@
   import Button from '$shared/components/Button.svelte';
   import { browser } from '$app/environment';
   import { appMode } from '$lib/stores/mode';
+  import { examProfile } from '$lib/stores/examProfile';
 
   // Session ID for maintaining conversation context
   let sessionId;
@@ -55,11 +56,59 @@
   });
 
   // Initialize chat when language is selected
+  const formatModeNote = () => {
+    if ($appMode === 'learn') {
+      if ($examProfile) {
+        const key = $examProfile.mode === 'exam' ? 'learnModeExamNote' : 'learnModePracticeNote';
+        return getTranslation($selectedLanguage, key).replace(
+          '{subject}',
+          $examProfile.subjectName
+        );
+      }
+      return getTranslation($selectedLanguage, 'learnModeDefaultNote');
+    }
+    return getTranslation($selectedLanguage, 'funModeNote');
+  };
+
   $: if ($selectedLanguage && $messages.length === 0) {
     const welcomeMessage = getTranslation($selectedLanguage, 'welcomeMessage');
-    const modeNote = $appMode === 'learn' ? 'You are in Learn mode.' : 'You are in Fun mode.';
-    initializeChat(`${welcomeMessage} ${modeNote}`);
+    const modeNote = formatModeNote();
+    initializeChat(`${welcomeMessage} ${modeNote}`.trim());
   }
+
+  $: if (browser && sessionId && $appMode === 'learn' && container.has('sessionFactory')) {
+    try {
+      const sessionFactory = container.resolve('sessionFactory');
+      const session = sessionFactory.getOrCreateSession(sessionId);
+      session.updateContext({ examProfile: $examProfile });
+    } catch (error) {
+      console.warn('[ChatInterface] Failed to persist exam profile in session context', error);
+    }
+  }
+
+  $: activeExamMode = $examProfile
+    ? $examProfile.mode === 'exam'
+      ? $examProfile.exam
+      : $examProfile.practice
+    : null;
+
+  $: currentModeLabel = $examProfile
+    ? getTranslation(
+        $selectedLanguage,
+        $examProfile.mode === 'exam' ? 'learnModeExamLabel' : 'learnModePracticeLabel'
+      )
+    : '';
+
+  $: chatSkillsLabel = $examProfile?.skills?.length
+    ? `${getTranslation($selectedLanguage, 'learnModeActiveSkills')}: ${$examProfile.skills.join(', ')}`
+    : '';
+
+  $: chatWordGoal = activeExamMode?.minWords
+    ? getTranslation($selectedLanguage, 'learnModeActiveWordGoal').replace(
+        '{words}',
+        activeExamMode.minWords
+      )
+    : '';
 
   // Process images for a message
   async function processImages(messageContent, images, messageId) {
@@ -465,6 +514,42 @@
       </Button>
     </div>
   </div>
+
+  {#if $appMode === 'learn' && $examProfile}
+    <div
+      class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10"
+    >
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="space-y-1">
+          <p
+            class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300"
+          >
+            {currentModeLabel}
+          </p>
+          <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
+            {$examProfile.subjectName}
+          </h3>
+          {#if chatSkillsLabel}
+            <p class="text-xs text-stone-600 dark:text-gray-300">{chatSkillsLabel}</p>
+          {/if}
+          {#if chatWordGoal}
+            <p class="text-xs text-stone-500 dark:text-gray-400">{chatWordGoal}</p>
+          {/if}
+        </div>
+        {#if activeExamMode?.summary}
+          <p class="text-sm text-stone-700 dark:text-gray-200 sm:w-2/3">{activeExamMode.summary}</p>
+        {/if}
+      </div>
+      {#if activeExamMode?.instructions}
+        <p class="mt-3 text-xs text-stone-600 dark:text-gray-300">
+          <span class="font-semibold">
+            {getTranslation($selectedLanguage, 'learnModeActiveInstructions')}:
+          </span>
+          <span class="ml-1">{activeExamMode.instructions}</span>
+        </p>
+      {/if}
+    </div>
+  {/if}
 
   <!-- Chat Interface -->
   <div

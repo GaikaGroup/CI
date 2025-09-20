@@ -3,6 +3,7 @@ import { synthesizeWaitingPhrase } from './voiceServices.js';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
+import { examProfile } from '$lib/stores/examProfile';
 import { processDocumentInClient } from '$lib/modules/document/ClientDocumentProcessor';
 import { container } from '$lib/shared/di/container';
 import {
@@ -78,6 +79,8 @@ export async function sendMessage(
 
     setLoading(true);
 
+    const activeExamProfile = get(examProfile);
+
     // Select appropriate waiting phrase
     const phraseCategory =
       (maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS) || detailLevel === 'detailed'
@@ -93,6 +96,19 @@ export async function sendMessage(
     const sessionStorageAdapter = container.has('sessionStorageAdapter')
       ? container.resolve('sessionStorageAdapter')
       : null;
+
+    let session = null;
+    if (sessionId && container.has('sessionFactory')) {
+      try {
+        const sessionFactory = container.resolve('sessionFactory');
+        session = sessionFactory.getOrCreateSession(sessionId);
+        if (activeExamProfile) {
+          session.updateContext({ examProfile: activeExamProfile });
+        }
+      } catch (error) {
+        console.warn('[Chat] Failed to prepare session context', error);
+      }
+    }
 
     // If there are images, process them
     if (images && images.length > 0) {
@@ -167,12 +183,10 @@ export async function sendMessage(
       });
       // Get session context if available
       let sessionContext = null;
-      if (sessionId && sessionStorageAdapter) {
-        const sessionFactory = container.resolve('sessionFactory');
-        const session = sessionFactory.getOrCreateSession(sessionId);
+      if (session) {
         sessionContext = session.getContext();
         console.log(
-          `[Session] Including context in API request for image message:`,
+          '[Session] Including context in API request for image message:',
           sessionContext
         );
       }
@@ -184,6 +198,7 @@ export async function sendMessage(
         language: get(selectedLanguage),
         sessionContext, // Include session context in the request
         provider, // Include provider selection if specified
+        ...(activeExamProfile ? { examProfile: activeExamProfile } : {}),
         ...(maxTokens ? { maxTokens } : {}),
         ...(detailLevel ? { detailLevel } : {}),
         ...(minWords ? { minWords } : {})
@@ -253,9 +268,7 @@ export async function sendMessage(
 
       // Get session context if available
       let sessionContext = null;
-      if (sessionId && sessionStorageAdapter) {
-        const sessionFactory = container.resolve('sessionFactory');
-        const session = sessionFactory.getOrCreateSession(sessionId);
+      if (session) {
         sessionContext = session.getContext();
         console.log(`[Session] Including context in API request:`, sessionContext);
       }
@@ -271,6 +284,7 @@ export async function sendMessage(
           language: get(selectedLanguage),
           sessionContext, // Include session context in the request
           provider, // Include provider selection if specified
+          ...(activeExamProfile ? { examProfile: activeExamProfile } : {}),
           ...(maxTokens ? { maxTokens } : {}),
           ...(detailLevel ? { detailLevel } : {}),
           ...(minWords ? { minWords } : {})
