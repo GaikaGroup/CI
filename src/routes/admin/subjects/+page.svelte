@@ -279,12 +279,28 @@
                   Practice mode
                 </p>
                 {#if subject.practice}
-                  <p class="mt-1 text-stone-700 dark:text-gray-200">
-                    {subject.practice.summary}
-                  </p>
+                  {#if subject.practice.summary}
+                    <p class="mt-1 text-stone-700 dark:text-gray-200">
+                      {subject.practice.summary}
+                    </p>
+                  {:else}
+                    <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
+                      No practice summary configured yet.
+                    </p>
+                  {/if}
+                  {#if subject.practice.instructions}
+                    <p class="mt-2 text-xs text-stone-500 dark:text-gray-400">
+                      Guidance: {subject.practice.instructions}
+                    </p>
+                  {/if}
                   {#if subject.practice.minWords}
                     <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
                       Target length: {subject.practice.minWords} words
+                    </p>
+                  {/if}
+                  {#if subject.practice.followUp}
+                    <p class="mt-2 text-xs text-stone-500 dark:text-gray-400">
+                      Follow-up: {subject.practice.followUp}
                     </p>
                   {/if}
                 {:else}
@@ -300,10 +316,26 @@
                   Exam mode
                 </p>
                 {#if subject.exam}
-                  <p class="mt-1 text-stone-700 dark:text-gray-200">{subject.exam.summary}</p>
+                  {#if subject.exam.summary}
+                    <p class="mt-1 text-stone-700 dark:text-gray-200">{subject.exam.summary}</p>
+                  {:else}
+                    <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
+                      No exam summary configured yet.
+                    </p>
+                  {/if}
+                  {#if subject.exam.instructions}
+                    <p class="mt-2 text-xs text-stone-500 dark:text-gray-400">
+                      Guidance: {subject.exam.instructions}
+                    </p>
+                  {/if}
                   {#if subject.exam.minWords}
                     <p class="mt-1 text-xs text-stone-500 dark:text-gray-400">
                       Target length: {subject.exam.minWords} words
+                    </p>
+                  {/if}
+                  {#if subject.exam.followUp}
+                    <p class="mt-2 text-xs text-stone-500 dark:text-gray-400">
+                      Follow-up: {subject.exam.followUp}
                     </p>
                   {/if}
                 {:else}

@@ -54,7 +54,10 @@
               <h4 class="font-semibold text-stone-800 dark:text-gray-100">
                 {getTranslation($selectedLanguage, 'learnPracticeSummary')}
               </h4>
-              <p class="text-stone-600 dark:text-gray-300">{subject.practice?.summary}</p>
+              <p class="text-stone-600 dark:text-gray-300">
+                {subject.practice?.summary ||
+                  getTranslation($selectedLanguage, 'learnPracticeNoSummary')}
+              </p>
               <p class="text-xs text-stone-500 dark:text-gray-400">
                 {getTranslation($selectedLanguage, 'learnPracticeMinWords').replace(
                   '{words}',
@@ -67,7 +70,9 @@
               <h4 class="font-semibold text-stone-800 dark:text-gray-100">
                 {getTranslation($selectedLanguage, 'learnExamSummary')}
               </h4>
-              <p class="text-stone-600 dark:text-gray-300">{subject.exam?.summary}</p>
+              <p class="text-stone-600 dark:text-gray-300">
+                {subject.exam?.summary || getTranslation($selectedLanguage, 'learnExamNoSummary')}
+              </p>
               <p class="text-xs text-stone-500 dark:text-gray-400">
                 {getTranslation($selectedLanguage, 'learnExamMinWords').replace(
                   '{words}',

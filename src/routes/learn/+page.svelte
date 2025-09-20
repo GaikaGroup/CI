@@ -117,6 +117,18 @@
       )
     : null;
 
+  $: summaryCopy = activeMode
+    ? activeMode.summary || getTranslation($selectedLanguage, 'learnModeNoSummary')
+    : '';
+
+  $: instructionsCopy = activeMode
+    ? activeMode.instructions || getTranslation($selectedLanguage, 'learnModeNoInstructions')
+    : '';
+
+  $: followUpCopy = activeMode
+    ? activeMode.followUp || getTranslation($selectedLanguage, 'learnModeNoFollowUp')
+    : '';
+
   $: navigationSummary = $examProfile?.settings?.navigation_codes?.quick_navigation ?? '';
   $: navigationRules = $examProfile?.settings?.navigation_codes?.code_processing_rules ?? '';
 </script>
@@ -176,7 +188,7 @@
               >
                 {getTranslation($selectedLanguage, 'learnModeActiveSummary')}
               </p>
-              <p class="text-sm text-stone-700 dark:text-gray-200">{activeMode.summary}</p>
+              <p class="text-sm text-stone-700 dark:text-gray-200">{summaryCopy}</p>
               {#if skillsLabel}
                 <p class="text-xs text-stone-500 dark:text-gray-400">{skillsLabel}</p>
               {/if}
@@ -187,23 +199,21 @@
               >
                 {getTranslation($selectedLanguage, 'learnModeActiveInstructions')}
               </p>
-              <p class="text-sm text-stone-700 dark:text-gray-200">{activeMode.instructions}</p>
+              <p class="text-sm text-stone-700 dark:text-gray-200">{instructionsCopy}</p>
               {#if wordGoal}
                 <p class="text-xs text-stone-500 dark:text-gray-400">{wordGoal}</p>
               {/if}
             </div>
-            {#if activeMode.followUp}
-              <div
-                class="space-y-2 rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-gray-900/60 md:col-span-2"
+            <div
+              class="space-y-2 rounded-2xl bg-white/90 p-4 shadow-sm dark:bg-gray-900/60 md:col-span-2"
+            >
+              <p
+                class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300"
               >
-                <p
-                  class="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300"
-                >
-                  {getTranslation($selectedLanguage, 'learnModeActiveFollowUp')}
-                </p>
-                <p class="text-sm text-stone-700 dark:text-gray-200">{activeMode.followUp}</p>
-              </div>
-            {/if}
+                {getTranslation($selectedLanguage, 'learnModeActiveFollowUp')}
+              </p>
+              <p class="text-sm text-stone-700 dark:text-gray-200">{followUpCopy}</p>
+            </div>
 
             {#if navigationSummary}
               <div

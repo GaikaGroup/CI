@@ -1,20 +1,45 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
+function parseNumber(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
 function normaliseMode(mode = null) {
   if (!mode) {
     return null;
   }
 
-  const followUp =
+  const followUpRaw =
     mode.followUp ?? mode.follow_up ?? mode.follow_up_guidance ?? mode.followUpGuidance ?? '';
 
+  const summary = typeof mode.summary === 'string' ? mode.summary.trim() : '';
+  const instructions = typeof mode.instructions === 'string' ? mode.instructions.trim() : '';
+  const followUp = typeof followUpRaw === 'string' ? followUpRaw.trim() : '';
+
+  const minWords = parseNumber(mode.minWords ?? mode.min_words ?? null);
+  const maxTokens = parseNumber(mode.maxTokens ?? mode.max_tokens ?? null);
+
   return {
-    summary: mode.summary ?? '',
-    instructions: mode.instructions ?? '',
+    summary,
+    instructions,
     followUp,
-    minWords: mode.minWords ?? mode.min_words ?? null,
-    maxTokens: mode.maxTokens ?? mode.max_tokens ?? null
+    minWords,
+    maxTokens
   };
 }
 

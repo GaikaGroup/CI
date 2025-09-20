@@ -43,6 +43,11 @@ export const translations = {
     learnModeActiveFollowUp: 'Follow-up expectations',
     learnModeActiveWordGoal: 'Target length',
     learnModeActiveSkills: 'Skills in focus',
+    learnPracticeNoSummary: 'No practice guidance configured yet.',
+    learnExamNoSummary: 'No exam simulation guidance configured yet.',
+    learnModeNoSummary: 'No summary has been configured for this mode yet.',
+    learnModeNoInstructions: 'No instructions have been provided for this mode yet.',
+    learnModeNoFollowUp: 'No follow-up guidance has been set for this mode yet.',
     learnNavigationCodesHeading: 'Universal navigation codes'
   },
   ru: {
@@ -88,6 +93,11 @@ export const translations = {
     learnModeActiveFollowUp: 'Что ожидается далее',
     learnModeActiveWordGoal: 'Целевой объём',
     learnModeActiveSkills: 'Акцент на навыках',
+    learnPracticeNoSummary: 'Тренировочные рекомендации ещё не настроены.',
+    learnExamNoSummary: 'Настройки экзаменационной симуляции ещё не добавлены.',
+    learnModeNoSummary: 'Для этого режима пока нет краткого описания.',
+    learnModeNoInstructions: 'Для этого режима пока нет инструкций.',
+    learnModeNoFollowUp: 'Для этого режима пока нет рекомендаций по дальнейшим шагам.',
     learnNavigationCodesHeading: 'Универсальные коды навигации'
   },
   es: {
@@ -133,6 +143,11 @@ export const translations = {
     learnModeActiveFollowUp: 'Próximos pasos',
     learnModeActiveWordGoal: 'Objetivo de longitud',
     learnModeActiveSkills: 'Habilidades en foco',
+    learnPracticeNoSummary: 'Aún no hay orientación de práctica configurada.',
+    learnExamNoSummary: 'Todavía no hay orientación de simulación de examen configurada.',
+    learnModeNoSummary: 'Todavía no hay un resumen definido para este modo.',
+    learnModeNoInstructions: 'Todavía no hay instrucciones definidas para este modo.',
+    learnModeNoFollowUp: 'Todavía no hay pautas de seguimiento definidas para este modo.',
     learnNavigationCodesHeading: 'Códigos rápidos universales'
   }
 };
