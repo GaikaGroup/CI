@@ -89,6 +89,50 @@ export class LocalAuthService extends IAuthService {
 
         setNotification('Logged in successfully', 'success');
         return userData;
+      } else if (email === 'student1@example.com' && password === 'Demo123') {
+        const userData = {
+          id: 3,
+          name: 'Student One',
+          email: 'student1@example.com',
+          role: 'student'
+        };
+
+        user.set(userData);
+        isAuthenticated.set(true);
+
+        // Store in localStorage for persistence
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, 'mock-jwt-token-for-student1');
+
+        if (typeof document !== 'undefined') {
+          const cookieValue = encodeURIComponent(JSON.stringify(userData));
+          document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        }
+
+        setNotification('Logged in successfully', 'success');
+        return userData;
+      } else if (email === 'student2@example.com' && password === 'Demo321') {
+        const userData = {
+          id: 4,
+          name: 'Student Two',
+          email: 'student2@example.com',
+          role: 'student'
+        };
+
+        user.set(userData);
+        isAuthenticated.set(true);
+
+        // Store in localStorage for persistence
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, 'mock-jwt-token-for-student2');
+
+        if (typeof document !== 'undefined') {
+          const cookieValue = encodeURIComponent(JSON.stringify(userData));
+          document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+        }
+
+        setNotification('Logged in successfully', 'success');
+        return userData;
       } else {
         throw new Error('Invalid credentials');
       }

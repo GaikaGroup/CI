@@ -36,7 +36,27 @@ function normaliseSubject(subject) {
     skills: subject.skills ?? settings?.focus_skills ?? [],
     practice: normaliseMode(practiceSource),
     exam: normaliseMode(examSource),
-    settings
+    settings,
+    // Enhanced properties for admin subject management
+    creatorId: subject.creatorId ?? null,
+    creatorRole: subject.creatorRole ?? 'admin',
+    status: subject.status ?? 'active',
+    agents: subject.agents ?? [],
+    orchestrationAgent: subject.orchestrationAgent ?? null,
+    materials: subject.materials ?? [],
+    llmSettings: {
+      allowOpenAI: subject.llmSettings?.allowOpenAI ?? true,
+      preferredProvider: subject.llmSettings?.preferredProvider ?? 'ollama',
+      fallbackEnabled: subject.llmSettings?.fallbackEnabled ?? true,
+      ...subject.llmSettings
+    },
+    metadata: {
+      createdAt: subject.metadata?.createdAt ? new Date(subject.metadata.createdAt) : new Date(),
+      updatedAt: subject.metadata?.updatedAt ? new Date(subject.metadata.updatedAt) : new Date(),
+      reportCount: subject.metadata?.reportCount ?? 0,
+      userCount: subject.metadata?.userCount ?? 0,
+      ...subject.metadata
+    }
   };
 }
 
@@ -717,6 +737,110 @@ function createSubjectsStore() {
       if (browser) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_SUBJECTS));
       }
+    },
+    // Enhanced methods for admin subject management
+    addUserSubject(subject, userId) {
+      const userSubject = {
+        ...subject,
+        creatorId: userId,
+        creatorRole: 'user',
+        status: 'active',
+        metadata: {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          reportCount: 0,
+          userCount: 0
+        }
+      };
+      this.addSubject(userSubject);
+    },
+    updateSubjectStatus(subjectId, status) {
+      this.updateSubject(subjectId, {
+        status,
+        metadata: {
+          updatedAt: new Date()
+        }
+      });
+    },
+    reportSubject(subjectId) {
+      // This would typically integrate with the moderation service
+      // For now, we'll just increment the report count
+      update((subjects) => {
+        const next = subjects.map((subject) => {
+          if (subject.id === subjectId) {
+            return normaliseSubject({
+              ...subject,
+              metadata: {
+                ...subject.metadata,
+                reportCount: (subject.metadata.reportCount || 0) + 1,
+                updatedAt: new Date()
+              }
+            });
+          }
+          return subject;
+        });
+        persist(next);
+        return next;
+      });
+    },
+    getSubjectsByCreator(userId) {
+      let userSubjects = [];
+      subscribe((subjects) => {
+        userSubjects = subjects.filter((subject) => subject.creatorId === userId);
+      })();
+      return userSubjects;
+    },
+    getReportedSubjects() {
+      let reportedSubjects = [];
+      subscribe((subjects) => {
+        reportedSubjects = subjects.filter(
+          (subject) => subject.metadata && subject.metadata.reportCount > 0
+        );
+      })();
+      return reportedSubjects;
+    },
+    getSubjectsByStatus(status) {
+      let filteredSubjects = [];
+      subscribe((subjects) => {
+        filteredSubjects = subjects.filter((subject) => subject.status === status);
+      })();
+      return filteredSubjects;
+    },
+    getSubjectsByRole(role) {
+      let filteredSubjects = [];
+      subscribe((subjects) => {
+        filteredSubjects = subjects.filter((subject) => subject.creatorRole === role);
+      })();
+      return filteredSubjects;
+    },
+    searchSubjects(query) {
+      let searchResults = [];
+      const searchTerm = query.toLowerCase();
+      subscribe((subjects) => {
+        searchResults = subjects.filter(
+          (subject) =>
+            subject.name.toLowerCase().includes(searchTerm) ||
+            subject.description.toLowerCase().includes(searchTerm) ||
+            subject.language.toLowerCase().includes(searchTerm) ||
+            subject.skills.some((skill) => skill.toLowerCase().includes(searchTerm))
+        );
+      })();
+      return searchResults;
+    },
+    getSubjectStats() {
+      let stats = {};
+      subscribe((subjects) => {
+        stats = {
+          total: subjects.length,
+          active: subjects.filter((s) => s.status === 'active').length,
+          blocked: subjects.filter((s) => s.status === 'blocked').length,
+          deleted: subjects.filter((s) => s.status === 'deleted').length,
+          adminCreated: subjects.filter((s) => s.creatorRole === 'admin').length,
+          userCreated: subjects.filter((s) => s.creatorRole === 'user').length,
+          reported: subjects.filter((s) => s.metadata && s.metadata.reportCount > 0).length
+        };
+      })();
+      return stats;
     }
   };
 }
