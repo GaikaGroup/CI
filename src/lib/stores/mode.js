@@ -16,10 +16,10 @@ export function setMode(mode) {
 }
 
 export function requireAuth(mode) {
-  if (mode === 'learn' && !get(isAuthenticated)) {
-    goto('/login?redirect=/learn');
+  if ((mode === 'learn' || mode === 'catalogue') && !get(isAuthenticated)) {
+    goto('/login?redirect=/catalogue');
     return;
   }
   setMode(mode);
-  goto(mode === 'learn' ? '/learn' : '/');
+  goto(mode === 'learn' || mode === 'catalogue' ? '/catalogue' : '/');
 }

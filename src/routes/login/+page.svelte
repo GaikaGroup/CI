@@ -19,7 +19,7 @@
     }
     try {
       await login(email, password);
-      setMode(redirect === '/learn' ? 'learn' : 'fun');
+      setMode(redirect === '/learn' || redirect === '/catalogue' ? 'catalogue' : 'fun');
       goto(redirect);
     } catch (e) {
       error = 'Invalid credentials';

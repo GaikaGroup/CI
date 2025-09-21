@@ -5,13 +5,25 @@
   import ThemeToggle from '$modules/theme/components/ThemeToggle.svelte';
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
+  import MySubjectsDropdown from './MySubjectsDropdown.svelte';
   import { requireAuth } from '$lib/stores/mode';
   import { user } from '$modules/auth/stores';
+  import { goto } from '$app/navigation';
 
   let mobileMenuOpen = false;
 
   function toggleMobileMenu() {
     mobileMenuOpen = !mobileMenuOpen;
+  }
+
+  function handleSubjectSelect(event) {
+    const { subject } = event.detail;
+    // Navigate to the subject in catalogue mode
+    goto(`/catalogue?subject=${subject.id}`);
+  }
+
+  function handleViewAllSubjects() {
+    goto('/catalogue');
   }
 </script>
 
@@ -31,6 +43,18 @@
       <div class="hidden md:flex items-center space-x-8">
         <ModeToggle on:change={(e) => requireAuth(e.detail.mode)} />
         <a
+          href="/catalogue"
+          class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors font-medium"
+        >
+          Catalogue
+        </a>
+        {#if $user}
+          <MySubjectsDropdown
+            on:subject-select={handleSubjectSelect}
+            on:view-all={handleViewAllSubjects}
+          />
+        {/if}
+        <a
           href="/about"
           class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
         >
@@ -48,12 +72,6 @@
             class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
           >
             Finance
-          </a>
-          <a
-            href="/admin/subjects"
-            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
-          >
-            Subjects
           </a>
         {/if}
         <ThemeToggle />
@@ -93,6 +111,15 @@
           />
         </div>
         <a
+          href="/catalogue"
+          class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 font-medium"
+          on:click={() => {
+            mobileMenuOpen = false;
+          }}
+        >
+          Catalogue
+        </a>
+        <a
           href="/about"
           class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
         >
@@ -113,15 +140,6 @@
             }}
           >
             Finance
-          </a>
-          <a
-            href="/admin/subjects"
-            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
-            on:click={() => {
-              mobileMenuOpen = false;
-            }}
-          >
-            Subjects
           </a>
         {/if}
         <div class="px-3 py-2">

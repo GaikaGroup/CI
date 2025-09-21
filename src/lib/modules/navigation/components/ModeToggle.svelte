@@ -33,13 +33,13 @@
     <span>Fun</span>
   </button>
   <button
-    on:click={() => handleClick('learn')}
-    aria-pressed={$appMode === 'learn'}
+    on:click={() => handleClick('catalogue')}
+    aria-pressed={$appMode === 'learn' || $appMode === 'catalogue'}
     class={`relative z-10 flex-1 flex items-center justify-center gap-1 text-sm font-medium
       transition-transform duration-300 hover:scale-105
-      ${$appMode === 'learn' ? 'text-white' : 'text-stone-600 dark:text-gray-300'}`}
+      ${$appMode === 'learn' || $appMode === 'catalogue' ? 'text-white' : 'text-stone-600 dark:text-gray-300'}`}
   >
-    <span class={$appMode === 'learn' ? 'animate-bounce' : ''}>📚</span>
+    <span class={$appMode === 'learn' || $appMode === 'catalogue' ? 'animate-bounce' : ''}>📚</span>
     <span>Learn</span>
   </button>
 </div>

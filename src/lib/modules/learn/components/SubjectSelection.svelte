@@ -1,14 +1,14 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { user } from '$modules/auth/stores';
   import Button from '$shared/components/Button.svelte';
-  import { selectedLanguage } from '$modules/i18n/stores';
-  import { getTranslation } from '$modules/i18n/translations';
+
+  import { debounce } from '$modules/subjects/utils/performance.js';
+  import { announceToScreenReader, generateId } from '$modules/subjects/utils/accessibility.js';
 
   export let subjects = [];
   export let showFilters = true;
   export let showReporting = true;
-  export let allowSubjectCreation = false;
 
   const dispatch = createEventDispatcher();
 
@@ -21,6 +21,14 @@
   let reportingSubject = null;
   let reportReason = '';
   let reportDetails = '';
+
+  // Performance and accessibility
+  let searchInputId = generateId('search-input');
+  let resultsAnnouncementId = generateId('results-announcement');
+  let debouncedSearch = debounce((query) => {
+    searchQuery = query;
+    announceSearchResults();
+  }, 300);
 
   // Get unique filter options from subjects
   $: languages = [...new Set(subjects.map((s) => s.language).filter(Boolean))];
@@ -43,8 +51,12 @@
     return matchesSearch && matchesLanguage && matchesLevel && matchesCreator;
   });
 
-  const handleSelection = (subject, mode) => {
-    dispatch('select', { subject, mode });
+  const handleJoinSubject = (subject) => {
+    dispatch('join-subject', { subject });
+  };
+
+  const handleEditSubject = (subject) => {
+    dispatch('edit-subject', { subject });
   };
 
   const handleCreateSubject = () => {
@@ -88,6 +100,26 @@
       ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
       : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
   };
+
+  const canUserEditSubject = (subject) => {
+    return $user && subject.creatorId === $user.id;
+  };
+
+  // Accessibility functions
+  function announceSearchResults() {
+    const count = filteredSubjects.length;
+    const message = count === 1 ? `${count} subject found` : `${count} subjects found`;
+    announceToScreenReader(message);
+  }
+
+  function handleSearchInput(event) {
+    debouncedSearch(event.target.value);
+  }
+
+  onMount(() => {
+    // Announce initial results
+    announceSearchResults();
+  });
 </script>
 
 <div class="space-y-6">
@@ -99,7 +131,7 @@
       </p>
     </div>
 
-    {#if allowSubjectCreation}
+    {#if $user}
       <Button on:click={handleCreateSubject} variant="primary">Create Subject</Button>
     {/if}
   </div>
@@ -109,11 +141,14 @@
     <div class="space-y-4 rounded-xl bg-stone-50 p-4 dark:bg-gray-900">
       <!-- Search -->
       <div>
+        <label for={searchInputId} class="sr-only">Search subjects</label>
         <input
+          id={searchInputId}
           type="text"
           placeholder="Search subjects..."
-          bind:value={searchQuery}
+          on:input={handleSearchInput}
           class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 placeholder-stone-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:focus:border-amber-400"
+          aria-describedby={resultsAnnouncementId}
         />
       </div>
 
@@ -177,7 +212,12 @@
       </div>
 
       <!-- Results count -->
-      <div class="text-sm text-stone-600 dark:text-gray-400">
+      <div
+        id={resultsAnnouncementId}
+        class="text-sm text-stone-600 dark:text-gray-400"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         Showing {filteredSubjects.length} of {subjects.length} subjects
       </div>
     </div>
@@ -187,7 +227,7 @@
     <div class="text-center py-12">
       {#if subjects.length === 0}
         <p class="text-stone-500 dark:text-gray-400 mb-4">No subjects available yet.</p>
-        {#if allowSubjectCreation}
+        {#if $user}
           <Button on:click={handleCreateSubject} variant="primary">Create the First Subject</Button>
         {/if}
       {:else}
@@ -195,16 +235,17 @@
       {/if}
     </div>
   {:else}
-    <div class="grid gap-6 md:grid-cols-2">
+    <div class="grid gap-6 md:grid-cols-2" role="list" aria-label="Subject catalogue">
       {#each filteredSubjects as subject}
         <article
-          class="flex h-full flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+          class="flex h-full flex-col justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md dark:border-gray-700 dark:bg-gray-800"
+          role="listitem"
         >
           <div class="space-y-3">
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
-                  <h3 class="text-xl font-semibold text-stone-900 dark:text-white">
+                  <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
                     {subject.name}
                   </h3>
                   <span
@@ -220,95 +261,81 @@
                 </p>
               </div>
 
-              {#if showReporting && $user}
-                <button
-                  on:click={() => handleReportSubject(subject)}
-                  class="text-stone-400 hover:text-red-500 transition-colors p-1"
-                  title="Report inappropriate content"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                </button>
-              {/if}
+              <div class="flex items-center gap-1">
+                {#if canUserEditSubject(subject)}
+                  <button
+                    on:click={() => handleEditSubject(subject)}
+                    class="text-stone-400 hover:text-amber-600 focus:text-amber-600 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    aria-label="Edit {subject.name}"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                {/if}
+                {#if showReporting && $user}
+                  <button
+                    on:click={() => handleReportSubject(subject)}
+                    class="text-stone-400 hover:text-red-500 focus:text-red-500 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Report {subject.name} for inappropriate content"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                      />
+                    </svg>
+                  </button>
+                {/if}
+              </div>
             </div>
-            <p class="text-sm text-stone-600 dark:text-gray-300">{subject.description}</p>
+
+            <!-- Shortened description -->
+            <p
+              class="text-sm text-stone-600 dark:text-gray-300"
+              style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
+            >
+              {subject.description}
+            </p>
 
             {#if subject.skills?.length}
               <div class="flex flex-wrap gap-1">
-                {#each subject.skills as skill}
+                {#each subject.skills.slice(0, 4) as skill}
                   <span
                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 dark:bg-gray-700 dark:text-gray-300"
                   >
                     {skill}
                   </span>
                 {/each}
-              </div>
-            {/if}
-
-            <!-- Agent information -->
-            {#if subject.agents?.length}
-              <div class="text-xs text-stone-500 dark:text-gray-400">
-                <span class="font-medium">Agents:</span>
-                {subject.agents.length} specialized
-                {#if subject.orchestrationAgent}
-                  + orchestration
+                {#if subject.skills.length > 4}
+                  <span class="text-xs text-stone-500 dark:text-gray-400">
+                    +{subject.skills.length - 4} more
+                  </span>
                 {/if}
-              </div>
-            {/if}
-
-            <!-- Material count -->
-            {#if subject.materials?.length}
-              <div class="text-xs text-stone-500 dark:text-gray-400">
-                <span class="font-medium">Materials:</span>
-                {subject.materials.length} reference documents
-              </div>
-            {/if}
-
-            <div class="mt-4 space-y-3 rounded-xl bg-stone-50 p-4 text-sm dark:bg-gray-900">
-              <h4 class="font-semibold text-stone-800 dark:text-gray-100">
-                {getTranslation($selectedLanguage, 'learnPracticeSummary')}
-              </h4>
-              <p class="text-stone-600 dark:text-gray-300">{subject.practice?.summary}</p>
-              <p class="text-xs text-stone-500 dark:text-gray-400">
-                {getTranslation($selectedLanguage, 'learnPracticeMinWords').replace(
-                  '{words}',
-                  subject.practice?.minWords ?? '—'
-                )}
-              </p>
-            </div>
-
-            <div class="space-y-3 rounded-xl bg-stone-50 p-4 text-sm dark:bg-gray-900">
-              <h4 class="font-semibold text-stone-800 dark:text-gray-100">
-                {getTranslation($selectedLanguage, 'learnExamSummary')}
-              </h4>
-              <p class="text-stone-600 dark:text-gray-300">{subject.exam?.summary}</p>
-              <p class="text-xs text-stone-500 dark:text-gray-400">
-                {getTranslation($selectedLanguage, 'learnExamMinWords').replace(
-                  '{words}',
-                  subject.exam?.minWords ?? '—'
-                )}
-              </p>
-            </div>
-
-            {#if subject.settings?.navigation_codes?.quick_navigation}
-              <div class="space-y-2 rounded-xl bg-stone-100 p-4 text-xs dark:bg-gray-900/70">
-                <p class="font-semibold uppercase tracking-wide text-stone-600 dark:text-gray-200">
-                  {getTranslation($selectedLanguage, 'learnNavigationCodesHeading')}
-                </p>
-                <p class="whitespace-pre-line text-stone-600 dark:text-gray-300">
-                  {subject.settings.navigation_codes.quick_navigation}
-                </p>
               </div>
             {/if}
           </div>
 
-          <div class="mt-6 space-y-3">
+          <div class="mt-4 space-y-3">
             <!-- LLM Provider info -->
             {#if subject.llmSettings && !subject.llmSettings.allowOpenAI}
               <div class="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
@@ -323,18 +350,13 @@
               </div>
             {/if}
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Button class="w-full" on:click={() => handleSelection(subject, 'practice')}>
-                Start Learning
-              </Button>
-              <Button
-                class="w-full"
-                variant="secondary"
-                on:click={() => handleSelection(subject, 'exam')}
-              >
-                Take Assessment
-              </Button>
-            </div>
+            <Button
+              class="w-full"
+              on:click={() => handleJoinSubject(subject)}
+              aria-label="Join {subject.name}"
+            >
+              Join
+            </Button>
           </div>
         </article>
       {/each}
