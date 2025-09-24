@@ -3,15 +3,15 @@
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import EnhancedChatInterface from '$modules/chat/components/EnhancedChatInterface.svelte';
-  import { checkAuth, isAuthenticated } from '$modules/auth/stores';
+  import { checkAuth } from '$modules/auth/stores';
   import { messages } from '$modules/chat/stores';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
-  import SubjectSelection from '$modules/learn/components/SubjectSelection.svelte';
+  import CourseSelection from '$modules/learn/components/CourseSelection.svelte';
   import Button from '$shared/components/Button.svelte';
   import { container } from '$lib/shared/di/container';
   import { setMode } from '$lib/stores/mode';
-  import { subjectsStore } from '$lib/stores/subjects';
+  import { coursesStore } from '$lib/stores/courses';
   import { user } from '$modules/auth/stores';
   import {
     examProfile,
@@ -20,22 +20,20 @@
     clearExamProfile
   } from '$lib/stores/examProfile';
 
-  let redirecting = false;
-
-  const buildExamProfile = (subject, mode) => {
-    const activeMode = mode === 'exam' ? subject.exam : subject.practice;
+  const buildExamProfile = (course, mode) => {
+    const activeMode = mode === 'exam' ? course.exam : course.practice;
     return {
-      subjectId: subject.id,
-      subjectName: subject.name,
-      description: subject.description,
-      language: subject.language,
-      level: subject.level,
-      skills: subject.skills ?? [],
+      courseId: course.id,
+      courseName: course.name,
+      description: course.description,
+      language: course.language,
+      level: course.level,
+      skills: course.skills ?? [],
       mode,
-      practice: subject.practice,
-      exam: subject.exam,
+      practice: course.practice,
+      exam: course.exam,
       activeMode,
-      settings: subject.settings ?? null
+      settings: course.settings ?? null
     };
   };
 
@@ -59,69 +57,83 @@
     messages.set([]);
   };
 
-  const handleSubjectSelect = (event) => {
-    const { subject, mode } = event.detail;
-    if (!subject || !mode) {
+  const handleCourseSelect = (event) => {
+    const { course, mode } = event.detail;
+    if (!course || !mode) {
       return;
     }
 
-    const profile = buildExamProfile(subject, mode);
+    const profile = buildExamProfile(course, mode);
     setExamProfile(profile);
     resetSession();
   };
 
-  const handleJoinSubject = async (event) => {
-    const { subject } = event.detail;
-    if (!$user || !subject) {
+  const handleJoinCourse = async (event) => {
+    const { course } = event.detail;
+    if (!course) {
+      console.error('No course provided to handleJoinCourse');
       return;
     }
 
+    // Check if user is authenticated before allowing them to join
+    if (!$user) {
+      console.log('User not authenticated, redirecting to login');
+      goto('/login?redirect=/catalogue');
+      return;
+    }
+
+    console.log(
+      'Attempting to join course:',
+      course.name,
+      'User:',
+      $user.name,
+      'User ID:',
+      $user.id
+    );
+
     // Import enrollment store dynamically to avoid circular dependencies
-    const { enrollmentStore } = await import('$modules/subjects/stores/enrollmentStore.js');
+    try {
+      const { enrollmentStore } = await import('$modules/courses/stores/enrollmentStore.js');
+      console.log('Enrollment store imported successfully');
 
-    const result = await enrollmentStore.enrollInSubject($user.id, subject.id);
+      const result = await enrollmentStore.enrollInCourse($user.id, course.id);
+      console.log('Enrollment result:', result);
 
-    if (result.success) {
-      // Start learning session with the subject
-      const profile = buildExamProfile(subject, 'practice');
-      setExamProfile(profile);
-      resetSession();
-    } else {
-      console.error('Failed to join subject:', result.error);
-      // You could show a toast notification here
+      if (result.success) {
+        console.log('Successfully enrolled, starting learning session');
+        // Start learning session with the course
+        const profile = buildExamProfile(course, 'practice');
+        setExamProfile(profile);
+        resetSession();
+      } else {
+        console.error('Failed to join course:', result.error);
+        alert(`Failed to join course: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Failed to import enrollment store:', error);
+      alert(`Error joining course: ${error.message}`);
     }
   };
 
-  const handleEditSubject = (event) => {
-    const { subject } = event.detail;
-    goto(`/catalogue/edit?id=${subject.id}`);
+  const handleEditCourse = (event) => {
+    const { course } = event.detail;
+    goto(`/catalogue/edit?id=${course.id}`);
   };
 
-  const handleCreateSubject = () => {
+  const handleCreateCourse = () => {
     goto('/catalogue/edit?new=true');
   };
 
-  const handleChangeSubject = () => {
+  const handleChangeCourse = () => {
     clearExamProfile();
     resetSession();
   };
 
   onMount(() => {
     checkAuth();
-    subjectsStore.initialise();
+    coursesStore.initialise();
     initialiseExamProfile();
-
-    const unsubscribe = isAuthenticated.subscribe((authed) => {
-      if (!authed && !redirecting) {
-        redirecting = true;
-        goto('/login?redirect=/catalogue');
-      } else if (authed) {
-        setMode('catalogue');
-      }
-    });
-    return () => {
-      unsubscribe();
-    };
+    setMode('catalogue');
   });
 
   $: activeMode = $examProfile
@@ -154,19 +166,19 @@
 </script>
 
 <svelte:head>
-  <title>Subject Catalogue</title>
+  <title>Course Catalogue</title>
 </svelte:head>
 
 <div class="min-h-screen">
-  <h1 class="sr-only">Subject Catalogue</h1>
+  <h1 class="sr-only">Course Catalogue</h1>
   <div class="mx-auto max-w-5xl px-4 py-8">
     {#if !$examProfile}
-      <SubjectSelection
-        subjects={$subjectsStore}
-        on:select={handleSubjectSelect}
-        on:join-subject={handleJoinSubject}
-        on:edit-subject={handleEditSubject}
-        on:create-subject={handleCreateSubject}
+      <CourseSelection
+        courses={$coursesStore}
+        on:select={handleCourseSelect}
+        on:join-course={handleJoinCourse}
+        on:edit-course={handleEditCourse}
+        on:create-course={handleCreateCourse}
       />
     {:else}
       <section
@@ -181,7 +193,7 @@
                 {getTranslation($selectedLanguage, 'learnCurrentSubject')}
               </p>
               <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">
-                {$examProfile.subjectName}
+                {$examProfile.courseName}
               </h2>
             </div>
             <p class="text-sm text-stone-600 dark:text-gray-300">
@@ -204,7 +216,7 @@
             </div>
           </div>
           <div class="flex items-start gap-3">
-            <Button variant="secondary" on:click={handleChangeSubject}>
+            <Button variant="secondary" on:click={handleChangeCourse}>
               {getTranslation($selectedLanguage, 'learnChangeSubject')}
             </Button>
           </div>

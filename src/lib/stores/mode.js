@@ -16,7 +16,8 @@ export function setMode(mode) {
 }
 
 export function requireAuth(mode) {
-  if ((mode === 'learn' || mode === 'catalogue') && !get(isAuthenticated)) {
+  // Only require auth for learn mode, catalogue should be accessible to everyone
+  if (mode === 'learn' && !get(isAuthenticated)) {
     goto('/login?redirect=/catalogue');
     return;
   }

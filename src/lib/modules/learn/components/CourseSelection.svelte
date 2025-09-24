@@ -3,10 +3,10 @@
   import { user } from '$modules/auth/stores';
   import Button from '$shared/components/Button.svelte';
 
-  import { debounce } from '$modules/subjects/utils/performance.js';
-  import { announceToScreenReader, generateId } from '$modules/subjects/utils/accessibility.js';
+  import { debounce } from '$modules/courses/utils/performance.js';
+  import { announceToScreenReader, generateId } from '$modules/courses/utils/accessibility.js';
 
-  export let subjects = [];
+  export let courses = [];
   export let showFilters = true;
   export let showReporting = true;
 
@@ -18,7 +18,7 @@
   let selectedLevelFilter = 'all';
   let selectedCreatorFilter = 'all';
   let showReportModal = false;
-  let reportingSubject = null;
+  let reportingCourse = null;
   let reportReason = '';
   let reportDetails = '';
 
@@ -30,55 +30,55 @@
     announceSearchResults();
   }, 300);
 
-  // Get unique filter options from subjects
-  $: languages = [...new Set(subjects.map((s) => s.language).filter(Boolean))];
-  $: levels = [...new Set(subjects.map((s) => s.level).filter(Boolean))];
+  // Get unique filter options from courses
+  $: languages = [...new Set(courses.map((s) => s.language).filter(Boolean))];
+  $: levels = [...new Set(courses.map((s) => s.level).filter(Boolean))];
 
-  // Filter subjects based on search and filters
-  $: filteredSubjects = subjects.filter((subject) => {
+  // Filter courses based on search and filters
+  $: filteredCourses = courses.filter((course) => {
     const matchesSearch =
       !searchQuery ||
-      subject.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      subject.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      subject.skills?.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.skills?.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesLanguage =
-      selectedLanguageFilter === 'all' || subject.language === selectedLanguageFilter;
-    const matchesLevel = selectedLevelFilter === 'all' || subject.level === selectedLevelFilter;
+      selectedLanguageFilter === 'all' || course.language === selectedLanguageFilter;
+    const matchesLevel = selectedLevelFilter === 'all' || course.level === selectedLevelFilter;
     const matchesCreator =
-      selectedCreatorFilter === 'all' || subject.creatorRole === selectedCreatorFilter;
+      selectedCreatorFilter === 'all' || course.creatorRole === selectedCreatorFilter;
 
     return matchesSearch && matchesLanguage && matchesLevel && matchesCreator;
   });
 
-  const handleJoinSubject = (subject) => {
-    dispatch('join-subject', { subject });
+  const handleJoinCourse = (course) => {
+    dispatch('join-course', { course });
   };
 
-  const handleEditSubject = (subject) => {
-    dispatch('edit-subject', { subject });
+  const handleEditCourse = (course) => {
+    dispatch('edit-course', { course });
   };
 
-  const handleCreateSubject = () => {
-    dispatch('create-subject');
+  const handleCreateCourse = () => {
+    dispatch('create-course');
   };
 
-  const handleReportSubject = (subject) => {
-    reportingSubject = subject;
+  const handleReportCourse = (course) => {
+    reportingCourse = course;
     showReportModal = true;
   };
 
   const submitReport = () => {
-    if (reportingSubject && reportReason) {
-      dispatch('report-subject', {
-        subjectId: reportingSubject.id,
+    if (reportingCourse && reportReason) {
+      dispatch('report-course', {
+        courseId: reportingCourse.id,
         reason: reportReason,
         details: reportDetails
       });
 
       // Reset form
       showReportModal = false;
-      reportingSubject = null;
+      reportingCourse = null;
       reportReason = '';
       reportDetails = '';
     }
@@ -86,7 +86,7 @@
 
   const cancelReport = () => {
     showReportModal = false;
-    reportingSubject = null;
+    reportingCourse = null;
     reportReason = '';
     reportDetails = '';
   };
@@ -101,14 +101,14 @@
       : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
   };
 
-  const canUserEditSubject = (subject) => {
-    return $user && subject.creatorId === $user.id;
+  const canUserEditCourse = (course) => {
+    return $user && course.creatorId === $user.id;
   };
 
   // Accessibility functions
   function announceSearchResults() {
-    const count = filteredSubjects.length;
-    const message = count === 1 ? `${count} subject found` : `${count} subjects found`;
+    const count = filteredCourses.length;
+    const message = count === 1 ? `${count} course found` : `${count} courses found`;
     announceToScreenReader(message);
   }
 
@@ -125,14 +125,14 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">Subject Catalog</h2>
+      <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">Course Catalog</h2>
       <p class="mt-2 text-stone-600 dark:text-gray-300">
-        Choose from available learning subjects or create your own
+        Choose from available learning courses or create your own
       </p>
     </div>
 
     {#if $user}
-      <Button on:click={handleCreateSubject} variant="primary">Create Subject</Button>
+      <Button on:click={handleCreateCourse} variant="primary">Create Course</Button>
     {/if}
   </div>
 
@@ -141,11 +141,11 @@
     <div class="space-y-4 rounded-xl bg-stone-50 p-4 dark:bg-gray-900">
       <!-- Search -->
       <div>
-        <label for={searchInputId} class="sr-only">Search subjects</label>
+        <label for={searchInputId} class="sr-only">Search courses</label>
         <input
           id={searchInputId}
           type="text"
-          placeholder="Search subjects..."
+          placeholder="Search courses..."
           on:input={handleSearchInput}
           class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 placeholder-stone-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:focus:border-amber-400"
           aria-describedby={resultsAnnouncementId}
@@ -218,25 +218,25 @@
         aria-live="polite"
         aria-atomic="true"
       >
-        Showing {filteredSubjects.length} of {subjects.length} subjects
+        Showing {filteredCourses.length} of {courses.length} courses
       </div>
     </div>
   {/if}
 
-  {#if filteredSubjects.length === 0}
+  {#if filteredCourses.length === 0}
     <div class="text-center py-12">
-      {#if subjects.length === 0}
-        <p class="text-stone-500 dark:text-gray-400 mb-4">No subjects available yet.</p>
+      {#if courses.length === 0}
+        <p class="text-stone-500 dark:text-gray-400 mb-4">No courses available yet.</p>
         {#if $user}
-          <Button on:click={handleCreateSubject} variant="primary">Create the First Subject</Button>
+          <Button on:click={handleCreateCourse} variant="primary">Create the First Course</Button>
         {/if}
       {:else}
-        <p class="text-stone-500 dark:text-gray-400">No subjects match your current filters.</p>
+        <p class="text-stone-500 dark:text-gray-400">No courses match your current filters.</p>
       {/if}
     </div>
   {:else}
-    <div class="grid gap-6 md:grid-cols-2" role="list" aria-label="Subject catalogue">
-      {#each filteredSubjects as subject}
+    <div class="grid gap-6 md:grid-cols-2" role="list" aria-label="Course catalogue">
+      {#each filteredCourses as course}
         <article
           class="flex h-full flex-col justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md dark:border-gray-700 dark:bg-gray-800"
           role="listitem"
@@ -246,27 +246,27 @@
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
                   <h3 class="text-lg font-semibold text-stone-900 dark:text-white">
-                    {subject.name}
+                    {course.name}
                   </h3>
                   <span
                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getCreatorBadgeClass(
-                      subject.creatorRole
+                      course.creatorRole
                     )}"
                   >
-                    {getCreatorLabel(subject.creatorRole)}
+                    {getCreatorLabel(course.creatorRole)}
                   </span>
                 </div>
                 <p class="text-sm uppercase tracking-wide text-amber-600 dark:text-amber-300">
-                  {subject.language}{subject.level ? ` · ${subject.level}` : ''}
+                  {course.language}{course.level ? ` · ${course.level}` : ''}
                 </p>
               </div>
 
               <div class="flex items-center gap-1">
-                {#if canUserEditSubject(subject)}
+                {#if canUserEditCourse(course)}
                   <button
-                    on:click={() => handleEditSubject(subject)}
+                    on:click={() => handleEditCourse(course)}
                     class="text-stone-400 hover:text-amber-600 focus:text-amber-600 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    aria-label="Edit {subject.name}"
+                    aria-label="Edit {course.name}"
                   >
                     <svg
                       class="w-4 h-4"
@@ -286,9 +286,9 @@
                 {/if}
                 {#if showReporting && $user}
                   <button
-                    on:click={() => handleReportSubject(subject)}
+                    on:click={() => handleReportCourse(course)}
                     class="text-stone-400 hover:text-red-500 focus:text-red-500 transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                    aria-label="Report {subject.name} for inappropriate content"
+                    aria-label="Report {course.name} for inappropriate content"
                   >
                     <svg
                       class="w-4 h-4"
@@ -314,21 +314,21 @@
               class="text-sm text-stone-600 dark:text-gray-300"
               style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
             >
-              {subject.description}
+              {course.description}
             </p>
 
-            {#if subject.skills?.length}
+            {#if course.skills?.length}
               <div class="flex flex-wrap gap-1">
-                {#each subject.skills.slice(0, 4) as skill}
+                {#each course.skills.slice(0, 4) as skill}
                   <span
                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 dark:bg-gray-700 dark:text-gray-300"
                   >
                     {skill}
                   </span>
                 {/each}
-                {#if subject.skills.length > 4}
+                {#if course.skills.length > 4}
                   <span class="text-xs text-stone-500 dark:text-gray-400">
-                    +{subject.skills.length - 4} more
+                    +{course.skills.length - 4} more
                   </span>
                 {/if}
               </div>
@@ -337,7 +337,7 @@
 
           <div class="mt-4 space-y-3">
             <!-- LLM Provider info -->
-            {#if subject.llmSettings && !subject.llmSettings.allowOpenAI}
+            {#if course.llmSettings && !course.llmSettings.allowOpenAI}
               <div class="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path
@@ -352,8 +352,8 @@
 
             <Button
               class="w-full"
-              on:click={() => handleJoinSubject(subject)}
-              aria-label="Join {subject.name}"
+              on:click={() => handleJoinCourse(course)}
+              aria-label="Join {course.name}"
             >
               Join
             </Button>
@@ -365,13 +365,13 @@
 </div>
 
 <!-- Report Modal -->
-{#if showReportModal && reportingSubject}
+{#if showReportModal && reportingCourse}
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
-      <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">Report Subject</h3>
+      <h3 class="text-lg font-semibold text-stone-900 dark:text-white mb-4">Report Course</h3>
 
       <p class="text-sm text-stone-600 dark:text-gray-300 mb-4">
-        You are reporting: <strong>{reportingSubject.name}</strong>
+        You are reporting: <strong>{reportingCourse.name}</strong>
       </p>
 
       <div class="space-y-4">

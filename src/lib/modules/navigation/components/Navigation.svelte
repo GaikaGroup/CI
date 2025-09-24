@@ -5,25 +5,15 @@
   import ThemeToggle from '$modules/theme/components/ThemeToggle.svelte';
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
-  import MySubjectsDropdown from './MySubjectsDropdown.svelte';
+  import MyCoursesDropdown from './MyCoursesDropdown.svelte';
   import { requireAuth } from '$lib/stores/mode';
   import { user } from '$modules/auth/stores';
-  import { goto } from '$app/navigation';
+  // import { goto } from '$app/navigation';
 
   let mobileMenuOpen = false;
 
   function toggleMobileMenu() {
     mobileMenuOpen = !mobileMenuOpen;
-  }
-
-  function handleSubjectSelect(event) {
-    const { subject } = event.detail;
-    // Navigate to the subject in catalogue mode
-    goto(`/catalogue?subject=${subject.id}`);
-  }
-
-  function handleViewAllSubjects() {
-    goto('/catalogue');
   }
 </script>
 
@@ -49,10 +39,7 @@
           Catalogue
         </a>
         {#if $user}
-          <MySubjectsDropdown
-            on:subject-select={handleSubjectSelect}
-            on:view-all={handleViewAllSubjects}
-          />
+          <MyCoursesDropdown />
         {/if}
         <a
           href="/about"
@@ -119,6 +106,17 @@
         >
           Catalogue
         </a>
+        {#if $user}
+          <a
+            href="/my-courses"
+            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 font-medium"
+            on:click={() => {
+              mobileMenuOpen = false;
+            }}
+          >
+            My Courses
+          </a>
+        {/if}
         <a
           href="/about"
           class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"

@@ -29,7 +29,7 @@
   import { browser } from '$app/environment';
   import { appMode } from '$lib/stores/mode';
   import { examProfile } from '$lib/stores/examProfile';
-  import { agentCommunicationService } from '$modules/subjects/services/AgentCommunicationService.js';
+  import { agentCommunicationService } from '$modules/courses/services/AgentCommunicationService.js';
   import { user } from '$modules/auth/stores';
 
   // Session ID for maintaining conversation context

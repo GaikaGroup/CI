@@ -60,13 +60,13 @@ function createEnrollmentStore() {
     },
 
     /**
-     * Enroll user in a subject
+     * Enroll user in a course
      */
-    enrollInSubject: async (userId, subjectId) => {
+    enrollInCourse: async (userId, courseId) => {
       update((state) => ({ ...state, loading: true }));
 
       try {
-        const result = userEnrollmentService.enrollUser(userId, subjectId);
+        const result = userEnrollmentService.enrollUser(userId, courseId);
 
         if (result.success) {
           const enrollments = userEnrollmentService.getUserEnrollments(userId);
@@ -86,7 +86,7 @@ function createEnrollmentStore() {
 
         return result;
       } catch (error) {
-        console.error('Error enrolling in subject:', error);
+        console.error('Error enrolling in course:', error);
         update((state) => ({
           ...state,
           loading: false,
@@ -99,9 +99,9 @@ function createEnrollmentStore() {
     /**
      * Update enrollment status
      */
-    updateEnrollmentStatus: async (userId, subjectId, status) => {
+    updateEnrollmentStatus: async (userId, courseId, status) => {
       try {
-        const result = userEnrollmentService.updateEnrollmentStatus(userId, subjectId, status);
+        const result = userEnrollmentService.updateEnrollmentStatus(userId, courseId, status);
 
         if (result.success) {
           const enrollments = userEnrollmentService.getUserEnrollments(userId);
@@ -122,9 +122,9 @@ function createEnrollmentStore() {
     /**
      * Update user progress
      */
-    updateProgress: async (userId, subjectId, progressUpdate) => {
+    updateProgress: async (userId, courseId, progressUpdate) => {
       try {
-        const result = userEnrollmentService.updateProgress(userId, subjectId, progressUpdate);
+        const result = userEnrollmentService.updateProgress(userId, courseId, progressUpdate);
 
         if (result.success) {
           const enrollments = userEnrollmentService.getUserEnrollments(userId);
@@ -145,15 +145,15 @@ function createEnrollmentStore() {
     /**
      * Drop enrollment
      */
-    dropEnrollment: async (userId, subjectId) => {
-      return await this.updateEnrollmentStatus(userId, subjectId, 'dropped');
+    dropEnrollment: async (userId, courseId) => {
+      return await this.updateEnrollmentStatus(userId, courseId, 'dropped');
     },
 
     /**
-     * Check if user is enrolled in a subject
+     * Check if user is enrolled in a course
      */
-    isEnrolled: (userId, subjectId) => {
-      return userEnrollmentService.isUserEnrolled(userId, subjectId);
+    isEnrolled: (userId, courseId) => {
+      return userEnrollmentService.isUserEnrolled(userId, courseId);
     },
 
     /**
@@ -228,3 +228,6 @@ if (browser) {
     }
   });
 }
+
+// Legacy exports for backward compatibility during transition
+export const enrollInSubject = enrollmentStore.enrollInCourse;

@@ -3,19 +3,19 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { user } from '$modules/auth/stores';
-  import { subjectsStore } from '$lib/stores/subjects';
-  import SubjectEditMode from '$modules/subjects/components/SubjectEditMode.svelte';
-  import { SubjectService } from '$modules/subjects/services/SubjectService.js';
+  import { coursesStore } from '$lib/stores/courses';
+  import CourseEditMode from '$modules/courses/components/CourseEditMode.svelte';
+  import { CourseService } from '$modules/courses/services/CourseService.js';
 
-  let subject = null;
+  let course = null;
   let isNew = false;
   let loading = true;
   let error = null;
 
-  const subjectService = new SubjectService(subjectsStore);
+  const courseService = new CourseService(coursesStore);
 
   onMount(async () => {
-    const subjectId = $page.url.searchParams.get('id');
+    const courseId = $page.url.searchParams.get('id');
     isNew = $page.url.searchParams.get('new') === 'true';
 
     if (!$user) {
@@ -24,62 +24,57 @@
     }
 
     if (isNew) {
-      // Creating new subject
-      subject = null;
+      // Creating new course
+      course = null;
       loading = false;
-    } else if (subjectId) {
-      // Editing existing subject
+    } else if (courseId) {
+      // Editing existing course
       try {
-        const result = await subjectService.getSubject(subjectId);
+        const result = await courseService.getCourse(courseId);
         if (result.success) {
-          subject = result.subject;
+          course = result.course;
 
-          // Check if user can edit this subject
-          const canEdit = subjectService.canUserModifySubject(subject, $user.id, $user.role);
+          // Check if user can edit this course
+          const canEdit = courseService.canUserModifyCourse(course, $user.id, $user.role);
           if (!canEdit.allowed) {
             error = canEdit.reason;
             loading = false;
             return;
           }
         } else {
-          error = result.error || 'Subject not found';
+          error = result.error || 'Course not found';
         }
       } catch (err) {
-        console.error('Error loading subject:', err);
-        error = 'Failed to load subject';
+        console.error('Error loading course:', err);
+        error = 'Failed to load course';
       }
       loading = false;
     } else {
-      error = 'No subject ID provided';
+      error = 'No course ID provided';
       loading = false;
     }
   });
 
   async function handleSave(event) {
-    const { subject: subjectData, isNew: creating } = event.detail;
+    const { course: courseData, isNew: creating } = event.detail;
 
     try {
       let result;
       if (creating) {
-        result = await subjectService.createSubject(subjectData, $user.id, $user.role);
+        result = await courseService.createCourse(courseData, $user.id, $user.role);
       } else {
-        result = await subjectService.updateSubject(
-          subjectData.id,
-          subjectData,
-          $user.id,
-          $user.role
-        );
+        result = await courseService.updateCourse(courseData.id, courseData, $user.id, $user.role);
       }
 
       if (result.success) {
         // Navigate back to catalogue
         goto('/catalogue');
       } else {
-        console.error('Failed to save subject:', result.error);
-        // Error will be handled by the SubjectEditMode component
+        console.error('Failed to save course:', result.error);
+        // Error will be handled by the CourseEditMode component
       }
     } catch (err) {
-      console.error('Error saving subject:', err);
+      console.error('Error saving course:', err);
     }
   }
 
@@ -89,14 +84,14 @@
 </script>
 
 <svelte:head>
-  <title>{isNew ? 'Create Subject' : `Edit ${subject?.name || 'Subject'}`}</title>
+  <title>{isNew ? 'Create Course' : `Edit ${course?.name || 'Course'}`}</title>
 </svelte:head>
 
 {#if loading}
   <div class="min-h-screen flex items-center justify-center">
     <div class="text-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-4"></div>
-      <p class="text-stone-600 dark:text-gray-300">Loading subject...</p>
+      <p class="text-stone-600 dark:text-gray-300">Loading course...</p>
     </div>
   </div>
 {:else if error}
@@ -117,5 +112,5 @@
     </div>
   </div>
 {:else}
-  <SubjectEditMode {subject} {isNew} on:save={handleSave} on:cancel={handleCancel} />
+  <CourseEditMode {course} {isNew} on:save={handleSave} on:cancel={handleCancel} />
 {/if}
