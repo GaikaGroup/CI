@@ -62,7 +62,7 @@ describe('SubjectEditMode', () => {
 
     expect(screen.getByText('Edit Test Subject')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test Subject')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Test Description')).toBeInTheDocument();
+    expect(screen.getByLabelText('Description *').value).toBe('Test Description');
   });
 
   it('validates required fields', async () => {
@@ -99,7 +99,7 @@ describe('SubjectEditMode', () => {
   });
 
   it('emits save event with correct data', async () => {
-    const component = render(SubjectEditMode, {
+    const { component } = render(SubjectEditMode, {
       props: {
         subject: null,
         isNew: true
@@ -112,26 +112,13 @@ describe('SubjectEditMode', () => {
     });
 
     // Fill required fields
-    await fireEvent.input(screen.getByLabelText(/Subject Name/), {
+    await fireEvent.input(screen.getByLabelText('Subject Name *'), {
       target: { value: 'Test Subject' }
     });
-    await fireEvent.input(screen.getByLabelText(/Description/), {
+    await fireEvent.input(screen.getByLabelText('Description *'), {
       target: { value: 'Test Description' }
     });
-    await fireEvent.input(screen.getByLabelText(/Language/), { target: { value: 'English' } });
-    await fireEvent.input(screen.getByLabelText(/Summary.*Practice/), {
-      target: { value: 'Practice summary' }
-    });
-    await fireEvent.input(screen.getByLabelText(/Instructions.*Practice/), {
-      target: { value: 'Practice instructions' }
-    });
-    await fireEvent.input(screen.getByLabelText(/Summary.*Exam/), {
-      target: { value: 'Exam summary' }
-    });
-    await fireEvent.input(screen.getByLabelText(/Instructions.*Exam/), {
-      target: { value: 'Exam instructions' }
-    });
-
+    await fireEvent.input(screen.getByLabelText('Language *'), { target: { value: 'English' } });
     const saveButton = screen.getByText('Create Subject');
     await fireEvent.click(saveButton);
 
@@ -139,10 +126,45 @@ describe('SubjectEditMode', () => {
     expect(saveEventData.subject.name).toBe('Test Subject');
     expect(saveEventData.subject.description).toBe('Test Description');
     expect(saveEventData.isNew).toBe(true);
+    expect('practice' in saveEventData.subject).toBe(false);
+    expect('exam' in saveEventData.subject).toBe(false);
+  });
+
+  it('preserves existing practice and exam data when editing', async () => {
+    const mockSubject = {
+      id: 'subject1',
+      name: 'Legacy Subject',
+      description: 'Legacy description',
+      language: 'English',
+      practice: {
+        summary: 'Legacy practice summary'
+      },
+      exam: {
+        summary: 'Legacy exam summary'
+      }
+    };
+
+    const { component } = render(SubjectEditMode, {
+      props: {
+        subject: mockSubject,
+        isNew: false
+      }
+    });
+
+    let saveEventData = null;
+    component.$on('save', (event) => {
+      saveEventData = event.detail;
+    });
+
+    await fireEvent.click(screen.getByText('Save Changes'));
+
+    expect(saveEventData).toBeTruthy();
+    expect(saveEventData.subject.practice).toEqual(mockSubject.practice);
+    expect(saveEventData.subject.exam).toEqual(mockSubject.exam);
   });
 
   it('emits cancel event', async () => {
-    const component = render(SubjectEditMode, {
+    const { component } = render(SubjectEditMode, {
       props: {
         subject: null,
         isNew: true

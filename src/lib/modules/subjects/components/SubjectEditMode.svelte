@@ -19,18 +19,6 @@
     language: '',
     level: '',
     skills: [],
-    practice: {
-      summary: '',
-      instructions: '',
-      minWords: 100,
-      followUp: ''
-    },
-    exam: {
-      summary: '',
-      instructions: '',
-      minWords: 200,
-      followUp: ''
-    },
     settings: {
       navigation_codes: {
         quick_navigation: '',
@@ -65,18 +53,6 @@
       language: subject.language || '',
       level: subject.level || '',
       skills: [...(subject.skills || [])],
-      practice: {
-        summary: subject.practice?.summary || '',
-        instructions: subject.practice?.instructions || '',
-        minWords: subject.practice?.minWords || 100,
-        followUp: subject.practice?.followUp || ''
-      },
-      exam: {
-        summary: subject.exam?.summary || '',
-        instructions: subject.exam?.instructions || '',
-        minWords: subject.exam?.minWords || 200,
-        followUp: subject.exam?.followUp || ''
-      },
       settings: {
         navigation_codes: {
           quick_navigation: subject.settings?.navigation_codes?.quick_navigation || '',
@@ -109,30 +85,6 @@
 
     if (!formData.language.trim()) {
       errors.language = 'Language is required';
-    }
-
-    if (!formData.practice.summary.trim()) {
-      errors.practiceSummary = 'Practice summary is required';
-    }
-
-    if (!formData.practice.instructions.trim()) {
-      errors.practiceInstructions = 'Practice instructions are required';
-    }
-
-    if (!formData.exam.summary.trim()) {
-      errors.examSummary = 'Exam summary is required';
-    }
-
-    if (!formData.exam.instructions.trim()) {
-      errors.examInstructions = 'Exam instructions are required';
-    }
-
-    if (formData.practice.minWords < 1) {
-      errors.practiceMinWords = 'Minimum words must be at least 1';
-    }
-
-    if (formData.exam.minWords < 1) {
-      errors.examMinWords = 'Minimum words must be at least 1';
     }
 
     return Object.keys(errors).length === 0;
@@ -205,6 +157,15 @@
           updatedAt: new Date().toISOString()
         }
       };
+
+      if (!isNew && subject) {
+        if ('practice' in subject) {
+          subjectData.practice = subject.practice;
+        }
+        if ('exam' in subject) {
+          subjectData.exam = subject.exam;
+        }
+      }
 
       if (isNew) {
         subjectData.id = crypto.randomUUID();
@@ -468,176 +429,6 @@
             {/each}
           </div>
         {/if}
-      </div>
-
-      <!-- Practice Mode -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-        <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-6">Practice Mode</h2>
-
-        <div class="space-y-4">
-          <div>
-            <label
-              for="practiceSummary"
-              class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-            >
-              Summary *
-            </label>
-            <textarea
-              id="practiceSummary"
-              bind:value={formData.practice.summary}
-              rows="2"
-              class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-              class:border-red-500={errors.practiceSummary}
-              placeholder="Brief summary of practice mode"
-            ></textarea>
-            {#if errors.practiceSummary}
-              <p class="text-red-500 text-sm mt-1">{errors.practiceSummary}</p>
-            {/if}
-          </div>
-
-          <div>
-            <label
-              for="practiceInstructions"
-              class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-            >
-              Instructions *
-            </label>
-            <textarea
-              id="practiceInstructions"
-              bind:value={formData.practice.instructions}
-              rows="3"
-              class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-              class:border-red-500={errors.practiceInstructions}
-              placeholder="Detailed instructions for practice sessions"
-            ></textarea>
-            {#if errors.practiceInstructions}
-              <p class="text-red-500 text-sm mt-1">{errors.practiceInstructions}</p>
-            {/if}
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                for="practiceMinWords"
-                class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-              >
-                Minimum Words
-              </label>
-              <input
-                id="practiceMinWords"
-                type="number"
-                bind:value={formData.practice.minWords}
-                min="1"
-                class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-                class:border-red-500={errors.practiceMinWords}
-              />
-              {#if errors.practiceMinWords}
-                <p class="text-red-500 text-sm mt-1">{errors.practiceMinWords}</p>
-              {/if}
-            </div>
-          </div>
-
-          <div>
-            <label
-              for="practiceFollowUp"
-              class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-            >
-              Follow-up Instructions
-            </label>
-            <textarea
-              id="practiceFollowUp"
-              bind:value={formData.practice.followUp}
-              rows="2"
-              class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-              placeholder="Optional follow-up instructions"
-            ></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Exam Mode -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-        <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-6">Exam Mode</h2>
-
-        <div class="space-y-4">
-          <div>
-            <label
-              for="examSummary"
-              class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-            >
-              Summary *
-            </label>
-            <textarea
-              id="examSummary"
-              bind:value={formData.exam.summary}
-              rows="2"
-              class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-              class:border-red-500={errors.examSummary}
-              placeholder="Brief summary of exam mode"
-            ></textarea>
-            {#if errors.examSummary}
-              <p class="text-red-500 text-sm mt-1">{errors.examSummary}</p>
-            {/if}
-          </div>
-
-          <div>
-            <label
-              for="examInstructions"
-              class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-            >
-              Instructions *
-            </label>
-            <textarea
-              id="examInstructions"
-              bind:value={formData.exam.instructions}
-              rows="3"
-              class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-              class:border-red-500={errors.examInstructions}
-              placeholder="Detailed instructions for exam sessions"
-            ></textarea>
-            {#if errors.examInstructions}
-              <p class="text-red-500 text-sm mt-1">{errors.examInstructions}</p>
-            {/if}
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                for="examMinWords"
-                class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-              >
-                Minimum Words
-              </label>
-              <input
-                id="examMinWords"
-                type="number"
-                bind:value={formData.exam.minWords}
-                min="1"
-                class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-                class:border-red-500={errors.examMinWords}
-              />
-              {#if errors.examMinWords}
-                <p class="text-red-500 text-sm mt-1">{errors.examMinWords}</p>
-              {/if}
-            </div>
-          </div>
-
-          <div>
-            <label
-              for="examFollowUp"
-              class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
-            >
-              Follow-up Instructions
-            </label>
-            <textarea
-              id="examFollowUp"
-              bind:value={formData.exam.followUp}
-              rows="2"
-              class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
-              placeholder="Optional follow-up instructions"
-            ></textarea>
-          </div>
-        </div>
       </div>
 
       <!-- Agent Management -->
