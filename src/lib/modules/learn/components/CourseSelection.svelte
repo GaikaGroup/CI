@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { user } from '$modules/auth/stores';
+  import { activeEnrollments } from '$modules/courses/stores/enrollmentStore.js';
   import Button from '$shared/components/Button.svelte';
 
   import { debounce } from '$modules/courses/utils/performance.js';
@@ -9,6 +10,9 @@
   export let courses = [];
   export let showFilters = true;
   export let showReporting = true;
+  export let allowCreateCourse = true;
+  export let headerTitle = 'Course Catalog';
+  export let headerSubtitle = 'Choose from available learning courses or create your own';
 
   const dispatch = createEventDispatcher();
 
@@ -51,8 +55,32 @@
     return matchesSearch && matchesLanguage && matchesLevel && matchesCreator;
   });
 
+  $: enrolledCourseIds = new Set(
+    ($activeEnrollments ?? []).map((enrollment) => enrollment.courseId)
+  );
+
+  const isCourseEnrolled = (course) => {
+    if (!course?.id) {
+      return false;
+    }
+
+    return enrolledCourseIds.has(course.id);
+  };
+
   const handleJoinCourse = (course) => {
     dispatch('join-course', { course });
+  };
+
+  const handleLearnCourse = (course) => {
+    dispatch('learn-course', { course });
+  };
+
+  const handlePrimaryAction = (course) => {
+    if (isCourseEnrolled(course)) {
+      handleLearnCourse(course);
+    } else {
+      handleJoinCourse(course);
+    }
   };
 
   const handleEditCourse = (course) => {
@@ -125,13 +153,11 @@
 <div class="space-y-6">
   <div class="flex items-center justify-between">
     <div>
-      <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">Course Catalog</h2>
-      <p class="mt-2 text-stone-600 dark:text-gray-300">
-        Choose from available learning courses or create your own
-      </p>
+      <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">{headerTitle}</h2>
+      <p class="mt-2 text-stone-600 dark:text-gray-300">{headerSubtitle}</p>
     </div>
 
-    {#if $user}
+    {#if $user && allowCreateCourse}
       <Button on:click={handleCreateCourse} variant="primary">Create Course</Button>
     {/if}
   </div>
@@ -255,6 +281,13 @@
                   >
                     {getCreatorLabel(course.creatorRole)}
                   </span>
+                  {#if isCourseEnrolled(course)}
+                    <span
+                      class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                    >
+                      Enrolled
+                    </span>
+                  {/if}
                 </div>
                 <p class="text-sm uppercase tracking-wide text-amber-600 dark:text-amber-300">
                   {course.language}{course.level ? ` · ${course.level}` : ''}
@@ -352,10 +385,12 @@
 
             <Button
               class="w-full"
-              on:click={() => handleJoinCourse(course)}
-              aria-label="Join {course.name}"
+              on:click={() => handlePrimaryAction(course)}
+              aria-label={isCourseEnrolled(course)
+                ? `Continue learning ${course.name}`
+                : `Join ${course.name}`}
             >
-              Join
+              {isCourseEnrolled(course) ? 'Learn' : 'Join'}
             </Button>
           </div>
         </article>

@@ -1,61 +1,17 @@
 <script>
   import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import EnhancedChatInterface from '$modules/chat/components/EnhancedChatInterface.svelte';
   import { checkAuth } from '$modules/auth/stores';
-  import { messages } from '$modules/chat/stores';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
   import CourseSelection from '$modules/learn/components/CourseSelection.svelte';
   import Button from '$shared/components/Button.svelte';
-  import { container } from '$lib/shared/di/container';
   import { setMode } from '$lib/stores/mode';
   import { coursesStore } from '$lib/stores/courses';
   import { user } from '$modules/auth/stores';
-  import {
-    examProfile,
-    initialiseExamProfile,
-    setExamProfile,
-    clearExamProfile
-  } from '$lib/stores/examProfile';
-
-  const buildExamProfile = (course, mode) => {
-    const activeMode = mode === 'exam' ? course.exam : course.practice;
-    return {
-      courseId: course.id,
-      courseName: course.name,
-      description: course.description,
-      language: course.language,
-      level: course.level,
-      skills: course.skills ?? [],
-      mode,
-      practice: course.practice,
-      exam: course.exam,
-      activeMode,
-      settings: course.settings ?? null
-    };
-  };
-
-  const resetSession = () => {
-    if (!browser) {
-      return;
-    }
-
-    const previousSessionId = localStorage.getItem('sessionId');
-    localStorage.removeItem('sessionId');
-
-    if (previousSessionId && container.has('sessionFactory')) {
-      try {
-        const sessionFactory = container.resolve('sessionFactory');
-        sessionFactory.removeSession(previousSessionId);
-      } catch (error) {
-        console.warn('[Catalogue] Failed to clear previous session', error);
-      }
-    }
-
-    messages.set([]);
-  };
+  import { examProfile, initialiseExamProfile, clearExamProfile } from '$lib/stores/examProfile';
+  import { resetLearningSession, startLearningSession } from '$modules/learn/utils/session.js';
 
   const handleCourseSelect = (event) => {
     const { course, mode } = event.detail;
@@ -63,9 +19,7 @@
       return;
     }
 
-    const profile = buildExamProfile(course, mode);
-    setExamProfile(profile);
-    resetSession();
+    startLearningSession(course, mode);
   };
 
   const handleJoinCourse = async (event) => {
@@ -101,10 +55,7 @@
 
       if (result.success) {
         console.log('Successfully enrolled, starting learning session');
-        // Start learning session with the course
-        const profile = buildExamProfile(course, 'practice');
-        setExamProfile(profile);
-        resetSession();
+        startLearningSession(course, 'practice');
       } else {
         console.error('Failed to join course:', result.error);
         alert(`Failed to join course: ${result.error}`);
@@ -113,6 +64,15 @@
       console.error('Failed to import enrollment store:', error);
       alert(`Error joining course: ${error.message}`);
     }
+  };
+
+  const handleLearnCourse = (event) => {
+    const { course } = event.detail;
+    if (!course) {
+      return;
+    }
+
+    startLearningSession(course, 'practice');
   };
 
   const handleEditCourse = (event) => {
@@ -126,7 +86,7 @@
 
   const handleChangeCourse = () => {
     clearExamProfile();
-    resetSession();
+    resetLearningSession();
   };
 
   onMount(() => {
@@ -177,6 +137,7 @@
         courses={$coursesStore}
         on:select={handleCourseSelect}
         on:join-course={handleJoinCourse}
+        on:learn-course={handleLearnCourse}
         on:edit-course={handleEditCourse}
         on:create-course={handleCreateCourse}
       />
