@@ -7,7 +7,7 @@
  */
 
 import { validateCourse, createDefaultCourse } from '../types.js';
-import { validateAgentConfiguration } from '../agents.js';
+import { AGENT_TYPES, validateAgentConfiguration } from '../agents.js';
 
 /**
  * Course status enumeration
@@ -25,6 +25,62 @@ export class CourseService {
   constructor(coursesStore, reportsStore = null) {
     this.coursesStore = coursesStore;
     this.reportsStore = reportsStore;
+  }
+
+  /**
+   * Normalize course agent data to ensure required fields are present
+   * @param {Object} course - Course data to normalize
+   * @returns {Object} Normalized course data
+   */
+  normalizeCourseData(course) {
+    if (!course) {
+      return course;
+    }
+
+    const courseId = course.id;
+
+    const normalizedAgents = Array.isArray(course.agents)
+      ? course.agents.map((agent) => {
+          const agentType =
+            agent.type === AGENT_TYPES.ORCHESTRATION
+              ? AGENT_TYPES.ORCHESTRATION
+              : AGENT_TYPES.COURSE;
+
+          return {
+            ...agent,
+            type: agentType,
+            courseId: agent.courseId || courseId,
+            metadata: agent.metadata
+              ? {
+                  ...agent.metadata,
+                  createdAt: agent.metadata.createdAt ?? new Date(),
+                  updatedAt: agent.metadata.updatedAt ?? new Date()
+                }
+              : agent.metadata
+          };
+        })
+      : [];
+
+    const normalizedOrchestrationAgent = course.orchestrationAgent
+      ? {
+          ...course.orchestrationAgent,
+          type: AGENT_TYPES.ORCHESTRATION,
+          courseId: course.orchestrationAgent.courseId || courseId,
+          metadata: course.orchestrationAgent.metadata
+            ? {
+                ...course.orchestrationAgent.metadata,
+                createdAt: course.orchestrationAgent.metadata.createdAt ?? new Date(),
+                updatedAt: course.orchestrationAgent.metadata.updatedAt ?? new Date()
+              }
+            : course.orchestrationAgent.metadata
+        }
+      : null;
+
+    return {
+      ...course,
+      agents: normalizedAgents,
+      orchestrationAgent: normalizedOrchestrationAgent
+    };
   }
 
   /**
@@ -50,7 +106,7 @@ export class CourseService {
       };
 
       // Create default course structure
-      const course = createDefaultCourse(courseWithCreator);
+      const course = this.normalizeCourseData(createDefaultCourse(courseWithCreator));
 
       // Validate course data
       const validation = validateCourse(course);
@@ -107,14 +163,14 @@ export class CourseService {
       }
 
       // Apply updates
-      const updatedCourse = {
+      const updatedCourse = this.normalizeCourseData({
         ...course,
         ...updates,
         metadata: {
           ...course.metadata,
           updatedAt: new Date()
         }
-      };
+      });
 
       // Validate updated course
       const validation = validateCourse(updatedCourse);
