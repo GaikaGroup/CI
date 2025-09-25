@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import Button from '$shared/components/Button.svelte';
+  import { AGENT_TYPES } from '$modules/courses/agents.js';
   import { Plus, Edit, Trash2, Save, X, Bot } from 'lucide-svelte';
 
   export let agents = [];
@@ -143,7 +144,10 @@
       description: agentForm.description.trim(),
       instructions: agentForm.instructions.trim(),
       systemPrompt: agentForm.systemPrompt.trim(),
-      type: 'standard',
+      type:
+        editingAgent?.type === AGENT_TYPES.ORCHESTRATION
+          ? AGENT_TYPES.ORCHESTRATION
+          : AGENT_TYPES.COURSE,
       ragEnabled: agentForm.ragEnabled,
       communicationStyle: { ...agentForm.communicationStyle },
       configuration: {},
