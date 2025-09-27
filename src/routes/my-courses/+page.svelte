@@ -123,6 +123,8 @@
         allowCreateCourse={false}
         headerTitle="My Courses"
         headerSubtitle="Continue learning from the courses you've already enrolled in"
+        enrolledActionLabel="Go"
+        enrolledActionAriaPrefix="Go to"
         on:learn-course={handleLearnCourse}
       />
     {/if}

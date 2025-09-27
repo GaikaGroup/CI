@@ -13,6 +13,10 @@
   export let allowCreateCourse = true;
   export let headerTitle = 'Course Catalog';
   export let headerSubtitle = 'Choose from available learning courses or create your own';
+  export let enrolledActionLabel = 'Learn';
+  export let joinActionLabel = 'Join';
+  export let enrolledActionAriaPrefix = 'Continue learning';
+  export let joinActionAriaPrefix = 'Join';
 
   const dispatch = createEventDispatcher();
 
@@ -386,11 +390,11 @@
             <Button
               class="w-full"
               on:click={() => handlePrimaryAction(course)}
-              aria-label={isCourseEnrolled(course)
-                ? `Continue learning ${course.name}`
-                : `Join ${course.name}`}
+              aria-label={`${
+                isCourseEnrolled(course) ? enrolledActionAriaPrefix : joinActionAriaPrefix
+              } ${course.name ?? 'course'}`}
             >
-              {isCourseEnrolled(course) ? 'Learn' : 'Join'}
+              {isCourseEnrolled(course) ? enrolledActionLabel : joinActionLabel}
             </Button>
           </div>
         </article>

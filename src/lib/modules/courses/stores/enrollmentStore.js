@@ -28,7 +28,7 @@ function createEnrollmentStore() {
      * Initialize the store for a user
      */
     initialize: (userId) => {
-      if (!userId) {
+      if (userId === null || userId === undefined) {
         set({
           enrollments: [],
           loading: false,
@@ -174,7 +174,7 @@ function createEnrollmentStore() {
      * Refresh enrollments
      */
     refresh: (userId) => {
-      if (userId) {
+      if (userId !== null && userId !== undefined) {
         const enrollments = userEnrollmentService.getUserEnrollments(userId);
         update((state) => ({
           ...state,
