@@ -13,11 +13,11 @@ This README is split into two parts:
 
 ## 1. Product Summary
 
-* **Conversational tutoring** – learners interact with an AI tutor that keeps track of the conversation and previously uploaded materials to provide contextual answers.
-* **Voice experience** – the app converts speech to text, speaks the response back, and shows an animated cat avatar that lip-syncs and displays emotions. While the tutor thinks, it plays a friendly “waiting phrase” so the student knows something is happening.
-* **Document understanding** – students can attach pictures or PDFs of their assignments. Optical Character Recognition (OCR) extracts the text so the AI can refer to it in explanations.
-* **Multi-language interface** – user interface strings are available in English, Russian and Spanish, making the tutor approachable to a wider audience.
-* **Flexible AI providers** – the tutor can run completely locally for privacy and cost savings or fall back to OpenAI’s API when more capability is required.
+- **Conversational tutoring** – learners interact with an AI tutor that keeps track of the conversation and previously uploaded materials to provide contextual answers.
+- **Voice experience** – the app converts speech to text, speaks the response back, and shows an animated cat avatar that lip-syncs and displays emotions. While the tutor thinks, it plays a friendly “waiting phrase” so the student knows something is happening.
+- **Document understanding** – students can attach pictures or PDFs of their assignments. Optical Character Recognition (OCR) extracts the text so the AI can refer to it in explanations.
+- **Multi-language interface** – user interface strings are available in English, Russian and Spanish, making the tutor approachable to a wider audience.
+- **Flexible AI providers** – the tutor can run completely locally for privacy and cost savings or fall back to OpenAI’s API when more capability is required.
 
 These features make the project a strong starting point for experimenting with AI-enhanced education tools, proof-of-concepts or bespoke tutoring products.
 
@@ -27,17 +27,49 @@ These features make the project a strong starting point for experimenting with A
 
 ### Technology Stack
 
-* [SvelteKit](https://kit.svelte.dev/) for the web application framework
-* [Vite](https://vitejs.dev/) for development and building
-* [Tailwind CSS](https://tailwindcss.com/) for styling
-* [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) for unit, integration and e2e tests
-* Optional local LLM support through [Ollama](https://ollama.ai)
+- [SvelteKit](https://kit.svelte.dev/) for the web application framework
+- [Vite](https://vitejs.dev/) for development and building
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+- [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) for unit, integration and e2e tests
+- Optional local LLM support through [Ollama](https://ollama.ai)
 
 ### Key Features and Architecture
 
 #### Modular LLM Provider System
 
 A provider manager selects between OpenAI and local Ollama models, enabling fallback and provider switching in development.
+
+#### GraphRAG Architecture
+
+The platform implements a foundational GraphRAG (Graph Retrieval-Augmented Generation) system with the following components:
+
+**Core Services:**
+
+- `GraphRAGService`: Main service for creating and querying knowledge graphs from documents
+- `DocumentGraphRAGProcessor`: Extends document processing to integrate GraphRAG capabilities
+- `AgentContextManager`: Manages agent-specific context and material access with GraphRAG integration
+
+**Knowledge Graph Structure:**
+
+- **Nodes**: Represent chunks of processed document content with metadata
+- **Relationships**: Connect related content both within and across documents
+- **Embeddings**: Placeholder for vector representations (ready for integration with embedding models)
+- **Material Assignments**: Control which agents can access which materials
+
+**Processing Flow:**
+
+1. Documents uploaded → OCR/text extraction
+2. Content chunked → Knowledge graph nodes created
+3. Relationships established → Cross-material connections identified
+4. User queries → Relevant content retrieved → Agent responses augmented
+
+**Extensibility:**
+The current implementation provides a solid foundation that can be extended with:
+
+- Real vector embedding models (currently uses placeholder embeddings)
+- Advanced entity extraction and relationship detection
+- Integration with vector databases for production-scale deployment
+- Semantic similarity search instead of keyword-based matching
 
 #### Admin Finance Dashboard
 
@@ -49,9 +81,38 @@ OpenAI costs are calculated using the official [per-million token pricing](https
 
 Speech-to-text uses the OpenAI Whisper API, while text-to-speech uses the OpenAI TTS API (or a simulated response in development). The animated cat avatar with lip-syncing and emotion detection is documented in `docs/cat-avatar-implementation.md`.
 
-#### Document Processing
+#### Document Processing & RAG (Retrieval-Augmented Generation)
 
-Uploaded images or PDFs are classified, preprocessed and sent through configurable OCR engines. Recognized text is stored in session context so the tutor can reference it in later messages.
+The platform implements a sophisticated GraphRAG system for intelligent document processing and knowledge retrieval:
+
+**Document Processing Pipeline:**
+
+- Uploaded images or PDFs are classified, preprocessed and sent through configurable OCR engines
+- Recognized text is processed through the GraphRAG system to create knowledge graphs
+- Documents are chunked into smaller pieces for better retrieval and processing
+- Each chunk is converted into nodes in a knowledge graph with relationships
+
+**GraphRAG Knowledge System:**
+
+- **Knowledge Graph Creation**: Documents are processed to extract entities and create interconnected knowledge graphs per subject/course
+- **Intelligent Chunking**: Content is split into manageable chunks (500 characters) with semantic boundaries
+- **Relationship Mapping**: The system creates relationships between document chunks, both within documents and across different materials
+- **Vector Embeddings**: Each chunk gets embedded for semantic similarity search (placeholder implementation ready for real embedding models)
+- **Cross-Material Relationships**: The system identifies and creates relationships between similar content across different uploaded materials
+
+**Agent Context Integration:**
+
+- Each AI agent has access to relevant materials based on assignments and permissions
+- When users ask questions, the system queries the knowledge graph to find relevant information
+- Agent responses are augmented with contextual information from the knowledge base
+- Conversation history is maintained per agent for better context understanding
+
+**Query and Retrieval:**
+
+- Simple keyword-based search with scoring and ranking (extensible to vector similarity)
+- Results are limited and ranked by relevance to prevent information overload
+- Supports real-time updates when materials are modified or deleted
+- Fallback mechanisms ensure the system works even without GraphRAG processing
 
 #### Internationalisation
 
@@ -69,6 +130,16 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 │   ├── lib/
 │   │   ├── config/        API and LLM configuration
 │   │   ├── modules/       Feature modules (auth, chat, document, llm, session…)
+│   │   │   ├── subjects/  Subject/course management with GraphRAG
+│   │   │   │   └── services/
+│   │   │   │       ├── GraphRAGService.js              # Core GraphRAG functionality
+│   │   │   │       ├── DocumentGraphRAGProcessor.js    # Document processing with RAG
+│   │   │   │       └── AgentContextManager.js          # Agent context with RAG integration
+│   │   │   ├── courses/   Course management (refactored from subjects)
+│   │   │   │   └── services/
+│   │   │   │       ├── GraphRAGService.js              # Course-specific GraphRAG
+│   │   │   │       └── DocumentGraphRAGProcessor.js    # Course document processing
+│   │   │   └── chat/      Chat interface and components
 │   │   ├── shared/        DI container, utilities and UI components
 │   │   └── stores/        Global Svelte stores
 │   ├── routes/            SvelteKit routes and API endpoints
@@ -78,11 +149,11 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 
 ### Prerequisites / System Requirements
 
-* **Node.js**: version 18 or later
-* **npm**: version 9 or later
-* **Optional local models**: [Ollama](https://ollama.ai) running locally (8 GB RAM recommended)
-* **Browsers**: recent Chrome, Firefox, Safari or Edge
-* **Audio hardware**: microphone and speakers for voice mode
+- **Node.js**: version 18 or later
+- **npm**: version 9 or later
+- **Optional local models**: [Ollama](https://ollama.ai) running locally (8 GB RAM recommended)
+- **Browsers**: recent Chrome, Firefox, Safari or Edge
+- **Audio hardware**: microphone and speakers for voice mode
 
 ### Getting Started
 
@@ -91,16 +162,19 @@ While the AI prepares a response, short phrases are displayed and synthesized se
    ```bash
    npm install
    ```
+
 2. **Copy environment template**
 
    ```bash
    cp .env.example .env
    ```
+
 3. **Start development server**
 
    ```bash
    npm run dev
    ```
+
 4. **Build for production preview**
 
    ```bash
@@ -110,10 +184,10 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 
 ### Installation Troubleshooting
 
-* Use the required Node version (`node -v`) if `npm install` fails
-* Run `npm cache clean --force` and reinstall if dependency resolution errors appear
-* Ensure `VITE_OPENAI_API_KEY` is set to avoid 401 errors from OpenAI
-* If Ollama is unreachable, verify it is running and matches `VITE_OLLAMA_API_URL`
+- Use the required Node version (`node -v`) if `npm install` fails
+- Run `npm cache clean --force` and reinstall if dependency resolution errors appear
+- Ensure `VITE_OPENAI_API_KEY` is set to avoid 401 errors from OpenAI
+- If Ollama is unreachable, verify it is running and matches `VITE_OLLAMA_API_URL`
 
 ### Configuration
 
@@ -185,13 +259,15 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 
 ### Usage Examples
 
-* **Text chat** – open the app and type a question to start a conversation
-* **Voice chat** – click the microphone button, speak your question and listen to the tutor's spoken reply
-* **Document upload** – attach an image or PDF via the paperclip icon; recognized text becomes part of the session context
+- **Text chat** – open the app and type a question to start a conversation
+- **Voice chat** – click the microphone button, speak your question and listen to the tutor's spoken reply
+- **Document upload** – attach an image or PDF via the paperclip icon; recognized text is processed through GraphRAG and becomes part of the knowledge base
+- **Knowledge-enhanced responses** – ask questions about uploaded materials; the AI will retrieve relevant information from the knowledge graph to provide contextual answers
+- **Multi-document queries** – upload multiple related documents; the system will find connections between them and provide comprehensive answers drawing from all materials
 
 ### API Documentation
 
-*To be documented in a future update.*
+_To be documented in a future update._
 
 ### Deployment Guide
 
@@ -201,11 +277,13 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
    ```bash
    npm run build
    ```
+
 3. Run the production server (uses `adapter-auto`)
 
    ```bash
    node build
    ```
+
 4. For previewing locally
 
    ```bash
@@ -214,13 +292,14 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 
 ### Testing & Quality
 
-* **Unit/Integration tests**
+- **Unit/Integration tests**
 
   ```bash
   npm test          # run auth tests
   npm run test:run  # run entire test suite
   ```
-* **Lint selected files**
+
+- **Lint selected files**
 
   ```bash
   npm run lint
@@ -228,13 +307,13 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 
 ### Performance & Limitations
 
-* File uploads are limited to 10 MB and common image/PDF formats
-* Local LLM models should be small enough for available RAM (8 GB machines are assumed)
-* Throughput depends on external APIs; concurrent users are limited by server resources
+- File uploads are limited to 10 MB and common image/PDF formats
+- Local LLM models should be small enough for available RAM (8 GB machines are assumed)
+- Throughput depends on external APIs; concurrent users are limited by server resources
 
 ### Security Considerations
 
-*Security best practices and threat models will be documented later.*
+_Security best practices and threat models will be documented later._
 
 ### Changelog / Version History
 
@@ -242,10 +321,10 @@ See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 
 ### FAQ / Troubleshooting
 
-* **App fails to start** – reinstall dependencies and verify Node version
-* **OCR results are poor** – ensure the image is clear and under 10 MB
-* **No response from tutor** – check network connectivity and API keys, or disable local provider to force OpenAI
-* **Debugging** – run `npm run dev` and inspect browser console or server output for logs
+- **App fails to start** – reinstall dependencies and verify Node version
+- **OCR results are poor** – ensure the image is clear and under 10 MB
+- **No response from tutor** – check network connectivity and API keys, or disable local provider to force OpenAI
+- **Debugging** – run `npm run dev` and inspect browser console or server output for logs
 
 ### Architecture Diagrams
 
@@ -257,14 +336,64 @@ flowchart LR
     provider -->|cloud| openai[OpenAI]
     svelte --> doc[Document Pipeline]
     doc --> ocr[OCR Engines]
+    doc --> graphrag[GraphRAG Service]
+    graphrag --> kg[Knowledge Graph]
+    kg --> agents[Agent Context Manager]
+    agents --> svelte
+```
+
+**GraphRAG Data Flow:**
+
+```mermaid
+flowchart TD
+    upload[Document Upload] --> ocr[OCR Processing]
+    ocr --> chunk[Text Chunking]
+    chunk --> nodes[Create Graph Nodes]
+    nodes --> relations[Build Relationships]
+    relations --> kg[Knowledge Graph Storage]
+
+    query[User Query] --> search[Knowledge Search]
+    search --> kg
+    kg --> relevant[Relevant Content]
+    relevant --> context[Agent Context]
+    context --> llm[LLM Response]
+    llm --> user[Enhanced Answer]
 ```
 
 ### Additional Documentation
 
 Further design notes and troubleshooting guides live in the `docs/` folder:
 
-* `cat-avatar-implementation.md` – animated avatar and lip-sync feature
-* `waiting-phrases.md` and `waiting-phrases-troubleshooting.md` – configuration for the “waiting” messages
+- `cat-avatar-implementation.md` – animated avatar and lip-sync feature
+- `waiting-phrases.md` and `waiting-phrases-troubleshooting.md` – configuration for the “waiting” messages
+
+### GraphRAG Implementation Details
+
+The platform's GraphRAG system is designed as a foundational implementation that can be extended with production-ready components:
+
+**Current Implementation:**
+
+- **Knowledge Graph Storage**: In-memory storage using Maps (suitable for development and small deployments)
+- **Text Chunking**: Simple sentence-based chunking with configurable size limits (500 characters default)
+- **Relationship Detection**: Basic sequential and keyword-based relationship creation
+- **Query System**: Keyword matching with relevance scoring and ranking
+- **Embeddings**: Placeholder random vectors (ready for real embedding model integration)
+
+**Production Readiness Path:**
+
+- Replace in-memory storage with persistent vector databases (Pinecone, Weaviate, etc.)
+- Integrate real embedding models (OpenAI embeddings, sentence-transformers, etc.)
+- Implement advanced entity extraction and relationship detection
+- Add semantic similarity search using vector operations
+- Scale to handle larger document collections and concurrent users
+
+**Key Classes:**
+
+- `GraphRAGService`: Core knowledge graph operations and querying
+- `DocumentGraphRAGProcessor`: Document processing pipeline with GraphRAG integration
+- `AgentContextManager`: Agent-specific context management with material access control
+
+The modular design allows for incremental upgrades from the current foundational implementation to a production-scale GraphRAG system.
 
 ### Contributing
 
@@ -273,6 +402,5 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for coding gui
 ### License
 
 This project is released under the [MIT License](LICENSE).
-
 
 Happy teaching!
