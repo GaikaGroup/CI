@@ -40,6 +40,7 @@ function normaliseCourse(course) {
     creatorId: course.creatorId ?? null,
     creatorRole: course.creatorRole ?? 'admin',
     status: course.status ?? 'active',
+    visibility: course.visibility ?? 'draft',
     agents: course.agents ?? [],
     orchestrationAgent: course.orchestrationAgent ?? null,
     materials: course.materials ?? [],
@@ -171,6 +172,7 @@ function createCoursesStore() {
         creatorId: userId,
         creatorRole: 'user',
         status: 'active',
+        visibility: course.visibility ?? 'draft',
         metadata: {
           createdAt: new Date(),
           updatedAt: new Date(),

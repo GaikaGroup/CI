@@ -21,6 +21,26 @@ function createEnrollmentStore() {
     initialized: false
   });
 
+  const updateEnrollmentStatus = async (userId, courseId, status) => {
+    try {
+      const result = userEnrollmentService.updateEnrollmentStatus(userId, courseId, status);
+
+      if (result.success) {
+        const enrollments = userEnrollmentService.getUserEnrollments(userId);
+        update((state) => ({
+          ...state,
+          enrollments,
+          error: null
+        }));
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error updating enrollment status:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     subscribe,
 
@@ -99,25 +119,7 @@ function createEnrollmentStore() {
     /**
      * Update enrollment status
      */
-    updateEnrollmentStatus: async (userId, courseId, status) => {
-      try {
-        const result = userEnrollmentService.updateEnrollmentStatus(userId, courseId, status);
-
-        if (result.success) {
-          const enrollments = userEnrollmentService.getUserEnrollments(userId);
-          update((state) => ({
-            ...state,
-            enrollments,
-            error: null
-          }));
-        }
-
-        return result;
-      } catch (error) {
-        console.error('Error updating enrollment status:', error);
-        return { success: false, error: error.message };
-      }
-    },
+    updateEnrollmentStatus,
 
     /**
      * Update user progress
@@ -145,9 +147,7 @@ function createEnrollmentStore() {
     /**
      * Drop enrollment
      */
-    dropEnrollment: async (userId, courseId) => {
-      return await this.updateEnrollmentStatus(userId, courseId, 'dropped');
-    },
+    dropEnrollment: async (userId, courseId) => updateEnrollmentStatus(userId, courseId, 'dropped'),
 
     /**
      * Check if user is enrolled in a course
