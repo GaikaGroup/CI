@@ -86,7 +86,7 @@ export class AudioBufferManager {
    * @param {Object} message - Worker message
    */
   handleWorkerMessage(message) {
-    const { type, result } = message;
+    const { type } = message;
     
     switch (type) {
       case 'audioProcessed':
@@ -120,7 +120,7 @@ export class AudioBufferManager {
     }
     
     // Clean old gain nodes
-    for (const [id, gainNode] of this.gainNodes.entries()) {
+    for (const [id] of this.gainNodes.entries()) {
       if (!this.preloadBuffer.has(id)) {
         this.gainNodes.delete(id);
       }
@@ -267,7 +267,7 @@ export class AudioBufferManager {
    * @param {Object} metadata - Audio metadata
    * @returns {Promise<AudioBuffer>} Processed audio buffer
    */
-  async processAudioBufferBalanced(audioBuffer, metadata) {
+  async processAudioBufferBalanced(audioBuffer) {
     try {
       const { sampleRate, numberOfChannels } = audioBuffer;
       const originalLength = audioBuffer.length;
@@ -371,7 +371,7 @@ export class AudioBufferManager {
    * @param {Object} metadata - Audio metadata
    * @returns {Promise<AudioBuffer>} Processed audio buffer
    */
-  async processAudioBuffer(audioBuffer, metadata) {
+  async processAudioBuffer(audioBuffer) {
     try {
       const { sampleRate, numberOfChannels } = audioBuffer;
       const originalLength = audioBuffer.length;
@@ -638,7 +638,7 @@ export class AudioBufferManager {
   cleanup() {
     try {
       // Stop all active audio sources
-      for (const [id, gainNode] of this.gainNodes.entries()) {
+      for (const [, gainNode] of this.gainNodes.entries()) {
         try {
           gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         } catch (e) {
