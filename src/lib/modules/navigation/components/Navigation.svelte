@@ -60,6 +60,12 @@
           >
             Finance
           </a>
+          <a
+            href="/admin/voice-analytics"
+            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
+          >
+            Voice Analytics
+          </a>
         {/if}
         <ThemeToggle />
         <AuthButton />
@@ -138,6 +144,15 @@
             }}
           >
             Finance
+          </a>
+          <a
+            href="/admin/voice-analytics"
+            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
+            on:click={() => {
+              mobileMenuOpen = false;
+            }}
+          >
+            Voice Analytics
           </a>
         {/if}
         <div class="px-3 py-2">
