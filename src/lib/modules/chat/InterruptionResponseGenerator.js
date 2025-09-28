@@ -286,7 +286,7 @@ export class InterruptionResponseGenerator {
    * @returns {string} Response type
    */
   determineResponseType(context) {
-    const { interruptionEvent, currentResponse, voiceState } = context;
+    const { interruptionEvent, currentResponse } = context;
     
     // High confidence interruption
     if (interruptionEvent.confidence > 0.8) {
@@ -337,7 +337,7 @@ export class InterruptionResponseGenerator {
     let modifiedResponse = baseResponse;
 
     // Apply context-specific modifiers
-    const { interruptionEvent, currentResponse, conversationContext } = context;
+    const { interruptionEvent, currentResponse } = context;
 
     // Waiting phrase context
     if (currentResponse?.type === 'waiting_phrase') {
@@ -375,7 +375,7 @@ export class InterruptionResponseGenerator {
    * @param {Object} context - Interruption context
    * @returns {boolean} True if repeated interruption
    */
-  isRepeatedInterruption(context) {
+  isRepeatedInterruption(context) { // eslint-disable-line no-unused-vars
     // This would check conversation history for recent interruptions
     // For now, return false as a placeholder
     return false;
@@ -406,7 +406,7 @@ export class InterruptionResponseGenerator {
    * @param {Object} preservedState - Preserved conversation state
    * @returns {string} Continuation offer text
    */
-  generateContinuationOffer(language, preservedState) {
+  generateContinuationOffer(language, preservedState) { // eslint-disable-line no-unused-vars
     const templates = this.responseTemplates.get(language) || this.responseTemplates.get('en');
     const continuationTemplates = templates.continuation_offer;
     

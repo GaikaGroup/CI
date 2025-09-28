@@ -539,7 +539,7 @@ export class VoiceErrorHandler {
    * @param {Error} recoveryError - Error during recovery
    * @returns {Promise<Object>} Ultimate fallback result
    */
-  async executeUltimateFallback(originalError, recoveryError) {
+  async executeUltimateFallback(originalError, recoveryError) { // eslint-disable-line no-unused-vars
     console.error('Executing ultimate fallback - all recovery attempts failed');
     console.error('Original error:', originalError);
     console.error('Recovery error:', recoveryError);

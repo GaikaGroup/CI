@@ -7,6 +7,11 @@ import { addMessage, selectedImages } from './stores';
 import { sendMessageWithOCRContext } from './enhancedServices';
 import { MESSAGE_TYPES } from '$shared/utils/constants';
 import { waitingPhrasesService } from './waitingPhrasesService.js';
+import { audioBufferManager } from './AudioBufferManager.js';
+import { interruptionDetector } from './InterruptionDetector.js';
+import { interruptionEventHandler } from './InterruptionEventHandler.js';
+import { conversationFlowManager } from './ConversationFlowManager.js';
+import { voiceErrorHandler } from './VoiceErrorHandler.js';
 
 // Flag to track if we're in voice mode
 export const isVoiceModeActive = writable(false);
@@ -115,6 +120,22 @@ function cleanupVoiceMode() {
     waitingPhraseActive = false;
     queueState.pendingInterruption = false;
 
+    // Cleanup AudioBufferManager
+    if (audioBufferManager.isInitialized) {
+      audioBufferManager.cleanup();
+    }
+
+    // Cleanup InterruptionDetector
+    if (interruptionDetector) {
+      interruptionDetector.cleanup();
+    }
+
+    // Reset conversation flow manager
+    conversationFlowManager.reset();
+
+    // Reset interruption event handler
+    interruptionEventHandler.reset();
+
     // Execute cleanup callbacks
     voiceModeCleanupCallbacks.forEach((callback) => {
       try {
@@ -148,10 +169,86 @@ async function initializeWaitingPhrasesForVoiceMode() {
       await waitingPhrasesService.warmUpTranslationCache(currentLanguage);
     }
 
+    // Pre-buffer common waiting phrases for smoother playback
+    await preBufferCommonWaitingPhrases(currentLanguage);
+
     console.log('Waiting phrases service ready for voice mode');
   } catch (error) {
     console.error('Error initializing waiting phrases for voice mode:', error);
     // Don't throw - voice mode can work without waiting phrases
+  }
+}
+
+/**
+ * Pre-buffer common waiting phrases to prevent stuttering
+ * @param {string} language - Target language
+ */
+async function preBufferCommonWaitingPhrases(language) {
+  try {
+    if (!audioBufferManager.isInitialized) {
+      console.log('AudioBufferManager not ready, skipping pre-buffering');
+      return;
+    }
+
+    console.log(`Pre-buffering common waiting phrases for ${language}...`);
+
+    // Get a few common waiting phrases
+    const commonPhrases = [];
+    try {
+      for (let i = 0; i < 3; i++) {
+        const phrase = await waitingPhrasesService.selectWaitingPhrase(language);
+        if (phrase && !commonPhrases.includes(phrase)) {
+          commonPhrases.push(phrase);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not select phrases for pre-buffering:', error);
+      // Use fallback phrases
+      commonPhrases.push(getFallbackWaitingPhrase(language));
+    }
+
+    // Pre-synthesize and buffer these phrases
+    for (const phrase of commonPhrases) {
+      try {
+        console.log(`Pre-buffering phrase: "${phrase.substring(0, 30)}..."`);
+        
+        // Synthesize the phrase
+        const response = await fetch('/api/synthesize', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: phrase,
+            language: language,
+            isWaitingPhrase: true,
+            priority: 2
+          })
+        });
+
+        if (response.ok) {
+          const audioBlob = await response.blob();
+          
+          // Buffer the audio
+          await audioBufferManager.bufferAudio(audioBlob, {
+            isWaitingPhrase: true,
+            originalText: phrase,
+            language: language,
+            priority: 2,
+            preBuffered: true,
+            id: `prebuffered_${language}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+          });
+
+          console.log(`Successfully pre-buffered: "${phrase.substring(0, 30)}..."`);
+        }
+      } catch (error) {
+        console.warn(`Failed to pre-buffer phrase "${phrase}":`, error);
+      }
+    }
+
+    console.log(`Pre-buffering completed for ${language}`);
+  } catch (error) {
+    console.error('Error in pre-buffering waiting phrases:', error);
   }
 }
 
@@ -340,7 +437,10 @@ let waitingPhraseActive = false;
 let queueState = {
   lastTransitionTime: 0,
   transitionInProgress: false,
-  pendingInterruption: false
+  pendingInterruption: false,
+  interruptionOccurred: false,
+  interruptionTime: null,
+  lastInterruptionId: null
 };
 
 /**
@@ -384,6 +484,24 @@ export function initAudioContext() {
 
   // Initialize audio transition support
   initializeAudioTransitions();
+
+  // Initialize AudioBufferManager
+  if (audioContext && !audioBufferManager.isInitialized) {
+    audioBufferManager.initialize(audioContext).catch(error => {
+      console.error('Failed to initialize AudioBufferManager:', error);
+    });
+  }
+
+  // Initialize InterruptionDetector
+  if (audioContext && !interruptionDetector.isListening) {
+    interruptionDetector.initialize(audioContext).then(() => {
+      // Set up interruption handling
+      interruptionDetector.onInterruption(handleVoiceInterruption);
+      console.log('InterruptionDetector initialized and connected');
+    }).catch(error => {
+      console.error('Failed to initialize InterruptionDetector:', error);
+    });
+  }
 }
 
 /**
@@ -918,7 +1036,8 @@ async function synthesizeSpeech(text, options = {}) {
           synthesisTime: Date.now() - startTime,
           networkTime,
           processingTime,
-          blobSize: audioBlob.size
+          blobSize: audioBlob.size,
+          id: `audio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
         }
       };
 
@@ -926,7 +1045,8 @@ async function synthesizeSpeech(text, options = {}) {
         `Synthesis completed successfully (total: ${Date.now() - startTime}ms, network: ${networkTime}ms, processing: ${processingTime}ms, size: ${Math.round(audioBlob.size / 1024)}KB)`
       );
 
-      playAudioWithMetadata(audioWithMetadata);
+      // Use AudioBufferManager for smooth playback
+      await playAudioWithBuffering(audioWithMetadata);
     } catch (fetchError) {
       clearTimeout(timeoutId);
 
@@ -1091,12 +1211,31 @@ export function clearWaitingPhrasesFromQueue() {
 }
 
 /**
- * Enhanced queue management for smooth transitions
+ * Enhanced queue management for smooth transitions with interruption support
  * @param {Object} audioWithMetadata - Audio object with metadata
  */
 function manageQueueTransition(audioWithMetadata) {
   const isResponse = !audioWithMetadata.metadata.isWaitingPhrase;
   const isWaitingPhrase = audioWithMetadata.metadata.isWaitingPhrase;
+  const isInterruptionResponse = audioWithMetadata.metadata.isInterruptionResponse;
+
+  // Handle interruption responses with highest priority
+  if (isInterruptionResponse) {
+    console.log('Interruption response ready, clearing queue and prioritizing');
+    
+    // Clear all queued items - interruption takes precedence
+    clearAudioQueue();
+    
+    // Stop current playback immediately
+    if (currentlyPlayingMetadata) {
+      stopCurrentAudioForInterruption();
+    }
+    
+    // Add interruption response with immediate priority
+    phraseQueue.unshift(audioWithMetadata);
+    queueState.pendingInterruption = false; // Reset interruption state
+    return;
+  }
 
   // If this is an AI response and we have waiting phrases in queue or playing
   if (isResponse) {
@@ -1118,14 +1257,90 @@ function manageQueueTransition(audioWithMetadata) {
     // Add response with high priority
     phraseQueue.unshift(audioWithMetadata);
   } else if (isWaitingPhrase) {
-    // Only add waiting phrase if no response is pending
-    if (!queueState.pendingInterruption && !hasResponseInQueue()) {
+    // Only add waiting phrase if no response is pending and no interruption occurred
+    if (!queueState.pendingInterruption && !hasResponseInQueue() && !queueState.interruptionOccurred) {
       phraseQueue.push(audioWithMetadata);
       console.log('Added waiting phrase to queue');
     } else {
-      console.log('Skipping waiting phrase - response pending or in queue');
+      console.log('Skipping waiting phrase - response pending, in queue, or interruption occurred');
     }
   }
+}
+
+/**
+ * Enhanced audio queue management for interruptions
+ */
+function handleInterruptionInQueue() {
+  console.log('Handling interruption in audio queue');
+  
+  // Mark that an interruption occurred
+  queueState.interruptionOccurred = true;
+  queueState.interruptionTime = Date.now();
+  
+  // Clear all waiting phrases from queue
+  clearWaitingPhrasesFromQueue();
+  
+  // If currently playing a waiting phrase, mark it for interruption
+  if (waitingPhraseActive && currentlyPlayingMetadata) {
+    console.log('Marking current waiting phrase for interruption');
+    currentlyPlayingMetadata.interrupted = true;
+  }
+}
+
+/**
+ * Reset interruption state after handling
+ */
+function resetInterruptionState() {
+  queueState.interruptionOccurred = false;
+  queueState.interruptionTime = null;
+  queueState.pendingInterruption = false;
+  console.log('Interruption state reset');
+}
+
+/**
+ * Check if queue should accept new audio based on interruption state
+ * @param {Object} audioMetadata - Audio metadata
+ * @returns {boolean} True if audio should be accepted
+ */
+function shouldAcceptAudioInQueue(audioMetadata) {
+  // Always accept interruption responses
+  if (audioMetadata.isInterruptionResponse) {
+    return true;
+  }
+  
+  // If interruption occurred recently, only accept high-priority responses
+  if (queueState.interruptionOccurred) {
+    const timeSinceInterruption = Date.now() - (queueState.interruptionTime || 0);
+    
+    // Within 5 seconds of interruption, be selective
+    if (timeSinceInterruption < 5000) {
+      return !audioMetadata.isWaitingPhrase && audioMetadata.priority <= 2;
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Get queue priority for audio item
+ * @param {Object} audioMetadata - Audio metadata
+ * @returns {number} Priority score (lower = higher priority)
+ */
+function getQueuePriority(audioMetadata) {
+  if (audioMetadata.isInterruptionResponse) return 0; // Highest priority
+  if (!audioMetadata.isWaitingPhrase) return audioMetadata.priority || 1; // Response priority
+  return 10; // Waiting phrases have lowest priority
+}
+
+/**
+ * Sort queue by priority
+ */
+function sortQueueByPriority() {
+  phraseQueue.sort((a, b) => {
+    const priorityA = getQueuePriority(a.metadata || {});
+    const priorityB = getQueuePriority(b.metadata || {});
+    return priorityA - priorityB;
+  });
 }
 
 /**
@@ -1142,7 +1357,7 @@ function hasResponseInQueue() {
 function handleAudioTransition() {
   const now = Date.now();
   const timeSinceLastTransition = now - queueState.lastTransitionTime;
-  const minTransitionInterval = 100; // Minimum 100ms between transitions
+  const minTransitionInterval = 75; // Reduced to 75ms for quicker transitions
 
   // Prevent rapid transitions that could cause audio glitches
   if (timeSinceLastTransition < minTransitionInterval && queueState.transitionInProgress) {
@@ -1155,11 +1370,15 @@ function handleAudioTransition() {
     return;
   }
 
-  queueState.transitionInProgress = true;
-  queueState.lastTransitionTime = now;
+  // Determine transition type based on current and next audio
+  const nextAudio = phraseQueue.length > 0 ? phraseQueue[0] : null;
+  const transitionType = nextAudio?.metadata?.isWaitingPhrase ? 'transition_to_waiting' : 'transition_to_response';
 
-  // Apply fade-out effect if supported
-  if (audioPlayer && !audioPlayer.paused) {
+  // Use enhanced transition management
+  manageAudioStateTransition(transitionType, nextAudio?.metadata);
+
+  // Apply fade-out effect if supported (fallback)
+  if (audioPlayer && !audioPlayer.paused && !audioBufferManager.isInitialized) {
     applyAudioFadeTransition();
   }
 
@@ -1177,17 +1396,119 @@ function applyAudioFadeTransition() {
     // If Web Audio API is available, apply a quick fade
     if (audioContext && audioContext.state === 'running') {
       const currentTime = audioContext.currentTime;
-      const fadeTime = 0.1; // 100ms fade
+      const fadeTime = 0.05; // Reduced to 50ms for quicker transitions
 
       // Create a gain node for smooth transitions
       if (audioPlayer.gainNode) {
         audioPlayer.gainNode.gain.setValueAtTime(1, currentTime);
-        audioPlayer.gainNode.gain.linearRampToValueAtTime(0.7, currentTime + fadeTime);
+        audioPlayer.gainNode.gain.linearRampToValueAtTime(0.3, currentTime + fadeTime);
         audioPlayer.gainNode.gain.linearRampToValueAtTime(1, currentTime + fadeTime * 2);
+      } else {
+        // Fallback: use HTML5 audio volume
+        const originalVolume = audioPlayer.volume;
+        audioPlayer.volume = 0.3;
+        setTimeout(() => {
+          if (audioPlayer) {
+            audioPlayer.volume = originalVolume;
+          }
+        }, fadeTime * 2000);
       }
     }
   } catch (error) {
     console.log('Audio fade transition not available:', error.message);
+  }
+}
+
+/**
+ * Apply crossfade transition between audio sources
+ * @param {Object} fromAudio - Current audio metadata
+ * @param {Object} toAudio - New audio metadata
+ */
+function applyCrossfadeTransition(fromAudio, toAudio) {
+  try {
+    console.log(`Applying crossfade transition from ${fromAudio?.isWaitingPhrase ? 'waiting phrase' : 'response'} to ${toAudio?.isWaitingPhrase ? 'waiting phrase' : 'response'}`);
+
+    if (audioBufferManager.isInitialized && fromAudio?.id) {
+      // Use AudioBufferManager for smooth crossfading
+      audioBufferManager.stopWithFadeOut(fromAudio.id, 75); // Quick fade out
+    } else if (audioPlayer && !audioPlayer.paused) {
+      // Fallback to HTML5 audio fade
+      applyAudioFadeTransition();
+    }
+
+    // Update transition state
+    queueState.transitionInProgress = true;
+    queueState.lastTransitionTime = Date.now();
+
+    // Clear transition flag after completion
+    setTimeout(() => {
+      queueState.transitionInProgress = false;
+    }, 150);
+
+  } catch (error) {
+    console.error('Error applying crossfade transition:', error);
+    queueState.transitionInProgress = false;
+  }
+}
+
+/**
+ * Enhanced audio state transition manager
+ */
+function manageAudioStateTransition(newState, metadata = {}) {
+  try {
+    const currentState = {
+      isSpeaking: get(isSpeaking),
+      isPlaying: isPlayingSequence,
+      waitingPhraseActive: waitingPhraseActive,
+      currentAudio: currentlyPlayingMetadata
+    };
+
+    console.log(`Managing audio state transition: ${JSON.stringify(currentState)} -> ${newState}`);
+
+    switch (newState) {
+      case 'speaking_start':
+        if (!currentState.isSpeaking) {
+          isSpeaking.set(true);
+          audioAmplitude.set(0.1); // Gentle start
+          
+          // Gradual amplitude increase for natural feel
+          setTimeout(() => {
+            if (get(isSpeaking)) {
+              audioAmplitude.set(0.2);
+            }
+          }, 50);
+        }
+        break;
+
+      case 'speaking_stop':
+        if (currentState.isSpeaking) {
+          // Gradual fade out
+          audioAmplitude.set(0.05);
+          setTimeout(() => {
+            audioAmplitude.set(0);
+            isSpeaking.set(false);
+          }, 200);
+        }
+        break;
+
+      case 'transition_to_response':
+        if (currentState.waitingPhraseActive) {
+          applyCrossfadeTransition(currentState.currentAudio, metadata);
+        }
+        break;
+
+      case 'transition_to_waiting':
+        if (currentState.currentAudio && !currentState.currentAudio.isWaitingPhrase) {
+          applyCrossfadeTransition(currentState.currentAudio, metadata);
+        }
+        break;
+
+      default:
+        console.warn(`Unknown audio state transition: ${newState}`);
+    }
+
+  } catch (error) {
+    console.error('Error managing audio state transition:', error);
   }
 }
 
@@ -1594,4 +1915,400 @@ function playNextInQueue() {
 
     URL.revokeObjectURL(audioUrl);
   };
+}
+
+/**
+ * Play audio using AudioBufferManager for smooth playback
+ * @param {Object} audioWithMetadata - Audio data with metadata
+ */
+async function playAudioWithBuffering(audioWithMetadata) {
+  try {
+    console.log(
+      `Buffering and playing audio: ${audioWithMetadata.metadata.isWaitingPhrase ? 'waiting phrase' : 'response'} (priority: ${audioWithMetadata.metadata.priority})`
+    );
+
+    // Check if AudioBufferManager is initialized
+    if (!audioBufferManager.isInitialized) {
+      console.warn('AudioBufferManager not initialized, falling back to direct playback');
+      return playAudioWithMetadata(audioWithMetadata);
+    }
+
+    // Buffer the audio for smooth playback
+    const bufferedAudio = await audioBufferManager.bufferAudio(
+      audioWithMetadata.blob,
+      audioWithMetadata.metadata
+    );
+
+    // If buffering failed, fall back to direct playback
+    if (!bufferedAudio.processingInfo.buffered) {
+      console.warn('Audio buffering failed, falling back to direct playback');
+      return playAudioWithMetadata(audioWithMetadata);
+    }
+
+    // Add to queue with buffered audio
+    const queueItem = {
+      ...audioWithMetadata,
+      bufferedAudio: bufferedAudio,
+      useBuffering: true
+    };
+
+    // Use enhanced queue management for smooth transitions
+    manageQueueTransition(queueItem);
+
+    // If not already playing a sequence, start one
+    if (!isPlayingSequence) {
+      playNextBufferedInQueue();
+    } else if (!audioWithMetadata.metadata.isWaitingPhrase) {
+      // If this is a response and we're playing a waiting phrase, prepare for transition
+      if (waitingPhraseActive) {
+        console.log('Response ready while waiting phrase playing, preparing buffered transition');
+        handleBufferedAudioTransition();
+      }
+    }
+  } catch (error) {
+    console.error('Error in playAudioWithBuffering:', error);
+    // Fall back to direct playback
+    return playAudioWithMetadata(audioWithMetadata);
+  }
+}
+
+/**
+ * Play the next buffered audio in the queue
+ */
+function playNextBufferedInQueue() {
+  if (phraseQueue.length === 0) {
+    isPlayingSequence = false;
+    queueState.pendingInterruption = false;
+    console.log('Buffered audio queue empty, playback sequence ended');
+    return;
+  }
+
+  isPlayingSequence = true;
+  const audioItem = phraseQueue.shift();
+
+  // Check if this item uses buffering
+  if (audioItem.useBuffering && audioItem.bufferedAudio) {
+    playBufferedAudio(audioItem);
+  } else {
+    // Fall back to regular playback for non-buffered items
+    const audioBlob = audioItem.blob || audioItem;
+    const metadata = audioItem.metadata || {
+      isWaitingPhrase: false,
+      originalText: '',
+      language: get(selectedLanguage),
+      priority: 1,
+      timestamp: Date.now()
+    };
+
+    playRegularAudio(audioBlob, metadata);
+  }
+}
+
+/**
+ * Play buffered audio using AudioBufferManager
+ * @param {Object} audioItem - Audio item with buffered data
+ */
+async function playBufferedAudio(audioItem) {
+  try {
+    const { bufferedAudio, metadata } = audioItem;
+
+    console.log(
+      `Playing buffered ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}: "${metadata.originalText.substring(0, 30)}..."`
+    );
+
+    // Clear pending interruption if we're playing a response
+    if (!metadata.isWaitingPhrase) {
+      queueState.pendingInterruption = false;
+    }
+
+    // Set speaking state with smooth transition
+    if (!get(isSpeaking)) {
+      manageAudioStateTransition('speaking_start', metadata);
+      // Start interruption detection when we start speaking
+      startInterruptionDetection();
+    }
+
+    // Update currently playing metadata and waiting phrase status
+    currentlyPlayingMetadata = metadata;
+    waitingPhraseActive = metadata.isWaitingPhrase;
+
+    // Play the buffered audio
+    const audioSource = await audioBufferManager.playWithSmoothing(bufferedAudio, {
+      volume: 1.0,
+      onEnded: () => {
+        console.log(
+          `Finished playing buffered ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}`
+        );
+
+        // Clear currently playing metadata
+        currentlyPlayingMetadata = null;
+        waitingPhraseActive = false;
+
+        // If there are more phrases in the queue, play the next one
+        if (phraseQueue.length > 0) {
+          playNextBufferedInQueue();
+        } else {
+          // Use smooth transition to stop speaking
+          setTimeout(() => {
+            if (phraseQueue.length === 0) {
+              manageAudioStateTransition('speaking_stop');
+              isPlayingSequence = false;
+              // Stop interruption detection when we stop speaking
+              stopInterruptionDetection();
+              console.log('Buffered audio playback sequence completed');
+            }
+          }, 200); // Reduced delay for quicker response
+        }
+      }
+    });
+
+    // Connect to analyzer for lip-sync if available
+    if (audioContext && audioAnalyser && audioSource) {
+      try {
+        audioSource.connect(audioAnalyser);
+        analyzeAudio();
+        console.log('Connected buffered audio to analyzer');
+      } catch (error) {
+        console.log('Could not connect buffered audio to analyzer:', error.message);
+      }
+    }
+
+  } catch (error) {
+    console.error('Error playing buffered audio:', error);
+    
+    // Fall back to regular audio playback
+    const audioBlob = audioItem.blob || audioItem.bufferedAudio.originalBlob;
+    const metadata = audioItem.metadata;
+    playRegularAudio(audioBlob, metadata);
+  }
+}
+
+/**
+ * Play regular audio (fallback method)
+ * @param {Blob} audioBlob - Audio blob
+ * @param {Object} metadata - Audio metadata
+ */
+function playRegularAudio(audioBlob, metadata) {
+  console.log('Playing regular audio as fallback');
+  
+  const audioUrl = URL.createObjectURL(audioBlob);
+  
+  // Set speaking state immediately
+  if (!get(isSpeaking)) {
+    isSpeaking.set(true);
+    audioAmplitude.set(0.15);
+  }
+
+  audioPlayer.src = audioUrl;
+  audioPlayer.load();
+
+  // Update metadata
+  currentlyPlayingMetadata = metadata;
+  waitingPhraseActive = metadata.isWaitingPhrase;
+
+  // Set up event handlers
+  audioPlayer.onplay = () => {
+    console.log(`Started playing regular ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}`);
+    if (audioContext && audioAnalyser) {
+      analyzeAudio();
+    }
+  };
+
+  audioPlayer.onended = () => {
+    console.log(`Finished playing regular ${metadata.isWaitingPhrase ? 'waiting phrase' : 'response'}`);
+    
+    currentlyPlayingMetadata = null;
+    waitingPhraseActive = false;
+
+    if (phraseQueue.length > 0) {
+      playNextBufferedInQueue();
+    } else {
+      setTimeout(() => {
+        if (phraseQueue.length === 0) {
+          isSpeaking.set(false);
+          audioAmplitude.set(0);
+          isPlayingSequence = false;
+        }
+      }, 300);
+    }
+
+    URL.revokeObjectURL(audioUrl);
+  };
+
+  // Start playback
+  const playPromise = audioPlayer.play();
+  if (playPromise !== undefined) {
+    playPromise.catch((error) => {
+      console.error('Regular audio playback error:', error);
+      isSpeaking.set(false);
+      isPlayingSequence = false;
+    });
+  }
+}
+
+/**
+ * Handle audio transition for buffered audio
+ */
+function handleBufferedAudioTransition() {
+  try {
+    console.log('Handling buffered audio transition');
+    
+    // Determine transition type
+    const nextAudio = phraseQueue.length > 0 ? phraseQueue[0] : null;
+    const transitionType = nextAudio?.metadata?.isWaitingPhrase ? 'transition_to_waiting' : 'transition_to_response';
+
+    // Use enhanced transition management
+    manageAudioStateTransition(transitionType, nextAudio?.metadata);
+
+    // If we have a currently playing audio, fade it out smoothly
+    if (currentlyPlayingMetadata && currentlyPlayingMetadata.id) {
+      audioBufferManager.stopWithFadeOut(currentlyPlayingMetadata.id, 75); // Quicker fade
+    }
+
+  } catch (error) {
+    console.error('Error handling buffered audio transition:', error);
+    queueState.transitionInProgress = false;
+  }
+}
+
+/**
+ * Handle voice interruption events
+ * @param {Object} interruptionEvent - Interruption event from detector
+ */
+async function handleVoiceInterruption(interruptionEvent) {
+  try {
+    console.log('Voice interruption detected:', interruptionEvent);
+
+    // Check if we should handle this interruption
+    if (!get(isVoiceModeActive) || !get(isSpeaking)) {
+      console.log('Ignoring interruption - not in active voice mode or not speaking');
+      return;
+    }
+
+    // Handle interruption in queue immediately
+    handleInterruptionInQueue();
+
+    // Start conversation flow tracking if not already active
+    if (!conversationFlowManager.getCurrentResponse() && currentlyPlayingMetadata) {
+      conversationFlowManager.startResponse({
+        text: currentlyPlayingMetadata.originalText || '',
+        language: currentlyPlayingMetadata.language || get(selectedLanguage),
+        type: currentlyPlayingMetadata.isWaitingPhrase ? 'waiting_phrase' : 'main_response',
+        isInterruptible: true
+      });
+    }
+
+    // Handle the interruption through the conversation flow manager
+    const interruptionResult = await conversationFlowManager.handleInterruption(interruptionEvent);
+    
+    if (interruptionResult.handled) {
+      // Process the interruption through the event handler
+      await interruptionEventHandler.handleInterruption(interruptionEvent);
+      
+      // Stop current audio playback
+      await stopCurrentAudioForInterruption();
+      
+      // Generate and play interruption response
+      if (interruptionResult.interruptionResponse) {
+        await playInterruptionResponse(interruptionResult.interruptionResponse);
+      }
+      
+      // Store interruption ID for tracking
+      queueState.lastInterruptionId = interruptionEvent.timestamp;
+    }
+
+  } catch (error) {
+    console.error('Error handling voice interruption:', error);
+    
+    // Handle error through voice error handler
+    const errorContext = {
+      function: 'handleVoiceInterruption',
+      interruptionEvent: interruptionEvent,
+      voiceState: {
+        isVoiceModeActive: get(isVoiceModeActive),
+        isSpeaking: get(isSpeaking)
+      }
+    };
+    
+    voiceErrorHandler.handleError(error, errorContext).catch(recoveryError => {
+      console.error('Error recovery failed:', recoveryError);
+    });
+    
+    // Reset interruption state on error
+    resetInterruptionState();
+  }
+}
+
+/**
+ * Stop current audio for interruption
+ */
+async function stopCurrentAudioForInterruption() {
+  try {
+    console.log('Stopping current audio for interruption');
+
+    // Stop buffered audio if using AudioBufferManager
+    if (currentlyPlayingMetadata && currentlyPlayingMetadata.id && audioBufferManager.isInitialized) {
+      audioBufferManager.stopWithFadeOut(currentlyPlayingMetadata.id, 50); // Quick fade for interruption
+    }
+
+    // Stop regular audio player
+    if (audioPlayer && !audioPlayer.paused) {
+      audioPlayer.pause();
+    }
+
+    // Clear audio queue
+    clearAudioQueue();
+
+    // Update speaking state
+    manageAudioStateTransition('speaking_stop');
+
+    // Reset playback state
+    isPlayingSequence = false;
+    waitingPhraseActive = false;
+    currentlyPlayingMetadata = null;
+
+  } catch (error) {
+    console.error('Error stopping audio for interruption:', error);
+  }
+}
+
+/**
+ * Play interruption response
+ * @param {Object} interruptionResponse - Response to play
+ */
+async function playInterruptionResponse(interruptionResponse) {
+  try {
+    console.log('Playing interruption response:', interruptionResponse);
+
+    // Synthesize and play the interruption response
+    await synthesizeSpeech(interruptionResponse.text, {
+      isWaitingPhrase: false,
+      language: interruptionResponse.language,
+      priority: 1, // High priority
+      isInterruptionResponse: true
+    });
+
+  } catch (error) {
+    console.error('Error playing interruption response:', error);
+  }
+}
+
+/**
+ * Start interruption detection when bot starts speaking
+ */
+function startInterruptionDetection() {
+  if (interruptionDetector && get(isVoiceModeActive)) {
+    interruptionDetector.startListening();
+    console.log('Interruption detection started');
+  }
+}
+
+/**
+ * Stop interruption detection when bot stops speaking
+ */
+function stopInterruptionDetection() {
+  if (interruptionDetector) {
+    interruptionDetector.stopListening();
+    console.log('Interruption detection stopped');
+  }
 }

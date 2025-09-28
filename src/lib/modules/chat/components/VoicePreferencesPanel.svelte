@@ -186,11 +186,11 @@
   <h3 class="preferences-title">{t.title}</h3>
 
   <div class="preference-group">
-    <label class="preference-label">
+    <label class="preference-label" for="interruption-sensitivity">
       {t.interruptionSensitivity}
       <span class="help-text">{t.interruptionSensitivityHelp}</span>
     </label>
-    <select bind:value={preferences.interruptionSensitivity} class="preference-select">
+    <select id="interruption-sensitivity" bind:value={preferences.interruptionSensitivity} class="preference-select">
       <option value="low">{t.low}</option>
       <option value="medium">{t.medium}</option>
       <option value="high">{t.high}</option>
@@ -198,11 +198,11 @@
   </div>
 
   <div class="preference-group">
-    <label class="preference-label">
+    <label class="preference-label" for="response-style">
       {t.responseStyle}
       <span class="help-text">{t.responseStyleHelp}</span>
     </label>
-    <select bind:value={preferences.responseStyle} class="preference-select">
+    <select id="response-style" bind:value={preferences.responseStyle} class="preference-select">
       <option value="concise">{t.concise}</option>
       <option value="natural">{t.natural}</option>
       <option value="detailed">{t.detailed}</option>
@@ -210,22 +210,22 @@
   </div>
 
   <div class="preference-group">
-    <label class="preference-label">
+    <label class="preference-label" for="error-recovery">
       {t.errorRecovery}
       <span class="help-text">{t.errorRecoveryHelp}</span>
     </label>
-    <select bind:value={preferences.errorRecovery} class="preference-select">
+    <select id="error-recovery" bind:value={preferences.errorRecovery} class="preference-select">
       <option value="automatic">{t.automatic}</option>
       <option value="manual">{t.manual}</option>
     </select>
   </div>
 
   <div class="preference-group">
-    <label class="preference-label">
+    <label class="preference-label" for="feedback-level">
       {t.feedbackLevel}
       <span class="help-text">{t.feedbackLevelHelp}</span>
     </label>
-    <select bind:value={preferences.feedbackLevel} class="preference-select">
+    <select id="feedback-level" bind:value={preferences.feedbackLevel} class="preference-select">
       <option value="none">{t.none}</option>
       <option value="minimal">{t.minimal}</option>
       <option value="detailed">{t.detailedFeedback}</option>
@@ -246,11 +246,12 @@
       <h4 class="advanced-title">{t.advanced}</h4>
       
       <div class="preference-group">
-        <label class="preference-label">
+        <label class="preference-label" for="interruption-threshold">
           Interruption Threshold
           <span class="help-text">Confidence level required to detect interruptions (0.1-1.0)</span>
         </label>
         <input 
+          id="interruption-threshold"
           type="range" 
           min="0.1" 
           max="1.0" 
@@ -262,11 +263,12 @@
       </div>
 
       <div class="preference-group">
-        <label class="preference-label">
+        <label class="preference-label" for="response-delay">
           Response Delay (ms)
           <span class="help-text">Delay before responding to interruptions</span>
         </label>
         <input 
+          id="response-delay"
           type="range" 
           min="100" 
           max="2000" 

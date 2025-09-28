@@ -202,7 +202,7 @@ export class VoiceUxIntegrator {
    * @param {Object} context - Error context
    * @returns {Promise<Object>} Recovery response
    */
-  async generateErrorRecoveryResponse(context) {
+  async generateErrorRecoveryResponse(context) { // eslint-disable-line no-unused-vars
     const language = context.detectedLanguage || get(selectedLanguage);
     
     const recoveryMessages = {
@@ -523,7 +523,7 @@ export class VoiceUxIntegrator {
    * Initialize components
    * @param {Object} options - Initialization options
    */
-  async initializeComponents(options) {
+  async initializeComponents(options) { // eslint-disable-line no-unused-vars
     // Components are initialized as singletons
     console.log('Voice UX components initialized');
   }

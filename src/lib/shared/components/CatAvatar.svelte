@@ -16,7 +16,8 @@
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
   import { get } from 'svelte/store';
-  import { audioAmplitude } from '$lib/modules/chat/voiceServices';
+  import { audioAmplitude, isSpeaking } from '$lib/modules/chat/voiceServices';
+  import { avatarStateManager, avatarState } from '$lib/modules/chat/AvatarStateManager.js';
 
   export let size = 'md'; // sm, md, lg
   export let speaking = false;
@@ -80,6 +81,28 @@
   // Track frequency of mouth position changes to detect and prevent rapid oscillation
   let mouthPositionCounts = {};
 
+  // Audio completion detection
+  let audioCompletionDetector = null;
+  let lastAmplitudeCheckTime = 0;
+  let lowAmplitudeCount = 0;
+  let audioEndDetected = false;
+
+  // Enhanced mouth closure detection
+  let mouthClosureTimer = null;
+  let forceClosureTimeout = null;
+
+  // Enhanced lip-sync accuracy tracking
+  let phonemeHistory = [];
+  let amplitudeSmoothing = [];
+  let temporalConsistencyBuffer = [];
+  const PHONEME_HISTORY_SIZE = 3;
+  const AMPLITUDE_SMOOTHING_SIZE = 5;
+  const TEMPORAL_CONSISTENCY_SIZE = 4;
+
+  // Avatar state management
+  let avatarStateUnsubscribe = null;
+  let currentAvatarState = null;
+
   // Size classes (enlarged for better visibility)
   const sizeClasses = {
     sm: {
@@ -96,11 +119,188 @@
     }
   };
 
+  // Audio completion detection function
+  function detectAudioCompletion() {
+    const currentAmplitude = get(audioAmplitude);
+    const currentTime = Date.now();
+    const isSpeakingState = get(isSpeaking);
+
+    // If we're supposed to be speaking but amplitude is very low
+    if (isSpeakingState && currentAmplitude < 0.02) {
+      lowAmplitudeCount++;
+      
+      // If amplitude has been low for several checks, audio might have ended
+      if (lowAmplitudeCount > 5 && !audioEndDetected) {
+        console.log('Audio completion detected via amplitude monitoring');
+        audioEndDetected = true;
+        handleAudioCompletion();
+      }
+    } else if (currentAmplitude > 0.02) {
+      // Reset counter if amplitude is detected
+      lowAmplitudeCount = 0;
+      audioEndDetected = false;
+    }
+
+    // If speaking state changed to false, ensure mouth closes
+    if (!isSpeakingState && currentMouthImage) {
+      console.log('Speaking state ended, ensuring mouth closure');
+      handleAudioCompletion();
+    }
+
+    lastAmplitudeCheckTime = currentTime;
+  }
+
+  // Handle audio completion with proper mouth closure
+  function handleAudioCompletion() {
+    console.log('Handling audio completion - closing mouth');
+    
+    // Clear any existing closure timers
+    if (mouthClosureTimer) {
+      clearTimeout(mouthClosureTimer);
+    }
+    if (forceClosureTimeout) {
+      clearTimeout(forceClosureTimeout);
+    }
+
+    // Immediately start mouth closure process
+    initiateProperMouthClosure();
+
+    // Force closure after a maximum time to prevent stuck mouth
+    forceClosureTimeout = setTimeout(() => {
+      if (currentMouthImage) {
+        console.log('Force closing mouth after timeout');
+        currentMouthImage = null;
+        smoothAmplitude.set(0);
+        mouthBuffer = [];
+      }
+    }, 500); // Maximum 500ms to close mouth
+  }
+
+  // Initiate proper mouth closure with smooth transition
+  function initiateProperMouthClosure() {
+    if (!currentMouthImage) {
+      return; // Already closed
+    }
+
+    console.log('Initiating proper mouth closure');
+
+    // Gradually reduce amplitude to create natural closing motion
+    const closureSteps = [0.08, 0.04, 0.02, 0.01, 0];
+    let stepIndex = 0;
+
+    function performClosureStep() {
+      if (stepIndex < closureSteps.length) {
+        const targetAmplitude = closureSteps[stepIndex];
+        smoothAmplitude.set(targetAmplitude);
+        
+        // Update mouth position based on reduced amplitude
+        if (targetAmplitude > 0) {
+          currentMouthImage = getMouthPosition(targetAmplitude);
+        } else {
+          // Final step - close mouth completely
+          currentMouthImage = null;
+          mouthBuffer = [];
+          console.log('Mouth closure completed');
+          
+          // Clear force closure timeout since we completed naturally
+          if (forceClosureTimeout) {
+            clearTimeout(forceClosureTimeout);
+            forceClosureTimeout = null;
+          }
+          return;
+        }
+
+        stepIndex++;
+        mouthClosureTimer = setTimeout(performClosureStep, 50); // 50ms between steps
+      }
+    }
+
+    performClosureStep();
+  }
+
+  // Enhanced mouth state management
+  function ensureMouthSynchronization() {
+    const isSpeakingState = get(isSpeaking);
+    const currentAmplitude = get(audioAmplitude);
+
+    // If not speaking but mouth is open, close it
+    if (!isSpeakingState && currentMouthImage) {
+      console.log('Mouth open while not speaking - initiating closure');
+      handleAudioCompletion();
+    }
+
+    // If speaking but amplitude is zero and mouth is open, start closure
+    if (isSpeakingState && currentAmplitude < 0.01 && currentMouthImage) {
+      console.log('Zero amplitude detected while speaking - checking for completion');
+      detectAudioCompletion();
+    }
+  }
+
+  // Avatar state management functions
+  async function updateAvatarState(newState, options = {}) {
+    try {
+      await avatarStateManager.transitionToState(newState, options);
+    } catch (error) {
+      console.error('Error updating avatar state:', error);
+    }
+  }
+
+  function handleAvatarStateChange(state) {
+    currentAvatarState = state;
+    
+    // Update component state based on avatar state
+    if (state.emotion !== emotion) {
+      updateEmotion(state.emotion);
+    }
+    
+    if (state.speaking !== speaking) {
+      // This will trigger the reactive statement below
+      speaking = state.speaking;
+    }
+
+    // Handle mouth position from state manager
+    if (state.mouthPosition !== undefined && state.mouthPosition !== currentMouthImage) {
+      if (state.mouthPosition === null) {
+        // Smooth mouth closure
+        initiateProperMouthClosure();
+      } else {
+        currentMouthImage = state.mouthPosition;
+      }
+    }
+  }
+
+  // Sync component state with avatar state manager
+  function syncWithAvatarState() {
+    const currentState = avatarStateManager.getCurrentState();
+    
+    // Update avatar state if component props have changed
+    const newState = {};
+    let hasChanges = false;
+
+    if (currentState.emotion !== emotion) {
+      newState.emotion = emotion;
+      hasChanges = true;
+    }
+
+    if (currentState.speaking !== speaking) {
+      newState.speaking = speaking;
+      newState.currentState = speaking ? 'speaking' : 'idle';
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      updateAvatarState(newState, { priority: 'normal' });
+    }
+  }
+
   // Add an idle animation function
   function startIdleAnimation() {
     if (idleAnimationFrame) cancelAnimationFrame(idleAnimationFrame);
 
     function updateIdle() {
+      // Always check mouth synchronization
+      ensureMouthSynchronization();
+
       // Only run idle animation when not speaking and not transitioning
       if (!speaking && !isTransitioning) {
         // Create a very subtle breathing effect
@@ -126,6 +326,17 @@
 
   // Initialize animation
   onMount(() => {
+    // Subscribe to avatar state changes
+    avatarStateUnsubscribe = avatarState.subscribe(handleAvatarStateChange);
+
+    // Initialize avatar state
+    updateAvatarState({
+      currentState: 'idle',
+      emotion: emotion,
+      speaking: speaking,
+      mouthPosition: null
+    }, { priority: 'immediate' });
+
     // Preload all images
     const imagePromises = [
       ...Object.values(catImages).map((src) => loadImage(src)),
@@ -137,6 +348,9 @@
       updateEmotion(emotion);
       // Start idle animation
       startIdleAnimation();
+      
+      // Sync initial state
+      syncWithAvatarState();
     });
   });
 
@@ -163,13 +377,23 @@
     }
   }
 
-  // Determine mouth position based on amplitude with improved consonant detection
-  function getMouthPosition(amplitude) {
-    // Add to buffer for smoothing
-    mouthBuffer.push(amplitude);
-    if (mouthBuffer.length > BUFFER_SIZE) {
-      mouthBuffer.shift();
+  // Enhanced audio analysis for better phoneme detection
+  function analyzeAudioCharacteristics(amplitude) {
+    // Add to amplitude smoothing buffer
+    amplitudeSmoothing.push(amplitude);
+    if (amplitudeSmoothing.length > AMPLITUDE_SMOOTHING_SIZE) {
+      amplitudeSmoothing.shift();
     }
+
+    // Calculate smoothed amplitude with weighted average (recent values have more weight)
+    let smoothedAmplitude = 0;
+    let totalWeight = 0;
+    for (let i = 0; i < amplitudeSmoothing.length; i++) {
+      const weight = (i + 1) / amplitudeSmoothing.length; // Linear weighting
+      smoothedAmplitude += amplitudeSmoothing[i] * weight;
+      totalWeight += weight;
+    }
+    smoothedAmplitude /= totalWeight;
 
     // Calculate average amplitude from buffer
     const avgAmplitude = mouthBuffer.reduce((sum, val) => sum + val, 0) / mouthBuffer.length;
@@ -180,13 +404,209 @@
     if (mouthBuffer.length >= 2) {
       trend = mouthBuffer[mouthBuffer.length - 1] - mouthBuffer[0];
       // Calculate how strong/sudden the trend is (useful for detecting consonants)
-      trendStrength = Math.abs(trend) / avgAmplitude;
+      trendStrength = Math.abs(trend) / (avgAmplitude || 0.01);
     }
 
-    // Apply predictive adjustment based on trend
-    // If amplitude is increasing rapidly, anticipate a higher value
-    // Reduced from 2.0 to 0.8 to avoid over-amplifying small changes and causing blinking
-    const predictiveAmplitude = avgAmplitude + trend * 0.8;
+    // Enhanced predictive amplitude calculation using smoothed values
+    const predictiveAmplitude = (smoothedAmplitude * 0.7) + (avgAmplitude * 0.3) + trend * 0.4;
+
+    // Advanced phoneme detection based on amplitude patterns
+    const phonemeHint = detectPhonemePattern(smoothedAmplitude, avgAmplitude, trend, trendStrength);
+
+    // Add phoneme to history for temporal consistency
+    phonemeHistory.push(phonemeHint);
+    if (phonemeHistory.length > PHONEME_HISTORY_SIZE) {
+      phonemeHistory.shift();
+    }
+
+    // Apply temporal consistency to phoneme detection
+    const consistentPhoneme = applyTemporalConsistency(phonemeHint);
+
+    // Calculate amplitude variance for consonant detection
+    let variance = 0;
+    if (mouthBuffer.length > 1) {
+      const mean = avgAmplitude;
+      variance = mouthBuffer.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / mouthBuffer.length;
+    }
+
+    // Detect frequency characteristics (simulated from amplitude patterns)
+    const frequencyHint = analyzeFrequencyPattern(smoothedAmplitude, avgAmplitude, variance);
+
+    return {
+      avgAmplitude,
+      smoothedAmplitude,
+      trend,
+      trendStrength,
+      predictiveAmplitude,
+      phonemeHint: consistentPhoneme,
+      variance,
+      frequencyHint
+    };
+  }
+
+  // Apply temporal consistency to reduce phoneme flickering
+  function applyTemporalConsistency(currentPhoneme) {
+    if (phonemeHistory.length < 2) {
+      return currentPhoneme;
+    }
+
+    // Count occurrences of each phoneme in recent history
+    const phonemeCounts = {};
+    phonemeHistory.forEach(phoneme => {
+      phonemeCounts[phoneme] = (phonemeCounts[phoneme] || 0) + 1;
+    });
+
+    // If current phoneme appears frequently in recent history, use it
+    if (phonemeCounts[currentPhoneme] >= 2) {
+      return currentPhoneme;
+    }
+
+    // Find the most common phoneme in recent history
+    let mostCommon = currentPhoneme;
+    let maxCount = 1;
+    for (const [phoneme, count] of Object.entries(phonemeCounts)) {
+      if (count > maxCount) {
+        mostCommon = phoneme;
+        maxCount = count;
+      }
+    }
+
+    // Use most common if it's significantly more frequent
+    if (maxCount >= 2) {
+      return mostCommon;
+    }
+
+    return currentPhoneme;
+  }
+
+  // Detect phoneme patterns from amplitude characteristics
+  function detectPhonemePattern(amplitude, avgAmplitude, trend, trendStrength) {
+    // Vowel detection - sustained amplitude with low variance
+    if (avgAmplitude > 0.2 && trendStrength < 0.3) {
+      if (avgAmplitude > 0.4) return 'open_vowel'; // a, o sounds
+      if (avgAmplitude > 0.25) return 'mid_vowel'; // e sounds
+      return 'close_vowel'; // i, u sounds
+    }
+
+    // Consonant detection based on amplitude patterns
+    if (trendStrength > 0.8) {
+      if (trend < -0.15) return 'stop_consonant'; // p, b, t, d, k, g
+      if (trend > 0.15) return 'fricative_start'; // f, s, sh onset
+      return 'consonant_transition';
+    }
+
+    // Fricative detection - steady mid-level amplitude
+    if (avgAmplitude > 0.1 && avgAmplitude < 0.3 && trendStrength < 0.4) {
+      return 'fricative'; // s, sh, f, th sounds
+    }
+
+    // Nasal detection - low but present amplitude
+    if (avgAmplitude > 0.05 && avgAmplitude < 0.15 && trendStrength < 0.3) {
+      return 'nasal'; // m, n, ng sounds
+    }
+
+    // Liquid detection - moderate amplitude with smooth transitions
+    if (avgAmplitude > 0.15 && avgAmplitude < 0.35 && trendStrength < 0.5) {
+      return 'liquid'; // l, r sounds
+    }
+
+    return 'silence';
+  }
+
+  // Analyze frequency patterns (simulated from amplitude data)
+  function analyzeFrequencyPattern(amplitude, avgAmplitude, variance) {
+    // High variance suggests complex frequency content (consonants)
+    if (variance > 0.02) {
+      return 'complex'; // Consonants with multiple frequency components
+    }
+
+    // Low variance with high amplitude suggests pure tones (vowels)
+    if (variance < 0.01 && avgAmplitude > 0.2) {
+      return 'pure_tone'; // Clear vowel sounds
+    }
+
+    // Medium characteristics
+    if (avgAmplitude > 0.1) {
+      return 'mixed'; // Mixed frequency content
+    }
+
+    return 'noise'; // Low-level noise or silence
+  }
+
+  // Select mouth image based on detected phoneme
+  function selectMouthImageFromPhoneme(phonemeHint, amplitude, audioMetrics) {
+    const { avgAmplitude, variance, frequencyHint } = audioMetrics;
+
+    switch (phonemeHint) {
+      case 'open_vowel':
+        // Open vowels like 'a', 'o' - wide mouth opening
+        if (amplitude > 0.4) return mouthImages.o; // Very open
+        return mouthImages.a; // Moderately open
+
+      case 'mid_vowel':
+        // Mid vowels like 'e' - medium mouth opening
+        return mouthImages.e;
+
+      case 'close_vowel':
+        // Close vowels like 'i', 'u' - smaller mouth opening
+        if (amplitude > 0.3) return mouthImages.e; // Slightly more open
+        return mouthImages.a; // Smaller opening
+
+      case 'stop_consonant':
+        // Stop consonants like 'p', 'b', 't', 'd' - closed or nearly closed
+        if (avgAmplitude < 0.1) return null; // Completely closed
+        // Alternate between different stop positions for variety
+        return lastMouthPositions.includes(mouthImages.b) ? mouthImages.p : mouthImages.b;
+
+      case 'fricative':
+      case 'fricative_start':
+        // Fricatives like 's', 'sh', 'f' - narrow opening
+        if (amplitude > 0.25) {
+          // Higher amplitude fricatives
+          return lastMouthPositions.includes(mouthImages.sh) ? mouthImages.ch : mouthImages.sh;
+        }
+        // Lower amplitude fricatives
+        return lastMouthPositions.includes(mouthImages.s) ? mouthImages.r : mouthImages.s;
+
+      case 'nasal':
+        // Nasal consonants like 'm', 'n' - closed mouth with slight opening
+        return mouthImages.m;
+
+      case 'liquid':
+        // Liquid consonants like 'l', 'r' - moderate opening
+        if (amplitude > 0.25) return mouthImages.r;
+        return mouthImages.w;
+
+      case 'consonant_transition':
+        // Transitional consonant sounds - use context-aware selection
+        if (amplitude > 0.3) return mouthImages.j;
+        if (amplitude > 0.15) return mouthImages.w;
+        return mouthImages.m;
+
+      case 'silence':
+      default:
+        // Silence or unrecognized - close mouth or very small opening
+        if (amplitude < 0.02) return null;
+        if (amplitude < 0.05) return mouthImages.m; // Very slight opening
+        return mouthImages.a; // Small opening for very quiet sounds
+    }
+  }
+
+  // Enhanced mouth position detection with improved audio analysis
+  function getMouthPosition(amplitude) {
+    // Add to buffer for smoothing
+    mouthBuffer.push(amplitude);
+    if (mouthBuffer.length > BUFFER_SIZE) {
+      mouthBuffer.shift();
+    }
+
+    // Calculate enhanced audio metrics
+    const audioMetrics = analyzeAudioCharacteristics(amplitude);
+    const avgAmplitude = audioMetrics.avgAmplitude;
+    const trend = audioMetrics.trend;
+    const trendStrength = audioMetrics.trendStrength;
+    const predictiveAmplitude = audioMetrics.predictiveAmplitude;
+    const phonemeHint = audioMetrics.phonemeHint;
 
     // Check if enough time has passed since last mouth change
     const now = Date.now();
@@ -194,80 +614,12 @@
       return currentMouthImage;
     }
 
-    // Determine mouth position with improved consonant detection
-    let newMouthImage;
-
-    // Detect sudden amplitude changes which often indicate consonants
-    const isConsonantPattern =
-      trendStrength > 0.5 ||
-      (mouthBuffer.length >= 2 &&
-        Math.abs(mouthBuffer[mouthBuffer.length - 1] - mouthBuffer[mouthBuffer.length - 2]) > 0.15);
-
-    // Detect specific patterns for different consonant types
-    const isStopConsonant = trend < -0.2 && avgAmplitude < 0.3; // For b, p sounds (sudden drop)
-    const isFricative = avgAmplitude > 0.15 && avgAmplitude < 0.4 && Math.abs(trend) < 0.1; // For s, sh, f sounds (steady mid-level)
-    const isNasal = avgAmplitude < 0.15 && avgAmplitude > 0.05; // For m, n sounds (low but present)
+    // Enhanced mouth position selection using phoneme detection
+    let newMouthImage = selectMouthImageFromPhoneme(phonemeHint, predictiveAmplitude, audioMetrics);
 
     // Add to mouth position history to prevent oscillation
     if (lastMouthPositions.length >= MOUTH_HISTORY_SIZE) {
       lastMouthPositions.shift();
-    }
-
-    // High amplitude - vowels and some consonants
-    if (predictiveAmplitude > 0.35) {
-      // Lowered from 0.4 for better responsiveness
-      if (isConsonantPattern) {
-        // Consonant at high amplitude - likely ch, j, sh
-        if (isStopConsonant) {
-          newMouthImage = mouthImages.b; // Stop consonant (b, p)
-        } else if (isFricative) {
-          // Alternate between sh and ch for variety
-          newMouthImage = lastMouthPositions.includes(mouthImages.sh)
-            ? mouthImages.ch
-            : mouthImages.sh;
-        } else {
-          newMouthImage = mouthImages.j; // Default to j for other consonant patterns
-        }
-      } else {
-        // Vowel at high amplitude - likely o sound
-        newMouthImage = mouthImages.o;
-      }
-    }
-    // Medium amplitude - mix of vowels and consonants
-    else if (predictiveAmplitude > 0.08) {
-      // Lowered from 0.1 for better responsiveness
-      if (isConsonantPattern) {
-        // Consonant at medium amplitude
-        if (isStopConsonant) {
-          // Alternate between b and p for variety
-          newMouthImage = lastMouthPositions.includes(mouthImages.b)
-            ? mouthImages.p
-            : mouthImages.b;
-        } else if (isFricative) {
-          // Alternate between s and r for variety
-          newMouthImage = lastMouthPositions.includes(mouthImages.s)
-            ? mouthImages.r
-            : mouthImages.s;
-        } else {
-          newMouthImage = mouthImages.w; // Default to w for other consonant patterns
-        }
-      } else {
-        // Vowel at medium amplitude - likely e sound
-        newMouthImage = mouthImages.e;
-      }
-    }
-    // Low amplitude - mostly consonants and quiet vowels
-    else if (predictiveAmplitude > 0.02) {
-      if (isNasal || isStopConsonant) {
-        newMouthImage = mouthImages.m; // Nasal consonant (m)
-      } else {
-        // Quiet vowel - likely a sound
-        newMouthImage = mouthImages.a;
-      }
-    }
-    // Very low amplitude - closed mouth
-    else {
-      newMouthImage = null; // Closed mouth
     }
 
     // Enhanced anti-oscillation logic to prevent rapid blinking
@@ -339,10 +691,17 @@
     lastMouthChange = 0;
 
     function updateMouth() {
-      if (!speaking) return;
+      if (!speaking) {
+        // Ensure mouth synchronization even when not speaking
+        ensureMouthSynchronization();
+        return;
+      }
 
       // Get current audio amplitude immediately
       const amplitude = get(audioAmplitude);
+
+      // Detect audio completion
+      detectAudioCompletion();
 
       // Update the smooth amplitude with tweening (faster response)
       smoothAmplitude.set(amplitude);
@@ -371,8 +730,10 @@
       // Apply a smaller boost to avoid rapid changes
       const predictiveAmplitude = Math.min(1.0, blendedAmplitude + predictiveBoost * 0.5);
 
-      // Determine mouth position with enhanced prediction for faster response
-      currentMouthImage = getMouthPosition(predictiveAmplitude);
+      // Only update mouth position if we haven't detected audio completion
+      if (!audioEndDetected) {
+        currentMouthImage = getMouthPosition(predictiveAmplitude);
+      }
 
       // Use a more consistent timing approach for smoother animation
       // with less frequent updates to reduce blinking
@@ -392,6 +753,8 @@
 
   // Stop lip-sync animation
   function stopLipSync() {
+    console.log('Stopping lip-sync animation');
+    
     // Clear both setTimeout and requestAnimationFrame to ensure proper cleanup
     if (animationFrame) {
       // Check if it's a timeout ID (number) or animation frame ID
@@ -403,33 +766,26 @@
       animationFrame = null;
     }
 
-    // Instead of immediately setting currentMouthImage to null,
-    // gradually fade it out using a tweened store
-    const fadeOutDuration = 300; // ms
+    // Clear any existing closure timers
+    if (mouthClosureTimer) {
+      clearTimeout(mouthClosureTimer);
+      mouthClosureTimer = null;
+    }
+    if (forceClosureTimeout) {
+      clearTimeout(forceClosureTimeout);
+      forceClosureTimeout = null;
+    }
 
-    // Only reset if we have a mouth image
+    // Reset audio completion detection
+    audioEndDetected = false;
+    lowAmplitudeCount = 0;
+
+    // Use proper mouth closure instead of immediate reset
     if (currentMouthImage) {
-      // Create a temporary tweened store for fading out
-      const fadeOut = tweened(1, {
-        duration: fadeOutDuration,
-        easing: cubicOut
-      });
-
-      // Start the fade out
-      fadeOut.set(0);
-
-      // When fade out is complete, reset the mouth image
-      const unsubscribe = fadeOut.subscribe((value) => {
-        if (value <= 0.05) {
-          currentMouthImage = null;
-          smoothAmplitude.set(0);
-          mouthBuffer = [];
-          unsubscribe();
-        }
-      });
+      console.log('Initiating proper mouth closure on lip-sync stop');
+      initiateProperMouthClosure();
     } else {
       // If no mouth image, just reset everything immediately
-      currentMouthImage = null;
       smoothAmplitude.set(0);
       mouthBuffer = [];
     }
@@ -439,6 +795,15 @@
   $: if (speaking !== undefined && imagesLoaded) {
     // If speaking state changed
     if (speaking !== lastSpeakingState) {
+      // Update avatar state manager
+      updateAvatarState({
+        speaking: speaking,
+        currentState: speaking ? 'speaking' : 'idle'
+      }, { 
+        priority: 'high',
+        duration: 200
+      });
+
       // If transitioning from not speaking to speaking
       if (speaking) {
         isTransitioning = true;
@@ -469,10 +834,23 @@
   // Watch for changes in emotion
   $: if (emotion && imagesLoaded) {
     updateEmotion(emotion);
+    
+    // Update avatar state manager
+    updateAvatarState({
+      emotion: emotion
+    }, { 
+      priority: 'normal',
+      duration: 500
+    });
   }
 
   // Clean up on component destruction
   onDestroy(() => {
+    // Unsubscribe from avatar state
+    if (avatarStateUnsubscribe) {
+      avatarStateUnsubscribe();
+    }
+
     // Clean up lip sync animation
     if (animationFrame) {
       // Check if it's a timeout ID (number) or animation frame ID
@@ -493,11 +871,26 @@
       }
     }
 
+    // Clean up mouth closure timers
+    if (mouthClosureTimer) {
+      clearTimeout(mouthClosureTimer);
+    }
+    if (forceClosureTimeout) {
+      clearTimeout(forceClosureTimeout);
+    }
+
     // Reset all state
     mouthBuffer = [];
     lastMouthPositions = [];
     currentMouthImage = null;
     smoothAmplitude.set(0);
+    audioEndDetected = false;
+    lowAmplitudeCount = 0;
+    
+    // Reset enhanced lip-sync buffers
+    phonemeHistory = [];
+    amplitudeSmoothing = [];
+    temporalConsistencyBuffer = [];
   });
 </script>
 
