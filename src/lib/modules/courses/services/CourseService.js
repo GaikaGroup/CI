@@ -8,6 +8,8 @@
 
 import { validateCourse, createDefaultCourse } from '../types.js';
 import { AGENT_TYPES, validateAgentConfiguration } from '../agents.js';
+import { userEnrollmentService } from './UserEnrollmentService.js';
+import { enrollmentStore } from '../stores/enrollmentStore.js';
 
 /**
  * Course status enumeration
@@ -122,6 +124,19 @@ export class CourseService {
 
       // Add course to store
       this.coursesStore.addCourse(course);
+
+      if (creatorId) {
+        try {
+          const enrollmentResult = userEnrollmentService.enrollUser(creatorId, course.id);
+          if (!enrollmentResult.success) {
+            console.warn('Auto-enrollment failed:', enrollmentResult.error);
+          } else if (enrollmentStore?.refresh) {
+            enrollmentStore.refresh(creatorId);
+          }
+        } catch (enrollmentError) {
+          console.error('Error auto-enrolling course creator:', enrollmentError);
+        }
+      }
 
       return {
         success: true,

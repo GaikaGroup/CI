@@ -68,6 +68,7 @@
  * @property {string} creatorId - ID of the user who created the course
  * @property {'admin'|'user'} creatorRole - Role of the creator
  * @property {'active'|'blocked'|'deleted'} status - Course status
+ * @property {'draft'|'private'|'published'} visibility - Course visibility state
  * @property {string} language - Primary language of the course
  * @property {string} level - Difficulty level
  * @property {string[]} skills - Array of skills covered
@@ -120,6 +121,10 @@ export function validateCourse(courseData) {
 
   if (!courseData.creatorRole || !['admin', 'user'].includes(courseData.creatorRole)) {
     errors.push('Creator role must be either "admin" or "user"');
+  }
+
+  if (courseData.visibility && !['draft', 'private', 'published'].includes(courseData.visibility)) {
+    errors.push('Course visibility must be either "draft", "private", or "published"');
   }
 
   // Optional fields validation
@@ -328,6 +333,7 @@ export function createDefaultCourse(baseData) {
     creatorId: baseData.creatorId || '',
     creatorRole: baseData.creatorRole || 'user',
     status: baseData.status || 'active',
+    visibility: baseData.visibility || 'draft',
     language: baseData.language || '',
     level: baseData.level || '',
     skills: baseData.skills || [],
