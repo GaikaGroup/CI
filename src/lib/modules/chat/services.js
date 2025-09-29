@@ -1,5 +1,5 @@
 import { addMessage, updateMessage, messages } from './stores';
-import { synthesizeWaitingPhrase } from './voiceServices.js';
+import { synthesizeWaitingPhrase, isVoiceModeActive } from './voiceServices.js';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
@@ -13,6 +13,9 @@ import {
 } from '$lib/config/api.js';
 import { waitingPhrasesService } from './waitingPhrasesService.js';
 
+const TEXT_MODE_PHRASE_INTERVAL = 2000;
+const VOICE_MODE_PHRASE_INTERVAL = 4000;
+
 // Helper to synchronously store a conversation turn in session memory
 function storeConversation(adapter, sessionId, message, reply) {
   return adapter.handleUserMessage(message, sessionId, () => reply);
@@ -24,12 +27,20 @@ function storeConversation(adapter, sessionId, message, reply) {
  * The full phrase is also sent to voiceServices for TTS handling.
  *
  * @param {string} phrase - Full waiting phrase
- * @param {number} delay - Delay in milliseconds between sentence additions
+ * @param {number|null} delayOverride - Optional explicit delay in milliseconds between sentence additions
  * @returns {number[]} Array of message IDs created for the waiting phrase
  */
-export function emitWaitingPhraseIncrementally(phrase, delay = 500) {
+export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
   const sentences = phrase.match(/[^.!?]+[.!?]+/g) || [phrase];
   const ids = [];
+
+  const isVoiceMode = Boolean(get(isVoiceModeActive));
+  const delay =
+    typeof delayOverride === 'number'
+      ? delayOverride
+      : isVoiceMode
+        ? VOICE_MODE_PHRASE_INTERVAL
+        : TEXT_MODE_PHRASE_INTERVAL;
 
   // Pass full phrase to voice services for TTS
   synthesizeWaitingPhrase(phrase).catch((e) =>

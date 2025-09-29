@@ -4,6 +4,19 @@ import { translationBridge } from '../../../src/lib/modules/chat/translationBrid
 import { emitWaitingPhraseIncrementally } from '../../../src/lib/modules/chat/services.js';
 import { addMessage } from '../../../src/lib/modules/chat/stores';
 
+const mockVoiceModeStore = vi.hoisted(() => {
+  const store = {
+    __value: false,
+    subscribe: vi.fn(),
+    set: vi.fn((value) => {
+      store.__value = value;
+    }),
+    get: () => store.__value
+  };
+
+  return store;
+});
+
 // Mock svelte/store
 vi.mock('svelte/store', async () => {
   const actual = await vi.importActual('svelte/store');
@@ -58,7 +71,8 @@ vi.mock('../../../src/lib/modules/chat/stores', () => ({
 }));
 
 vi.mock('../../../src/lib/modules/chat/voiceServices.js', () => ({
-  synthesizeWaitingPhrase: vi.fn(() => Promise.resolve())
+  synthesizeWaitingPhrase: vi.fn(() => Promise.resolve()),
+  isVoiceModeActive: mockVoiceModeStore
 }));
 
 vi.mock('../../../src/lib/modules/i18n/stores', () => ({
@@ -135,6 +149,7 @@ describe('WaitingPhrasesService', () => {
   afterEach(() => {
     vi.clearAllMocks();
     mockMessages.length = 0;
+    mockVoiceModeStore.__value = false;
   });
 
   describe('Phrase Selection Logic', () => {
@@ -495,6 +510,54 @@ describe('WaitingPhrasesService', () => {
         waiting: true
       });
 
+      vi.useRealTimers();
+    });
+
+    it('should default to 2-second intervals in text mode', async () => {
+      vi.useFakeTimers();
+
+      const phrase = 'Intro sentence. Follow-up sentence.';
+      const ids = emitWaitingPhraseIncrementally(phrase);
+
+      expect(ids).toHaveLength(2);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+      expect(addMessage).toHaveBeenNthCalledWith(1, 'tutor', 'Intro sentence.', null, ids[0], {
+        waiting: true
+      });
+
+      await vi.advanceTimersByTimeAsync(1999);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(addMessage).toHaveBeenNthCalledWith(2, 'tutor', 'Follow-up sentence.', null, ids[1], {
+        waiting: true
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('should use 4-second intervals when voice mode is active', async () => {
+      vi.useFakeTimers();
+      mockVoiceModeStore.__value = true;
+
+      const phrase = 'Voice first. Voice second.';
+      const ids = emitWaitingPhraseIncrementally(phrase);
+
+      expect(ids).toHaveLength(2);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+      expect(addMessage).toHaveBeenNthCalledWith(1, 'tutor', 'Voice first.', null, ids[0], {
+        waiting: true
+      });
+
+      await vi.advanceTimersByTimeAsync(3999);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(addMessage).toHaveBeenNthCalledWith(2, 'tutor', 'Voice second.', null, ids[1], {
+        waiting: true
+      });
+
+      mockVoiceModeStore.__value = false;
       vi.useRealTimers();
     });
   });
