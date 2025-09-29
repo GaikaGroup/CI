@@ -121,11 +121,54 @@ export class ProviderManager {
       const modelName = result.model || requestOptions?.model;
 
       // Normalize usage fields from various providers
-      const usage = result.usage || {};
+      const usageSources = [result.usage, result.raw, result.raw?.usage].filter(
+        (candidate) => candidate && typeof candidate === 'object'
+      );
+
+      const pickNumeric = (keys) => {
+        for (const source of usageSources) {
+          for (const key of keys) {
+            const value = source[key];
+            if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+              return value;
+            }
+          }
+        }
+        return undefined;
+      };
+
+      const promptTokens = pickNumeric([
+        'prompt_tokens',
+        'promptTokens',
+        'input_tokens',
+        'inputTokens',
+        'prompt_eval_count',
+        'prompt_eval'
+      ]);
+      const completionTokens = pickNumeric([
+        'completion_tokens',
+        'completionTokens',
+        'output_tokens',
+        'outputTokens',
+        'eval_count',
+        'eval'
+      ]);
+      let totalTokens = pickNumeric(['total_tokens', 'totalTokens']);
+
+      if (typeof totalTokens === 'undefined' && typeof promptTokens === 'number') {
+        if (typeof completionTokens === 'number') {
+          totalTokens = promptTokens + completionTokens;
+        } else {
+          totalTokens = promptTokens;
+        }
+      } else if (typeof totalTokens === 'undefined' && typeof completionTokens === 'number') {
+        totalTokens = completionTokens;
+      }
+
       const tokens = {
-        prompt: usage.prompt_tokens ?? usage.promptTokens ?? 0,
-        completion: usage.completion_tokens ?? usage.completionTokens ?? 0,
-        total: usage.total_tokens ?? usage.totalTokens ?? 0
+        prompt: promptTokens ?? 0,
+        completion: completionTokens ?? 0,
+        total: totalTokens ?? 0
       };
 
       // Paid usage + cost calc (OpenAI is paid; Ollama local is not)
