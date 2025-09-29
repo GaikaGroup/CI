@@ -20,6 +20,7 @@
   import { setVoiceModeActive } from '../voiceServices';
   import { container } from '$lib/shared/di/container';
   import { LLM_FEATURES } from '$lib/config/llm';
+  import { ensureProviderManager } from '$modules/llm/ensureProviderManager.js';
   import { OPENAI_CONFIG } from '$lib/config/api';
   import LanguageSelector from '$modules/i18n/components/LanguageSelector.svelte';
   import MessageList from './MessageList.svelte';
@@ -45,7 +46,7 @@
   onMount(async () => {
     if (LLM_FEATURES.ENABLE_PROVIDER_SWITCHING && browser) {
       try {
-        const providerManager = container.resolve('llmProviderManager');
+        const providerManager = await ensureProviderManager();
         availableProviders = providerManager.listProviders();
         selectedProvider = providerManager.defaultProvider;
         console.log('Available LLM providers:', availableProviders);
