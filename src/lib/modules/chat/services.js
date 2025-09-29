@@ -22,7 +22,7 @@ const SENTENCE_LENGTH_THRESHOLD = 12;
 const EXTRA_DELAY_PER_WORD = 80;
 const JITTER_FACTOR = 0.15;
 
-function calculateSentenceDelay(baseInterval: number, sentence: string) {
+function calculateSentenceDelay(baseInterval, sentence) {
   const trimmed = sentence.trim();
   if (!trimmed) {
     return baseInterval;
@@ -39,7 +39,7 @@ function calculateSentenceDelay(baseInterval: number, sentence: string) {
 }
 
 // Helper to synchronously store a conversation turn in session memory
-function storeConversation(adapter: any, sessionId: string, message: string, reply: string) {
+function storeConversation(adapter, sessionId, message, reply) {
   return adapter.handleUserMessage(message, sessionId, () => reply);
 }
 
@@ -52,19 +52,19 @@ function storeConversation(adapter: any, sessionId: string, message: string, rep
  * @param {number|null} delayOverride - Optional explicit delay in milliseconds between sentence additions
  * @returns {number[]} Array of message IDs created for the waiting phrase
  */
-export function emitWaitingPhraseIncrementally(phrase: string, delayOverride: number | null = null) {
+export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
   const sentences = phrase.match(/[^.!?]+[.!?]+/g) || [phrase];
-  const ids: number[] = [];
+  const ids = [];
 
   const isVoiceMode = Boolean(get(isVoiceModeActive));
   const baseInterval = isVoiceMode ? VOICE_MODE_PHRASE_INTERVAL : TEXT_MODE_PHRASE_INTERVAL;
   const useDynamicDelays = typeof delayOverride !== 'number';
   const shouldSplitVoice = isVoiceMode && delayOverride == null;
 
-  const computeDelay = (sentence: string) =>
-    useDynamicDelays ? calculateSentenceDelay(baseInterval, sentence) : (delayOverride as number);
+  const computeDelay = (sentence) =>
+    useDynamicDelays ? calculateSentenceDelay(baseInterval, sentence) : delayOverride;
 
-  const scheduleVoice = (callback: () => void, delay: number) => {
+  const scheduleVoice = (callback, delay) => {
     if (!shouldSplitVoice) {
       return;
     }
@@ -119,15 +119,15 @@ export function emitWaitingPhraseIncrementally(phrase: string, delayOverride: nu
  * @returns {Promise} - Promise that resolves when the message is sent
  */
 export async function sendMessage(
-  content: string,
-  images: string[] = [],
-  sessionId: string | null = null,
-  provider: string | null = null,
-  maxTokens: number | null = null,
-  detailLevel: string | null = null,
-  minWords: number | null = null
+  content,
+  images = [],
+  sessionId = null,
+  provider = null,
+  maxTokens = null,
+  detailLevel = null,
+  minWords = null
 ) {
-  let waitingMessageIds: number[] = [];
+  let waitingMessageIds = [];
   try {
     console.log('sendMessage called with content:', content);
     console.log('sendMessage called with images:', images.length);
@@ -155,7 +155,7 @@ export async function sendMessage(
       ? container.resolve('sessionStorageAdapter')
       : null;
 
-    let session: any = null;
+    let session = null;
     if (sessionId && container.has('sessionFactory')) {
       try {
         const sessionFactory = container.resolve('sessionFactory');
@@ -181,11 +181,11 @@ export async function sendMessage(
           const blob = await response.blob();
           console.log(`Image ${index + 1} fetched successfully, blob size:`, blob.size);
 
-          return new Promise<string | null>((resolve, reject) => {
+          return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onloadend = () => {
               console.log(`Image ${index + 1} converted to base64 successfully`);
-              resolve(reader.result as string);
+              resolve(typeof reader.result === 'string' ? reader.result : null);
             };
             reader.onerror = (error) => {
               console.error(`Error reading blob as data URL for image ${index + 1}:`, error);
@@ -200,7 +200,7 @@ export async function sendMessage(
       });
 
       const imageData = await Promise.all(imageDataPromises);
-      const validImageData = imageData.filter((data): data is string => data !== null);
+      const validImageData = imageData.filter((data) => typeof data === 'string');
       console.log('Valid image data count:', validImageData.length);
 
       if (validImageData.length === 0) {
@@ -240,7 +240,7 @@ export async function sendMessage(
         textLength: recognizedText.length
       });
       // Get session context if available
-      let sessionContext: any = null;
+      let sessionContext = null;
       if (session) {
         sessionContext = session.getContext();
         console.log(
@@ -249,7 +249,7 @@ export async function sendMessage(
         );
       }
 
-      const requestBody: Record<string, any> = {
+      const requestBody = {
         content,
         images: validImageData,
         recognizedText, // Send the already processed text
@@ -325,7 +325,7 @@ export async function sendMessage(
       console.log('No images to process, sending text-only message');
 
       // Get session context if available
-      let sessionContext: any = null;
+      let sessionContext = null;
       if (session) {
         sessionContext = session.getContext();
         console.log(`[Session] Including context in API request:`, sessionContext);
@@ -368,7 +368,7 @@ export async function sendMessage(
 
       return true;
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error sending message:', error);
     console.error('Error details:', {
       name: error.name,
@@ -393,7 +393,7 @@ export async function sendMessage(
  * @param {string} sessionId - Optional session ID for retrieving context
  * @returns {Promise} - Promise that resolves with chat history
  */
-export async function getChatHistory(sessionId: string | null = null) {
+export async function getChatHistory(sessionId = null) {
   try {
     setLoading(true);
 
@@ -412,7 +412,7 @@ export async function getChatHistory(sessionId: string | null = null) {
         if (context && context.history && context.history.length > 0) {
           console.log(`[Session] Found ${context.history.length} messages in session history`);
           // Convert session history format to app format
-          return context.history.map((entry: any) => ({
+          return context.history.map((entry) => ({
             id: entry.timestamp,
             type: entry.role === 'user' ? 'user' : 'tutor',
             content: entry.content,
