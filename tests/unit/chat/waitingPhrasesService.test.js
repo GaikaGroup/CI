@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WaitingPhrasesService } from '../../../src/lib/modules/chat/waitingPhrasesService.js';
 import { translationBridge } from '../../../src/lib/modules/chat/translationBridge.js';
 import { emitWaitingPhraseIncrementally } from '../../../src/lib/modules/chat/services.js';
+import { synthesizeWaitingPhrase } from '../../../src/lib/modules/chat/voiceServices.js';
 import { addMessage } from '../../../src/lib/modules/chat/stores';
 
 const mockVoiceModeStore = vi.hoisted(() => {
@@ -56,7 +57,7 @@ vi.mock('../../../src/lib/modules/chat/waitingPhrasesConfig.js', () => ({
 }));
 
 // Mock chat stores for incremental waiting phrase tests
-const mockMessages = [];
+const mockMessages: any[] = [];
 vi.mock('../../../src/lib/modules/chat/stores', () => ({
   addMessage: vi.fn((type, content, _images, id, meta) => {
     mockMessages.push({ id, type, content, ...meta });
@@ -98,9 +99,9 @@ vi.mock('../../../src/lib/modules/chat/translationBridge.js', () => ({
 }));
 
 describe('WaitingPhrasesService', () => {
-  let service;
-  let mockConfig;
-  let mockConsole;
+  let service: WaitingPhrasesService;
+  let mockConfig: any;
+  let mockConsole: any;
 
   beforeEach(() => {
     // Create fresh service instance for each test
@@ -194,11 +195,11 @@ describe('WaitingPhrasesService', () => {
 
     it('should handle null or undefined phrases', () => {
       expect(() => {
-        service._selectRandomPhrase(null, 'general');
+        service._selectRandomPhrase(null as any, 'general');
       }).toThrow('No phrases available for selection');
 
       expect(() => {
-        service._selectRandomPhrase(undefined, 'general');
+        service._selectRandomPhrase(undefined as any, 'general');
       }).toThrow('No phrases available for selection');
     });
   });
@@ -210,11 +211,11 @@ describe('WaitingPhrasesService', () => {
       expect(result1).toBe('es');
 
       // Test fallback to English for invalid language
-      const result2 = service._detectTargetLanguage('invalid');
+      const result2 = service._detectTargetLanguage('invalid' as any);
       expect(result2).toBe('en');
 
       // Test null language
-      const result3 = service._detectTargetLanguage(null);
+      const result3 = service._detectTargetLanguage(null as any);
       expect(result3).toBe('en');
     });
 
@@ -223,7 +224,7 @@ describe('WaitingPhrasesService', () => {
       expect(service._isValidLanguageCode('es')).toBe(true);
       expect(service._isValidLanguageCode('ru')).toBe(true);
       expect(service._isValidLanguageCode('invalid')).toBe(false);
-      expect(service._isValidLanguageCode(null)).toBe(false);
+      expect(service._isValidLanguageCode(null as any)).toBe(false);
       expect(service._isValidLanguageCode('')).toBe(false);
     });
   });
@@ -277,7 +278,7 @@ describe('WaitingPhrasesService', () => {
       expect(history).not.toBe(service.phraseHistory); // Should be a copy
 
       // Modifying returned history should not affect internal history
-      history.push({ phrase: 'new phrase' });
+      history.push({ phrase: 'new phrase' } as any);
       expect(service.phraseHistory).toHaveLength(1);
     });
   });
@@ -428,7 +429,7 @@ describe('WaitingPhrasesService', () => {
         lastAccessed: Date.now() - 40 * 60 * 1000
       };
 
-      service.phraseCache.set('old:key', oldEntry);
+      service.phraseCache.set('old:key', oldEntry as any);
 
       const initialSize = service.phraseCache.size;
       service.optimizeCache();
@@ -481,7 +482,7 @@ describe('WaitingPhrasesService', () => {
 
     it('should handle uninitialized state gracefully', () => {
       service.isInitialized = false;
-      service.config = null;
+      service.config = null as any;
 
       const categories = service.getAvailableCategories();
       expect(categories).toEqual(['DefaultWaitingAnswer']);
@@ -515,6 +516,7 @@ describe('WaitingPhrasesService', () => {
 
     it('should default to 2-second intervals in text mode', async () => {
       vi.useFakeTimers();
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
       const phrase = 'Intro sentence. Follow-up sentence.';
       const ids = emitWaitingPhraseIncrementally(phrase);
@@ -533,12 +535,14 @@ describe('WaitingPhrasesService', () => {
         waiting: true
       });
 
+      randomSpy.mockRestore();
       vi.useRealTimers();
     });
 
     it('should use 4-second intervals when voice mode is active', async () => {
       vi.useFakeTimers();
       mockVoiceModeStore.__value = true;
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
 
       const phrase = 'Voice first. Voice second.';
       const ids = emitWaitingPhraseIncrementally(phrase);
@@ -556,6 +560,65 @@ describe('WaitingPhrasesService', () => {
       expect(addMessage).toHaveBeenNthCalledWith(2, 'tutor', 'Voice second.', null, ids[1], {
         waiting: true
       });
+
+      mockVoiceModeStore.__value = false;
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should extend delays for longer sentences in text mode', () => {
+      vi.useFakeTimers();
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const timeoutSpy = vi.spyOn(global, 'setTimeout');
+
+      const longSentence =
+        'This sentence intentionally includes far more descriptive words to guarantee additional thoughtful breathing space for testing purposes today.';
+      const phrase = `Short one. ${longSentence}`;
+      emitWaitingPhraseIncrementally(phrase);
+
+      const wordCount = longSentence.trim().split(/\s+/).filter(Boolean).length;
+      const expectedDelay = 2000 + Math.max(0, wordCount - 12) * 80;
+
+      expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), expectedDelay);
+
+      timeoutSpy.mockRestore();
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should synthesize each sentence separately in voice mode', async () => {
+      vi.useFakeTimers();
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockVoiceModeStore.__value = true;
+      synthesizeWaitingPhrase.mockClear();
+
+      const phrase = 'Audio first sentence. Audio follow up sentence.';
+      emitWaitingPhraseIncrementally(phrase);
+
+      expect(synthesizeWaitingPhrase).toHaveBeenNthCalledWith(1, 'Audio first sentence.');
+      expect(synthesizeWaitingPhrase).not.toHaveBeenCalledWith(phrase);
+
+      await vi.advanceTimersByTimeAsync(3999);
+      expect(synthesizeWaitingPhrase).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(synthesizeWaitingPhrase).toHaveBeenNthCalledWith(2, 'Audio follow up sentence.');
+
+      mockVoiceModeStore.__value = false;
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should keep single synthesis call when override delay is provided', () => {
+      vi.useFakeTimers();
+      mockVoiceModeStore.__value = true;
+      synthesizeWaitingPhrase.mockClear();
+
+      const phrase = 'Override first. Override second.';
+      emitWaitingPhraseIncrementally(phrase, 1500);
+
+      expect(synthesizeWaitingPhrase).toHaveBeenCalledTimes(1);
+      expect(synthesizeWaitingPhrase).toHaveBeenCalledWith(phrase);
 
       mockVoiceModeStore.__value = false;
       vi.useRealTimers();
