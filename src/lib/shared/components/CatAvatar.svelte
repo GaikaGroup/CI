@@ -82,26 +82,22 @@
   let mouthPositionCounts = {};
 
   // Audio completion detection
-  let audioCompletionDetector = null;
-  let lastAmplitudeCheckTime = 0;
   let lowAmplitudeCount = 0;
   let audioEndDetected = false;
 
   // Enhanced mouth closure detection
   let mouthClosureTimer = null;
   let forceClosureTimeout = null;
+  let isMouthClosing = false;
 
   // Enhanced lip-sync accuracy tracking
   let phonemeHistory = [];
   let amplitudeSmoothing = [];
-  let temporalConsistencyBuffer = [];
   const PHONEME_HISTORY_SIZE = 3;
   const AMPLITUDE_SMOOTHING_SIZE = 5;
-  const TEMPORAL_CONSISTENCY_SIZE = 4;
 
   // Avatar state management
   let avatarStateUnsubscribe = null;
-  let currentAvatarState = null;
 
   // Size classes (enlarged for better visibility)
   const sizeClasses = {
@@ -122,13 +118,12 @@
   // Audio completion detection function
   function detectAudioCompletion() {
     const currentAmplitude = get(audioAmplitude);
-    const currentTime = Date.now();
     const isSpeakingState = get(isSpeaking);
 
     // If we're supposed to be speaking but amplitude is very low
     if (isSpeakingState && currentAmplitude < 0.02) {
       lowAmplitudeCount++;
-      
+
       // If amplitude has been low for several checks, audio might have ended
       if (lowAmplitudeCount > 5 && !audioEndDetected) {
         console.log('Audio completion detected via amplitude monitoring');
@@ -142,18 +137,20 @@
     }
 
     // If speaking state changed to false, ensure mouth closes
-    if (!isSpeakingState && currentMouthImage) {
+    if (!isSpeakingState && currentMouthImage && !isMouthClosing) {
       console.log('Speaking state ended, ensuring mouth closure');
       handleAudioCompletion();
     }
-
-    lastAmplitudeCheckTime = currentTime;
   }
 
   // Handle audio completion with proper mouth closure
   function handleAudioCompletion() {
+    if (!currentMouthImage || isMouthClosing) {
+      return;
+    }
+
     console.log('Handling audio completion - closing mouth');
-    
+
     // Clear any existing closure timers
     if (mouthClosureTimer) {
       clearTimeout(mouthClosureTimer);
@@ -172,17 +169,23 @@
         currentMouthImage = null;
         smoothAmplitude.set(0);
         mouthBuffer = [];
+        isMouthClosing = false;
+        if (mouthClosureTimer) {
+          clearTimeout(mouthClosureTimer);
+          mouthClosureTimer = null;
+        }
       }
     }, 500); // Maximum 500ms to close mouth
   }
 
   // Initiate proper mouth closure with smooth transition
   function initiateProperMouthClosure() {
-    if (!currentMouthImage) {
-      return; // Already closed
+    if (!currentMouthImage || isMouthClosing) {
+      return; // Already closed or currently closing
     }
 
     console.log('Initiating proper mouth closure');
+    isMouthClosing = true;
 
     // Gradually reduce amplitude to create natural closing motion
     const closureSteps = [0.08, 0.04, 0.02, 0.01, 0];
@@ -192,7 +195,7 @@
       if (stepIndex < closureSteps.length) {
         const targetAmplitude = closureSteps[stepIndex];
         smoothAmplitude.set(targetAmplitude);
-        
+
         // Update mouth position based on reduced amplitude
         if (targetAmplitude > 0) {
           currentMouthImage = getMouthPosition(targetAmplitude);
@@ -201,7 +204,11 @@
           currentMouthImage = null;
           mouthBuffer = [];
           console.log('Mouth closure completed');
-          
+
+          isMouthClosing = false;
+
+          mouthClosureTimer = null;
+
           // Clear force closure timeout since we completed naturally
           if (forceClosureTimeout) {
             clearTimeout(forceClosureTimeout);
@@ -224,13 +231,13 @@
     const currentAmplitude = get(audioAmplitude);
 
     // If not speaking but mouth is open, close it
-    if (!isSpeakingState && currentMouthImage) {
+    if (!isSpeakingState && currentMouthImage && !isMouthClosing) {
       console.log('Mouth open while not speaking - initiating closure');
       handleAudioCompletion();
     }
 
     // If speaking but amplitude is zero and mouth is open, start closure
-    if (isSpeakingState && currentAmplitude < 0.01 && currentMouthImage) {
+    if (isSpeakingState && currentAmplitude < 0.01 && currentMouthImage && !isMouthClosing) {
       console.log('Zero amplitude detected while speaking - checking for completion');
       detectAudioCompletion();
     }
@@ -246,13 +253,11 @@
   }
 
   function handleAvatarStateChange(state) {
-    currentAvatarState = state;
-    
     // Update component state based on avatar state
     if (state.emotion !== emotion) {
       updateEmotion(state.emotion);
     }
-    
+
     if (state.speaking !== speaking) {
       // This will trigger the reactive statement below
       speaking = state.speaking;
@@ -272,7 +277,7 @@
   // Sync component state with avatar state manager
   function syncWithAvatarState() {
     const currentState = avatarStateManager.getCurrentState();
-    
+
     // Update avatar state if component props have changed
     const newState = {};
     let hasChanges = false;
@@ -330,12 +335,15 @@
     avatarStateUnsubscribe = avatarState.subscribe(handleAvatarStateChange);
 
     // Initialize avatar state
-    updateAvatarState({
-      currentState: 'idle',
-      emotion: emotion,
-      speaking: speaking,
-      mouthPosition: null
-    }, { priority: 'immediate' });
+    updateAvatarState(
+      {
+        currentState: 'idle',
+        emotion: emotion,
+        speaking: speaking,
+        mouthPosition: null
+      },
+      { priority: 'immediate' }
+    );
 
     // Preload all images
     const imagePromises = [
@@ -348,7 +356,7 @@
       updateEmotion(emotion);
       // Start idle animation
       startIdleAnimation();
-      
+
       // Sync initial state
       syncWithAvatarState();
     });
@@ -408,7 +416,7 @@
     }
 
     // Enhanced predictive amplitude calculation using smoothed values
-    const predictiveAmplitude = (smoothedAmplitude * 0.7) + (avgAmplitude * 0.3) + trend * 0.4;
+    const predictiveAmplitude = smoothedAmplitude * 0.7 + avgAmplitude * 0.3 + trend * 0.4;
 
     // Advanced phoneme detection based on amplitude patterns
     const phonemeHint = detectPhonemePattern(smoothedAmplitude, avgAmplitude, trend, trendStrength);
@@ -426,7 +434,8 @@
     let variance = 0;
     if (mouthBuffer.length > 1) {
       const mean = avgAmplitude;
-      variance = mouthBuffer.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / mouthBuffer.length;
+      variance =
+        mouthBuffer.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / mouthBuffer.length;
     }
 
     // Detect frequency characteristics (simulated from amplitude patterns)
@@ -452,7 +461,7 @@
 
     // Count occurrences of each phoneme in recent history
     const phonemeCounts = {};
-    phonemeHistory.forEach(phoneme => {
+    phonemeHistory.forEach((phoneme) => {
       phonemeCounts[phoneme] = (phonemeCounts[phoneme] || 0) + 1;
     });
 
@@ -535,7 +544,7 @@
 
   // Select mouth image based on detected phoneme
   function selectMouthImageFromPhoneme(phonemeHint, amplitude, audioMetrics) {
-    const { avgAmplitude, variance, frequencyHint } = audioMetrics;
+    const { avgAmplitude } = audioMetrics;
 
     switch (phonemeHint) {
       case 'open_vowel':
@@ -602,11 +611,7 @@
 
     // Calculate enhanced audio metrics
     const audioMetrics = analyzeAudioCharacteristics(amplitude);
-    const avgAmplitude = audioMetrics.avgAmplitude;
-    const trend = audioMetrics.trend;
-    const trendStrength = audioMetrics.trendStrength;
-    const predictiveAmplitude = audioMetrics.predictiveAmplitude;
-    const phonemeHint = audioMetrics.phonemeHint;
+    const { avgAmplitude, predictiveAmplitude, phonemeHint } = audioMetrics;
 
     // Check if enough time has passed since last mouth change
     const now = Date.now();
@@ -689,6 +694,7 @@
     // Reset buffer
     mouthBuffer = [];
     lastMouthChange = 0;
+    isMouthClosing = false;
 
     function updateMouth() {
       if (!speaking) {
@@ -733,6 +739,7 @@
       // Only update mouth position if we haven't detected audio completion
       if (!audioEndDetected) {
         currentMouthImage = getMouthPosition(predictiveAmplitude);
+        isMouthClosing = false;
       }
 
       // Use a more consistent timing approach for smoother animation
@@ -754,7 +761,7 @@
   // Stop lip-sync animation
   function stopLipSync() {
     console.log('Stopping lip-sync animation');
-    
+
     // Clear both setTimeout and requestAnimationFrame to ensure proper cleanup
     if (animationFrame) {
       // Check if it's a timeout ID (number) or animation frame ID
@@ -796,13 +803,16 @@
     // If speaking state changed
     if (speaking !== lastSpeakingState) {
       // Update avatar state manager
-      updateAvatarState({
-        speaking: speaking,
-        currentState: speaking ? 'speaking' : 'idle'
-      }, { 
-        priority: 'high',
-        duration: 200
-      });
+      updateAvatarState(
+        {
+          speaking: speaking,
+          currentState: speaking ? 'speaking' : 'idle'
+        },
+        {
+          priority: 'high',
+          duration: 200
+        }
+      );
 
       // If transitioning from not speaking to speaking
       if (speaking) {
@@ -834,14 +844,17 @@
   // Watch for changes in emotion
   $: if (emotion && imagesLoaded) {
     updateEmotion(emotion);
-    
+
     // Update avatar state manager
-    updateAvatarState({
-      emotion: emotion
-    }, { 
-      priority: 'normal',
-      duration: 500
-    });
+    updateAvatarState(
+      {
+        emotion: emotion
+      },
+      {
+        priority: 'normal',
+        duration: 500
+      }
+    );
   }
 
   // Clean up on component destruction
@@ -879,6 +892,8 @@
       clearTimeout(forceClosureTimeout);
     }
 
+    isMouthClosing = false;
+
     // Reset all state
     mouthBuffer = [];
     lastMouthPositions = [];
@@ -886,20 +901,22 @@
     smoothAmplitude.set(0);
     audioEndDetected = false;
     lowAmplitudeCount = 0;
-    
+
     // Reset enhanced lip-sync buffers
     phonemeHistory = [];
     amplitudeSmoothing = [];
-    temporalConsistencyBuffer = [];
   });
 </script>
 
-<div
-  class="{sizeClasses[size].outer} flex items-center justify-center relative"
->
+<div class="{sizeClasses[size].outer} flex items-center justify-center relative">
   <div class="{sizeClasses[size].inner} overflow-hidden relative">
     <!-- Base emotion image -->
-    <img src={currentCatImage} alt="Cat avatar" class="w-full h-full object-cover drop-shadow-lg filter" style="filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));" />
+    <img
+      src={currentCatImage}
+      alt="Cat avatar"
+      class="w-full h-full object-cover drop-shadow-lg filter"
+      style="filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));"
+    />
 
     <!-- Mouth overlay for lip sync with CSS transition for smoother changes -->
     {#if currentMouthImage}
