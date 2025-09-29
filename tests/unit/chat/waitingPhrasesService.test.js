@@ -2,7 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WaitingPhrasesService } from '../../../src/lib/modules/chat/waitingPhrasesService.js';
 import { translationBridge } from '../../../src/lib/modules/chat/translationBridge.js';
 import { emitWaitingPhraseIncrementally } from '../../../src/lib/modules/chat/services.js';
+import { synthesizeWaitingPhrase } from '../../../src/lib/modules/chat/voiceServices.js';
 import { addMessage } from '../../../src/lib/modules/chat/stores';
+
+const mockVoiceModeStore = vi.hoisted(() => {
+  const store = {
+    __value: false,
+    subscribe: vi.fn(),
+    set: vi.fn((value) => {
+      store.__value = value;
+    }),
+    get: () => store.__value
+  };
+
+  return store;
+});
 
 // Mock svelte/store
 vi.mock('svelte/store', async () => {
@@ -58,7 +72,8 @@ vi.mock('../../../src/lib/modules/chat/stores', () => ({
 }));
 
 vi.mock('../../../src/lib/modules/chat/voiceServices.js', () => ({
-  synthesizeWaitingPhrase: vi.fn(() => Promise.resolve())
+  synthesizeWaitingPhrase: vi.fn(() => Promise.resolve()),
+  isVoiceModeActive: mockVoiceModeStore
 }));
 
 vi.mock('../../../src/lib/modules/i18n/stores', () => ({
@@ -135,6 +150,7 @@ describe('WaitingPhrasesService', () => {
   afterEach(() => {
     vi.clearAllMocks();
     mockMessages.length = 0;
+    mockVoiceModeStore.__value = false;
   });
 
   describe('Phrase Selection Logic', () => {
@@ -495,6 +511,116 @@ describe('WaitingPhrasesService', () => {
         waiting: true
       });
 
+      vi.useRealTimers();
+    });
+
+    it('should default to 2-second intervals in text mode', async () => {
+      vi.useFakeTimers();
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+      const phrase = 'Intro sentence. Follow-up sentence.';
+      const ids = emitWaitingPhraseIncrementally(phrase);
+
+      expect(ids).toHaveLength(2);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+      expect(addMessage).toHaveBeenNthCalledWith(1, 'tutor', 'Intro sentence.', null, ids[0], {
+        waiting: true
+      });
+
+      await vi.advanceTimersByTimeAsync(1999);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(addMessage).toHaveBeenNthCalledWith(2, 'tutor', 'Follow-up sentence.', null, ids[1], {
+        waiting: true
+      });
+
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should use 4-second intervals when voice mode is active', async () => {
+      vi.useFakeTimers();
+      mockVoiceModeStore.__value = true;
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+      const phrase = 'Voice first. Voice second.';
+      const ids = emitWaitingPhraseIncrementally(phrase);
+
+      expect(ids).toHaveLength(2);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+      expect(addMessage).toHaveBeenNthCalledWith(1, 'tutor', 'Voice first.', null, ids[0], {
+        waiting: true
+      });
+
+      await vi.advanceTimersByTimeAsync(3999);
+      expect(addMessage).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(addMessage).toHaveBeenNthCalledWith(2, 'tutor', 'Voice second.', null, ids[1], {
+        waiting: true
+      });
+
+      mockVoiceModeStore.__value = false;
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should extend delays for longer sentences in text mode', () => {
+      vi.useFakeTimers();
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const timeoutSpy = vi.spyOn(global, 'setTimeout');
+
+      const longSentence =
+        'This sentence intentionally includes far more descriptive words to guarantee additional thoughtful breathing space for testing purposes today.';
+      const phrase = `Short one. ${longSentence}`;
+      emitWaitingPhraseIncrementally(phrase);
+
+      const wordCount = longSentence.trim().split(/\s+/).filter(Boolean).length;
+      const expectedDelay = 2000 + Math.max(0, wordCount - 12) * 80;
+
+      expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), expectedDelay);
+
+      timeoutSpy.mockRestore();
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should synthesize each sentence separately in voice mode', async () => {
+      vi.useFakeTimers();
+      const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      mockVoiceModeStore.__value = true;
+      synthesizeWaitingPhrase.mockClear();
+
+      const phrase = 'Audio first sentence. Audio follow up sentence.';
+      emitWaitingPhraseIncrementally(phrase);
+
+      expect(synthesizeWaitingPhrase).toHaveBeenNthCalledWith(1, 'Audio first sentence.');
+      expect(synthesizeWaitingPhrase).not.toHaveBeenCalledWith(phrase);
+
+      await vi.advanceTimersByTimeAsync(3999);
+      expect(synthesizeWaitingPhrase).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(synthesizeWaitingPhrase).toHaveBeenNthCalledWith(2, 'Audio follow up sentence.');
+
+      mockVoiceModeStore.__value = false;
+      randomSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it('should keep single synthesis call when override delay is provided', () => {
+      vi.useFakeTimers();
+      mockVoiceModeStore.__value = true;
+      synthesizeWaitingPhrase.mockClear();
+
+      const phrase = 'Override first. Override second.';
+      emitWaitingPhraseIncrementally(phrase, 1500);
+
+      expect(synthesizeWaitingPhrase).toHaveBeenCalledTimes(1);
+      expect(synthesizeWaitingPhrase).toHaveBeenCalledWith(phrase);
+
+      mockVoiceModeStore.__value = false;
       vi.useRealTimers();
     });
   });

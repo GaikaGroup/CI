@@ -1,5 +1,5 @@
 import { addMessage, updateMessage, messages } from './stores';
-import { synthesizeWaitingPhrase } from './voiceServices.js';
+import { synthesizeWaitingPhrase, isVoiceModeActive } from './voiceServices.js';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
@@ -13,6 +13,29 @@ import {
 } from '$lib/config/api.js';
 import { waitingPhrasesService } from './waitingPhrasesService.js';
 
+const TEXT_MODE_PHRASE_INTERVAL = 2000;
+const VOICE_MODE_PHRASE_INTERVAL = 4000;
+const DELAY_MIN_RATIO = 0.6;
+const SENTENCE_LENGTH_THRESHOLD = 12;
+const EXTRA_DELAY_PER_WORD = 80;
+const JITTER_FACTOR = 0.15;
+
+function calculateSentenceDelay(baseInterval, sentence) {
+  const trimmed = sentence.trim();
+  if (!trimmed) {
+    return baseInterval;
+  }
+
+  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+  const jitter = (Math.random() * 2 - 1) * baseInterval * JITTER_FACTOR;
+  const extraWords = Math.max(0, wordCount - SENTENCE_LENGTH_THRESHOLD);
+  const extraDelay = extraWords * EXTRA_DELAY_PER_WORD;
+  const rawDelay = baseInterval + jitter + extraDelay;
+  const minimumDelay = baseInterval * DELAY_MIN_RATIO;
+
+  return Math.max(Math.round(minimumDelay), Math.round(rawDelay));
+}
+
 // Helper to synchronously store a conversation turn in session memory
 function storeConversation(adapter, sessionId, message, reply) {
   return adapter.handleUserMessage(message, sessionId, () => reply);
@@ -24,27 +47,60 @@ function storeConversation(adapter, sessionId, message, reply) {
  * The full phrase is also sent to voiceServices for TTS handling.
  *
  * @param {string} phrase - Full waiting phrase
- * @param {number} delay - Delay in milliseconds between sentence additions
+ * @param {number|null} delayOverride - Optional explicit delay in milliseconds between sentence additions
  * @returns {number[]} Array of message IDs created for the waiting phrase
  */
-export function emitWaitingPhraseIncrementally(phrase, delay = 500) {
+export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
   const sentences = phrase.match(/[^.!?]+[.!?]+/g) || [phrase];
   const ids = [];
 
-  // Pass full phrase to voice services for TTS
-  synthesizeWaitingPhrase(phrase).catch((e) =>
-    console.warn('Failed to synthesize waiting phrase:', e)
-  );
+  const isVoiceMode = Boolean(get(isVoiceModeActive));
+  const baseInterval = isVoiceMode ? VOICE_MODE_PHRASE_INTERVAL : TEXT_MODE_PHRASE_INTERVAL;
+  const useDynamicDelays = typeof delayOverride !== 'number';
+  const shouldSplitVoice = isVoiceMode && delayOverride == null;
+
+  const computeDelay = (sentence) =>
+    useDynamicDelays ? calculateSentenceDelay(baseInterval, sentence) : delayOverride;
+
+  const scheduleVoice = (callback, delay) => {
+    if (!shouldSplitVoice) {
+      return;
+    }
+
+    if (delay <= 0) {
+      callback();
+    } else {
+      setTimeout(callback, delay);
+    }
+  };
+
+  if (!shouldSplitVoice) {
+    synthesizeWaitingPhrase(phrase).catch((e) =>
+      console.warn('Failed to synthesize waiting phrase:', e)
+    );
+  }
+
+  let accumulatedDelay = 0;
 
   sentences.forEach((sentence, index) => {
     const id = Date.now() + index;
     ids.push(id);
 
-    const emit = () => addMessage('tutor', sentence.trim(), null, id, { waiting: true });
+    const trimmedSentence = sentence.trim();
+    const emit = () => addMessage('tutor', trimmedSentence, null, id, { waiting: true });
+    const speak = () =>
+      synthesizeWaitingPhrase(trimmedSentence).catch((e) =>
+        console.warn('Failed to synthesize waiting phrase:', e)
+      );
+
     if (index === 0) {
       emit();
+      scheduleVoice(speak, 0);
     } else {
-      setTimeout(emit, delay * index);
+      const delayForSentence = computeDelay(trimmedSentence);
+      accumulatedDelay += delayForSentence;
+      setTimeout(emit, accumulatedDelay);
+      scheduleVoice(speak, accumulatedDelay);
     }
   });
 
