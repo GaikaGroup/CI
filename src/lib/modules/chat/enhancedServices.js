@@ -51,16 +51,20 @@ export async function sendMessageWithOCRContext(
     const activeExamProfile = get(examProfile);
 
     // Detect the message language prior to waiting phrase selection
-    let detectionResult = null;
+    let targetLanguage = get(selectedLanguage);
     try {
-      detectionResult = languageDetector.syncLanguageFromText(content);
+      const detectionResult = languageDetector.detectLanguageFromText(content);
+      if (detectionResult?.language) {
+        targetLanguage = detectionResult.language;
+        const currentLanguage = get(selectedLanguage);
+        if (targetLanguage !== currentLanguage) {
+          console.log(`Detected OCR message language: ${targetLanguage} (was ${currentLanguage})`);
+          // Sync the app's selected language to the detected one
+          selectedLanguage.set(targetLanguage);
+        }
+      }
     } catch (error) {
-      console.warn('Failed to synchronize language from OCR-enhanced content:', error);
-    }
-
-    const targetLanguage = get(selectedLanguage);
-    if (detectionResult?.language) {
-      console.log(`Using waiting phrases in detected OCR language: ${targetLanguage}`);
+      console.warn('Failed to detect language from OCR-enhanced content:', error);
     }
 
     const phraseCategory =
