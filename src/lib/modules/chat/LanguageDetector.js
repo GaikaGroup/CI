@@ -11,16 +11,16 @@ export class LanguageDetector {
     this.supportedLanguages = ['en', 'es', 'ru'];
     this.detectionCache = new Map();
     this.cacheTimeout = 300000; // 5 minutes
-    
+
     // Language-specific audio characteristics
     this.languageProfiles = {
       en: {
         // English characteristics
-        fundamentalRange: [85, 255],     // Hz - typical F0 range
+        fundamentalRange: [85, 255], // Hz - typical F0 range
         formantPatterns: [
-          [730, 1090],  // /a/ vowel formants
-          [270, 2290],  // /i/ vowel formants
-          [300, 870]    // /u/ vowel formants
+          [730, 1090], // /a/ vowel formants
+          [270, 2290], // /i/ vowel formants
+          [300, 870] // /u/ vowel formants
         ],
         rhythmPattern: 'stress-timed',
         consonantRatio: 0.6,
@@ -30,9 +30,9 @@ export class LanguageDetector {
         // Spanish characteristics
         fundamentalRange: [90, 280],
         formantPatterns: [
-          [700, 1200],  // /a/ vowel formants
-          [280, 2200],  // /i/ vowel formants
-          [320, 800]    // /u/ vowel formants
+          [700, 1200], // /a/ vowel formants
+          [280, 2200], // /i/ vowel formants
+          [320, 800] // /u/ vowel formants
         ],
         rhythmPattern: 'syllable-timed',
         consonantRatio: 0.55,
@@ -42,9 +42,9 @@ export class LanguageDetector {
         // Russian characteristics
         fundamentalRange: [80, 300],
         formantPatterns: [
-          [650, 1100],  // /a/ vowel formants
-          [250, 2100],  // /i/ vowel formants
-          [300, 700]    // /u/ vowel formants
+          [650, 1100], // /a/ vowel formants
+          [250, 2100], // /i/ vowel formants
+          [300, 700] // /u/ vowel formants
         ],
         rhythmPattern: 'stress-timed',
         consonantRatio: 0.65,
@@ -56,25 +56,25 @@ export class LanguageDetector {
     this.phoneticPatterns = {
       en: {
         // English-specific phonetic patterns
-        rhoticSounds: true,        // R-coloring
-        thSounds: true,            // /θ/ and /ð/ sounds
-        vowelReduction: true,      // Schwa in unstressed syllables
-        consonantClusters: true    // Complex consonant clusters
+        rhoticSounds: true, // R-coloring
+        thSounds: true, // /θ/ and /ð/ sounds
+        vowelReduction: true, // Schwa in unstressed syllables
+        consonantClusters: true // Complex consonant clusters
       },
       es: {
         // Spanish-specific patterns
-        rhoticSounds: true,        // Rolled R
-        thSounds: false,           // No /θ/ sounds (in most dialects)
-        vowelReduction: false,     // Clear vowels
-        consonantClusters: false   // Simpler consonant structure
+        rhoticSounds: true, // Rolled R
+        thSounds: false, // No /θ/ sounds (in most dialects)
+        vowelReduction: false, // Clear vowels
+        consonantClusters: false // Simpler consonant structure
       },
       ru: {
         // Russian-specific patterns
-        rhoticSounds: true,        // Rolled R
-        thSounds: false,           // No /θ/ sounds
-        vowelReduction: true,      // Vowel reduction in unstressed syllables
-        consonantClusters: true,   // Complex consonant clusters
-        palatalization: true       // Palatalized consonants
+        rhoticSounds: true, // Rolled R
+        thSounds: false, // No /θ/ sounds
+        vowelReduction: true, // Vowel reduction in unstressed syllables
+        consonantClusters: true, // Complex consonant clusters
+        palatalization: true // Palatalized consonants
       }
     };
 
@@ -101,17 +101,18 @@ export class LanguageDetector {
 
       // Perform detection analysis
       const detectionResult = await this.performLanguageDetection(audioBuffer, audioMetrics);
-      
+
       // Cache the result
       this.addToCache(cacheKey, detectionResult);
-      
-      console.log(`Language detected: ${detectionResult.language} (confidence: ${detectionResult.confidence})`);
-      
-      return detectionResult;
 
+      console.log(
+        `Language detected: ${detectionResult.language} (confidence: ${detectionResult.confidence})`
+      );
+
+      return detectionResult;
     } catch (error) {
       console.error('Error in language detection:', error);
-      
+
       // Return fallback result
       return this.getFallbackLanguage();
     }
@@ -126,11 +127,11 @@ export class LanguageDetector {
   async performLanguageDetection(audioBuffer, audioMetrics) {
     // Since we don't have actual audio processing capabilities in this context,
     // we'll use a combination of heuristics and the current language context
-    
+
     const detectionScores = {};
-    
+
     // Initialize scores for all supported languages
-    this.supportedLanguages.forEach(lang => {
+    this.supportedLanguages.forEach((lang) => {
       detectionScores[lang] = 0;
     });
 
@@ -143,7 +144,7 @@ export class LanguageDetector {
     // Factor 2: Audio characteristics analysis
     if (audioMetrics.energy !== undefined) {
       const audioScores = this.analyzeAudioCharacteristics(audioMetrics);
-      Object.keys(audioScores).forEach(lang => {
+      Object.keys(audioScores).forEach((lang) => {
         if (detectionScores[lang] !== undefined) {
           detectionScores[lang] += audioScores[lang] * 0.3;
         }
@@ -152,7 +153,7 @@ export class LanguageDetector {
 
     // Factor 3: Prosodic pattern analysis (simulated)
     const prosodicScores = this.analyzeProsodicPatterns(audioMetrics);
-    Object.keys(prosodicScores).forEach(lang => {
+    Object.keys(prosodicScores).forEach((lang) => {
       if (detectionScores[lang] !== undefined) {
         detectionScores[lang] += prosodicScores[lang] * 0.2;
       }
@@ -160,7 +161,7 @@ export class LanguageDetector {
 
     // Factor 4: User's language history
     const historyScores = this.analyzeLanguageHistory();
-    Object.keys(historyScores).forEach(lang => {
+    Object.keys(historyScores).forEach((lang) => {
       if (detectionScores[lang] !== undefined) {
         detectionScores[lang] += historyScores[lang] * 0.1;
       }
@@ -196,11 +197,11 @@ export class LanguageDetector {
    */
   analyzeAudioCharacteristics(audioMetrics) {
     const scores = {};
-    const { energy, backgroundNoise, vadThreshold } = audioMetrics;
+    const { energy, vadThreshold } = audioMetrics;
 
     // Analyze energy patterns
     const energyRatio = energy / (vadThreshold || 0.15);
-    
+
     // Different languages have different typical energy patterns
     if (energyRatio > 2.0) {
       // High energy - could indicate stress-timed languages (English, Russian)
@@ -229,13 +230,14 @@ export class LanguageDetector {
    */
   analyzeProsodicPatterns(audioMetrics) {
     const scores = {};
-    
+
     // Simulate prosodic analysis based on available metrics
     // In a real implementation, this would analyze rhythm, stress, and intonation
-    
+
     // For now, use energy variance as a proxy for prosodic complexity
-    const energyVariance = audioMetrics.energyHistory ? 
-      this.calculateVariance(audioMetrics.energyHistory) : 0.1;
+    const energyVariance = audioMetrics.energyHistory
+      ? this.calculateVariance(audioMetrics.energyHistory)
+      : 0.1;
 
     if (energyVariance > 0.05) {
       // High variance - stress-timed languages
@@ -258,14 +260,14 @@ export class LanguageDetector {
    */
   analyzeLanguageHistory() {
     const scores = {};
-    
+
     // Get available languages from the i18n system
-    const availableLanguages = languages.map(lang => lang.code);
-    
+    const availableLanguages = languages.map((lang) => lang.code);
+
     // Current language gets a boost
     const currentLang = get(selectedLanguage);
-    
-    availableLanguages.forEach(lang => {
+
+    availableLanguages.forEach((lang) => {
       if (this.supportedLanguages.includes(lang)) {
         scores[lang] = lang === currentLang ? 0.5 : 0.1;
       }
@@ -284,17 +286,17 @@ export class LanguageDetector {
     const bestScore = scores[bestLanguage] || 0;
     const allScores = Object.values(scores);
     const totalScore = allScores.reduce((sum, score) => sum + score, 0);
-    
+
     if (totalScore === 0) return 0.5; // Default confidence
-    
+
     // Confidence based on how much the best score dominates
     const dominance = bestScore / totalScore;
-    
+
     // Also consider the absolute score
     const absoluteConfidence = Math.min(1, bestScore / 0.8);
-    
+
     // Combine dominance and absolute confidence
-    return Math.min(1, (dominance * 0.7) + (absoluteConfidence * 0.3));
+    return Math.min(1, dominance * 0.7 + absoluteConfidence * 0.3);
   }
 
   /**
@@ -304,9 +306,9 @@ export class LanguageDetector {
    */
   calculateVariance(values) {
     if (values.length < 2) return 0;
-    
+
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
+    const squaredDiffs = values.map((val) => Math.pow(val - mean, 2));
     return squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
   }
 
@@ -321,9 +323,9 @@ export class LanguageDetector {
     }
 
     const scores = {};
-    
+
     // Initialize scores
-    this.supportedLanguages.forEach(lang => {
+    this.supportedLanguages.forEach((lang) => {
       scores[lang] = 0;
     });
 
@@ -340,18 +342,21 @@ export class LanguageDetector {
     }
 
     // Spanish detection - Spanish-specific characters and patterns
-    if (/[ñáéíóúü¿¡]/i.test(text) || 
-        /\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están)\b/i.test(text)) {
+    const spanishKeywordMatches =
+      text.match(/\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están)\b/gi) || [];
+    const hasSpanishAccents = /[ñáéíóúü¿¡]/i.test(text);
+
+    if (hasSpanishAccents || spanishKeywordMatches.length >= 2) {
       scores.es = 0.8;
       scores.en = 0.1;
     } else {
-      // Default to English for Latin script
+      // Default to English for Latin script while keeping a minor Spanish score for mixed inputs
       scores.en = 0.7;
-      scores.es = 0.2;
+      scores.es = spanishKeywordMatches.length === 1 ? 0.3 : 0.2;
     }
 
-    const bestLanguage = Object.entries(scores).reduce((best, [lang, score]) => 
-      score > best.score ? { language: lang, score } : best, 
+    const bestLanguage = Object.entries(scores).reduce(
+      (best, [lang, score]) => (score > best.score ? { language: lang, score } : best),
       { language: 'en', score: 0 }
     ).language;
 
@@ -371,7 +376,7 @@ export class LanguageDetector {
   getFallbackLanguage() {
     const currentLang = get(selectedLanguage);
     const fallbackLang = this.supportedLanguages.includes(currentLang) ? currentLang : 'en';
-    
+
     return {
       language: fallbackLang,
       confidence: 0.5,
@@ -392,7 +397,7 @@ export class LanguageDetector {
     const bufferSize = audioBuffer.byteLength;
     const energy = audioMetrics.energy || 0;
     const timestamp = Math.floor(Date.now() / 60000); // 1-minute buckets
-    
+
     return `${bufferSize}_${energy.toFixed(3)}_${timestamp}`;
   }
 
@@ -404,13 +409,13 @@ export class LanguageDetector {
   getFromCache(key) {
     const cached = this.detectionCache.get(key);
     if (!cached) return null;
-    
+
     // Check if cache entry is still valid
     if (Date.now() - cached.timestamp > this.cacheTimeout) {
       this.detectionCache.delete(key);
       return null;
     }
-    
+
     return cached;
   }
 
@@ -425,13 +430,13 @@ export class LanguageDetector {
       // Remove oldest entries
       const entries = Array.from(this.detectionCache.entries());
       entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-      
+
       // Remove oldest 20 entries
       for (let i = 0; i < 20 && i < entries.length; i++) {
         this.detectionCache.delete(entries[i][0]);
       }
     }
-    
+
     this.detectionCache.set(key, { ...result, cached: true });
   }
 
@@ -461,10 +466,10 @@ export class LanguageDetector {
    * @param {Array<string>} languages - Language codes
    */
   updateSupportedLanguages(languages) {
-    this.supportedLanguages = languages.filter(lang => 
-      typeof lang === 'string' && lang.length === 2
+    this.supportedLanguages = languages.filter(
+      (lang) => typeof lang === 'string' && lang.length === 2
     );
-    
+
     console.log('Updated supported languages:', this.supportedLanguages);
   }
 }

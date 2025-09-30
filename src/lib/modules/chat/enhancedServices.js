@@ -21,6 +21,7 @@ import {
   OPENAI_CONFIG
 } from '$lib/config/api.js';
 import { waitingPhrasesService } from './waitingPhrasesService.js';
+import { languageDetector } from './LanguageDetector.js';
 
 // Initialize OCR service when this module is imported
 if (typeof window !== 'undefined') {
@@ -49,12 +50,28 @@ export async function sendMessageWithOCRContext(
 
     const activeExamProfile = get(examProfile);
 
+    // Detect the message language prior to waiting phrase selection
+    let targetLanguage = get(selectedLanguage);
+    try {
+      const detectionResult = languageDetector.detectLanguageFromText(content);
+      if (detectionResult?.language) {
+        targetLanguage = detectionResult.language;
+        const currentLanguage = get(selectedLanguage);
+        if (targetLanguage !== currentLanguage) {
+          console.log(`Detected OCR message language: ${targetLanguage}`);
+          selectedLanguage.set(targetLanguage);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to detect language from OCR-enhanced content:', error);
+    }
+
     const phraseCategory =
       (maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS) || detailLevel === 'detailed'
         ? WAITING_PHRASES_DETAILED
         : WAITING_PHRASES_DEFAULT;
     const waitingPhrase = await waitingPhrasesService.selectWaitingPhrase(
-      get(selectedLanguage),
+      targetLanguage,
       phraseCategory
     );
     waitingMessageId = Date.now();
