@@ -58,7 +58,8 @@ export async function sendMessageWithOCRContext(
         targetLanguage = detectionResult.language;
         const currentLanguage = get(selectedLanguage);
         if (targetLanguage !== currentLanguage) {
-          console.log(`Detected OCR message language: ${targetLanguage}`);
+          console.log(`Detected OCR message language: ${targetLanguage} (was ${currentLanguage})`);
+          // Sync the app's selected language to the detected one
           selectedLanguage.set(targetLanguage);
         }
       }

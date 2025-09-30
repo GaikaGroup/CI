@@ -148,7 +148,7 @@ export async function sendMessage(
         targetLanguage = detectionResult.language;
         const currentLanguage = get(selectedLanguage);
         if (targetLanguage !== currentLanguage) {
-          console.log(`Detected message language: ${targetLanguage}`);
+          console.log(`Detected message language: ${targetLanguage} (was ${currentLanguage})`);
           selectedLanguage.set(targetLanguage);
         }
       }
@@ -260,10 +260,7 @@ export async function sendMessage(
       let sessionContext = null;
       if (session) {
         sessionContext = session.getContext();
-        console.log(
-          '[Session] Including context in API request for image message:',
-          sessionContext
-        );
+        console.log('[Session] Including context in API request for image message:', sessionContext);
       }
 
       const requestBody = {
@@ -305,28 +302,25 @@ export async function sendMessage(
       }
 
       console.log('Adding AI response to chat');
-      // Add the AI's response to the chat with provider info if available
+      // Remove waiting bubbles and add the AI's response (with provider info if available)
       messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
       addMessage('tutor', data.response, null, Date.now(), { provider: data.provider });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
         console.log(`[Session] Storing conversation in session ${sessionId}`);
-        // Store user message
         await storeConversation(sessionStorageAdapter, sessionId, content, data.response);
       }
 
       // If OCR text was returned, update the original message with it
       if (data.ocrText) {
         console.log(`[OCR] Got text:`, data.ocrText);
-        // Find the message we're processing (should be the most recent user message with images)
         const userMessage = [...get(messages)]
           .reverse()
           .find((m) => m.type === 'user' && m.images && m.images.length > 0);
 
         if (userMessage) {
           console.log(`[OCR] Updating message ${userMessage.id} with text:`, data.ocrText);
-          // Update the message with the OCR text
           updateMessage(userMessage.id, { ocrText: data.ocrText });
           console.log(`[STORE] addOcrNote for ${userMessage.id}:`, data.ocrText);
         } else {
@@ -372,14 +366,13 @@ export async function sendMessage(
 
       const data = await response.json();
 
-      // Add the AI's response to the chat with provider info if available
+      // Remove waiting bubbles and add the AI's response (with provider info if available)
       messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
       addMessage('tutor', data.response, null, Date.now(), { provider: data.provider });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
         console.log(`[Session] Storing conversation in session ${sessionId}`);
-        // Store user message
         await storeConversation(sessionStorageAdapter, sessionId, content, data.response);
       }
 

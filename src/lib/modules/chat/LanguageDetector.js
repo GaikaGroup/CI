@@ -370,6 +370,37 @@ export class LanguageDetector {
   }
 
   /**
+   * Detect language from raw text and synchronize the selected language store
+   * to mirror the behaviour used in voice mode flows.
+   *
+   * @param {string} text - Text content to analyse
+   * @returns {Object|null} Detection result or null if detection failed
+   */
+  syncLanguageFromText(text) {
+    try {
+      const detectionResult = this.detectLanguageFromText(text);
+
+      if (detectionResult?.language) {
+        const currentLanguage = get(selectedLanguage);
+
+        if (detectionResult.language !== currentLanguage) {
+          console.log(
+            `Detected message language: ${detectionResult.language}, updating from ${currentLanguage}`
+          );
+          selectedLanguage.set(detectionResult.language);
+        }
+
+        return detectionResult;
+      }
+
+      return null;
+    } catch (error) {
+      console.warn('Failed to synchronize language from text:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get fallback language detection result
    * @returns {Object} Fallback result
    */
