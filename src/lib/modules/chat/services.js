@@ -12,6 +12,7 @@ import {
   OPENAI_CONFIG
 } from '$lib/config/api.js';
 import { waitingPhrasesService } from './waitingPhrasesService.js';
+import { languageDetector } from './LanguageDetector.js';
 
 const TEXT_MODE_PHRASE_INTERVAL = 2000;
 const VOICE_MODE_PHRASE_INTERVAL = 4000;
@@ -139,13 +140,26 @@ export async function sendMessage(
 
     const activeExamProfile = get(examProfile);
 
+    // Detect the language of the incoming message before generating waiting phrases
+    let detectionResult = null;
+    try {
+      detectionResult = languageDetector.syncLanguageFromText(content);
+    } catch (error) {
+      console.warn('Failed to synchronize language from message content:', error);
+    }
+
+    const targetLanguage = get(selectedLanguage);
+    if (detectionResult?.language) {
+      console.log(`Using waiting phrases in detected language: ${targetLanguage}`);
+    }
+
     // Select appropriate waiting phrase
     const phraseCategory =
       (maxTokens && maxTokens > OPENAI_CONFIG.MAX_TOKENS) || detailLevel === 'detailed'
         ? WAITING_PHRASES_DETAILED
         : WAITING_PHRASES_DEFAULT;
     const waitingPhrase = await waitingPhrasesService.selectWaitingPhrase(
-      get(selectedLanguage),
+      targetLanguage,
       phraseCategory
     );
     waitingMessageIds = emitWaitingPhraseIncrementally(waitingPhrase);
