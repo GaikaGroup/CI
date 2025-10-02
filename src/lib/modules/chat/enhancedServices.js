@@ -218,7 +218,12 @@ export async function sendMessageWithOCRContext(
 
       console.log('Adding AI response to chat');
       // Add the AI's response to the chat
-      updateMessage(waitingMessageId, { content: data.response, waiting: false });
+      updateMessage(waitingMessageId, {
+        content: data.response,
+        waiting: false,
+        animate: true,
+        ...(data.provider ? { provider: data.provider } : {})
+      });
 
       // Synthesize speech for the AI response if in voice mode
       console.log('Checking if speech synthesis is needed for OCR response');
@@ -251,7 +256,12 @@ export async function sendMessageWithOCRContext(
       const data = await response.json();
 
       // Add the AI's response to the chat
-      updateMessage(waitingMessageId, { content: data.response, waiting: false });
+      updateMessage(waitingMessageId, {
+        content: data.response,
+        waiting: false,
+        animate: true,
+        ...(data.provider ? { provider: data.provider } : {})
+      });
 
       return true;
     }
