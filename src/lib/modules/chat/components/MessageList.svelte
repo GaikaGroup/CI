@@ -1,11 +1,12 @@
 <script>
   import { afterUpdate } from 'svelte';
-  import { messages, processingImagesMap, ocrNotes } from '../stores';
+  import { messages, processingImagesMap, ocrNotes, updateMessage } from '../stores';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { darkMode } from '$modules/theme/stores';
   import { MESSAGE_TYPES } from '$shared/utils/constants';
   import { Loader, CheckCircle, Server } from 'lucide-svelte';
   import { LLM_FEATURES } from '$lib/config/llm';
+  import TypewriterMessage from './TypewriterMessage.svelte';
 
   // No props needed anymore, using stores instead
 
@@ -105,6 +106,20 @@
     // Capitalize first letter
     return providerName.charAt(0).toUpperCase() + providerName.slice(1);
   }
+
+  function shouldAnimate(message) {
+    return (
+      message.type === MESSAGE_TYPES.TUTOR && message.animate === true && message.waiting !== true
+    );
+  }
+
+  function handleTypewriterComplete(message) {
+    if (!message || message.animate !== true) {
+      return;
+    }
+
+    updateMessage(message.id, { animate: false });
+  }
 </script>
 
 <div class="h-96 overflow-y-auto p-6 space-y-4" bind:this={messagesContainer}>
@@ -147,7 +162,13 @@
               {/each}
             </div>
           {/if}
-          <p class="text-sm">{message.content}</p>
+          <p class="text-sm">
+            <TypewriterMessage
+              text={message.content}
+              animate={shouldAnimate(message)}
+              on:complete={() => handleTypewriterComplete(message)}
+            />
+          </p>
 
           {#if message.ocrText}
             <!-- OCR text rendering -->
@@ -178,7 +199,8 @@
           {/if}
 
           <div
-            class="flex items-center justify-between text-xs mt-1 {message.type === MESSAGE_TYPES.USER
+            class="flex items-center justify-between text-xs mt-1 {message.type ===
+            MESSAGE_TYPES.USER
               ? 'text-amber-200'
               : message.type === MESSAGE_TYPES.SYSTEM
                 ? $darkMode

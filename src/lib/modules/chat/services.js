@@ -260,7 +260,10 @@ export async function sendMessage(
       let sessionContext = null;
       if (session) {
         sessionContext = session.getContext();
-        console.log('[Session] Including context in API request for image message:', sessionContext);
+        console.log(
+          '[Session] Including context in API request for image message:',
+          sessionContext
+        );
       }
 
       const requestBody = {
@@ -304,7 +307,10 @@ export async function sendMessage(
       console.log('Adding AI response to chat');
       // Remove waiting bubbles and add the AI's response (with provider info if available)
       messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
-      addMessage('tutor', data.response, null, Date.now(), { provider: data.provider });
+      addMessage('tutor', data.response, null, Date.now(), {
+        provider: data.provider,
+        animate: true
+      });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
@@ -368,7 +374,10 @@ export async function sendMessage(
 
       // Remove waiting bubbles and add the AI's response (with provider info if available)
       messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
-      addMessage('tutor', data.response, null, Date.now(), { provider: data.provider });
+      addMessage('tutor', data.response, null, Date.now(), {
+        provider: data.provider,
+        animate: true
+      });
 
       // If session storage adapter is available and sessionId is provided, store in session
       if (sessionStorageAdapter && sessionId) {
