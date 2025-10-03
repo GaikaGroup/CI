@@ -11,7 +11,7 @@ describe('auth stores', () => {
     await login('Admin', 'Demo543');
     expect(get(isAuthenticated)).toBe(true);
     expect(get(user)).toEqual({
-      id: 0,
+      id: '0',
       name: 'Admin',
       email: 'admin@example.com',
       role: 'admin'

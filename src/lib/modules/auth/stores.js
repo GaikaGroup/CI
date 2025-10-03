@@ -9,16 +9,33 @@ export const isAuthenticated = writable(false);
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+function normalizeUserData(userData) {
+  if (!userData || typeof userData !== 'object') {
+    return userData;
+  }
+
+  if (userData.id != null && typeof userData.id !== 'string') {
+    return {
+      ...userData,
+      id: String(userData.id)
+    };
+  }
+
+  return userData;
+}
+
 function persistUserSession(userData) {
-  user.set(userData);
+  const normalizedUser = normalizeUserData(userData);
+
+  user.set(normalizedUser);
   isAuthenticated.set(true);
 
   if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(normalizedUser));
   }
 
   if (typeof document !== 'undefined') {
-    const cookieValue = encodeURIComponent(JSON.stringify(userData));
+    const cookieValue = encodeURIComponent(JSON.stringify(normalizedUser));
     document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
   }
 }
@@ -30,7 +47,7 @@ export function login(email, password) {
     setTimeout(() => {
       if (email === 'Admin' && password === 'Demo543') {
         const userData = {
-          id: 0,
+          id: '0',
           name: 'Admin',
           email: 'admin@example.com',
           role: 'admin'
@@ -40,7 +57,7 @@ export function login(email, password) {
         resolve(userData);
       } else if (email === 'admin@example.com' && password === 'password') {
         const userData = {
-          id: 1,
+          id: '1',
           name: 'Admin User',
           email: 'admin@example.com',
           role: 'admin'
@@ -50,7 +67,7 @@ export function login(email, password) {
         resolve(userData);
       } else if (email === 'student@example.com' && password === 'password') {
         const userData = {
-          id: 2,
+          id: '2',
           name: 'Student User',
           email: 'student@example.com',
           role: 'student'
@@ -87,8 +104,7 @@ export function checkAuth() {
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser);
-        user.set(userData);
-        isAuthenticated.set(true);
+        persistUserSession(userData);
       } catch (e) {
         console.error('Failed to parse stored user data', e);
         logout();
