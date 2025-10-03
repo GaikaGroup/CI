@@ -2,10 +2,16 @@
   import { createEventDispatcher } from 'svelte';
   import Button from '$shared/components/Button.svelte';
   import { AGENT_TYPES } from '$modules/courses/agents.js';
-  import { Plus, Edit, Trash2, Save, X, Bot } from 'lucide-svelte';
+  import AgentAIDraftPanel from './AgentAIDraftPanel.svelte';
+  import { Plus, Edit, Trash2, Save, X, Bot, Sparkles } from 'lucide-svelte';
 
   export let agents = [];
   export let orchestrationAgent = null;
+  export let allowOpenAI = true;
+  export let courseName = '';
+  export let courseLanguage = '';
+  export let courseLevel = '';
+  export let aiAgentSuggestions = [];
 
   const dispatch = createEventDispatcher();
 
@@ -45,6 +51,19 @@
 
   // Form validation
   let errors = {};
+
+  // AI blueprint state
+  let showAIBlueprint = false;
+  let blueprintPrefetch = [];
+  let blueprintError = null;
+  let blueprintUsage = null;
+  let pendingAISuggestions = [];
+
+  $: if (Array.isArray(aiAgentSuggestions) && aiAgentSuggestions.length > 0) {
+    pendingAISuggestions = aiAgentSuggestions;
+  } else if ((!aiAgentSuggestions || aiAgentSuggestions.length === 0) && !showAIBlueprint) {
+    pendingAISuggestions = [];
+  }
 
   // Initialize orchestration form when orchestration agent changes
   $: if (orchestrationAgent) {
@@ -164,6 +183,76 @@
     cancelAgentEdit();
   }
 
+  function createAgentFromBlueprint(blueprint) {
+    const now = new Date().toISOString();
+    return {
+      id: crypto.randomUUID(),
+      name: blueprint.name?.trim() || 'AI Agent',
+      description: blueprint.description?.trim() || '',
+      instructions: blueprint.instructions?.trim() || '',
+      systemPrompt: blueprint.systemPrompt?.trim() || '',
+      type: AGENT_TYPES.COURSE,
+      ragEnabled: blueprint.ragEnabled ?? true,
+      communicationStyle: {
+        tone: blueprint.communicationStyle?.tone || 'professional',
+        formality: blueprint.communicationStyle?.formality || 'adaptive',
+        responseLength: blueprint.communicationStyle?.responseLength || 'adaptive'
+      },
+      configuration: blueprint.configuration || {},
+      createdAt: now,
+      updatedAt: now
+    };
+  }
+
+  function openBlueprintPanel(prefetched = []) {
+    if (!allowOpenAI) {
+      return;
+    }
+    blueprintPrefetch = prefetched;
+    blueprintError = null;
+    blueprintUsage = null;
+    showAIBlueprint = true;
+  }
+
+  function handleBlueprintClose() {
+    showAIBlueprint = false;
+  }
+
+  function handleBlueprintApply(event) {
+    const selectedAgents = event.detail?.agents || [];
+    if (Array.isArray(selectedAgents)) {
+      selectedAgents.forEach((agent) => {
+        const agentData = createAgentFromBlueprint(agent);
+        dispatch('add-agent', { agent: agentData });
+      });
+    }
+    pendingAISuggestions = [];
+    dispatch('clear-ai-suggestions');
+    showAIBlueprint = false;
+  }
+
+  function handleBlueprintError(event) {
+    blueprintError = event.detail?.message || 'Failed to generate agent blueprints.';
+  }
+
+  function handleBlueprintGenerated(event) {
+    blueprintUsage = event.detail?.usage || null;
+    blueprintError = null;
+  }
+
+  function reviewPendingAISuggestions() {
+    if (pendingAISuggestions.length === 0) {
+      return;
+    }
+    openBlueprintPanel([...pendingAISuggestions]);
+    dispatch('clear-ai-suggestions');
+  }
+
+  function dismissPendingAISuggestions() {
+    pendingAISuggestions = [];
+    dispatch('clear-ai-suggestions');
+  }
+
   function deleteAgent(agent) {
     if (confirm(`Are you sure you want to delete the "${agent.name}" agent?`)) {
       dispatch('delete-agent', { agentId: agent.id });
@@ -229,18 +318,67 @@
 </script>
 
 <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
     <div>
       <h2 class="text-xl font-semibold text-stone-900 dark:text-white">Agent Management</h2>
       <p class="text-sm text-stone-600 dark:text-gray-300 mt-1">
         Configure AI agents that will interact with students
       </p>
+      {#if blueprintUsage}
+        <p class="text-xs text-stone-500 dark:text-gray-400 mt-1">
+          Last AI blueprint from {blueprintUsage.model} · {blueprintUsage.totalTokens || 0} tokens
+        </p>
+      {/if}
+      {#if blueprintError}
+        <p class="text-xs text-red-600 dark:text-red-300 mt-1">{blueprintError}</p>
+      {/if}
     </div>
-    <Button on:click={startAddAgent}>
-      <Plus class="w-4 h-4 mr-2" />
-      Add Agent
-    </Button>
+    <div class="flex flex-wrap items-center gap-3">
+      {#if allowOpenAI}
+        <Button variant="secondary" on:click={() => openBlueprintPanel([])}>
+          <Sparkles class="w-4 h-4 mr-2" />
+          Ask AI for agent blueprint
+        </Button>
+      {/if}
+      <Button on:click={startAddAgent}>
+        <Plus class="w-4 h-4 mr-2" />
+        Add Agent
+      </Button>
+    </div>
   </div>
+
+  {#if pendingAISuggestions.length > 0}
+    <div
+      class="border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-6 flex flex-col gap-3"
+    >
+      <div class="flex items-start gap-3">
+        <div
+          class="p-2 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-200"
+        >
+          <Sparkles class="w-4 h-4" />
+        </div>
+        <div class="flex-1">
+          <p class="text-sm text-amber-900 dark:text-amber-100">
+            AI drafted {pendingAISuggestions.length} agent suggestion{pendingAISuggestions.length >
+            1
+              ? 's'
+              : ''} when generating the course.
+          </p>
+          <p class="text-xs text-amber-800 dark:text-amber-200 mt-1">
+            Review them to add directly or dismiss to continue manually.
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <Button type="button" size="sm" on:click={reviewPendingAISuggestions}>
+          Review suggestions
+        </Button>
+        <Button type="button" variant="secondary" size="sm" on:click={dismissPendingAISuggestions}>
+          Dismiss
+        </Button>
+      </div>
+    </div>
+  {/if}
 
   <!-- Agent List -->
   <div class="space-y-4 mb-6">
@@ -646,5 +784,20 @@
         </form>
       </div>
     </div>
+  {/if}
+
+  {#if showAIBlueprint}
+    <AgentAIDraftPanel
+      open={showAIBlueprint}
+      {allowOpenAI}
+      {courseName}
+      languageHint={courseLanguage}
+      levelHint={courseLevel}
+      prefetchedAgents={blueprintPrefetch}
+      on:close={handleBlueprintClose}
+      on:apply={handleBlueprintApply}
+      on:error={handleBlueprintError}
+      on:generated={handleBlueprintGenerated}
+    />
   {/if}
 </div>
