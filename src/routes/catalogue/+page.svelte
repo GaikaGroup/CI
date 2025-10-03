@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import EnhancedChatInterface from '$modules/chat/components/EnhancedChatInterface.svelte';
   import { checkAuth } from '$modules/auth/stores';
   import { selectedLanguage } from '$modules/i18n/stores';
@@ -12,6 +13,57 @@
   import { user } from '$modules/auth/stores';
   import { examProfile, initialiseExamProfile, clearExamProfile } from '$lib/stores/examProfile';
   import { resetLearningSession, startLearningSession } from '$modules/learn/utils/session.js';
+  import { slugify } from '$lib/utils/slugify.js';
+
+  const buildCatalogueUrl = (course, action) => {
+    if (!course) {
+      return '/catalogue';
+    }
+
+    const slug = slugify(course.name, course.id);
+    const params = new URLSearchParams({
+      courseId: course.id,
+      course: slug
+    });
+
+    if (action) {
+      params.set('action', action);
+    }
+
+    return `/catalogue?${params.toString()}`;
+  };
+
+  const syncCatalogueUrl = (course, action) => {
+    if (!course) {
+      return;
+    }
+
+    goto(buildCatalogueUrl(course, action), {
+      replaceState: true,
+      keepfocus: true,
+      noscroll: true
+    });
+  };
+
+  const getVisibility = (course) => course?.visibility ?? 'draft';
+
+  const getUpdatedMetadata = (course) => ({
+    ...(course?.metadata ?? {}),
+    updatedAt: new Date()
+  });
+
+  const updateCourseVisibility = (course, visibility) => {
+    if (!course || getVisibility(course) === visibility) {
+      return;
+    }
+
+    coursesStore.updateCourse(course.id, {
+      visibility,
+      metadata: getUpdatedMetadata(course)
+    });
+  };
+
+  let lastHandledCourseAction = '';
 
   const handleCourseSelect = (event) => {
     const { course, mode } = event.detail;
@@ -20,6 +72,7 @@
     }
 
     startLearningSession(course, mode);
+    syncCatalogueUrl(course, 'open');
   };
 
   const handleJoinCourse = async (event) => {
@@ -56,6 +109,7 @@
       if (result.success) {
         console.log('Successfully enrolled, starting learning session');
         startLearningSession(course, 'practice');
+        syncCatalogueUrl(course, 'open');
       } else {
         console.error('Failed to join course:', result.error);
         alert(`Failed to join course: ${result.error}`);
@@ -73,11 +127,17 @@
     }
 
     startLearningSession(course, 'practice');
+    syncCatalogueUrl(course, 'open');
   };
 
   const handleEditCourse = (event) => {
     const { course } = event.detail;
-    goto(`/catalogue/edit?id=${course.id}`);
+    if (!course) {
+      return;
+    }
+
+    const slug = slugify(course.name, course.id);
+    goto(`/catalogue/edit?id=${course.id}&course=${slug}&action=edit`);
   };
 
   const handleCreateCourse = () => {
@@ -95,6 +155,34 @@
     initialiseExamProfile();
     setMode('catalogue');
   });
+
+  $: {
+    const currentUrl = $page?.url;
+    const courseIdFromUrl = currentUrl?.searchParams?.get('courseId');
+    const actionFromUrl = currentUrl?.searchParams?.get('action');
+
+    if (!courseIdFromUrl || !actionFromUrl) {
+      lastHandledCourseAction = '';
+    } else if ($coursesStore.length) {
+      const key = `${courseIdFromUrl}:${actionFromUrl}`;
+
+      if (key !== lastHandledCourseAction) {
+        const courseFromStore = $coursesStore.find((course) => course.id === courseIdFromUrl);
+
+        if (courseFromStore) {
+          if (actionFromUrl === 'open' || actionFromUrl === 'preview') {
+            startLearningSession(courseFromStore, 'practice');
+          } else if (actionFromUrl === 'publish') {
+            updateCourseVisibility(courseFromStore, 'published');
+          } else if (actionFromUrl === 'make-private') {
+            updateCourseVisibility(courseFromStore, 'private');
+          }
+
+          lastHandledCourseAction = key;
+        }
+      }
+    }
+  }
 
   $: activeMode = $examProfile
     ? $examProfile.mode === 'exam'

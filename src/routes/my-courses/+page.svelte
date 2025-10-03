@@ -7,6 +7,7 @@
   import { initialiseExamProfile } from '$lib/stores/examProfile';
   import { startLearningSession } from '$modules/learn/utils/session.js';
   import { Award, BookOpen, GraduationCap, PenSquare, TrendingUp, Users } from 'lucide-svelte';
+  import { slugify } from '$lib/utils/slugify.js';
 
   const roleTabs = [
     {
@@ -80,23 +81,46 @@
     updatedAt: new Date()
   });
 
+  const buildCourseActionUrl = (course, action) => {
+    if (!course) {
+      return '/catalogue';
+    }
+
+    const slug = slugify(course.name, course.id);
+    const params = new URLSearchParams({
+      courseId: course.id,
+      course: slug,
+      action
+    });
+
+    if (action === 'edit') {
+      return `/catalogue/edit?id=${course.id}&course=${slug}&action=${action}`;
+    }
+
+    return `/catalogue?${params.toString()}`;
+  };
+
   const openCourse = (course) => {
     if (!course) {
       return;
     }
     startLearningSession(course, 'practice');
-    goto('/catalogue');
+    goto(buildCourseActionUrl(course, 'open'));
   };
 
   const editCourse = (course) => {
     if (!course) {
       return;
     }
-    goto(`/catalogue/edit?id=${course.id}`);
+    goto(buildCourseActionUrl(course, 'edit'));
   };
 
   const previewCourse = (course) => {
-    openCourse(course);
+    if (!course) {
+      return;
+    }
+    startLearningSession(course, 'practice');
+    goto(buildCourseActionUrl(course, 'preview'));
   };
 
   const updateCourseVisibility = (course, visibility) => {
@@ -110,8 +134,27 @@
     });
   };
 
-  const publishCourse = (course) => updateCourseVisibility(course, 'published');
-  const makePrivateCourse = (course) => updateCourseVisibility(course, 'private');
+  const publishCourse = (course) => {
+    updateCourseVisibility(course, 'published');
+    if (course) {
+      goto(buildCourseActionUrl(course, 'publish'), {
+        replaceState: true,
+        keepfocus: true,
+        noscroll: true
+      });
+    }
+  };
+
+  const makePrivateCourse = (course) => {
+    updateCourseVisibility(course, 'private');
+    if (course) {
+      goto(buildCourseActionUrl(course, 'make-private'), {
+        replaceState: true,
+        keepfocus: true,
+        noscroll: true
+      });
+    }
+  };
 
   onMount(() => {
     checkAuth();
