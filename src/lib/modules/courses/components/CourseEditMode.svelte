@@ -4,7 +4,8 @@
   import Button from '$shared/components/Button.svelte';
   import AgentManager from './AgentManager.svelte';
   import DocumentUploader from './DocumentUploader.svelte';
-  import { ArrowLeft, Save, X } from 'lucide-svelte';
+  import CourseAIDraftPanel from './CourseAIDraftPanel.svelte';
+  import { ArrowLeft, Save, Sparkles, X } from 'lucide-svelte';
 
   export let course = null;
   export let isNew = false;
@@ -41,6 +42,28 @@
   let agents = [];
   let orchestrationAgent = null;
 
+  // AI drafting state
+  let aiOfferVisible = false;
+  let aiOfferDismissed = false;
+  let aiOfferTriggered = false;
+  let showCourseAIPanel = false;
+  let aiDraftError = null;
+  let aiDraftUsage = null;
+  let aiAgentSuggestions = [];
+  let aiCourseSuggestionsApplied = false;
+
+  function createDirtyFlags() {
+    return {
+      language: false,
+      level: false,
+      description: false,
+      shortDescription: false,
+      skills: false
+    };
+  }
+
+  let courseFieldDirty = createDirtyFlags();
+
   // Material management
   let materials = [];
 
@@ -70,6 +93,161 @@
 
     // Initialize materials
     materials = [...(course.materials || [])];
+    resetDirtyFlagsFromForm();
+  }
+
+  function resetDirtyFlagsFromForm() {
+    courseFieldDirty = createDirtyFlags();
+  }
+
+  function markFieldDirty(field) {
+    if (!courseFieldDirty[field]) {
+      courseFieldDirty = { ...courseFieldDirty, [field]: true };
+    }
+  }
+
+  function markSkillsDirty() {
+    if (!courseFieldDirty.skills) {
+      courseFieldDirty = { ...courseFieldDirty, skills: true };
+    }
+  }
+
+  function clampWords(text, limit) {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    const words = text.trim().split(/\s+/);
+    if (words.length <= limit) {
+      return words.join(' ');
+    }
+    return words.slice(0, limit).join(' ');
+  }
+
+  function mergeSkills(existing, incoming) {
+    const seen = new Set();
+    const merged = [];
+
+    for (const skill of existing || []) {
+      const normalised = typeof skill === 'string' ? skill.trim() : '';
+      if (!normalised) continue;
+      const key = normalised.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(normalised);
+    }
+
+    for (const skill of incoming || []) {
+      const normalised = typeof skill === 'string' ? skill.trim() : '';
+      if (!normalised) continue;
+      const key = normalised.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(normalised);
+      if (merged.length >= 5) {
+        break;
+      }
+    }
+
+    return merged.slice(0, 5);
+  }
+
+  function dismissAIOffer() {
+    aiOfferDismissed = true;
+    aiOfferVisible = false;
+  }
+
+  function openAIDraft() {
+    if (!formData.llmSettings.allowOpenAI) {
+      return;
+    }
+    aiDraftError = null;
+    showCourseAIPanel = true;
+  }
+
+  function handleAIDraftClosed() {
+    showCourseAIPanel = false;
+  }
+
+  function handleAIDraftGenerated(event) {
+    aiDraftUsage = event.detail?.usage || null;
+    aiDraftError = null;
+  }
+
+  function handleAIDraftError(event) {
+    aiDraftError = event.detail?.message || 'Failed to generate AI draft.';
+  }
+
+  function applyCourseDraft(detail) {
+    if (!detail) {
+      return;
+    }
+
+    const course = detail.course || {};
+
+    if (course.language) {
+      formData.language = course.language;
+      courseFieldDirty = { ...courseFieldDirty, language: false };
+    }
+
+    if (course.level) {
+      formData.level = course.level;
+      courseFieldDirty = { ...courseFieldDirty, level: false };
+    }
+
+    if (course.description) {
+      formData.description = clampWords(course.description, 250);
+      courseFieldDirty = { ...courseFieldDirty, description: false };
+    }
+
+    if (course.shortDescription) {
+      formData.shortDescription = clampWords(course.shortDescription, 50);
+      courseFieldDirty = { ...courseFieldDirty, shortDescription: false };
+    }
+
+    if (Array.isArray(course.skills) && course.skills.length > 0) {
+      formData.skills = mergeSkills(formData.skills, course.skills);
+      courseFieldDirty = { ...courseFieldDirty, skills: false };
+    }
+
+    if (Array.isArray(detail.agents) && detail.agents.length > 0) {
+      aiAgentSuggestions = detail.agents;
+    }
+
+    aiDraftUsage = detail.usage || aiDraftUsage;
+    aiCourseSuggestionsApplied = true;
+    aiOfferVisible = false;
+  }
+
+  function handleAIDraftApply(event) {
+    applyCourseDraft(event.detail);
+    showCourseAIPanel = false;
+  }
+
+  function handleClearAIAgentSuggestions() {
+    aiAgentSuggestions = [];
+  }
+
+  $: if (
+    isNew &&
+    formData.llmSettings.allowOpenAI &&
+    !aiOfferDismissed &&
+    !aiOfferTriggered &&
+    formData.name.trim()
+  ) {
+    aiOfferVisible = true;
+    aiOfferTriggered = true;
+  }
+
+  $: if (!formData.llmSettings.allowOpenAI) {
+    aiOfferVisible = false;
+    showCourseAIPanel = false;
+  }
+
+  $: if (isNew && !formData.name.trim()) {
+    if (!aiOfferDismissed) {
+      aiOfferTriggered = false;
+    }
+    aiOfferVisible = false;
   }
 
   function validateForm() {
@@ -190,11 +368,13 @@
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
       formData.skills = [...formData.skills, newSkill.trim()];
       newSkill = '';
+      markSkillsDirty();
     }
   }
 
   function removeSkill(skillToRemove) {
     formData.skills = formData.skills.filter((skill) => skill !== skillToRemove);
+    markSkillsDirty();
   }
 
   function handleSkillKeydown(event) {
@@ -305,6 +485,46 @@
             {/if}
           </div>
 
+          {#if aiOfferVisible && formData.llmSettings.allowOpenAI}
+            <div
+              class="md:col-span-2 border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 flex flex-col gap-3"
+            >
+              <div class="flex items-start gap-3">
+                <div
+                  class="p-2 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-200"
+                >
+                  <Sparkles class="w-4 h-4" />
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm text-amber-900 dark:text-amber-100">
+                    Let AI draft the course language, level, descriptions, and skills based on your
+                    course name.
+                  </p>
+                  {#if aiDraftError}
+                    <p class="text-sm text-red-700 dark:text-red-300 mt-1">
+                      {aiDraftError}
+                    </p>
+                  {/if}
+                  {#if aiCourseSuggestionsApplied && aiDraftUsage}
+                    <p class="text-xs text-amber-800 dark:text-amber-200 mt-1">
+                      Last draft applied from {aiDraftUsage.model} · {aiDraftUsage.totalTokens || 0}
+                      tokens
+                    </p>
+                  {/if}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <Button type="button" size="sm" on:click={openAIDraft}>
+                  <Sparkles class="w-4 h-4 mr-2" />
+                  Use AI draft
+                </Button>
+                <Button type="button" variant="secondary" size="sm" on:click={dismissAIOffer}>
+                  Not now
+                </Button>
+              </div>
+            </div>
+          {/if}
+
           <div>
             <label
               for="language"
@@ -316,6 +536,7 @@
               id="language"
               type="text"
               bind:value={formData.language}
+              on:input={() => markFieldDirty('language')}
               class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
               class:border-red-500={errors.language}
               placeholder="e.g., Spanish"
@@ -336,6 +557,7 @@
               id="level"
               type="text"
               bind:value={formData.level}
+              on:input={() => markFieldDirty('level')}
               class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
               placeholder="e.g., B2, Intermediate"
             />
@@ -353,6 +575,11 @@
               />
               <span class="ml-2 text-sm text-stone-700 dark:text-gray-300">Allow OpenAI API</span>
             </label>
+            {#if isNew && !formData.llmSettings.allowOpenAI}
+              <p class="text-xs text-stone-500 dark:text-gray-400 mt-2">
+                Enable this setting to access AI drafting assistance.
+              </p>
+            {/if}
           </div>
         </div>
 
@@ -367,6 +594,7 @@
             id="description"
             bind:value={formData.description}
             rows="3"
+            on:input={() => markFieldDirty('description')}
             class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
             class:border-red-500={errors.description}
             placeholder="Detailed description of the subject and what students will learn"
@@ -387,6 +615,7 @@
             id="shortDescription"
             bind:value={formData.shortDescription}
             rows="2"
+            on:input={() => markFieldDirty('shortDescription')}
             class="w-full rounded-lg border border-stone-300 px-4 py-2 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-amber-400"
             placeholder="Brief description for catalogue tiles (auto-generated if empty)"
           ></textarea>
@@ -435,10 +664,16 @@
       <AgentManager
         {agents}
         {orchestrationAgent}
+        allowOpenAI={formData.llmSettings.allowOpenAI}
+        courseName={formData.name}
+        courseLanguage={formData.language}
+        courseLevel={formData.level}
+        {aiAgentSuggestions}
         on:add-agent={handleAddAgent}
         on:update-agent={handleUpdateAgent}
         on:delete-agent={handleDeleteAgent}
         on:update-orchestration={handleUpdateOrchestration}
+        on:clear-ai-suggestions={handleClearAIAgentSuggestions}
       />
 
       <!-- Document Upload -->
@@ -516,3 +751,23 @@
     </form>
   </div>
 </div>
+
+{#if showCourseAIPanel}
+  <CourseAIDraftPanel
+    open={showCourseAIPanel}
+    allowOpenAI={formData.llmSettings.allowOpenAI}
+    courseName={formData.name}
+    existingValues={{
+      language: formData.language,
+      level: formData.level,
+      description: formData.description,
+      shortDescription: formData.shortDescription,
+      skills: formData.skills
+    }}
+    fieldDirty={courseFieldDirty}
+    on:close={handleAIDraftClosed}
+    on:apply={handleAIDraftApply}
+    on:error={handleAIDraftError}
+    on:generated={handleAIDraftGenerated}
+  />
+{/if}
