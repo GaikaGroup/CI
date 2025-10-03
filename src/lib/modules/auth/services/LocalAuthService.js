@@ -47,7 +47,7 @@ export class LocalAuthService extends IAuthService {
       // Simulate login for demo users
       if (email === 'admin@example.com' && password === 'password') {
         const userData = {
-          id: 1,
+          id: '1',
           name: 'Admin User',
           email: 'admin@example.com',
           role: 'admin'
@@ -69,7 +69,7 @@ export class LocalAuthService extends IAuthService {
         return userData;
       } else if (email === 'student@example.com' && password === 'password') {
         const userData = {
-          id: 2,
+          id: '2',
           name: 'Student User',
           email: 'student@example.com',
           role: 'student'
@@ -91,7 +91,7 @@ export class LocalAuthService extends IAuthService {
         return userData;
       } else if (email === 'student1@example.com' && password === 'Demo123') {
         const userData = {
-          id: 3,
+          id: '3',
           name: 'Student One',
           email: 'student1@example.com',
           role: 'student'
@@ -113,7 +113,7 @@ export class LocalAuthService extends IAuthService {
         return userData;
       } else if (email === 'student2@example.com' && password === 'Demo321') {
         const userData = {
-          id: 4,
+          id: '4',
           name: 'Student Two',
           email: 'student2@example.com',
           role: 'student'
@@ -177,7 +177,7 @@ export class LocalAuthService extends IAuthService {
       // Simulate successful registration
       setNotification('Registration successful. Please log in.', 'success');
       return {
-        id: 3,
+        id: '3',
         name: userData.name,
         email: userData.email,
         role: 'student'
