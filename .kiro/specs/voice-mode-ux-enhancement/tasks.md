@@ -25,11 +25,12 @@
   - Create audio state management for seamless playback
   - _Requirements: 1.1, 1.4_
 
-- [ ] 3. Fix avatar mouth animation synchronization
+- [x] 3. Fix avatar mouth animation synchronization
 - [x] 3.1 Implement proper mouth closure detection
   - Modify CatAvatar component to detect audio completion events
   - Add mouth state management for proper closing behavior
   - Implement smooth transitions to neutral mouth position
+  - **FIXED**: Eliminated timing delays and implemented immediate mouth closure
   - _Requirements: 2.1, 2.2, 2.3_
 
 - [x] 3.2 Enhance lip-sync accuracy with audio analysis
@@ -43,6 +44,15 @@
   - Implement proper timing for mouth animation transitions
   - Add interruption-aware animation handling
   - _Requirements: 2.1, 2.2, 2.4_
+
+- [x] 3.4 Fix waiting phrase mouth movement lag
+  - **ISSUE**: Bot making silent mouth movements after waiting phrases end
+  - **SOLUTION**: Implemented immediate mouth closure when audio ends
+  - Removed setTimeout delays in voice services audio completion handling
+  - Added immediate avatar state transitions with force priority
+  - Modified CatAvatar component for instant mouth closure on speaking state change
+  - Enhanced state synchronization between voice services and avatar component
+  - _Requirements: 2.1, 2.2, 2.3_
 
 - [ ] 4. Implement interruption detection system
 - [x] 4.1 Create voice activity detection during bot speech

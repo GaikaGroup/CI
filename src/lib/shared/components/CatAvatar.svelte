@@ -230,10 +230,27 @@
     const isSpeakingState = get(isSpeaking);
     const currentAmplitude = get(audioAmplitude);
 
-    // If not speaking but mouth is open, close it
+    // If not speaking but mouth is open, close it immediately
     if (!isSpeakingState && currentMouthImage && !isMouthClosing) {
-      console.log('Mouth open while not speaking - initiating closure');
-      handleAudioCompletion();
+      console.log('Mouth open while not speaking - initiating immediate closure');
+      // Force immediate closure instead of gradual
+      currentMouthImage = null;
+      smoothAmplitude.set(0);
+      mouthBuffer = [];
+      isMouthClosing = false;
+
+      // Clear any pending closure timers
+      if (mouthClosureTimer) {
+        clearTimeout(mouthClosureTimer);
+        mouthClosureTimer = null;
+      }
+      if (forceClosureTimeout) {
+        clearTimeout(forceClosureTimeout);
+        forceClosureTimeout = null;
+      }
+
+      console.log('Mouth immediately closed due to speaking state change');
+      return;
     }
 
     // If speaking but amplitude is zero and mouth is open, start closure
@@ -787,15 +804,12 @@
     audioEndDetected = false;
     lowAmplitudeCount = 0;
 
-    // Use proper mouth closure instead of immediate reset
-    if (currentMouthImage) {
-      console.log('Initiating proper mouth closure on lip-sync stop');
-      initiateProperMouthClosure();
-    } else {
-      // If no mouth image, just reset everything immediately
-      smoothAmplitude.set(0);
-      mouthBuffer = [];
-    }
+    // Immediately close mouth when lip-sync stops to prevent lag
+    console.log('Immediately closing mouth on lip-sync stop');
+    currentMouthImage = null;
+    smoothAmplitude.set(0);
+    mouthBuffer = [];
+    isMouthClosing = false;
   }
 
   // Watch for changes in speaking state
@@ -810,7 +824,7 @@
         },
         {
           priority: 'high',
-          duration: 200
+          duration: speaking ? 200 : 50 // Faster transition when stopping
         }
       );
 
@@ -828,13 +842,21 @@
       }
       // If transitioning from speaking to not speaking
       else {
+        console.log('Speaking stopped - immediately closing mouth');
         isTransitioning = true;
+
+        // Immediately stop lip sync and close mouth
         stopLipSync();
 
-        // After the fade-out duration, clear the transition flag
+        // Force immediate mouth closure
+        currentMouthImage = null;
+        smoothAmplitude.set(0);
+        mouthBuffer = [];
+
+        // Clear transition flag quickly
         setTimeout(() => {
           isTransitioning = false;
-        }, 300);
+        }, 50); // Much faster transition when stopping
       }
 
       lastSpeakingState = speaking;
