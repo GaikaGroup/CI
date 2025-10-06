@@ -210,7 +210,7 @@
 <main class="max-w-7xl mx-auto px-6 py-10 space-y-8">
   <header class="space-y-3">
     <p class="text-sm text-stone-500 dark:text-gray-400">Administrator dashboard</p>
-    <h1 class="text-3xl font-bold text-stone-900 dark:text-white">Voice Analytics</h1>
+    <h1 class="text-3xl font-bold text-stone-900 dark:text-white">Analytics</h1>
     <p class="text-stone-600 dark:text-gray-300 max-w-3xl">
       Monitor system health, performance, and user experience in real time. Generate diagnostic
       reports to keep the voice stack running smoothly.

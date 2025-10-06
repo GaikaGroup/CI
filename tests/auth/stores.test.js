@@ -7,13 +7,13 @@ describe('auth stores', () => {
     logout();
   });
 
-  test('logs in admin demo user', async () => {
-    await login('Admin', 'Demo543');
+  test('logs in admin user', async () => {
+    await login('AdminLogin', 'AdminPswd');
     expect(get(isAuthenticated)).toBe(true);
     expect(get(user)).toEqual({
-      id: '0',
-      name: 'Admin',
-      email: 'admin@example.com',
+      id: '1',
+      name: 'Admin User',
+      email: 'AdminLogin',
       role: 'admin'
     });
   });

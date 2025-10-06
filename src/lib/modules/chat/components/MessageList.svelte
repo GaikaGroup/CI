@@ -19,6 +19,19 @@
     }
   });
 
+  // Debug logging
+  $: {
+    console.log('=== MessageList Debug ===');
+    console.log('Total messages:', $messages.length);
+    console.log('Messages:', $messages.map(m => ({
+      id: m.id,
+      type: m.type,
+      content: m.content.substring(0, 50) + '...',
+      shouldShow: shouldShowMessage(m)
+    })));
+    console.log('Filtered messages:', $messages.filter(shouldShowMessage).length);
+  }
+
   // Check if a message is being processed
   function isProcessingMessage(message) {
     // Check if this message is in the processing map
@@ -81,7 +94,7 @@
   // Filter out system messages related to image processing
   function shouldShowMessage(message) {
     // Don't show system messages related to image processing
-    if (message.type === MESSAGE_TYPES.SYSTEM) {
+    if (message.type === MESSAGE_TYPES.SYSTEM || message.type === 'system') {
       const isProcessingMessage =
         message.content === 'Processing image to extract text...' ||
         message.content === 'Image processing complete.' ||
@@ -122,7 +135,7 @@
   }
 </script>
 
-<div class="h-96 overflow-y-auto p-6 space-y-4" bind:this={messagesContainer}>
+<div class="h-full overflow-y-auto px-6 py-4" bind:this={messagesContainer}>
   {#if $messages.length === 0}
     <div class="flex justify-center items-center h-full">
       <p class="text-stone-500 dark:text-gray-400 text-center">
@@ -138,22 +151,22 @@
   {:else}
     {#each $messages.filter(shouldShowMessage) as message (message.id)}
       <div
-        class="flex {message.type === MESSAGE_TYPES.USER
+        class="flex mb-3 {message.type === MESSAGE_TYPES.USER || message.type === 'user'
           ? 'justify-end'
           : message.type === MESSAGE_TYPES.SYSTEM
             ? 'justify-center'
             : 'justify-start'}"
       >
         <div
-          class="max-w-xs lg:max-w-md px-4 py-2 rounded-2xl {message.type === MESSAGE_TYPES.USER
-            ? 'bg-amber-600 text-white'
+          class="max-w-[70%] px-4 py-3 rounded-2xl shadow-sm {message.type === MESSAGE_TYPES.USER || message.type === 'user'
+            ? 'bg-amber-600 text-white rounded-br-sm'
             : message.type === MESSAGE_TYPES.SYSTEM
               ? $darkMode
                 ? 'bg-blue-900 text-blue-200 border border-blue-700'
                 : 'bg-blue-50 text-blue-800 border border-blue-200'
               : $darkMode
-                ? 'bg-gray-700 text-gray-100'
-                : 'bg-stone-100 text-stone-800'}"
+                ? 'bg-gray-700 text-gray-100 rounded-bl-sm'
+                : 'bg-stone-100 text-stone-800 rounded-bl-sm'}"
         >
           {#if message.images && message.images.length > 0}
             <div class="mb-2 grid grid-cols-2 gap-2">
@@ -162,7 +175,7 @@
               {/each}
             </div>
           {/if}
-          <p class="text-sm">
+          <p class="text-sm leading-relaxed whitespace-pre-wrap">
             <TypewriterMessage
               text={message.content}
               animate={shouldAnimate(message)}
@@ -199,8 +212,8 @@
           {/if}
 
           <div
-            class="flex items-center justify-between text-xs mt-1 {message.type ===
-            MESSAGE_TYPES.USER
+            class="flex items-center justify-between text-xs mt-2 {message.type ===
+            MESSAGE_TYPES.USER || message.type === 'user'
               ? 'text-amber-200'
               : message.type === MESSAGE_TYPES.SYSTEM
                 ? $darkMode
@@ -210,14 +223,14 @@
                   ? 'text-gray-400'
                   : 'text-stone-500'}"
           >
-            <span>{message.timestamp}</span>
+            <span class="opacity-75">{message.timestamp}</span>
 
-            {#if message.type === MESSAGE_TYPES.TUTOR && message.provider && shouldShowProviderInfo()}
-              <div class="flex items-center ml-2">
+            {#if (message.type === MESSAGE_TYPES.TUTOR || message.type === 'tutor' || message.type === 'assistant') && message.provider && shouldShowProviderInfo()}
+              <div class="flex items-center ml-2 opacity-75">
                 <Server class="w-3 h-3 mr-1" />
                 <span>{getProviderDisplayName(message.provider.name)}</span>
                 {#if message.provider.model}
-                  <span class="ml-1 opacity-75">({message.provider.model})</span>
+                  <span class="ml-1">({message.provider.model})</span>
                 {/if}
               </div>
             {/if}

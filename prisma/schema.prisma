@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  title        String    @db.VarChar(500)
+  preview      String?   @db.Text
+  language     String    @default("en") @db.VarChar(10)
+  mode         String    @default("fun") @db.VarChar(20) // 'fun' or 'learn'
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  messageCount Int       @default(0) @map("message_count")
+  
+  // Relations
+  messages     Message[]
+  
+  // Indexes
+  @@index([userId, updatedAt(sort: Desc)], name: "idx_user_sessions")
+  @@index([title, preview], name: "idx_session_search")
+  @@map("sessions")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  type      String   @db.VarChar(20) // 'user' or 'assistant'
+  content   String   @db.Text
+  metadata  Json?    // For storing audio, images, timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Indexes
+  @@index([sessionId, createdAt], name: "idx_session_messages")
+  @@map("messages")
+}

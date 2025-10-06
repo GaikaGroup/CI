@@ -6,6 +6,7 @@
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
   import MyCoursesDropdown from './MyCoursesDropdown.svelte';
+  import ConsoleDropdown from './ConsoleDropdown.svelte';
   import { requireAuth } from '$lib/stores/mode';
   import { user } from '$modules/auth/stores';
   // import { goto } from '$app/navigation';
@@ -40,6 +41,12 @@
         </a>
         {#if $user}
           <MyCoursesDropdown />
+          <a
+            href="/sessions"
+            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors font-medium"
+          >
+            Sessions
+          </a>
         {/if}
         <a
           href="/about"
@@ -54,18 +61,7 @@
           {getTranslation($selectedLanguage, 'contacts')}
         </a>
         {#if $user?.role === 'admin'}
-          <a
-            href="/admin/finance"
-            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
-          >
-            Finance
-          </a>
-          <a
-            href="/admin/voice-analytics"
-            class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
-          >
-            Voice Analytics
-          </a>
+          <ConsoleDropdown />
         {/if}
         <ThemeToggle />
         <AuthButton />
@@ -122,6 +118,15 @@
           >
             My Courses
           </a>
+          <a
+            href="/sessions"
+            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 font-medium"
+            on:click={() => {
+              mobileMenuOpen = false;
+            }}
+          >
+            Sessions
+          </a>
         {/if}
         <a
           href="/about"
@@ -136,24 +141,9 @@
           {getTranslation($selectedLanguage, 'contacts')}
         </a>
         {#if $user?.role === 'admin'}
-          <a
-            href="/admin/finance"
-            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
-            on:click={() => {
-              mobileMenuOpen = false;
-            }}
-          >
-            Finance
-          </a>
-          <a
-            href="/admin/voice-analytics"
-            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
-            on:click={() => {
-              mobileMenuOpen = false;
-            }}
-          >
-            Voice Analytics
-          </a>
+          <div class="px-3 py-2">
+            <ConsoleDropdown />
+          </div>
         {/if}
         <div class="px-3 py-2">
           <AuthButton buttonClass="block w-full text-left" />

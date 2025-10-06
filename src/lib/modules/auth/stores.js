@@ -45,31 +45,21 @@ export function login(email, password) {
   return new Promise((resolve, reject) => {
     // Simulate API call
     setTimeout(() => {
-      if (email === 'Admin' && password === 'Demo543') {
-        const userData = {
-          id: '0',
-          name: 'Admin',
-          email: 'admin@example.com',
-          role: 'admin'
-        };
-
-        persistUserSession(userData);
-        resolve(userData);
-      } else if (email === 'admin@example.com' && password === 'password') {
+      if (email === 'AdminLogin' && password === 'AdminPswd') {
         const userData = {
           id: '1',
           name: 'Admin User',
-          email: 'admin@example.com',
+          email: 'AdminLogin',
           role: 'admin'
         };
 
         persistUserSession(userData);
         resolve(userData);
-      } else if (email === 'student@example.com' && password === 'password') {
+      } else if (email === 'User1Login' && password === 'User1Pswd') {
         const userData = {
           id: '2',
-          name: 'Student User',
-          email: 'student@example.com',
+          name: 'Demo User',
+          email: 'User1Login',
           role: 'student'
         };
 

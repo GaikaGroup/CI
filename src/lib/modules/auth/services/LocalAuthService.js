@@ -45,11 +45,11 @@ export class LocalAuthService extends IAuthService {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Simulate login for demo users
-      if (email === 'admin@example.com' && password === 'password') {
+      if (email === 'AdminLogin' && password === 'AdminPswd') {
         const userData = {
           id: '1',
           name: 'Admin User',
-          email: 'admin@example.com',
+          email: 'AdminLogin',
           role: 'admin'
         };
 
@@ -67,11 +67,11 @@ export class LocalAuthService extends IAuthService {
 
         setNotification('Logged in successfully', 'success');
         return userData;
-      } else if (email === 'student@example.com' && password === 'password') {
+      } else if (email === 'User1Login' && password === 'User1Pswd') {
         const userData = {
           id: '2',
-          name: 'Student User',
-          email: 'student@example.com',
+          name: 'Demo User',
+          email: 'User1Login',
           role: 'student'
         };
 
@@ -80,51 +80,7 @@ export class LocalAuthService extends IAuthService {
 
         // Store in localStorage for persistence
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, 'mock-jwt-token-for-student');
-
-        if (typeof document !== 'undefined') {
-          const cookieValue = encodeURIComponent(JSON.stringify(userData));
-          document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
-        }
-
-        setNotification('Logged in successfully', 'success');
-        return userData;
-      } else if (email === 'student1@example.com' && password === 'Demo123') {
-        const userData = {
-          id: '3',
-          name: 'Student One',
-          email: 'student1@example.com',
-          role: 'student'
-        };
-
-        user.set(userData);
-        isAuthenticated.set(true);
-
-        // Store in localStorage for persistence
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, 'mock-jwt-token-for-student1');
-
-        if (typeof document !== 'undefined') {
-          const cookieValue = encodeURIComponent(JSON.stringify(userData));
-          document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
-        }
-
-        setNotification('Logged in successfully', 'success');
-        return userData;
-      } else if (email === 'student2@example.com' && password === 'Demo321') {
-        const userData = {
-          id: '4',
-          name: 'Student Two',
-          email: 'student2@example.com',
-          role: 'student'
-        };
-
-        user.set(userData);
-        isAuthenticated.set(true);
-
-        // Store in localStorage for persistence
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, 'mock-jwt-token-for-student2');
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, 'mock-jwt-token-for-demo1');
 
         if (typeof document !== 'undefined') {
           const cookieValue = encodeURIComponent(JSON.stringify(userData));
