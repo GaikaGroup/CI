@@ -19,6 +19,60 @@
 
     let processedText = text;
 
+    const integralSymbolMap = {
+      '∫': '\\int',
+      '∬': '\\iint',
+      '∭': '\\iiint',
+      '⨌': '\\iiiint',
+      '∮': '\\oint',
+      '∯': '\\oiint',
+      '∰': '\\oiiint',
+      '∱': '\\int',
+      '∲': '\\int',
+      '∳': '\\int'
+    };
+
+    processedText = processedText
+      .split('\n')
+      .map((line) => {
+        const leadingWhitespaceMatch = line.match(/^\s*/);
+        const leadingWhitespace = leadingWhitespaceMatch ? leadingWhitespaceMatch[0] : '';
+        const lineWithoutIndent = line.slice(leadingWhitespace.length);
+        const integralMatch = lineWithoutIndent.match(/^([∫∬∭⨌∮∯∰∱∲∳])\s*(.*)$/);
+
+        if (!integralMatch) {
+          return line;
+        }
+
+        const [, integralSymbol, restOfLine] = integralMatch;
+        const latexIntegral = integralSymbolMap[integralSymbol] || '\\int';
+
+        let normalizedRest = restOfLine;
+
+        // Normalize exponent notation like x^(2) -> x^{2}
+        normalizedRest = normalizedRest.replace(
+          /([a-zA-Z0-9\\}\]])\^\(([^)]+)\)/g,
+          (_, base, exponent) => `${base}^{${exponent}}`
+        );
+
+        // Ensure differentials have proper spacing: dz -> \, dz
+        normalizedRest = normalizedRest.replace(
+          /\bd([a-zA-Z])\b/g,
+          (match, variable, offset, str) => {
+            if (offset >= 3 && str.slice(offset - 3, offset) === '\\\\, ') {
+              return match;
+            }
+            return `\\\\, d${variable}`;
+          }
+        );
+
+        const trimmedRest = normalizedRest.trim();
+        const integralExpression = `${latexIntegral} ${trimmedRest}`.trim();
+
+        return `${leadingWhitespace}$$${integralExpression}$$`;
+      })
+      .join('\n');
+
     // Convert LaTeX-like expressions to proper LaTeX
     // Handle complete integral equations: \int x^2 dx = \frac{x^3}{3} + C
     processedText = processedText.replace(
