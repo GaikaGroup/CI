@@ -5,8 +5,8 @@
 
 export class DIContainer {
   constructor() {
-    this.services = new Map();   // key -> instance (singleton)
-    this.factories = new Map();  // key -> (container) => instance
+    this.services = new Map(); // key -> instance (singleton)
+    this.factories = new Map(); // key -> (container) => instance
   }
 
   /** Register a concrete instance (singleton). */

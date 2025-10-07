@@ -33,12 +33,9 @@ function initializeDocumentProcessing() {
   // Register factory functions
   container.registerFactory('ocrEngine', (container) => {
     return (documentType) => {
-      return OCREngineFactory.createEngine(
-        documentType, 
-        {
-          // Optional configuration
-        }
-      );
+      return OCREngineFactory.createEngine(documentType, {
+        // Optional configuration
+      });
     };
   });
 }
@@ -55,7 +52,8 @@ export class DocumentProcessor {
   constructor(classifier = null, sessionStorageAdapter = null) {
     // Use dependency injection if components are provided, otherwise get from container
     this.classifier = classifier || container.resolve('documentClassifier');
-    this.sessionStorageAdapter = sessionStorageAdapter || 
+    this.sessionStorageAdapter =
+      sessionStorageAdapter ||
       (container.has('sessionStorageAdapter') ? container.resolve('sessionStorageAdapter') : null);
   }
 

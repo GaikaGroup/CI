@@ -1,6 +1,6 @@
 /**
  * Session module initialization
- * 
+ *
  * This file initializes the session module and registers its components in the DI container.
  * It should be imported in the main application file to ensure the session module is properly initialized.
  */

@@ -3,6 +3,7 @@
 ## Problem Summary
 
 The Sessions page (`/sessions`) has two modes:
+
 - **Voice Mode**: ✅ Working correctly
 - **Text Mode**: ❌ Not working correctly
 
@@ -38,9 +39,11 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 ## Test Files Created
 
 ### 1. Integration Tests
+
 **File**: `tests/integration/session/SessionsPageTextMode.test.js`
 
 Tests the integration between components, stores, and services:
+
 - Message sending functionality
 - Message persistence to database
 - Chat store integration
@@ -50,9 +53,11 @@ Tests the integration between components, stores, and services:
 - Error handling
 
 ### 2. E2E Tests
+
 **File**: `tests/e2e/sessionsPageTextMode.test.js`
 
 Tests complete user flows:
+
 - Sending messages and receiving responses
 - Creating sessions
 - Switching between sessions
@@ -61,9 +66,11 @@ Tests complete user flows:
 - Error handling
 
 ### 3. Diagnostic Script
+
 **File**: `tests/diagnostics/sessionsPageTextModeDiagnostics.js`
 
 Analyzes source code to identify issues:
+
 - Component imports
 - Component rendering
 - Event handlers
@@ -73,9 +80,11 @@ Analyzes source code to identify issues:
 - Comparison with voice mode
 
 ### 4. Browser Console Test
+
 **File**: `tests/diagnostics/browserConsoleTest.js`
 
 Interactive browser-based diagnostics:
+
 - DOM element detection
 - Event listener verification
 - Interactive testing functions
@@ -84,30 +93,35 @@ Interactive browser-based diagnostics:
 ## What Gets Tested
 
 ### Component Integration
+
 - ✓ MessageInput component imported and rendered
 - ✓ MessageList component imported and rendered
 - ✓ VoiceChat component hidden in text mode
 - ✓ Components in correct conditional blocks
 
 ### Event Handling
+
 - ✓ handleSendMessage function exists
 - ✓ MessageInput on:send event bound
 - ✓ handleSendMessage calls sendMessage service
 - ✓ Event handlers properly attached
 
 ### Store Integration
+
 - ✓ messages store imported and used
 - ✓ chatMode store controls mode switching
 - ✓ Messages displayed from store
 - ✓ Store updates trigger UI updates
 
 ### API Integration
+
 - ✓ sendMessage service calls /api/chat
 - ✓ Messages saved to /api/sessions/:id/messages
 - ✓ Messages loaded when session selected
 - ✓ API errors handled gracefully
 
 ### Message Flow
+
 1. User types in MessageInput
 2. MessageInput dispatches 'send' event
 3. Sessions page handleSendMessage receives event
@@ -120,29 +134,34 @@ Interactive browser-based diagnostics:
 ## Common Issues Detected
 
 ### Issue 1: MessageInput Not Rendering
+
 - Component not imported
 - Not in text mode conditional
 - CSS hiding component
 
 ### Issue 2: Messages Not Sending
+
 - handleSendMessage not defined
 - on:send event not bound
 - sendMessage service not called
 - sendMessage not awaited
 
 ### Issue 3: Messages Not Displaying
+
 - MessageList not rendering
 - messages store not connected
 - Store not updating
 - CSS hiding messages
 
 ### Issue 4: Messages Not Persisting
+
 - saveMessageToSession not called
 - API endpoint not working
 - Session ID not passed
 - Messages not loaded on session select
 
 ### Issue 5: Store Synchronization
+
 - Store not subscribed with $
 - Component not reactive
 - Store updates not triggering re-render
@@ -150,25 +169,31 @@ Interactive browser-based diagnostics:
 ## How to Use the Tests
 
 ### Step 1: Run Diagnostics
+
 ```bash
 npm test tests/diagnostics/sessionsPageTextModeDiagnostics.js
 ```
 
 This will output:
+
 - ✓ What's working correctly
 - ❌ What's broken
-- ⚠️  What needs attention
+- ⚠️ What needs attention
 
 ### Step 2: Review Output
+
 Look for lines starting with:
+
 - `❌ ISSUE:` - Critical problems that need fixing
 - `⚠️  WARNING:` - Potential issues
 - `✓` - Working correctly
 
 ### Step 3: Fix Issues
+
 Refer to `tests/diagnostics/FIXING_GUIDE.md` for step-by-step fixes for each issue.
 
 ### Step 4: Verify Fixes
+
 ```bash
 # Run integration tests
 npm test tests/integration/session/SessionsPageTextMode.test.js
@@ -178,7 +203,9 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 ```
 
 ### Step 5: Manual Testing
+
 Use the browser console test to verify in real browser:
+
 1. Open `/sessions`
 2. Run `tests/diagnostics/browserConsoleTest.js` in console
 3. Use interactive test functions
@@ -187,6 +214,7 @@ Use the browser console test to verify in real browser:
 ## Expected Test Results
 
 ### Successful Run
+
 ```
 ✓ MessageInput imported: true
 ✓ MessageList imported: true
@@ -207,6 +235,7 @@ All tests passed! ✓
 ```
 
 ### Failed Run (Example)
+
 ```
 ✓ MessageInput imported: true
 ✓ MessageList imported: true
@@ -275,6 +304,7 @@ After fixing issues, manually verify:
 ## Support
 
 If you need help:
+
 1. Check the console for error messages
 2. Review the diagnostic output
 3. Read the fixing guide
@@ -285,6 +315,7 @@ If you need help:
 ## Files to Review
 
 When fixing issues, you'll likely need to modify:
+
 - `src/routes/sessions/+page.svelte` - Main sessions page
 - `src/lib/modules/chat/components/MessageInput.svelte` - Input component
 - `src/lib/modules/chat/components/MessageList.svelte` - List component
@@ -294,6 +325,7 @@ When fixing issues, you'll likely need to modify:
 ## Summary
 
 These tests will help you:
+
 1. **Identify** what's broken in text mode
 2. **Understand** why it's broken
 3. **Fix** the issues with guided instructions

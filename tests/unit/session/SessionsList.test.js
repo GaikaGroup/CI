@@ -18,7 +18,7 @@ vi.mock('$app/navigation', () => ({
 
 vi.mock('../../../src/lib/modules/session/stores/sessionStore.js', () => {
   const { writable } = require('svelte/store');
-  
+
   const mockStore = writable({
     sessions: [],
     currentSession: null,
@@ -59,7 +59,7 @@ describe('SessionsList Component', () => {
     // Set up authenticated user
     user.set({ id: 'test-user-1', name: 'Test User' });
     isAuthenticated.set(true);
-    
+
     // Reset mocks
     vi.clearAllMocks();
   });
@@ -71,14 +71,14 @@ describe('SessionsList Component', () => {
   describe('Requirement 1.1: Display sessions sidebar', () => {
     it('should render the sessions sidebar with header', () => {
       render(SessionsList);
-      
+
       expect(screen.getByText('Sessions')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Search sessions...')).toBeInTheDocument();
     });
 
     it('should initialize session store on mount', async () => {
       render(SessionsList);
-      
+
       await waitFor(() => {
         expect(sessionStore.initialize).toHaveBeenCalled();
       });
@@ -88,7 +88,7 @@ describe('SessionsList Component', () => {
   describe('Requirement 1.2: Real-time search with debouncing', () => {
     it('should render search input', () => {
       render(SessionsList);
-      
+
       const searchInput = screen.getByPlaceholderText('Search sessions...');
       expect(searchInput).toBeInTheDocument();
     });
@@ -96,38 +96,38 @@ describe('SessionsList Component', () => {
     it('should debounce search input and call searchSessions', async () => {
       vi.useFakeTimers();
       render(SessionsList);
-      
+
       const searchInput = screen.getByPlaceholderText('Search sessions...');
-      
+
       await fireEvent.input(searchInput, { target: { value: 'test query' } });
-      
+
       // Should not call immediately
       expect(sessionStore.searchSessions).not.toHaveBeenCalled();
-      
+
       // Fast-forward time by 300ms (debounce delay)
       vi.advanceTimersByTime(300);
-      
+
       await waitFor(() => {
         expect(sessionStore.searchSessions).toHaveBeenCalledWith('test query');
       });
-      
+
       vi.useRealTimers();
     });
 
     it('should load regular sessions when search is cleared', async () => {
       vi.useFakeTimers();
       render(SessionsList);
-      
+
       const searchInput = screen.getByPlaceholderText('Search sessions...');
-      
+
       await fireEvent.input(searchInput, { target: { value: '' } });
-      
+
       vi.advanceTimersByTime(300);
-      
+
       await waitFor(() => {
         expect(sessionStore.loadSessions).toHaveBeenCalled();
       });
-      
+
       vi.useRealTimers();
     });
   });
@@ -169,7 +169,7 @@ describe('SessionsList Component', () => {
       });
 
       const { container } = render(SessionsList, { props: { selectedSessionId: 'session-1' } });
-      
+
       // Check if the selected session has the highlight class
       const selectedButton = container.querySelector('.bg-amber-50');
       expect(selectedButton).toBeInTheDocument();
@@ -203,10 +203,10 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       const sessionButton = screen.getByText('Test Session 1').closest('button');
       await fireEvent.click(sessionButton);
-      
+
       expect(sessionStore.selectSession).toHaveBeenCalledWith('session-1');
     });
   });
@@ -229,7 +229,7 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       expect(screen.getByText('No sessions yet')).toBeInTheDocument();
       expect(screen.getByText('Create your first session to get started!')).toBeInTheDocument();
     });
@@ -252,11 +252,11 @@ describe('SessionsList Component', () => {
       });
 
       const { container } = render(SessionsList);
-      
+
       // Simulate search
       const searchInput = screen.getByPlaceholderText('Search sessions...');
       fireEvent.input(searchInput, { target: { value: 'nonexistent' } });
-      
+
       expect(screen.getByText('No sessions match your search.')).toBeInTheDocument();
     });
   });
@@ -264,37 +264,37 @@ describe('SessionsList Component', () => {
   describe('Requirement 1.5 & 2.1: New Session button and modal', () => {
     it('should render New Session button', () => {
       render(SessionsList);
-      
+
       const newSessionButton = screen.getByLabelText('New Session');
       expect(newSessionButton).toBeInTheDocument();
     });
 
     it('should open new session modal when button is clicked', async () => {
       render(SessionsList);
-      
+
       const newSessionButton = screen.getByLabelText('New Session');
       await fireEvent.click(newSessionButton);
-      
+
       expect(screen.getByText('Create New Session')).toBeInTheDocument();
       expect(screen.getByLabelText('Session Title')).toBeInTheDocument();
     });
 
     it('should allow mode selection in new session modal', async () => {
       render(SessionsList);
-      
+
       const newSessionButton = screen.getByLabelText('New Session');
       await fireEvent.click(newSessionButton);
-      
+
       expect(screen.getByText('Fun Mode')).toBeInTheDocument();
       expect(screen.getByText('Learn Mode')).toBeInTheDocument();
     });
 
     it('should allow language selection in new session modal', async () => {
       render(SessionsList);
-      
+
       const newSessionButton = screen.getByLabelText('New Session');
       await fireEvent.click(newSessionButton);
-      
+
       const languageSelect = screen.getByLabelText('Language');
       expect(languageSelect).toBeInTheDocument();
       expect(languageSelect.querySelector('option[value="en"]')).toBeInTheDocument();
@@ -313,16 +313,16 @@ describe('SessionsList Component', () => {
       sessionStore.createSession.mockResolvedValue(mockSession);
 
       render(SessionsList);
-      
+
       const newSessionButton = screen.getByLabelText('New Session');
       await fireEvent.click(newSessionButton);
-      
+
       const titleInput = screen.getByLabelText('Session Title');
       await fireEvent.input(titleInput, { target: { value: 'New Test Session' } });
-      
+
       const createButton = screen.getByText('Create Session');
       await fireEvent.click(createButton);
-      
+
       await waitFor(() => {
         expect(sessionStore.createSession).toHaveBeenCalledWith('New Test Session', 'fun', 'en');
         expect(goto).toHaveBeenCalledWith('/sessions/new-session-id');
@@ -360,7 +360,7 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       expect(screen.getByText('Math Practice')).toBeInTheDocument();
       expect(screen.getByText('Working on algebra problems')).toBeInTheDocument();
       expect(screen.getByText('learn')).toBeInTheDocument();
@@ -398,18 +398,20 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       const editButton = screen.getByLabelText('Edit title');
       await fireEvent.click(editButton);
-      
+
       const titleInput = screen.getByDisplayValue('Original Title');
       expect(titleInput).toBeInTheDocument();
-      
+
       await fireEvent.input(titleInput, { target: { value: 'Updated Title' } });
       await fireEvent.blur(titleInput);
-      
+
       await waitFor(() => {
-        expect(sessionStore.updateSession).toHaveBeenCalledWith('session-1', { title: 'Updated Title' });
+        expect(sessionStore.updateSession).toHaveBeenCalledWith('session-1', {
+          title: 'Updated Title'
+        });
       });
     });
 
@@ -441,10 +443,10 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       const deleteButton = screen.getByLabelText('Delete session');
       await fireEvent.click(deleteButton);
-      
+
       expect(screen.getByText('Delete Session')).toBeInTheDocument();
       expect(screen.getByText(/Are you sure you want to delete this session/)).toBeInTheDocument();
     });
@@ -479,13 +481,13 @@ describe('SessionsList Component', () => {
       sessionStore.deleteSession.mockResolvedValue(true);
 
       render(SessionsList);
-      
+
       const deleteButton = screen.getByLabelText('Delete session');
       await fireEvent.click(deleteButton);
-      
-      const confirmButton = screen.getAllByText('Delete').find(el => el.tagName === 'BUTTON');
+
+      const confirmButton = screen.getAllByText('Delete').find((el) => el.tagName === 'BUTTON');
       await fireEvent.click(confirmButton);
-      
+
       await waitFor(() => {
         expect(sessionStore.deleteSession).toHaveBeenCalledWith('session-1');
       });
@@ -510,7 +512,7 @@ describe('SessionsList Component', () => {
       });
 
       const { container } = render(SessionsList);
-      
+
       const skeletons = container.querySelectorAll('.animate-pulse');
       expect(skeletons.length).toBeGreaterThan(0);
     });
@@ -532,7 +534,7 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       expect(screen.getByText('Failed to load sessions')).toBeInTheDocument();
       expect(screen.getByText('Retry')).toBeInTheDocument();
     });
@@ -567,7 +569,7 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       expect(screen.getByText('Previous')).toBeInTheDocument();
       expect(screen.getByText('Next')).toBeInTheDocument();
       expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
@@ -601,10 +603,10 @@ describe('SessionsList Component', () => {
       });
 
       render(SessionsList);
-      
+
       const nextButton = screen.getByText('Next');
       await fireEvent.click(nextButton);
-      
+
       expect(sessionStore.loadNextPage).toHaveBeenCalled();
     });
   });

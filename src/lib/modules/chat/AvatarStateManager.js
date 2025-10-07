@@ -22,19 +22,19 @@ export class AvatarStateManager {
     this.transitionCallbacks = new Map();
     this.stateHistory = [];
     this.maxHistorySize = 10;
-    
+
     // Transition timing configuration
     this.transitionDurations = {
-      emotion: 500,      // ms for emotion changes
-      speaking: 200,     // ms for speaking state changes
-      mouth: 100,        // ms for mouth position changes
-      idle: 300         // ms for idle transitions
+      emotion: 500, // ms for emotion changes
+      speaking: 200, // ms for speaking state changes
+      mouth: 100, // ms for mouth position changes
+      idle: 300 // ms for idle transitions
     };
 
     // State validation rules
     this.validStates = ['idle', 'speaking', 'listening', 'thinking', 'transitioning'];
     this.validEmotions = ['neutral', 'happy', 'sad', 'surprised', 'angry', 'resting'];
-    
+
     console.log('AvatarStateManager initialized');
   }
 
@@ -89,7 +89,6 @@ export class AvatarStateManager {
         this.queueTransition(transition);
         await this.processTransitionQueue();
       }
-
     } catch (error) {
       console.error('Error in avatar state transition:', error);
       throw error;
@@ -171,7 +170,7 @@ export class AvatarStateManager {
   queueTransition(transition) {
     // Remove any existing transitions with lower priority
     if (transition.priority === 'high') {
-      this.transitionQueue = this.transitionQueue.filter(t => t.priority === 'high');
+      this.transitionQueue = this.transitionQueue.filter((t) => t.priority === 'high');
     }
 
     // Add to queue
@@ -182,11 +181,11 @@ export class AvatarStateManager {
       const priorityOrder = { immediate: 0, high: 1, normal: 2, low: 3 };
       const aPriority = priorityOrder[a.priority] || 2;
       const bPriority = priorityOrder[b.priority] || 2;
-      
+
       if (aPriority !== bPriority) {
         return aPriority - bPriority;
       }
-      
+
       return a.timestamp - b.timestamp;
     });
 
@@ -240,12 +239,12 @@ export class AvatarStateManager {
       console.log(`Executing avatar transition: ${transition.id}`);
 
       const currentState = this.getCurrentState();
-      
+
       // Add to history
       this.addToHistory(currentState);
 
       // Set transitioning flag
-      avatarState.update(state => ({
+      avatarState.update((state) => ({
         ...state,
         transitioning: true,
         lastTransition: Date.now()
@@ -255,7 +254,7 @@ export class AvatarStateManager {
       await this.applyStateTransition(currentState, transition.targetState, transition);
 
       // Update to final state
-      avatarState.update(state => ({
+      avatarState.update((state) => ({
         ...transition.targetState,
         transitioning: false,
         lastTransition: Date.now()
@@ -271,16 +270,15 @@ export class AvatarStateManager {
       }
 
       console.log(`Avatar transition completed: ${transition.id}`);
-
     } catch (error) {
       console.error(`Error executing transition ${transition.id}:`, error);
-      
+
       // Reset transitioning flag on error
-      avatarState.update(state => ({
+      avatarState.update((state) => ({
         ...state,
         transitioning: false
       }));
-      
+
       throw error;
     }
   }
@@ -294,7 +292,7 @@ export class AvatarStateManager {
    */
   async applyStateTransition(fromState, toState, transition) {
     const steps = this.calculateTransitionSteps(fromState, toState, transition);
-    
+
     for (const step of steps) {
       await this.executeTransitionStep(step);
     }
@@ -316,9 +314,9 @@ export class AvatarStateManager {
     for (let i = 1; i <= stepCount; i++) {
       const progress = i / stepCount;
       const easedProgress = this.applyEasing(progress, transition.easing);
-      
+
       const stepState = this.interpolateState(fromState, toState, easedProgress);
-      
+
       steps.push({
         state: stepState,
         duration: stepDuration,
@@ -344,15 +342,15 @@ export class AvatarStateManager {
       if (toState.currentState !== fromState.currentState) {
         interpolated.currentState = toState.currentState;
       }
-      
+
       if (toState.emotion !== fromState.emotion) {
         interpolated.emotion = toState.emotion;
       }
-      
+
       if (toState.speaking !== fromState.speaking) {
         interpolated.speaking = toState.speaking;
       }
-      
+
       if (toState.mouthPosition !== fromState.mouthPosition) {
         interpolated.mouthPosition = toState.mouthPosition;
       }
@@ -368,14 +366,14 @@ export class AvatarStateManager {
    */
   async executeTransitionStep(step) {
     // Update state
-    avatarState.update(currentState => ({
+    avatarState.update((currentState) => ({
       ...currentState,
       ...step.state
     }));
 
     // Wait for step duration
     if (step.duration > 0) {
-      await new Promise(resolve => setTimeout(resolve, step.duration));
+      await new Promise((resolve) => setTimeout(resolve, step.duration));
     }
   }
 
@@ -392,9 +390,7 @@ export class AvatarStateManager {
       case 'ease-out':
         return 1 - Math.pow(1 - progress, 2);
       case 'ease-in-out':
-        return progress < 0.5 
-          ? 2 * progress * progress 
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        return progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
       case 'linear':
       default:
         return progress;
@@ -482,9 +478,10 @@ export class AvatarStateManager {
       isProcessing: this.isProcessingTransition,
       historySize: this.stateHistory.length,
       currentState: this.getCurrentState(),
-      lastTransition: this.stateHistory.length > 0 
-        ? this.stateHistory[this.stateHistory.length - 1].timestamp 
-        : null
+      lastTransition:
+        this.stateHistory.length > 0
+          ? this.stateHistory[this.stateHistory.length - 1].timestamp
+          : null
     };
   }
 }

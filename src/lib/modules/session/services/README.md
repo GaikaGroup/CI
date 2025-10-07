@@ -87,7 +87,7 @@ const message = await MessageService.addMessage(
   'session-123',
   'user',
   'Can you help me with calculus?',
-  { 
+  {
     language: 'en',
     timestamp: new Date().toISOString()
   },
@@ -102,11 +102,10 @@ const messages = await MessageService.getSessionMessages(
 );
 
 // Search messages
-const searchResults = await MessageService.searchMessages(
-  'user-123',
-  'calculus',
-  { page: 1, limit: 20 }
-);
+const searchResults = await MessageService.searchMessages('user-123', 'calculus', {
+  page: 1,
+  limit: 20
+});
 ```
 
 ## Error Handling
@@ -153,8 +152,8 @@ All list operations support pagination with consistent interface:
 
 ```javascript
 const result = await SessionService.getUserSessions('user-123', {
-  page: 1,        // Page number (1-based)
-  limit: 20,      // Items per page
+  page: 1, // Page number (1-based)
+  limit: 20, // Items per page
   sortBy: 'updatedAt',
   sortOrder: 'desc'
 });

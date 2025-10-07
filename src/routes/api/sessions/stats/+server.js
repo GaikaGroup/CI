@@ -27,19 +27,20 @@ export async function GET({ locals }) {
         total: sessionStats.totalSessions,
         fun: sessionStats.funSessions,
         learn: sessionStats.learnSessions,
-        lastActivity: sessionStats.lastActivity,
+        lastActivity: sessionStats.lastActivity
       },
       messages: {
         total: messageStats.totalMessages,
         user: messageStats.userMessages,
         assistant: messageStats.assistantMessages,
-        lastMessage: messageStats.lastMessage,
+        lastMessage: messageStats.lastMessage
       },
       overview: {
-        averageMessagesPerSession: sessionStats.totalSessions > 0 
-          ? Math.round(messageStats.totalMessages / sessionStats.totalSessions * 100) / 100 
-          : 0,
-        mostRecentActivity: sessionStats.lastActivity || messageStats.lastMessage,
+        averageMessagesPerSession:
+          sessionStats.totalSessions > 0
+            ? Math.round((messageStats.totalMessages / sessionStats.totalSessions) * 100) / 100
+            : 0,
+        mostRecentActivity: sessionStats.lastActivity || messageStats.lastMessage
       }
     };
 
@@ -47,8 +48,12 @@ export async function GET({ locals }) {
   } catch (error) {
     console.error('Error in GET /api/sessions/stats:', error);
 
-    if ((error instanceof SessionError || error instanceof MessageError) && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+    if (
+      (error instanceof SessionError || error instanceof MessageError) &&
+      error.code === 'DATABASE_NOT_READY'
+    ) {
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 

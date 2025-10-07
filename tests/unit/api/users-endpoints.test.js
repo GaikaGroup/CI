@@ -5,7 +5,7 @@ vi.mock('../../../src/lib/database/index.js', () => ({
   db: {
     session: {
       groupBy: vi.fn(),
-      count: vi.fn(),
+      count: vi.fn()
     }
   }
 }));
@@ -189,7 +189,9 @@ describe('Users API Endpoint', () => {
 
       const mockLocals = { user: null };
       const mockCookies = {
-        get: vi.fn().mockReturnValue(JSON.stringify({ id: 'admin', email: 'admin@test.com', role: 'admin' }))
+        get: vi
+          .fn()
+          .mockReturnValue(JSON.stringify({ id: 'admin', email: 'admin@test.com', role: 'admin' }))
       };
 
       const response = await getUsersHandler({ locals: mockLocals, cookies: mockCookies });

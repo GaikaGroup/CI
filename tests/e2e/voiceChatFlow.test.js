@@ -38,18 +38,24 @@ global.AudioContext = vi.fn(() => ({
 }));
 
 global.navigator.mediaDevices = {
-  getUserMedia: vi.fn(() => Promise.resolve({
-    getTracks: () => [{ 
-      stop: vi.fn(),
-      kind: 'audio',
-      enabled: true
-    }],
-    getAudioTracks: () => [{ 
-      stop: vi.fn(),
-      kind: 'audio',
-      enabled: true
-    }]
-  }))
+  getUserMedia: vi.fn(() =>
+    Promise.resolve({
+      getTracks: () => [
+        {
+          stop: vi.fn(),
+          kind: 'audio',
+          enabled: true
+        }
+      ],
+      getAudioTracks: () => [
+        {
+          stop: vi.fn(),
+          kind: 'audio',
+          enabled: true
+        }
+      ]
+    })
+  )
 };
 
 // Mock MediaRecorder
@@ -82,20 +88,21 @@ describe('End-to-End Voice Chat Flow Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup mocks
     mockAudioContext = new AudioContext();
     mockMediaRecorder = new MediaRecorder();
     mockAudio = new Audio();
-    
+
     // Mock successful API responses
     global.fetch.mockImplementation((url) => {
       if (url.includes('/api/transcribe')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ 
-            text: 'What is the capital of France?' 
-          })
+          json: () =>
+            Promise.resolve({
+              text: 'What is the capital of France?'
+            })
         });
       } else if (url.includes('/api/synthesize')) {
         return Promise.resolve({
@@ -105,9 +112,11 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       } else if (url.includes('/api/chat')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ 
-            response: 'The capital of France is Paris. It is a beautiful city known for its art, culture, and history.' 
-          })
+          json: () =>
+            Promise.resolve({
+              response:
+                'The capital of France is Paris. It is a beautiful city known for its art, culture, and history.'
+            })
         });
       }
       return Promise.reject(new Error('Unknown API endpoint'));
@@ -211,9 +220,10 @@ describe('End-to-End Voice Chat Flow Tests', () => {
           } else if (url.includes('/api/chat')) {
             return Promise.resolve({
               ok: true,
-              json: () => Promise.resolve({ 
-                response: `Response to: ${questions[i]}` 
-              })
+              json: () =>
+                Promise.resolve({
+                  response: `Response to: ${questions[i]}`
+                })
             });
           } else if (url.includes('/api/synthesize')) {
             return Promise.resolve({
@@ -225,7 +235,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
         });
 
         const micButton = container.querySelector('button[aria-label*="recording"]');
-        
+
         // Start recording
         await fireEvent.click(micButton);
         await waitFor(() => {
@@ -240,9 +250,12 @@ describe('End-to-End Voice Chat Flow Tests', () => {
           expect(waitingPhrasesService.playWaitingPhrase).toHaveBeenCalled();
         });
 
-        await waitFor(() => {
-          expect(container.textContent).not.toContain('Processing');
-        }, { timeout: 5000 });
+        await waitFor(
+          () => {
+            expect(container.textContent).not.toContain('Processing');
+          },
+          { timeout: 5000 }
+        );
 
         // Reset mocks for next iteration
         vi.clearAllMocks();
@@ -269,7 +282,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       waitingPhrasesService.playWaitingPhrase.mockImplementation(async (...args) => {
         events.push({ type: 'playPhrase', timestamp: Date.now() });
         // Simulate phrase duration
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         events.push({ type: 'phraseComplete', timestamp: Date.now() });
         return await originalPlayPhrase.call(waitingPhrasesService, ...args);
       });
@@ -278,7 +291,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       global.fetch.mockImplementation((url) => {
         if (url.includes('/api/chat')) {
           events.push({ type: 'aiResponseStart', timestamp: Date.now() });
-          return new Promise(resolve => {
+          return new Promise((resolve) => {
             setTimeout(() => {
               events.push({ type: 'aiResponseComplete', timestamp: Date.now() });
               resolve({
@@ -303,23 +316,28 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       // Perform interaction
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
       // Wait for all events to complete
-      await waitFor(() => {
-        expect(events.some(e => e.type === 'synthesizeResponse')).toBe(true);
-      }, { timeout: 10000 });
+      await waitFor(
+        () => {
+          expect(events.some((e) => e.type === 'synthesizeResponse')).toBe(true);
+        },
+        { timeout: 10000 }
+      );
 
       // Verify proper sequencing
-      const eventTypes = events.map(e => e.type);
-      
+      const eventTypes = events.map((e) => e.type);
+
       expect(eventTypes.indexOf('selectPhrase')).toBeLessThan(eventTypes.indexOf('playPhrase'));
       expect(eventTypes.indexOf('playPhrase')).toBeLessThan(eventTypes.indexOf('phraseComplete'));
       expect(eventTypes.indexOf('aiResponseStart')).toBeGreaterThan(-1);
-      expect(eventTypes.indexOf('aiResponseComplete')).toBeLessThan(eventTypes.indexOf('synthesizeResponse'));
+      expect(eventTypes.indexOf('aiResponseComplete')).toBeLessThan(
+        eventTypes.indexOf('synthesizeResponse')
+      );
     });
   });
 
@@ -340,7 +358,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -362,7 +380,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       );
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -403,7 +421,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -444,7 +462,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -461,7 +479,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       global.fetch.mockRejectedValue(new Error('Network error'));
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -477,7 +495,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       const { container } = render(VoiceChat);
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       // Initial state
       expect(container.textContent).toContain('Hold to record');
 
@@ -500,9 +518,12 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       });
 
       // Return to ready state
-      await waitFor(() => {
-        expect(container.textContent).toContain('Hold to record');
-      }, { timeout: 5000 });
+      await waitFor(
+        () => {
+          expect(container.textContent).toContain('Hold to record');
+        },
+        { timeout: 5000 }
+      );
     });
 
     it('should show waiting phrase status with queue information', async () => {
@@ -518,7 +539,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       vi.spyOn(voiceServices, 'isWaitingPhraseActive').mockReturnValue(true);
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -533,7 +554,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       const { container } = render(VoiceChat);
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       // Start first interaction
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
@@ -563,14 +584,14 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       const { container } = render(VoiceChat);
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
       // UI should remain responsive during processing
       const imageButton = container.querySelector('button[aria-label="Upload image"]');
       expect(imageButton).toBeTruthy();
-      
+
       // Image button should be disabled during processing
       expect(imageButton.disabled).toBe(true);
 
@@ -589,16 +610,19 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       const { container } = render(VoiceChat);
 
       const startTime = Date.now();
-      
+
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
       // Wait for complete processing
-      await waitFor(() => {
-        expect(container.textContent).not.toContain('Processing');
-      }, { timeout: 10000 });
+      await waitFor(
+        () => {
+          expect(container.textContent).not.toContain('Processing');
+        },
+        { timeout: 10000 }
+      );
 
       const endTime = Date.now();
       const totalTime = endTime - startTime;
@@ -623,10 +647,13 @@ describe('End-to-End Voice Chat Flow Tests', () => {
         const micButton = container.querySelector('button[aria-label*="recording"]');
         await fireEvent.click(micButton);
         await fireEvent.click(micButton);
-        
-        return waitFor(() => {
-          expect(container.textContent).not.toContain('Processing');
-        }, { timeout: 10000 });
+
+        return waitFor(
+          () => {
+            expect(container.textContent).not.toContain('Processing');
+          },
+          { timeout: 10000 }
+        );
       });
 
       await Promise.all(promises);
@@ -644,7 +671,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
       // Simulate extended use with multiple interactions
       for (let i = 0; i < 5; i++) {
         const micButton = container.querySelector('button[aria-label*="recording"]');
-        
+
         await fireEvent.click(micButton);
         await fireEvent.click(micButton);
 
@@ -653,7 +680,7 @@ describe('End-to-End Voice Chat Flow Tests', () => {
         });
 
         // Small delay between interactions
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       // Should complete without memory issues (smoke test)

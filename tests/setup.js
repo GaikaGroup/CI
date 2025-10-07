@@ -31,18 +31,24 @@ global.AudioContext = vi.fn(() => ({
 }));
 
 global.navigator.mediaDevices = {
-  getUserMedia: vi.fn(() => Promise.resolve({
-    getTracks: () => [{ 
-      stop: vi.fn(),
-      kind: 'audio',
-      enabled: true
-    }],
-    getAudioTracks: () => [{ 
-      stop: vi.fn(),
-      kind: 'audio',
-      enabled: true
-    }]
-  }))
+  getUserMedia: vi.fn(() =>
+    Promise.resolve({
+      getTracks: () => [
+        {
+          stop: vi.fn(),
+          kind: 'audio',
+          enabled: true
+        }
+      ],
+      getAudioTracks: () => [
+        {
+          stop: vi.fn(),
+          kind: 'audio',
+          enabled: true
+        }
+      ]
+    })
+  )
 };
 
 global.MediaRecorder = vi.fn().mockImplementation(() => ({
@@ -129,8 +135,10 @@ const originalConsoleWarn = console.warn;
 
 console.error = vi.fn((...args) => {
   // Only show actual errors, not expected test errors
-  if (!args[0]?.toString().includes('Warning:') && 
-      !args[0]?.toString().includes('Error: Not implemented:')) {
+  if (
+    !args[0]?.toString().includes('Warning:') &&
+    !args[0]?.toString().includes('Error: Not implemented:')
+  ) {
     originalConsoleError(...args);
   }
 });
@@ -145,16 +153,16 @@ console.warn = vi.fn((...args) => {
 // Clean up after each test
 afterEach(() => {
   vi.clearAllMocks();
-  
+
   // Reset fetch mock
   global.fetch.mockReset();
-  
+
   // Reset localStorage
   localStorageMock.getItem.mockReset();
   localStorageMock.setItem.mockReset();
   localStorageMock.removeItem.mockReset();
   localStorageMock.clear.mockReset();
-  
+
   // Reset sessionStorage
   sessionStorageMock.getItem.mockReset();
   sessionStorageMock.setItem.mockReset();

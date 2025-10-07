@@ -43,26 +43,27 @@ export class OllamaProvider extends ProviderInterface {
     if (!res.ok) throw new Error(`Failed to fetch Ollama tags: ${res.status} ${res.statusText}`);
 
     const data = await res.json().catch(() => ({}));
-    const tags = Array.isArray(data?.models) ? data.models.map(m => m.model) : [];
+    const tags = Array.isArray(data?.models) ? data.models.map((m) => m.model) : [];
 
     // Preferred list (first = default)
-    const preferred = Array.isArray(this.config.MODELS) && this.config.MODELS.length
+    const preferred =
+      Array.isArray(this.config.MODELS) && this.config.MODELS.length
         ? this.config.MODELS
         : [this.config.MODEL].filter(Boolean);
 
     // Exact match first
-    let pick = preferred.find(p => tags.includes(p));
+    let pick = preferred.find((p) => tags.includes(p));
 
     // Fuzzy (“qwen2.5” -> first “qwen2.5:*”) if not strict
     if (!pick && !this.config.STRICT) {
-      const fuzzyBase = preferred.find(p => tags.some(t => t === p || t.startsWith(p + ':')));
-      if (fuzzyBase) pick = tags.find(t => t === fuzzyBase || t.startsWith(fuzzyBase + ':'));
+      const fuzzyBase = preferred.find((p) => tags.some((t) => t === p || t.startsWith(p + ':')));
+      if (fuzzyBase) pick = tags.find((t) => t === fuzzyBase || t.startsWith(fuzzyBase + ':'));
     }
 
     if (!pick) {
       if (this.config.STRICT) {
         throw new Error(
-            `Preferred Ollama models not found. Wanted [${preferred.join(', ')}], installed [${tags.join(', ')}]`
+          `Preferred Ollama models not found. Wanted [${preferred.join(', ')}], installed [${tags.join(', ')}]`
         );
       }
       pick = tags[0] || this.config.MODEL; // last resort

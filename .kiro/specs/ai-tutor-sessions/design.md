@@ -14,7 +14,7 @@ graph TB
     Store --> Service[Session Services]
     Service --> DB[(PostgreSQL Database)]
     Service --> API[REST API Endpoints]
-    
+
     UI --> |Real-time updates| Store
     Store --> |State management| UI
     Service --> |Data persistence| DB
@@ -24,6 +24,7 @@ graph TB
 ### Database Selection
 
 **PostgreSQL** is selected as the open-source database solution because:
+
 - Excellent scalability (handles millions of records efficiently)
 - JSONB support for flexible message storage
 - Full-text search capabilities for session search
@@ -34,6 +35,7 @@ graph TB
 ### Data Models
 
 #### Sessions Table
+
 ```sql
 CREATE TABLE sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -51,6 +53,7 @@ CREATE TABLE sessions (
 ```
 
 #### Messages Table
+
 ```sql
 CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -68,6 +71,7 @@ CREATE TABLE messages (
 ### UI Components (Svelte)
 
 #### 1. SessionsList.svelte
+
 - **Purpose**: Main sessions list interface with sidebar layout
 - **Props**: None (uses stores)
 - **Features**:
@@ -76,7 +80,8 @@ CREATE TABLE messages (
   - New session creation
   - Session management actions (edit, delete)
 
-#### 2. SessionChat.svelte  
+#### 2. SessionChat.svelte
+
 - **Purpose**: Chat interface for active sessions
 - **Props**: `sessionId`
 - **Features**:
@@ -87,6 +92,7 @@ CREATE TABLE messages (
   - Audio playback controls
 
 #### 3. SessionPreview.svelte
+
 - **Purpose**: Session details and continuation options
 - **Props**: `session`
 - **Features**:
@@ -97,6 +103,7 @@ CREATE TABLE messages (
 ### Stores (State Management)
 
 #### 1. sessionStore.js
+
 ```javascript
 import { writable, derived } from 'svelte/store';
 
@@ -110,18 +117,17 @@ const sessionStore = writable({
 });
 
 // Derived stores
-export const filteredSessions = derived(
-  [sessionStore], 
-  ([$sessions]) => filterAndSortSessions($sessions)
+export const filteredSessions = derived([sessionStore], ([$sessions]) =>
+  filterAndSortSessions($sessions)
 );
 
-export const currentSessionMessages = derived(
-  [sessionStore], 
-  ([$sessions]) => getCurrentSessionMessages($sessions)
+export const currentSessionMessages = derived([sessionStore], ([$sessions]) =>
+  getCurrentSessionMessages($sessions)
 );
 ```
 
 #### 2. chatStore.js
+
 ```javascript
 import { writable } from 'svelte/store';
 
@@ -137,6 +143,7 @@ const chatStore = writable({
 ### Services Layer
 
 #### 1. SessionService.js
+
 - **Purpose**: Core session management operations
 - **Methods**:
   - `createSession(userId, title, mode, language)`
@@ -146,6 +153,7 @@ const chatStore = writable({
   - `searchSessions(userId, query)`
 
 #### 2. MessageService.js
+
 - **Purpose**: Message handling and persistence
 - **Methods**:
   - `addMessage(sessionId, type, content, metadata)`
@@ -154,6 +162,7 @@ const chatStore = writable({
   - `deleteMessage(messageId)`
 
 #### 3. DatabaseService.js
+
 - **Purpose**: Database connection and query management
 - **Methods**:
   - `connect()` - Initialize database connection
@@ -164,13 +173,15 @@ const chatStore = writable({
 ### API Endpoints
 
 #### Session Management
+
 - `GET /api/sessions` - Get user sessions with pagination
 - `POST /api/sessions` - Create new session
 - `PUT /api/sessions/:id` - Update session
 - `DELETE /api/sessions/:id` - Delete session
 - `GET /api/sessions/search` - Search sessions
 
-#### Message Management  
+#### Message Management
+
 - `GET /api/sessions/:id/messages` - Get session messages
 - `POST /api/sessions/:id/messages` - Add new message
 - `PUT /api/messages/:id` - Update message
@@ -179,6 +190,7 @@ const chatStore = writable({
 ## Data Models
 
 ### Session Model
+
 ```typescript
 interface Session {
   id: string;
@@ -194,6 +206,7 @@ interface Session {
 ```
 
 ### Message Model
+
 ```typescript
 interface Message {
   id: string;
@@ -211,6 +224,7 @@ interface Message {
 ```
 
 ### Session State Model
+
 ```typescript
 interface SessionState {
   sessions: Session[];
@@ -225,18 +239,21 @@ interface SessionState {
 ## Error Handling
 
 ### Database Error Handling
+
 - **Connection Failures**: Implement connection pooling with retry logic
 - **Query Timeouts**: Set appropriate timeout limits with fallback responses
 - **Data Integrity**: Use database constraints and application-level validation
 - **Migration Errors**: Implement rollback mechanisms for failed migrations
 
 ### Application Error Handling
+
 - **Session Not Found**: Return appropriate 404 responses with user-friendly messages
 - **Unauthorized Access**: Validate user ownership of sessions before operations
 - **Validation Errors**: Provide detailed field-level error messages
 - **Network Failures**: Implement offline support with local caching
 
 ### User Experience Error Handling
+
 - **Loading States**: Show skeleton loaders during data fetching
 - **Empty States**: Provide helpful messages and actions for empty session lists
 - **Error Recovery**: Allow users to retry failed operations
@@ -245,24 +262,28 @@ interface SessionState {
 ## Testing Strategy
 
 ### Unit Tests
+
 - **Store Logic**: Test all store operations and derived values
 - **Service Methods**: Test CRUD operations with mocked database
 - **Utility Functions**: Test search, filtering, and formatting functions
 - **Component Logic**: Test component state management and event handling
 
 ### Integration Tests
+
 - **Database Operations**: Test actual database queries with test database
 - **API Endpoints**: Test full request/response cycles
 - **Store-Service Integration**: Test data flow between layers
 - **Component-Store Integration**: Test UI state synchronization
 
 ### End-to-End Tests
+
 - **Session Creation Flow**: Test complete session creation process
 - **Chat Interaction Flow**: Test message sending and receiving
 - **Session Management**: Test editing, deleting, and searching sessions
 - **Cross-Device Sync**: Test session access from multiple devices
 
 ### Performance Tests
+
 - **Database Query Performance**: Test query execution times with large datasets
 - **Pagination Performance**: Test session loading with 100+ sessions per user
 - **Search Performance**: Test search functionality with full-text queries
@@ -271,12 +292,14 @@ interface SessionState {
 ## Security Considerations
 
 ### Data Protection
+
 - **User Isolation**: Ensure users can only access their own sessions
 - **Input Sanitization**: Sanitize all user inputs to prevent XSS attacks
 - **SQL Injection Prevention**: Use parameterized queries exclusively
 - **Data Encryption**: Encrypt sensitive data at rest and in transit
 
 ### Authentication & Authorization
+
 - **Session Validation**: Validate user sessions on every request
 - **Rate Limiting**: Implement rate limiting for API endpoints
 - **CORS Configuration**: Configure appropriate CORS policies
@@ -285,18 +308,21 @@ interface SessionState {
 ## Performance Optimization
 
 ### Database Optimization
+
 - **Indexing Strategy**: Create indexes on frequently queried columns
 - **Query Optimization**: Use efficient queries with proper joins and limits
 - **Connection Pooling**: Implement database connection pooling
 - **Caching Layer**: Add Redis caching for frequently accessed data
 
 ### Frontend Optimization
+
 - **Lazy Loading**: Load sessions and messages on demand
 - **Virtual Scrolling**: Implement virtual scrolling for large message lists
 - **Debounced Search**: Debounce search input to reduce API calls
 - **Optimistic Updates**: Update UI immediately before server confirmation
 
 ### Scalability Considerations
+
 - **Horizontal Scaling**: Design for read replica support
 - **Data Partitioning**: Plan for session data partitioning by user or date
 - **CDN Integration**: Use CDN for static assets and media files

@@ -10,18 +10,18 @@ export {
   disconnect,
   db,
   DatabaseNotReadyError,
-  getPrismaConstructor,
+  getPrismaConstructor
 } from './connection.js';
 
 // Configuration management
 export { dbConfig, validateConfig, getConnectionString } from './config.js';
 
 // Migration utilities
-export { 
-  isDatabaseCurrent, 
-  getMigrationStatus, 
-  verifySchema, 
-  resetDatabase 
+export {
+  isDatabaseCurrent,
+  getMigrationStatus,
+  verifySchema,
+  resetDatabase
 } from './migrations.js';
 
 // Re-export Prisma client types for convenience

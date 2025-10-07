@@ -3,6 +3,7 @@
 This document outlines the Git workflow and best practices for contributing to this project.
 
 ## Table of Contents
+
 - [Branching Strategy](#branching-strategy)
 - [Commit Messages](#commit-messages)
 - [Pushing and Synchronizing](#pushing-and-synchronizing)
@@ -16,10 +17,12 @@ This document outlines the Git workflow and best practices for contributing to t
 We follow a structured branching model:
 
 ### Main Branches
+
 - **main**: Always production-ready. Protected with branch rules requiring PR reviews and passing CI.
 - **development**: Integration branch where features accumulate before release.
 
 ### Feature Branches
+
 - Create a new branch for each feature, bug fix, or improvement.
 - Branch naming convention:
   - `feature/ISSUE-123-add-login` for new features
@@ -29,6 +32,7 @@ We follow a structured branching model:
 - Keep branches short-lived: merge or close within days, not months.
 
 ### Release/Hotfix Branches
+
 - `release/v1.4.0` for release stabilization
 - `hotfix/2.1.1` for immediate production bug fixes
 
@@ -37,6 +41,7 @@ We follow a structured branching model:
 Clear, consistent commit messages make history useful:
 
 ### Structure
+
 ```
 <type>(<scope>): <short summary>
 
@@ -48,11 +53,13 @@ Clear, consistent commit messages make history useful:
 - **summary**: imperative, ≤50 chars: "Add login button", not "Added" or "Adding"
 
 ### Body (if needed)
+
 - Wrap at ~72 chars
 - Explain "why" more than "what"
 - Reference issues: "Closes #123" or "Fixes JIRA-456"
 
 ### Examples
+
 ```
 feat(auth): add "Remember me" toggle
 
@@ -71,17 +78,20 @@ Buttons were overlapping on small screens due to incorrect flex settings.
 Keep your local and remote repos in sync to avoid painful merges:
 
 ### Fetch & Rebase / Merge Often
+
 ```bash
 git fetch origin
 git rebase origin/development   # or `git merge`, per team convention
 ```
 
 ### Push to Your Branch Only
+
 ```bash
 git push origin feature/ISSUE-123-add-login
 ```
 
 ### Force-Push with Care
+
 - Only on branches you exclusively own
 - Never `--force` on shared branches (unless everyone agrees)
 - Use `--force-with-lease` for safer force pushes:
@@ -94,10 +104,12 @@ git push origin feature/ISSUE-123-add-login
 A smooth code review process:
 
 ### Small, Focused PRs
+
 - Aim for <300–400 lines of diff
 - One logical change per PR
 
 ### Descriptive PR Titles & Descriptions
+
 - Title: Follow commit message format `<type>(<scope>): <summary>`
 - Description:
   - Summarize purpose and approach
@@ -105,10 +117,12 @@ A smooth code review process:
   - Link related issues
 
 ### Automated Checks
+
 - CI must pass (lint, tests, security scans)
 - Code style enforced with linters or formatters
 
 ### Review Etiquette
+
 - Ask questions gently; praise good design
 - Address feedback promptly
 - Use GitHub's suggestion feature for small changes
@@ -118,18 +132,21 @@ A smooth code review process:
 Make versions explicit:
 
 ### Semantic Versioning
+
 - `vMAJOR.MINOR.PATCH`
   - MAJOR: incompatible API changes
   - MINOR: backwards-compatible functionality
   - PATCH: backwards-compatible bug fixes
 
 ### Tags
+
 ```bash
 git tag -a v1.2.3 -m "Release v1.2.3: Add export feature"
 git push origin v1.2.3
 ```
 
 ### Changelogs
+
 - Update CHANGELOG.md with each release
 - Group changes by type (Features, Bug Fixes, etc.)
 

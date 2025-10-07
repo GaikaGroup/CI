@@ -41,9 +41,11 @@ Open your application in an incognito/private browsing window to test with a cle
 After clearing the cache, use these credentials:
 
 **Admin User:**
+
 - Login: `AdminLogin`
 - Password: `AdminPswd`
 
 **Demo User:**
+
 - Login: `User1Login`
 - Password: `User1Pswd`

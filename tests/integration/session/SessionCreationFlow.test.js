@@ -48,7 +48,7 @@ describe('Session Creation Flow Integration', () => {
       // Verify welcome message was created
       const messages = await MessageService.getSessionMessages(session.id, {}, testUserId);
       expect(messages.messages).toHaveLength(1);
-      
+
       const welcomeMessage = messages.messages[0];
       expect(welcomeMessage.type).toBe('assistant');
       expect(welcomeMessage.content).toContain('🎉');
@@ -73,7 +73,7 @@ describe('Session Creation Flow Integration', () => {
 
       const messages = await MessageService.getSessionMessages(session.id, {}, testUserId);
       const welcomeMessage = messages.messages[0];
-      
+
       expect(welcomeMessage.content).toContain('📚');
       expect(welcomeMessage.content).toContain('learn');
     });
@@ -99,7 +99,7 @@ describe('Session Creation Flow Integration', () => {
 
         const messages = await MessageService.getSessionMessages(session.id, {}, testUserId);
         const welcomeMessage = messages.messages[0];
-        
+
         expect(welcomeMessage.content).toContain(lang.emoji);
         expect(welcomeMessage.content).toContain(lang.keyword);
       }
@@ -212,11 +212,9 @@ describe('Session Creation Flow Integration', () => {
       createdSessionIds.push(session.id);
 
       // Update title
-      const updatedSession = await SessionService.updateSession(
-        session.id,
-        testUserId,
-        { title: 'Updated Title' }
-      );
+      const updatedSession = await SessionService.updateSession(session.id, testUserId, {
+        title: 'Updated Title'
+      });
 
       expect(updatedSession.title).toBe('Updated Title');
       expect(updatedSession.messageCount).toBe(1); // Welcome message still there
@@ -233,13 +231,7 @@ describe('Session Creation Flow Integration', () => {
       );
 
       // Add a user message
-      await MessageService.addMessage(
-        session.id,
-        'user',
-        'Test message',
-        null,
-        testUserId
-      );
+      await MessageService.addMessage(session.id, 'user', 'Test message', null, testUserId);
 
       // Verify 2 messages exist
       let messages = await MessageService.getSessionMessages(session.id, {}, testUserId);
@@ -249,9 +241,7 @@ describe('Session Creation Flow Integration', () => {
       await SessionService.deleteSession(session.id, testUserId);
 
       // Verify session is deleted
-      await expect(
-        SessionService.getSession(session.id, testUserId)
-      ).rejects.toThrow();
+      await expect(SessionService.getSession(session.id, testUserId)).rejects.toThrow();
 
       // Note: We don't need to add to createdSessionIds since it's already deleted
     });
@@ -272,7 +262,7 @@ describe('Session Creation Flow Integration', () => {
 
       const messages = await MessageService.getSessionMessages(session.id, {}, testUserId);
       const welcomeMessage = messages.messages[0];
-      
+
       expect(welcomeMessage.content.toLowerCase()).toMatch(/fun|excited|explore|chat/);
     });
 
@@ -290,7 +280,7 @@ describe('Session Creation Flow Integration', () => {
 
       const messages = await MessageService.getSessionMessages(session.id, {}, testUserId);
       const welcomeMessage = messages.messages[0];
-      
+
       expect(welcomeMessage.content.toLowerCase()).toMatch(/learn|study|guide|help/);
     });
   });
@@ -311,27 +301,20 @@ describe('Session Creation Flow Integration', () => {
     it('should rollback transaction if welcome message creation fails', async () => {
       // This test verifies that if message creation fails, the session is not created
       // We can't easily simulate this without mocking, but the transaction ensures atomicity
-      
+
       const initialSessionCount = await db.session.count({
         where: { userId: testUserId }
       });
 
       try {
         // Try to create with invalid parameters that might cause message creation to fail
-        await SessionService.createSession(
-          testUserId,
-          'Test',
-          'fun',
-          'en',
-          null,
-          true
-        );
+        await SessionService.createSession(testUserId, 'Test', 'fun', 'en', null, true);
       } catch (error) {
         // If it fails, verify no session was created
         const finalSessionCount = await db.session.count({
           where: { userId: testUserId }
         });
-        
+
         // Count should be the same if transaction rolled back
         // (This test might pass even without proper rollback, but it's a sanity check)
       }

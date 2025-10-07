@@ -9,7 +9,7 @@ vi.mock('../../../src/lib/modules/session/services/SessionService.js', () => ({
     updateSession: vi.fn(),
     deleteSession: vi.fn(),
     searchSessions: vi.fn(),
-    getSessionStats: vi.fn(),
+    getSessionStats: vi.fn()
   },
   SessionError: class SessionError extends Error {
     constructor(message, code = 'SESSION_ERROR', details = null) {
@@ -31,7 +31,7 @@ vi.mock('../../../src/lib/modules/session/services/SessionService.js', () => ({
       this.name = 'SessionValidationError';
       this.field = field;
     }
-  },
+  }
 }));
 
 vi.mock('../../../src/lib/modules/session/services/MessageService.js', () => ({
@@ -44,7 +44,7 @@ vi.mock('../../../src/lib/modules/session/services/MessageService.js', () => ({
     searchMessages: vi.fn(),
     getRecentMessages: vi.fn(),
     getMessageStats: vi.fn(),
-    bulkDeleteMessages: vi.fn(),
+    bulkDeleteMessages: vi.fn()
   },
   MessageError: class MessageError extends Error {
     constructor(message, code = 'MESSAGE_ERROR', details = null) {
@@ -66,13 +66,23 @@ vi.mock('../../../src/lib/modules/session/services/MessageService.js', () => ({
       this.name = 'MessageValidationError';
       this.field = field;
     }
-  },
+  }
 }));
 
 // Import the API handlers after mocking
-import { GET as getSessionsHandler, POST as postSessionsHandler } from '../../../src/routes/api/sessions/+server.js';
-import { GET as getSessionHandler, PUT as putSessionHandler, DELETE as deleteSessionHandler } from '../../../src/routes/api/sessions/[id]/+server.js';
-import { GET as getMessagesHandler, POST as postMessagesHandler } from '../../../src/routes/api/sessions/[id]/messages/+server.js';
+import {
+  GET as getSessionsHandler,
+  POST as postSessionsHandler
+} from '../../../src/routes/api/sessions/+server.js';
+import {
+  GET as getSessionHandler,
+  PUT as putSessionHandler,
+  DELETE as deleteSessionHandler
+} from '../../../src/routes/api/sessions/[id]/+server.js';
+import {
+  GET as getMessagesHandler,
+  POST as postMessagesHandler
+} from '../../../src/routes/api/sessions/[id]/messages/+server.js';
 import { GET as getSearchHandler } from '../../../src/routes/api/sessions/search/+server.js';
 import { GET as getStatsHandler } from '../../../src/routes/api/sessions/stats/+server.js';
 
@@ -279,11 +289,9 @@ describe('Sessions API Endpoints', () => {
 
       expect(response.status).toBe(200);
       expect(data).toEqual(updatedSession);
-      expect(SessionService.updateSession).toHaveBeenCalledWith(
-        'session-123',
-        mockUser.id,
-        { title: 'Updated Session' }
-      );
+      expect(SessionService.updateSession).toHaveBeenCalledWith('session-123', mockUser.id, {
+        title: 'Updated Session'
+      });
     });
   });
 

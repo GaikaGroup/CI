@@ -11,69 +11,69 @@ import { translationBridge } from '../../../src/lib/modules/chat/translationBrid
 
 // Mock i18n system
 const mockTranslations = {
-  'en': {
-    'voiceChatMode': 'Voice Chat Mode',
-    'talkToTutor': 'Talk to your tutor',
-    'thinking': 'Thinking...',
-    'recording': 'Recording...',
-    'processing': 'Processing...',
-    'holdToRecord': 'Hold to record'
+  en: {
+    voiceChatMode: 'Voice Chat Mode',
+    talkToTutor: 'Talk to your tutor',
+    thinking: 'Thinking...',
+    recording: 'Recording...',
+    processing: 'Processing...',
+    holdToRecord: 'Hold to record'
   },
-  'es': {
-    'voiceChatMode': 'Modo de Chat de Voz',
-    'talkToTutor': 'Habla con tu tutor',
-    'thinking': 'Pensando...',
-    'recording': 'Grabando...',
-    'processing': 'Procesando...',
-    'holdToRecord': 'Mantén presionado para grabar'
+  es: {
+    voiceChatMode: 'Modo de Chat de Voz',
+    talkToTutor: 'Habla con tu tutor',
+    thinking: 'Pensando...',
+    recording: 'Grabando...',
+    processing: 'Procesando...',
+    holdToRecord: 'Mantén presionado para grabar'
   },
-  'ru': {
-    'voiceChatMode': 'Режим голосового чата',
-    'talkToTutor': 'Поговорите с вашим наставником',
-    'thinking': 'Думаю...',
-    'recording': 'Запись...',
-    'processing': 'Обработка...',
-    'holdToRecord': 'Удерживайте для записи'
+  ru: {
+    voiceChatMode: 'Режим голосового чата',
+    talkToTutor: 'Поговорите с вашим наставником',
+    thinking: 'Думаю...',
+    recording: 'Запись...',
+    processing: 'Обработка...',
+    holdToRecord: 'Удерживайте для записи'
   },
-  'fr': {
-    'voiceChatMode': 'Mode Chat Vocal',
-    'talkToTutor': 'Parlez à votre tuteur',
-    'thinking': 'Je réfléchis...',
-    'recording': 'Enregistrement...',
-    'processing': 'Traitement...',
-    'holdToRecord': 'Maintenez pour enregistrer'
+  fr: {
+    voiceChatMode: 'Mode Chat Vocal',
+    talkToTutor: 'Parlez à votre tuteur',
+    thinking: 'Je réfléchis...',
+    recording: 'Enregistrement...',
+    processing: 'Traitement...',
+    holdToRecord: 'Maintenez pour enregistrer'
   }
 };
 
 // Mock waiting phrases in multiple languages
 const mockWaitingPhrases = {
-  'en': [
+  en: [
     'Let me think about this...',
     'Hmm, interesting question.',
     'Give me a moment to consider.',
     'Well, well, well. Let me ponder this.',
-    'That\'s a great question. Let me think.'
+    "That's a great question. Let me think."
   ],
-  'es': [
+  es: [
     'Déjame pensar en esto...',
     'Hmm, pregunta interesante.',
     'Dame un momento para considerar.',
     'Bueno, bueno, bueno. Déjame reflexionar sobre esto.',
     'Esa es una gran pregunta. Déjame pensar.'
   ],
-  'ru': [
+  ru: [
     'Позвольте мне подумать об этом...',
     'Хм, интересный вопрос.',
     'Дайте мне минутку подумать.',
     'Хм, хм, хм. Позвольте мне поразмыслить над этим.',
     'Это отличный вопрос. Дайте мне подумать.'
   ],
-  'fr': [
+  fr: [
     'Laissez-moi réfléchir à cela...',
     'Hmm, question intéressante.',
     'Donnez-moi un moment pour réfléchir.',
     'Eh bien, eh bien, eh bien. Laissez-moi méditer là-dessus.',
-    'C\'est une excellente question. Laissez-moi réfléchir.'
+    "C'est une excellente question. Laissez-moi réfléchir."
   ]
 };
 
@@ -111,23 +111,25 @@ describe('Multilingual i18n Integration Tests', () => {
 
     // Mock translation bridge
     vi.spyOn(translationBridge, 'detectUserLanguage').mockReturnValue('en');
-    vi.spyOn(translationBridge, 'translatePhrase').mockImplementation(async (phrase, targetLang) => {
-      // Simple mock translation - in real implementation this would call translation API
-      const translations = {
-        'Let me think about this...': {
-          'es': 'Déjame pensar en esto...',
-          'ru': 'Позвольте мне подумать об этом...',
-          'fr': 'Laissez-moi réfléchir à cela...'
-        },
-        'Hmm, interesting question.': {
-          'es': 'Hmm, pregunta interesante.',
-          'ru': 'Хм, интересный вопрос.',
-          'fr': 'Hmm, question intéressante.'
-        }
-      };
-      
-      return translations[phrase]?.[targetLang] || phrase;
-    });
+    vi.spyOn(translationBridge, 'translatePhrase').mockImplementation(
+      async (phrase, targetLang) => {
+        // Simple mock translation - in real implementation this would call translation API
+        const translations = {
+          'Let me think about this...': {
+            es: 'Déjame pensar en esto...',
+            ru: 'Позвольте мне подумать об этом...',
+            fr: 'Laissez-moi réfléchir à cela...'
+          },
+          'Hmm, interesting question.': {
+            es: 'Hmm, pregunta interesante.',
+            ru: 'Хм, интересный вопрос.',
+            fr: 'Hmm, question intéressante.'
+          }
+        };
+
+        return translations[phrase]?.[targetLang] || phrase;
+      }
+    );
   });
 
   afterEach(() => {
@@ -138,7 +140,7 @@ describe('Multilingual i18n Integration Tests', () => {
     it('should display UI elements in selected language', async () => {
       // Test Spanish
       mockSelectedLanguage.get.mockReturnValue('es');
-      
+
       const { container } = render(VoiceChat);
 
       await waitFor(() => {
@@ -161,10 +163,10 @@ describe('Multilingual i18n Integration Tests', () => {
 
       // Change to Russian
       mockSelectedLanguage.get.mockReturnValue('ru');
-      
+
       // Trigger reactivity (in real app this would happen via store subscription)
       await component.$set({});
-      
+
       await waitFor(() => {
         expect(mockGetTranslation).toHaveBeenCalledWith('ru', 'voiceChatMode');
       });
@@ -180,7 +182,7 @@ describe('Multilingual i18n Integration Tests', () => {
       });
 
       mockSelectedLanguage.get.mockReturnValue('zh');
-      
+
       const { container } = render(VoiceChat);
 
       // Should still render with fallback text
@@ -191,7 +193,7 @@ describe('Multilingual i18n Integration Tests', () => {
 
     it('should show waiting phrase status in correct language', async () => {
       mockSelectedLanguage.get.mockReturnValue('fr');
-      
+
       // Mock waiting phrase active state
       vi.doMock('../../../src/lib/modules/chat/voiceServices', () => ({
         isWaitingPhraseActive: vi.fn(() => true),
@@ -209,12 +211,12 @@ describe('Multilingual i18n Integration Tests', () => {
   });
 
   describe('Waiting Phrase Language Selection', () => {
-    it('should select waiting phrases in user\'s preferred language', async () => {
+    it("should select waiting phrases in user's preferred language", async () => {
       // Test Spanish selection
       translationBridge.detectUserLanguage.mockReturnValue('es');
-      
+
       const phrase = await waitingPhrasesService.selectWaitingPhrase('es');
-      
+
       expect(phrase).toBeTruthy();
       expect(typeof phrase).toBe('string');
       expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenCalledWith('es');
@@ -234,7 +236,10 @@ describe('Multilingual i18n Integration Tests', () => {
       // All calls should use the same language
       expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenCalledTimes(5);
       phrases.forEach((phrase, index) => {
-        expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenNthCalledWith(index + 1, userLanguage);
+        expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenNthCalledWith(
+          index + 1,
+          userLanguage
+        );
       });
 
       // Should have variety (no consecutive repeats)
@@ -246,12 +251,12 @@ describe('Multilingual i18n Integration Tests', () => {
     it('should handle language detection from voice input', async () => {
       // Mock language detection from user speech
       const detectedLanguages = ['en', 'es', 'ru', 'fr'];
-      
+
       for (const lang of detectedLanguages) {
         translationBridge.detectUserLanguage.mockReturnValue(lang);
-        
+
         const phrase = await waitingPhrasesService.selectWaitingPhrase(lang);
-        
+
         expect(phrase).toBeTruthy();
         expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenCalledWith(lang);
       }
@@ -261,7 +266,7 @@ describe('Multilingual i18n Integration Tests', () => {
       // Test with language that has native phrases
       const nativePhrase = await waitingPhrasesService.selectWaitingPhrase('es');
       expect(nativePhrase).toBeTruthy();
-      
+
       // Should not call translation for native language
       expect(translationBridge.translatePhrase).not.toHaveBeenCalled();
     });
@@ -271,7 +276,7 @@ describe('Multilingual i18n Integration Tests', () => {
     it('should use translation fallback for unsupported languages', async () => {
       // Test with unsupported language
       const unsupportedLang = 'zh';
-      
+
       // Mock that no native phrases exist for this language
       waitingPhrasesService.selectWaitingPhrase.mockImplementation(async (lang) => {
         if (lang === 'zh') {
@@ -285,7 +290,7 @@ describe('Multilingual i18n Integration Tests', () => {
       translationBridge.translatePhrase.mockResolvedValue('让我想想这个问题...');
 
       const phrase = await waitingPhrasesService.selectWaitingPhrase(unsupportedLang);
-      
+
       expect(phrase).toBe('让我想想这个问题...');
       expect(translationBridge.translatePhrase).toHaveBeenCalled();
     });
@@ -294,7 +299,7 @@ describe('Multilingual i18n Integration Tests', () => {
       const originalPhrase = 'Let me think about this...';
       const targetLang = 'de';
       const translatedPhrase = 'Lass mich darüber nachdenken...';
-      
+
       // Mock translation with caching
       let translationCallCount = 0;
       translationBridge.translatePhrase.mockImplementation(async (phrase, lang) => {
@@ -304,10 +309,10 @@ describe('Multilingual i18n Integration Tests', () => {
 
       // First call should trigger translation
       const result1 = await translationBridge.translatePhrase(originalPhrase, targetLang);
-      
+
       // Second call should use cache (but we'll simulate it still being called)
       const result2 = await translationBridge.translatePhrase(originalPhrase, targetLang);
-      
+
       expect(result1).toBe(translatedPhrase);
       expect(result2).toBe(translatedPhrase);
       expect(translationCallCount).toBe(2); // Called twice but should use cache internally
@@ -316,9 +321,11 @@ describe('Multilingual i18n Integration Tests', () => {
     it('should handle translation service failures gracefully', async () => {
       const originalPhrase = 'Hmm, interesting question.';
       const targetLang = 'it';
-      
+
       // Mock translation failure
-      translationBridge.translatePhrase.mockRejectedValue(new Error('Translation service unavailable'));
+      translationBridge.translatePhrase.mockRejectedValue(
+        new Error('Translation service unavailable')
+      );
 
       // Should fallback to English phrase
       waitingPhrasesService.selectWaitingPhrase.mockImplementation(async (lang) => {
@@ -333,7 +340,7 @@ describe('Multilingual i18n Integration Tests', () => {
       });
 
       const phrase = await waitingPhrasesService.selectWaitingPhrase(targetLang);
-      
+
       expect(phrase).toBe('Hmm, interesting question.');
       expect(translationBridge.translatePhrase).toHaveBeenCalled();
     });
@@ -348,7 +355,7 @@ describe('Multilingual i18n Integration Tests', () => {
       for (const phrase of testPhrases) {
         const spanishTranslation = await translationBridge.translatePhrase(phrase, 'es');
         const russianTranslation = await translationBridge.translatePhrase(phrase, 'ru');
-        
+
         expect(spanishTranslation).toBeTruthy();
         expect(russianTranslation).toBeTruthy();
         expect(spanishTranslation).not.toBe(phrase); // Should be translated
@@ -371,7 +378,10 @@ describe('Multilingual i18n Integration Tests', () => {
 
       // All phrases should be in the same language
       phrases.forEach((phrase, index) => {
-        expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenNthCalledWith(index + 1, conversationLanguage);
+        expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenNthCalledWith(
+          index + 1,
+          conversationLanguage
+        );
       });
     });
 
@@ -379,13 +389,13 @@ describe('Multilingual i18n Integration Tests', () => {
       // Start with English
       translationBridge.detectUserLanguage.mockReturnValue('en');
       const englishPhrase = await waitingPhrasesService.selectWaitingPhrase('en');
-      
+
       expect(englishPhrase).toBeTruthy();
 
       // Switch to Spanish
       translationBridge.detectUserLanguage.mockReturnValue('es');
       const spanishPhrase = await waitingPhrasesService.selectWaitingPhrase('es');
-      
+
       expect(spanishPhrase).toBeTruthy();
       expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenCalledWith('en');
       expect(waitingPhrasesService.selectWaitingPhrase).toHaveBeenCalledWith('es');
@@ -432,15 +442,13 @@ describe('Multilingual i18n Integration Tests', () => {
       const startTime = Date.now();
 
       // Request phrases in multiple languages concurrently
-      const promises = languages.map(lang => 
-        waitingPhrasesService.selectWaitingPhrase(lang)
-      );
+      const promises = languages.map((lang) => waitingPhrasesService.selectWaitingPhrase(lang));
 
       const results = await Promise.all(promises);
       const endTime = Date.now();
 
       // All should complete successfully
-      results.forEach(phrase => {
+      results.forEach((phrase) => {
         expect(phrase).toBeTruthy();
         expect(typeof phrase).toBe('string');
       });
@@ -471,7 +479,7 @@ describe('Multilingual i18n Integration Tests', () => {
         'Interesting question...',
         'Give me a moment...',
         'Well, well, well...',
-        'That\'s a great question...'
+        "That's a great question..."
       ];
 
       const languages = ['de', 'it', 'pt', 'nl', 'sv'];

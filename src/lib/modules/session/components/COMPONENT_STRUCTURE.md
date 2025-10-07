@@ -127,6 +127,7 @@ User Action → Component Handler → Store Method → API Call → Store Update
 ## Props & Events
 
 ### Props (Input)
+
 ```typescript
 {
   selectedSessionId?: string | null  // Currently selected session ID
@@ -134,9 +135,10 @@ User Action → Component Handler → Store Method → API Call → Store Update
 ```
 
 ### Events (Output)
+
 ```typescript
 // Prop binding updates
-selectedSessionId: string | null  // Updates when session is selected
+selectedSessionId: string | null; // Updates when session is selected
 ```
 
 ## Store Dependencies
@@ -171,7 +173,7 @@ isAuthenticated: boolean
   .p-4.border-b                          ← Header
     .flex.items-center.justify-between   ← Title + Button row
     .relative                            ← Search container
-  
+
   .flex-1.overflow-y-auto                ← Content area
     .p-4.space-y-3                       ← Loading skeleton
     .p-4.text-center                     ← Error state
@@ -181,38 +183,41 @@ isAuthenticated: boolean
         .flex.items-start.justify-between
         .text-sm.line-clamp-2            ← Preview
         .flex.items-center.gap-3         ← Metadata
-    
+
     .p-4.border-t.flex                   ← Pagination
 ```
 
 ## Icon Usage
 
-| Icon | Component | Usage |
-|------|-----------|-------|
-| Plus | lucide-svelte | New Session button |
-| Search | lucide-svelte | Search input |
-| Calendar | lucide-svelte | Date metadata |
+| Icon          | Component     | Usage                      |
+| ------------- | ------------- | -------------------------- |
+| Plus          | lucide-svelte | New Session button         |
+| Search        | lucide-svelte | Search input               |
+| Calendar      | lucide-svelte | Date metadata              |
 | MessageSquare | lucide-svelte | Message count, empty state |
-| Trash2 | lucide-svelte | Delete button |
-| Edit2 | lucide-svelte | Edit button |
-| Globe | lucide-svelte | Language metadata |
-| Sparkles | lucide-svelte | Fun mode indicator |
-| BookOpen | lucide-svelte | Learn mode indicator |
-| X | lucide-svelte | Modal close button |
+| Trash2        | lucide-svelte | Delete button              |
+| Edit2         | lucide-svelte | Edit button                |
+| Globe         | lucide-svelte | Language metadata          |
+| Sparkles      | lucide-svelte | Fun mode indicator         |
+| BookOpen      | lucide-svelte | Learn mode indicator       |
+| X             | lucide-svelte | Modal close button         |
 
 ## Responsive Behavior
 
 ### Desktop (≥1024px)
+
 - Fixed width sidebar (320px)
 - Full feature set visible
 - Hover states active
 
 ### Tablet (768px - 1023px)
+
 - Collapsible sidebar
 - Touch-optimized buttons
 - Adjusted spacing
 
 ### Mobile (<768px)
+
 - Full-width overlay
 - Larger touch targets
 - Simplified layout
@@ -221,18 +226,21 @@ isAuthenticated: boolean
 ## Accessibility Features
 
 ### Keyboard Navigation
+
 - Tab: Move between interactive elements
 - Enter: Activate buttons, save edits
 - Escape: Cancel edits, close modals
 - Arrow keys: Navigate list (future enhancement)
 
 ### Screen Reader Support
+
 - Semantic HTML (header, nav, main, button)
 - ARIA labels on icon buttons
 - ARIA roles on modals
 - Live regions for dynamic content
 
 ### Focus Management
+
 - Visible focus indicators
 - Focus trap in modals
 - Focus restoration after modal close
@@ -241,6 +249,7 @@ isAuthenticated: boolean
 ## Performance Considerations
 
 ### Optimizations
+
 - Debounced search (300ms)
 - Pagination (20 items per page)
 - Virtual scrolling (future enhancement)
@@ -248,35 +257,39 @@ isAuthenticated: boolean
 - Memoized computed values
 
 ### Bundle Size
+
 - Component: ~15KB (uncompressed)
 - Dependencies: lucide-svelte icons
 - Total impact: Minimal
 
 ## Browser Compatibility
 
-| Feature | Chrome | Firefox | Safari | Edge |
-|---------|--------|---------|--------|------|
-| Layout | ✅ | ✅ | ✅ | ✅ |
-| Search | ✅ | ✅ | ✅ | ✅ |
-| Modals | ✅ | ✅ | ✅ | ✅ |
-| Dark Mode | ✅ | ✅ | ✅ | ✅ |
-| Animations | ✅ | ✅ | ✅ | ✅ |
+| Feature    | Chrome | Firefox | Safari | Edge |
+| ---------- | ------ | ------- | ------ | ---- |
+| Layout     | ✅     | ✅      | ✅     | ✅   |
+| Search     | ✅     | ✅      | ✅     | ✅   |
+| Modals     | ✅     | ✅      | ✅     | ✅   |
+| Dark Mode  | ✅     | ✅      | ✅     | ✅   |
+| Animations | ✅     | ✅      | ✅     | ✅   |
 
 ## Testing Strategy
 
 ### Unit Tests
+
 - Component rendering
 - User interactions
 - State management
 - Edge cases
 
 ### Integration Tests
+
 - Store integration
 - API calls
 - Navigation
 - Error handling
 
 ### E2E Tests (Future)
+
 - Complete user flows
 - Cross-browser testing
 - Performance testing

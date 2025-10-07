@@ -54,10 +54,7 @@ The waiting phrases are configured in `src/lib/config/waitingPhrases.json`:
 {
   "phrases": {
     "category_name": {
-      "language_code": [
-        "phrase 1",
-        "phrase 2"
-      ]
+      "language_code": ["phrase 1", "phrase 2"]
     }
   },
   "settings": {
@@ -81,17 +78,17 @@ The configuration is validated against `src/lib/config/waitingPhrases.schema.jso
 
 ### Settings Reference
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `avoidConsecutiveRepeats` | boolean | true | Prevents same phrase from being selected twice in a row |
-| `maxPhraseLength` | integer | 10 | Maximum number of words in a phrase |
-| `fallbackToTranslation` | boolean | true | Use translation when native phrases unavailable |
-| `defaultLanguage` | string | "en" | Fallback language when target language unavailable |
-| `maxHistorySize` | integer | 5 | Number of recent phrases to remember for variety |
-| `enableContextualPhrases` | boolean | true | Enable category-specific phrases |
-| `cacheTimeout` | integer | 300000 | Cache timeout in milliseconds |
-| `translationTimeout` | integer | 5000 | Translation request timeout |
-| `maxCacheSize` | integer | 100 | Maximum cache entries |
+| Setting                   | Type    | Default | Description                                             |
+| ------------------------- | ------- | ------- | ------------------------------------------------------- |
+| `avoidConsecutiveRepeats` | boolean | true    | Prevents same phrase from being selected twice in a row |
+| `maxPhraseLength`         | integer | 10      | Maximum number of words in a phrase                     |
+| `fallbackToTranslation`   | boolean | true    | Use translation when native phrases unavailable         |
+| `defaultLanguage`         | string  | "en"    | Fallback language when target language unavailable      |
+| `maxHistorySize`          | integer | 5       | Number of recent phrases to remember for variety        |
+| `enableContextualPhrases` | boolean | true    | Enable category-specific phrases                        |
+| `cacheTimeout`            | integer | 300000  | Cache timeout in milliseconds                           |
+| `translationTimeout`      | integer | 5000    | Translation request timeout                             |
+| `maxCacheSize`            | integer | 100     | Maximum cache entries                                   |
 
 ## Usage
 
@@ -119,13 +116,13 @@ The system automatically integrates with voice chat through the `sendTranscribed
 export async function sendTranscribedText(transcription) {
   // 1. Add user message
   addMessage(MESSAGE_TYPES.USER, transcription);
-  
+
   // 2. Trigger waiting phrase immediately
   await triggerWaitingPhrase();
-  
+
   // 3. Generate AI response asynchronously
   const response = await generateAIResponse(transcription);
-  
+
   // 4. Play AI response (interrupts waiting phrase)
   await synthesizeSpeech(response);
 }
@@ -269,15 +266,11 @@ The TranslationBridge handles phrase translation with multiple fallback mechanis
 import { translationBridge } from '$lib/modules/chat/translationBridge.js';
 
 // Add custom phrase translation
-translationBridge.addPhraseTranslation(
-  'Custom waiting phrase',
-  'customKey',
-  {
-    es: 'Frase de espera personalizada',
-    fr: 'Phrase d\'attente personnalisée',
-    de: 'Benutzerdefinierte Wartephrase'
-  }
-);
+translationBridge.addPhraseTranslation('Custom waiting phrase', 'customKey', {
+  es: 'Frase de espera personalizada',
+  fr: "Phrase d'attente personnalisée",
+  de: 'Benutzerdefinierte Wartephrase'
+});
 ```
 
 ### Translation Performance
@@ -415,11 +408,13 @@ console.log('Unique phrases:', new Set(phrases).size);
 **Symptoms**: `selectWaitingPhrase` returns null or throws error
 
 **Causes**:
+
 - Configuration file not found or malformed
 - Language not supported
 - Category doesn't exist
 
 **Solutions**:
+
 ```javascript
 // Check service initialization
 console.log('Service initialized:', service.isServiceInitialized());
@@ -436,11 +431,13 @@ console.log('Config loaded:', !!service.config);
 **Symptoms**: Phrases always in English despite different language selection
 
 **Causes**:
+
 - Translation service not working
 - Network issues
 - Unsupported language
 
 **Solutions**:
+
 ```javascript
 // Test translation service
 const isAvailable = await service.isTranslationServiceAvailable('es');
@@ -455,11 +452,13 @@ console.log('Translation stats:', translationBridge.getTranslationStats());
 **Symptoms**: Slow phrase selection, high memory usage
 
 **Causes**:
+
 - Cache not working
 - Too many phrases in history
 - Memory leaks
 
 **Solutions**:
+
 ```javascript
 // Check cache performance
 const stats = service.getCacheStats();
@@ -477,11 +476,13 @@ service.clearAllCaches();
 **Symptoms**: Waiting phrases not playing audio
 
 **Causes**:
+
 - Voice mode not active
 - Audio context issues
 - TTS service problems
 
 **Solutions**:
+
 ```javascript
 // Check voice mode
 console.log('Voice mode active:', get(isVoiceModeActive));

@@ -5,11 +5,11 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { 
-  setVoiceModeActive, 
+import {
+  setVoiceModeActive,
   isVoiceModeActive,
   synthesizeWaitingPhrase,
-  handleVoiceInterruption 
+  handleVoiceInterruption
 } from '../../../src/lib/modules/chat/voiceServices.js';
 import { conversationFlowManager } from '../../../src/lib/modules/chat/ConversationFlowManager.js';
 import { interruptionEventHandler } from '../../../src/lib/modules/chat/InterruptionEventHandler.js';
@@ -58,7 +58,7 @@ describe('Voice Mode Integration', () => {
     conversationFlowManager.reset();
     interruptionEventHandler.reset();
     voiceInteractionLogger.clearLogs();
-    
+
     // Mock successful synthesis API response
     global.fetch.mockResolvedValue({
       ok: true,
@@ -116,7 +116,8 @@ describe('Voice Mode Integration', () => {
         languageConfidence: 0.9
       };
 
-      const interruptionResult = await conversationFlowManager.handleInterruption(interruptionEvent);
+      const interruptionResult =
+        await conversationFlowManager.handleInterruption(interruptionEvent);
 
       expect(interruptionResult.handled).toBe(true);
       expect(interruptionResult.preservedState).toBeDefined();
@@ -124,7 +125,10 @@ describe('Voice Mode Integration', () => {
 
       // Step 3: Handle user choice to continue
       const preservedStateId = interruptionResult.preservedState.id;
-      const continuationResult = await conversationFlowManager.handleUserChoice('continue', preservedStateId);
+      const continuationResult = await conversationFlowManager.handleUserChoice(
+        'continue',
+        preservedStateId
+      );
 
       expect(continuationResult.success).toBe(true);
       expect(continuationResult.continuationResponse).toBeDefined();
@@ -156,7 +160,7 @@ describe('Voice Mode Integration', () => {
     it('should log all interaction events', async () => {
       // Perform various voice interactions
       await synthesizeWaitingPhrase('Please wait...', 'en');
-      
+
       const interruptionEvent = {
         timestamp: Date.now(),
         energy: 0.3,
@@ -169,8 +173,8 @@ describe('Voice Mode Integration', () => {
       // Check that events were logged
       const logs = voiceInteractionLogger.exportLogs();
       expect(logs.totalLogs).toBeGreaterThan(0);
-      
-      const categories = logs.logs.map(log => log.category);
+
+      const categories = logs.logs.map((log) => log.category);
       expect(categories).toContain('audio_synthesis');
     });
   });
@@ -210,13 +214,13 @@ describe('Voice Mode Integration', () => {
       }));
 
       const results = await Promise.all(
-        interruptions.map(event => 
+        interruptions.map((event) =>
           interruptionEventHandler.handleInterruption(event).catch(() => ({ handled: false }))
         )
       );
 
       // Should handle at least some interruptions
-      const handledCount = results.filter(r => r.handled).length;
+      const handledCount = results.filter((r) => r.handled).length;
       expect(handledCount).toBeGreaterThan(0);
     });
   });
@@ -228,7 +232,7 @@ describe('Voice Mode Integration', () => {
 
     it('should maintain performance under load', async () => {
       const startTime = Date.now();
-      
+
       // Simulate multiple concurrent operations
       const operations = [
         synthesizeWaitingPhrase('Wait 1', 'en'),
@@ -237,7 +241,7 @@ describe('Voice Mode Integration', () => {
       ];
 
       await Promise.allSettled(operations);
-      
+
       const endTime = Date.now();
       const totalTime = endTime - startTime;
 

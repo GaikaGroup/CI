@@ -55,7 +55,7 @@ describe('VoiceUxPolisher', () => {
         responseStyle: 'concise'
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(savedPrefs));
-      
+
       const newPolisher = new VoiceUxPolisher();
       expect(newPolisher.userPreferences.interruptionSensitivity).toBe('high');
       expect(newPolisher.userPreferences.responseStyle).toBe('concise');
@@ -91,7 +91,7 @@ describe('VoiceUxPolisher', () => {
     it('should handle rapid interruptions with adaptive threshold', async () => {
       // Set high sensitivity
       polisher.userPreferences.interruptionSensitivity = 'high';
-      
+
       const context = {
         interruptionCount: 3,
         timeSpan: 4000,
@@ -105,7 +105,7 @@ describe('VoiceUxPolisher', () => {
 
     it('should handle unclear intent based on confidence threshold', async () => {
       polisher.advancedPreferences.interruptionThreshold = 0.7;
-      
+
       const context = {
         confidence: 0.5,
         energy: 0.2,
@@ -146,7 +146,7 @@ describe('VoiceUxPolisher', () => {
     it('should generate natural responses for different contexts', () => {
       const response1 = polisher.generateNaturalResponse('first_interruption', 'en');
       const response2 = polisher.generateNaturalResponse('repeated_interruption', 'en');
-      
+
       expect(response1).toBeTruthy();
       expect(response2).toBeTruthy();
       expect(response1).not.toBe(response2);
@@ -156,7 +156,7 @@ describe('VoiceUxPolisher', () => {
       const enResponse = polisher.generateNaturalResponse('first_interruption', 'en');
       const esResponse = polisher.generateNaturalResponse('first_interruption', 'es');
       const ruResponse = polisher.generateNaturalResponse('first_interruption', 'ru');
-      
+
       expect(enResponse).toBeTruthy();
       expect(esResponse).toBeTruthy();
       expect(ruResponse).toBeTruthy();
@@ -166,10 +166,10 @@ describe('VoiceUxPolisher', () => {
       // Mock Math.random to control variation addition
       const originalRandom = Math.random;
       Math.random = vi.fn().mockReturnValue(0.5); // Should trigger variation
-      
+
       const response = polisher.generateNaturalResponse('first_interruption', 'en');
       expect(response).toBeTruthy();
-      
+
       Math.random = originalRandom;
     });
   });
@@ -178,10 +178,10 @@ describe('VoiceUxPolisher', () => {
     it('should adapt interruption threshold based on sensitivity', () => {
       polisher.userPreferences.interruptionSensitivity = 'low';
       expect(polisher.getInterruptionThreshold()).toBe(5);
-      
+
       polisher.userPreferences.interruptionSensitivity = 'high';
       expect(polisher.getInterruptionThreshold()).toBe(2);
-      
+
       polisher.userPreferences.interruptionSensitivity = 'medium';
       expect(polisher.getInterruptionThreshold()).toBe(3);
     });
@@ -191,7 +191,7 @@ describe('VoiceUxPolisher', () => {
         interruptionCount: 4,
         timeSpan: 2000
       };
-      
+
       const cooldown = polisher.calculateAdaptiveCooldown(context);
       expect(cooldown).toBeGreaterThan(2000);
       expect(cooldown).toBeLessThanOrEqual(4000);
@@ -202,9 +202,9 @@ describe('VoiceUxPolisher', () => {
         interruptionSensitivity: 'high',
         responseStyle: 'detailed'
       };
-      
+
       polisher.saveUserPreferences(newPrefs);
-      
+
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'voicePreferences',
         expect.stringContaining('"interruptionSensitivity":"high"')
@@ -221,7 +221,7 @@ describe('VoiceUxPolisher', () => {
         negativeLanguageDetected: true,
         abandonedInteractions: 2
       };
-      
+
       const isFrustrated = polisher.detectAdvancedFrustrationPatterns(context);
       expect(isFrustrated).toBe(true);
     });
@@ -229,10 +229,10 @@ describe('VoiceUxPolisher', () => {
     it('should determine appropriate help type', () => {
       const context1 = { rapidInterruptions: 3 };
       expect(polisher.determineHelpType(context1)).toBe('interruption_help');
-      
+
       const context2 = { audioQualityIssues: true };
       expect(polisher.determineHelpType(context2)).toBe('voice_quality_help');
-      
+
       const context3 = {};
       expect(polisher.determineHelpType(context3)).toBe('general_help');
     });
@@ -242,11 +242,9 @@ describe('VoiceUxPolisher', () => {
         rapidInterruptions: 3,
         detectedLanguage: 'en'
       };
-      
+
       await polisher.offerContextualHelp(context);
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('Offering contextual help')
-      );
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Offering contextual help'));
     });
   });
 
@@ -258,9 +256,9 @@ describe('VoiceUxPolisher', () => {
         responseTime: 1500,
         completedSuccessfully: true
       };
-      
+
       polisher.collectUserFeedback(context);
-      
+
       const feedback = polisher.userFeedbackCollector.get('test_123');
       expect(feedback).toBeDefined();
       expect(feedback.interactionSuccess).toBe(true);
@@ -275,7 +273,7 @@ describe('VoiceUxPolisher', () => {
         followUpQuestions: 1,
         hadErrors: false
       };
-      
+
       const score = polisher.inferSatisfaction(goodContext);
       expect(score).toBeGreaterThan(0.5);
       expect(score).toBeLessThanOrEqual(1);
@@ -288,13 +286,13 @@ describe('VoiceUxPolisher', () => {
         responseTime: 1000,
         userSatisfaction: 0.8
       });
-      
+
       polisher.userFeedbackCollector.set('test2', {
         interactionSuccess: false,
         responseTime: 3000,
         userSatisfaction: 0.3
       });
-      
+
       const stats = polisher.getUxStats();
       expect(stats.totalInteractions).toBe(2);
       expect(stats.averageSatisfaction).toBeCloseTo(0.55);
@@ -320,7 +318,7 @@ describe('VoiceErrorHandler Enhanced Features', () => {
       };
 
       const result = await errorHandler.handleError(error, context);
-      
+
       expect(result.handled).toBe(true);
       expect(result.errorType).toBe('multiple_rapid_interruptions');
       expect(result.result.action).toBe('intelligent_throttle_interruptions');
@@ -337,9 +335,11 @@ describe('VoiceErrorHandler Enhanced Features', () => {
       };
 
       const result = await errorHandler.handleError(error, context);
-      
+
       expect(result.result.acknowledgment.language).toBe('es');
-      expect(result.result.acknowledgment.text).toMatch(/(atención|importante|decir|preguntar|escucho)/);
+      expect(result.result.acknowledgment.text).toMatch(
+        /(atención|importante|decir|preguntar|escucho)/
+      );
     });
 
     it('should calculate adaptive cooldown periods', async () => {
@@ -351,7 +351,7 @@ describe('VoiceErrorHandler Enhanced Features', () => {
       };
 
       const result = await errorHandler.handleError(error, context);
-      
+
       expect(result.result.adaptiveCooldown).toBeGreaterThan(2000);
       expect(result.result.adaptiveCooldown).toBeLessThanOrEqual(5000);
     });
@@ -365,7 +365,9 @@ describe('VoiceErrorHandler Enhanced Features', () => {
 
       expect(errorHandler.classifyError(networkError, {})).toBe('network_synthesis_failure');
       expect(errorHandler.classifyError(audioError, {})).toBe('audio_processing_failure');
-      expect(errorHandler.classifyError(interruptionError, {})).toBe('interruption_detection_failure');
+      expect(errorHandler.classifyError(interruptionError, {})).toBe(
+        'interruption_detection_failure'
+      );
     });
 
     it('should detect recurring errors', () => {
@@ -400,7 +402,7 @@ describe('InterruptionResponseGenerator Enhanced Features', () => {
 
       const response1 = await generator.generateResponse('en', context);
       const response2 = await generator.generateResponse('en', context);
-      
+
       expect(response1.text).toBeTruthy();
       expect(response2.text).toBeTruthy();
       // Should potentially be different due to randomization
@@ -421,7 +423,7 @@ describe('InterruptionResponseGenerator Enhanced Features', () => {
     it('should generate continuation offers', () => {
       const preservedState = { canContinue: true };
       const offer = generator.generateContinuationOffer('en', preservedState);
-      
+
       expect(offer).toBeTruthy();
       expect(offer.toLowerCase()).toMatch(/(continue|continuing|finish|resume|pick up|left off)/);
     });
@@ -429,7 +431,7 @@ describe('InterruptionResponseGenerator Enhanced Features', () => {
     it('should provide choice options for users', () => {
       const preservedState = { canContinue: true };
       const options = generator.generateChoiceOptions('en', preservedState);
-      
+
       expect(options.canContinue).toBe(true);
       expect(options.choices).toHaveLength(4);
       expect(options.choices[0].action).toBe('continue_response');
@@ -486,7 +488,7 @@ describe('VoiceUxIntegrator', () => {
   describe('Session Management', () => {
     it('should start and manage voice UX sessions', () => {
       const sessionId = integrator.startSession({ language: 'en' });
-      
+
       expect(sessionId).toBeTruthy();
       expect(integrator.activeSession).toBeDefined();
       expect(integrator.activeSession.id).toBe(sessionId);
@@ -495,14 +497,14 @@ describe('VoiceUxIntegrator', () => {
 
     it('should end sessions and collect metrics', () => {
       const sessionId = integrator.startSession();
-      
+
       // Simulate some interactions
       integrator.activeSession.interactions.push({ timestamp: Date.now() });
       integrator.activeSession.edgeCasesHandled = 2;
       integrator.activeSession.userSatisfactionScore = 0.8;
-      
+
       const summary = integrator.endSession();
-      
+
       expect(summary).toBeDefined();
       expect(summary.id).toBe(sessionId);
       expect(summary.interactions).toBe(1);
@@ -514,7 +516,7 @@ describe('VoiceUxIntegrator', () => {
   describe('Interaction Processing', () => {
     it('should process interactions with full UX enhancement', async () => {
       integrator.startSession();
-      
+
       const context = {
         isInterruption: true,
         detectedLanguage: 'en',
@@ -523,7 +525,7 @@ describe('VoiceUxIntegrator', () => {
       };
 
       const result = await integrator.processInteraction(context);
-      
+
       expect(result.success).toBe(true);
       expect(result.sessionId).toBeTruthy();
       expect(result.polishingResult).toBeDefined();
@@ -531,7 +533,7 @@ describe('VoiceUxIntegrator', () => {
 
     it('should handle processing errors gracefully', async () => {
       integrator.startSession();
-      
+
       // Create a context that will cause an error
       const context = {
         error: new Error('Test processing error'),
@@ -539,7 +541,7 @@ describe('VoiceUxIntegrator', () => {
       };
 
       const result = await integrator.processInteraction(context);
-      
+
       expect(result.success).toBe(true); // Should handle gracefully
       expect(result.polishingResult.errorHandling).toBeDefined();
     });
@@ -554,7 +556,7 @@ describe('VoiceUxIntegrator', () => {
       };
 
       const response = await integrator.generateEnhancedResponse(interruptionContext);
-      
+
       expect(response.type).toBe('interruption_acknowledgment');
       expect(response.enhanced).toBeDefined();
       expect(response.language).toBe('en');
@@ -573,7 +575,7 @@ describe('VoiceUxIntegrator', () => {
       };
 
       const enhanced = await integrator.applyNaturalLanguageEnhancements(originalResponse, context);
-      
+
       expect(enhanced.enhanced).toBe(true);
       expect(enhanced.enhancements).toBeDefined();
     });
@@ -584,9 +586,9 @@ describe('VoiceUxIntegrator', () => {
       integrator.startSession();
       integrator.uxMetrics.sessionsCompleted = 5;
       integrator.uxMetrics.averageSatisfaction = 0.75;
-      
+
       const stats = integrator.getUxStatistics();
-      
+
       expect(stats.global).toBeDefined();
       expect(stats.currentSession).toBeDefined();
       expect(stats.polisher).toBeDefined();
@@ -608,7 +610,7 @@ describe('Integration Tests', () => {
   it('should handle complete voice interaction flow', async () => {
     // Start session
     const sessionId = integrator.startSession({ language: 'en' });
-    
+
     // Process interruption
     const interruptionContext = {
       isInterruption: true,
@@ -620,10 +622,10 @@ describe('Integration Tests', () => {
     };
 
     const result = await integrator.processInteraction(interruptionContext);
-    
+
     expect(result.success).toBe(true);
     expect(result.sessionId).toBe(sessionId);
-    
+
     // End session
     const summary = integrator.endSession();
     expect(summary.interactions).toBe(1);
@@ -631,7 +633,7 @@ describe('Integration Tests', () => {
 
   it('should handle error recovery in complete flow', async () => {
     integrator.startSession();
-    
+
     const errorContext = {
       error: new Error('Network synthesis failure'),
       detectedLanguage: 'en',
@@ -640,7 +642,7 @@ describe('Integration Tests', () => {
     };
 
     const result = await integrator.processInteraction(errorContext);
-    
+
     expect(result.success).toBe(true);
     expect(result.polishingResult.errorHandling).toBeDefined();
     expect(result.polishingResult.errorHandling.handled).toBe(true);

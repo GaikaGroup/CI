@@ -14,11 +14,11 @@ export class VoiceErrorHandler {
     this.errorCounts = new Map();
     this.recoveryStrategies = new Map();
     this.fallbackMechanisms = new Map();
-    
+
     // Initialize recovery strategies
     this.initializeRecoveryStrategies();
     this.initializeFallbackMechanisms();
-    
+
     console.log('VoiceErrorHandler initialized');
   }
 
@@ -124,10 +124,9 @@ export class VoiceErrorHandler {
         result: recoveryResult,
         isRecurring: isRecurring
       };
-
     } catch (recoveryError) {
       console.error('Error during error recovery:', recoveryError);
-      
+
       // Ultimate fallback
       return await this.executeUltimateFallback(error, recoveryError);
     }
@@ -149,39 +148,49 @@ export class VoiceErrorHandler {
     }
 
     // Network-related synthesis failures
-    if (errorMessage.includes('network') || 
-        errorMessage.includes('fetch') || 
-        errorMessage.includes('timeout') ||
-        errorMessage.includes('synthesis api error')) {
+    if (
+      errorMessage.includes('network') ||
+      errorMessage.includes('fetch') ||
+      errorMessage.includes('timeout') ||
+      errorMessage.includes('synthesis api error')
+    ) {
       return 'network_synthesis_failure';
     }
 
     // Audio processing failures
-    if (errorMessage.includes('audio') || 
-        errorMessage.includes('buffer') ||
-        errorMessage.includes('audiocontext') ||
-        errorStack.includes('webaudio')) {
+    if (
+      errorMessage.includes('audio') ||
+      errorMessage.includes('buffer') ||
+      errorMessage.includes('audiocontext') ||
+      errorStack.includes('webaudio')
+    ) {
       return 'audio_processing_failure';
     }
 
     // Interruption detection failures
-    if (errorMessage.includes('interruption') || 
-        errorMessage.includes('microphone') ||
-        errorMessage.includes('mediastream')) {
+    if (
+      errorMessage.includes('interruption') ||
+      errorMessage.includes('microphone') ||
+      errorMessage.includes('mediastream')
+    ) {
       return 'interruption_detection_failure';
     }
 
     // Conversation state issues
-    if (errorMessage.includes('conversation') || 
-        errorMessage.includes('state') ||
-        errorMessage.includes('preserved state not found')) {
+    if (
+      errorMessage.includes('conversation') ||
+      errorMessage.includes('state') ||
+      errorMessage.includes('preserved state not found')
+    ) {
       return 'conversation_state_corruption';
     }
 
     // Avatar synchronization issues
-    if (errorMessage.includes('avatar') || 
-        errorMessage.includes('mouth') ||
-        errorMessage.includes('animation')) {
+    if (
+      errorMessage.includes('avatar') ||
+      errorMessage.includes('mouth') ||
+      errorMessage.includes('animation')
+    ) {
       return 'avatar_sync_failure';
     }
 
@@ -199,11 +208,9 @@ export class VoiceErrorHandler {
     this.errorCounts.set(errorType, count + 1);
 
     // Consider recurring if occurred 3+ times in last 5 minutes
-    const recentErrors = this.errorHistory
-      .filter(entry => 
-        entry.errorType === errorType && 
-        Date.now() - entry.timestamp < 300000
-      );
+    const recentErrors = this.errorHistory.filter(
+      (entry) => entry.errorType === errorType && Date.now() - entry.timestamp < 300000
+    );
 
     return recentErrors.length >= 3;
   }
@@ -288,7 +295,7 @@ export class VoiceErrorHandler {
     const baseCooldown = strategy.cooldownPeriod || 2000;
     const adaptiveCooldown = Math.min(baseCooldown * (context.interruptionCount / 3), 5000);
     const cooldownEnd = Date.now() + adaptiveCooldown;
-    
+
     // Generate contextual acknowledgment based on language and pattern
     const acknowledgmentVariations = {
       en: [
@@ -298,23 +305,23 @@ export class VoiceErrorHandler {
         "I want to make sure I hear you properly. Take your time to say what's on your mind."
       ],
       es: [
-        "Noto que estás tratando de llamar mi atención - te doy espacio para hablar claramente.",
-        "Veo que tienes algo importante que decir. Haré una pausa para que puedas compartir tus pensamientos.",
-        "Parece que tienes ganas de preguntar algo. Por favor continúa, te escucho.",
-        "Quiero asegurarme de escucharte bien. Tómate tu tiempo para decir lo que tienes en mente."
+        'Noto que estás tratando de llamar mi atención - te doy espacio para hablar claramente.',
+        'Veo que tienes algo importante que decir. Haré una pausa para que puedas compartir tus pensamientos.',
+        'Parece que tienes ganas de preguntar algo. Por favor continúa, te escucho.',
+        'Quiero asegurarme de escucharte bien. Tómate tu tiempo para decir lo que tienes en mente.'
       ],
       ru: [
-        "Я замечаю, что вы пытаетесь привлечь моё внимание - дам вам возможность говорить четко.",
-        "Я вижу, что у вас есть что-то важное сказать. Я сделаю паузу, чтобы вы могли поделиться своими мыслями.",
-        "Кажется, вы хотите что-то спросить. Пожалуйста, продолжайте, я слушаю.",
-        "Я хочу убедиться, что слышу вас правильно. Не торопитесь, скажите, что у вас на уме."
+        'Я замечаю, что вы пытаетесь привлечь моё внимание - дам вам возможность говорить четко.',
+        'Я вижу, что у вас есть что-то важное сказать. Я сделаю паузу, чтобы вы могли поделиться своими мыслями.',
+        'Кажется, вы хотите что-то спросить. Пожалуйста, продолжайте, я слушаю.',
+        'Я хочу убедиться, что слышу вас правильно. Не торопитесь, скажите, что у вас на уме.'
       ]
     };
 
     const language = context.detectedLanguage || 'en';
     const variations = acknowledgmentVariations[language] || acknowledgmentVariations.en;
     const acknowledgmentText = variations[Math.floor(Math.random() * variations.length)];
-    
+
     const acknowledgment = {
       text: acknowledgmentText,
       priority: 'immediate',
@@ -348,16 +355,16 @@ export class VoiceErrorHandler {
     while (retryCount < maxRetries) {
       try {
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, strategy.retryDelay || 1000));
-        
+        await new Promise((resolve) => setTimeout(resolve, strategy.retryDelay || 1000));
+
         // Attempt retry (this would be implemented by the calling code)
         console.log(`Retry attempt ${retryCount + 1}/${maxRetries}`);
-        
+
         // For now, just simulate success after retries
         if (retryCount === maxRetries - 1) {
           throw new Error('Max retries reached');
         }
-        
+
         retryCount++;
       } catch (retryError) {
         retryCount++;
@@ -384,7 +391,7 @@ export class VoiceErrorHandler {
       // This would restart the audio context
       // Implementation would be in the calling code
       console.log('Attempting to restart audio context');
-      
+
       return { action: 'audio_context_restarted', success: true };
     } catch (restartError) {
       return await this.executeFallbackMechanism(strategy.fallbackAction, restartError, context);
@@ -403,10 +410,14 @@ export class VoiceErrorHandler {
     try {
       // This would recalibrate the interruption detector
       console.log('Attempting to recalibrate interruption detection');
-      
+
       return { action: 'detection_recalibrated', success: true };
     } catch (calibrationError) {
-      return await this.executeFallbackMechanism(strategy.fallbackAction, calibrationError, context);
+      return await this.executeFallbackMechanism(
+        strategy.fallbackAction,
+        calibrationError,
+        context
+      );
     }
   }
 
@@ -422,11 +433,11 @@ export class VoiceErrorHandler {
     try {
       // This would reset the conversation state
       console.log('Resetting conversation state');
-      
-      return { 
-        action: 'conversation_state_reset', 
+
+      return {
+        action: 'conversation_state_reset',
         preserveHistory: strategy.preserveHistory,
-        success: true 
+        success: true
       };
     } catch (resetError) {
       return await this.executeFallbackMechanism(strategy.fallbackAction, resetError, context);
@@ -445,7 +456,7 @@ export class VoiceErrorHandler {
     try {
       // This would reset the avatar state
       console.log('Resetting avatar state');
-      
+
       return { action: 'avatar_state_reset', success: true };
     } catch (resetError) {
       return await this.executeFallbackMechanism(strategy.fallbackAction, resetError, context);
@@ -491,7 +502,10 @@ export class VoiceErrorHandler {
 
     const fallback = this.fallbackMechanisms.get(fallbackType);
     if (!fallback) {
-      return await this.executeUltimateFallback(error, new Error(`Unknown fallback: ${fallbackType}`));
+      return await this.executeUltimateFallback(
+        error,
+        new Error(`Unknown fallback: ${fallbackType}`)
+      );
     }
 
     try {
@@ -503,30 +517,33 @@ export class VoiceErrorHandler {
         case 'disableVoiceMode':
           setError(fallback.message);
           // This would disable voice mode temporarily
-          return { 
-            action: 'voice_mode_disabled', 
+          return {
+            action: 'voice_mode_disabled',
             duration: fallback.duration,
-            success: true 
+            success: true
           };
 
         case 'enableManualInterruption':
           setError(fallback.message);
-          return { 
-            action: 'manual_interruption_enabled', 
+          return {
+            action: 'manual_interruption_enabled',
             showStopButton: fallback.showStopButton,
-            success: true 
+            success: true
           };
 
         case 'restartConversation':
           setError(fallback.message);
-          return { 
-            action: 'conversation_restarted', 
+          return {
+            action: 'conversation_restarted',
             clearHistory: fallback.clearHistory,
-            success: true 
+            success: true
           };
 
         default:
-          return await this.executeUltimateFallback(error, new Error(`Unknown fallback action: ${fallback.action}`));
+          return await this.executeUltimateFallback(
+            error,
+            new Error(`Unknown fallback action: ${fallback.action}`)
+          );
       }
     } catch (fallbackError) {
       return await this.executeUltimateFallback(error, fallbackError);
@@ -539,13 +556,16 @@ export class VoiceErrorHandler {
    * @param {Error} recoveryError - Error during recovery
    * @returns {Promise<Object>} Ultimate fallback result
    */
-  async executeUltimateFallback(originalError, recoveryError) { // eslint-disable-line no-unused-vars
+  async executeUltimateFallback(originalError, recoveryError) {
+    // eslint-disable-line no-unused-vars
     console.error('Executing ultimate fallback - all recovery attempts failed');
     console.error('Original error:', originalError);
     console.error('Recovery error:', recoveryError);
 
     // Show user-friendly error message
-    setError('Voice mode encountered technical difficulties. Please refresh the page if issues persist.');
+    setError(
+      'Voice mode encountered technical difficulties. Please refresh the page if issues persist.'
+    );
 
     // Log comprehensive error information
     const ultimateErrorLog = {
@@ -606,11 +626,11 @@ export class VoiceErrorHandler {
    */
   getErrorStats() {
     const now = Date.now();
-    const last24Hours = this.errorHistory.filter(entry => now - entry.timestamp < 86400000);
-    const lastHour = this.errorHistory.filter(entry => now - entry.timestamp < 3600000);
+    const last24Hours = this.errorHistory.filter((entry) => now - entry.timestamp < 86400000);
+    const lastHour = this.errorHistory.filter((entry) => now - entry.timestamp < 3600000);
 
     const errorTypeStats = {};
-    this.errorHistory.forEach(entry => {
+    this.errorHistory.forEach((entry) => {
       errorTypeStats[entry.errorType] = (errorTypeStats[entry.errorType] || 0) + 1;
     });
 
@@ -619,8 +639,8 @@ export class VoiceErrorHandler {
       errorsLast24Hours: last24Hours.length,
       errorsLastHour: lastHour.length,
       errorTypeBreakdown: errorTypeStats,
-      mostCommonError: Object.entries(errorTypeStats)
-        .sort(([,a], [,b]) => b - a)[0]?.[0] || 'none'
+      mostCommonError:
+        Object.entries(errorTypeStats).sort(([, a], [, b]) => b - a)[0]?.[0] || 'none'
     };
   }
 

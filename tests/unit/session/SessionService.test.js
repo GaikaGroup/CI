@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SessionService, SessionError, SessionNotFoundError, SessionValidationError } from '../../../src/lib/modules/session/services/SessionService.js';
+import {
+  SessionService,
+  SessionError,
+  SessionNotFoundError,
+  SessionValidationError
+} from '../../../src/lib/modules/session/services/SessionService.js';
 
 // Mock the database connection
 vi.mock('../../../src/lib/database/index.js', () => ({
@@ -16,12 +21,12 @@ vi.mock('../../../src/lib/database/index.js', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
-      count: vi.fn(),
+      count: vi.fn()
     },
     message: {
-      count: vi.fn(),
+      count: vi.fn()
     },
-    $transaction: vi.fn(),
+    $transaction: vi.fn()
   }
 }));
 
@@ -43,7 +48,7 @@ describe('SessionService', () => {
         preview: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        messageCount: 0,
+        messageCount: 0
       };
 
       db.session.create.mockResolvedValue(mockSession);
@@ -56,22 +61,22 @@ describe('SessionService', () => {
           title: 'Test Session',
           mode: 'fun',
           language: 'en',
-          preview: null,
-        },
+          preview: null
+        }
       });
       expect(result).toEqual(mockSession);
     });
 
     it('should throw validation error for missing userId', async () => {
-      await expect(
-        SessionService.createSession('', 'Test Session')
-      ).rejects.toThrow(SessionValidationError);
+      await expect(SessionService.createSession('', 'Test Session')).rejects.toThrow(
+        SessionValidationError
+      );
     });
 
     it('should throw validation error for missing title', async () => {
-      await expect(
-        SessionService.createSession('user-123', '')
-      ).rejects.toThrow(SessionValidationError);
+      await expect(SessionService.createSession('user-123', '')).rejects.toThrow(
+        SessionValidationError
+      );
     });
 
     it('should throw validation error for invalid mode', async () => {
@@ -82,9 +87,9 @@ describe('SessionService', () => {
 
     it('should throw validation error for title too long', async () => {
       const longTitle = 'a'.repeat(501);
-      await expect(
-        SessionService.createSession('user-123', longTitle)
-      ).rejects.toThrow(SessionValidationError);
+      await expect(SessionService.createSession('user-123', longTitle)).rejects.toThrow(
+        SessionValidationError
+      );
     });
   });
 
@@ -133,9 +138,7 @@ describe('SessionService', () => {
     });
 
     it('should throw validation error for invalid userId', async () => {
-      await expect(
-        SessionService.getUserSessions('')
-      ).rejects.toThrow(SessionValidationError);
+      await expect(SessionService.getUserSessions('')).rejects.toThrow(SessionValidationError);
     });
 
     it('should throw validation error for invalid pagination', async () => {
@@ -156,7 +159,7 @@ describe('SessionService', () => {
         userId: 'user-123',
         title: 'Test Session',
         _count: { messages: 5 },
-        messageCount: 4, // Simulating out of sync count
+        messageCount: 4 // Simulating out of sync count
       };
 
       db.session.findFirst.mockResolvedValue(mockSession);
@@ -167,7 +170,7 @@ describe('SessionService', () => {
       expect(db.session.findFirst).toHaveBeenCalledWith({
         where: {
           id: 'session-123',
-          userId: 'user-123',
+          userId: 'user-123'
         },
         include: {
           messages: false,
@@ -190,9 +193,9 @@ describe('SessionService', () => {
     it('should throw SessionNotFoundError for non-existent session', async () => {
       db.session.findFirst.mockResolvedValue(null);
 
-      await expect(
-        SessionService.getSession('non-existent', 'user-123')
-      ).rejects.toThrow(SessionNotFoundError);
+      await expect(SessionService.getSession('non-existent', 'user-123')).rejects.toThrow(
+        SessionNotFoundError
+      );
     });
   });
 
@@ -201,12 +204,12 @@ describe('SessionService', () => {
       const existingSession = {
         id: 'session-123',
         userId: 'user-123',
-        title: 'Old Title',
+        title: 'Old Title'
       };
 
       const updatedSession = {
         ...existingSession,
-        title: 'New Title',
+        title: 'New Title'
       };
 
       db.session.findFirst.mockResolvedValue(existingSession);
@@ -243,7 +246,7 @@ describe('SessionService', () => {
     it('should delete a session', async () => {
       const existingSession = {
         id: 'session-123',
-        userId: 'user-123',
+        userId: 'user-123'
       };
 
       db.session.findFirst.mockResolvedValue(existingSession);
@@ -261,9 +264,9 @@ describe('SessionService', () => {
     it('should throw SessionNotFoundError for non-existent session', async () => {
       db.session.findFirst.mockResolvedValue(null);
 
-      await expect(
-        SessionService.deleteSession('non-existent', 'user-123')
-      ).rejects.toThrow(SessionNotFoundError);
+      await expect(SessionService.deleteSession('non-existent', 'user-123')).rejects.toThrow(
+        SessionNotFoundError
+      );
     });
   });
 
@@ -287,8 +290,8 @@ describe('SessionService', () => {
           userId: 'user-123',
           OR: [
             { title: { contains: 'math', mode: 'insensitive' } },
-            { preview: { contains: 'math', mode: 'insensitive' } },
-          ],
+            { preview: { contains: 'math', mode: 'insensitive' } }
+          ]
         },
         orderBy: { updatedAt: 'desc' },
         skip: 0,
@@ -305,9 +308,9 @@ describe('SessionService', () => {
     });
 
     it('should throw validation error for empty query', async () => {
-      await expect(
-        SessionService.searchSessions('user-123', '')
-      ).rejects.toThrow(SessionValidationError);
+      await expect(SessionService.searchSessions('user-123', '')).rejects.toThrow(
+        SessionValidationError
+      );
     });
   });
 
@@ -315,11 +318,11 @@ describe('SessionService', () => {
     it('should get session statistics', async () => {
       db.session.count
         .mockResolvedValueOnce(10) // total sessions
-        .mockResolvedValueOnce(6)  // fun sessions
+        .mockResolvedValueOnce(6) // fun sessions
         .mockResolvedValueOnce(4); // learn sessions
-      
+
       db.message.count.mockResolvedValue(50); // total messages
-      
+
       db.session.findFirst.mockResolvedValue({
         updatedAt: new Date('2023-01-01')
       });
@@ -331,7 +334,7 @@ describe('SessionService', () => {
         funSessions: 6,
         learnSessions: 4,
         totalMessages: 50,
-        lastActivity: new Date('2023-01-01'),
+        lastActivity: new Date('2023-01-01')
       });
     });
   });
@@ -339,14 +342,14 @@ describe('SessionService', () => {
   describe('error handling and retry logic', () => {
     it('should retry on database connection errors', async () => {
       const connectionError = new Error('Connection failed');
-      
+
       db.session.create
         .mockRejectedValueOnce(connectionError)
         .mockRejectedValueOnce(connectionError)
         .mockResolvedValueOnce({
           id: 'session-123',
           userId: 'user-123',
-          title: 'Test Session',
+          title: 'Test Session'
         });
 
       const result = await SessionService.createSession('user-123', 'Test Session');
@@ -356,9 +359,9 @@ describe('SessionService', () => {
     });
 
     it('should not retry validation errors', async () => {
-      await expect(
-        SessionService.createSession('', 'Test Session')
-      ).rejects.toThrow(SessionValidationError);
+      await expect(SessionService.createSession('', 'Test Session')).rejects.toThrow(
+        SessionValidationError
+      );
 
       expect(db.session.create).not.toHaveBeenCalled();
     });
@@ -367,9 +370,9 @@ describe('SessionService', () => {
       const connectionError = new Error('Connection failed');
       db.session.create.mockRejectedValue(connectionError);
 
-      await expect(
-        SessionService.createSession('user-123', 'Test Session')
-      ).rejects.toThrow(SessionError);
+      await expect(SessionService.createSession('user-123', 'Test Session')).rejects.toThrow(
+        SessionError
+      );
 
       expect(db.session.create).toHaveBeenCalledTimes(3); // Max retry attempts
     });

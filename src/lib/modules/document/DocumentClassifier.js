@@ -29,7 +29,7 @@ export class DocumentClassifier extends IDocumentClassifier {
 
       // In a real implementation, this would use machine learning or heuristics
       // to classify the document based on the buffer content.
-      // For this example, we'll use a simple approach that always classifies 
+      // For this example, we'll use a simple approach that always classifies
       // documents as printed text to ensure reliable OCR.
 
       // Check if it's a PDF by examining the header

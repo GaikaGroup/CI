@@ -31,7 +31,10 @@ function loadPrismaModule() {
     prismaModule = require(join(process.cwd(), 'src/generated/prisma/index.js'));
     return prismaModule;
   } catch (error) {
-    if (error?.code === 'MODULE_NOT_FOUND' || error?.message?.includes('src/generated/prisma/index.js')) {
+    if (
+      error?.code === 'MODULE_NOT_FOUND' ||
+      error?.message?.includes('src/generated/prisma/index.js')
+    ) {
       throw new DatabaseNotReadyError(
         'Prisma client has not been generated. Run "prisma generate" before starting the server.',
         error
@@ -56,25 +59,25 @@ function createPrismaClient() {
     const { PrismaClient } = loadPrismaModule();
     const client = new PrismaClient({
       log: isDev ? ['query', 'info', 'warn', 'error'] : ['warn', 'error'],
-      errorFormat: 'pretty',
+      errorFormat: 'pretty'
     });
 
-  // Handle graceful shutdown
-  if (typeof window === 'undefined') {
-    process.on('beforeExit', async () => {
-      await client.$disconnect();
-    });
+    // Handle graceful shutdown
+    if (typeof window === 'undefined') {
+      process.on('beforeExit', async () => {
+        await client.$disconnect();
+      });
 
-    process.on('SIGINT', async () => {
-      await client.$disconnect();
-      process.exit(0);
-    });
+      process.on('SIGINT', async () => {
+        await client.$disconnect();
+        process.exit(0);
+      });
 
-    process.on('SIGTERM', async () => {
-      await client.$disconnect();
-      process.exit(0);
-    });
-  }
+      process.on('SIGTERM', async () => {
+        await client.$disconnect();
+        process.exit(0);
+      });
+    }
 
     return client;
   } catch (error) {
@@ -131,16 +134,19 @@ export async function disconnect() {
 }
 
 // Export the client instance for direct use
-export const db = new Proxy({}, {
-  get(_target, prop) {
-    const client = getPrismaClient();
-    const value = client[prop];
-    if (typeof value === 'function') {
-      return value.bind(client);
+export const db = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const client = getPrismaClient();
+      const value = client[prop];
+      if (typeof value === 'function') {
+        return value.bind(client);
+      }
+      return value;
     }
-    return value;
-  },
-});
+  }
+);
 
 export function getPrismaConstructor() {
   const { PrismaClient } = loadPrismaModule();

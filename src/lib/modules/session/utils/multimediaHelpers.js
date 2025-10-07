@@ -14,7 +14,7 @@
  */
 export function createVoiceMetadata(options = {}) {
   const { audioUrl, duration, language, transcription } = options;
-  
+
   return {
     type: 'voice',
     audioUrl,
@@ -36,10 +36,10 @@ export function createVoiceMetadata(options = {}) {
  */
 export function createImageMetadata(options = {}) {
   const { imageUrl, imageType, imageSize, imageDimensions } = options;
-  
+
   // Handle both single image and multiple images
   const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-  
+
   return {
     type: 'image',
     images: images.map((url, index) => ({
@@ -65,7 +65,7 @@ export function createImageMetadata(options = {}) {
  */
 export function createAudioResponseMetadata(options = {}) {
   const { audioUrl, duration, language, emotion, isWaitingPhrase = false } = options;
-  
+
   return {
     type: 'audio_response',
     audioUrl,
@@ -88,25 +88,25 @@ export function createAudioResponseMetadata(options = {}) {
  */
 export function createMixedMetadata(options = {}) {
   const { audioUrl, images, language, additional = {} } = options;
-  
+
   const metadata = {
     type: 'mixed',
     timestamp: new Date().toISOString(),
     ...additional
   };
-  
+
   if (audioUrl) {
     metadata.audioUrl = audioUrl;
   }
-  
+
   if (images && images.length > 0) {
     metadata.images = images;
   }
-  
+
   if (language) {
     metadata.language = language;
   }
-  
+
   return metadata;
 }
 
@@ -127,20 +127,22 @@ export function getAudioUrl(metadata) {
  */
 export function getImageUrls(metadata) {
   if (!metadata) return [];
-  
+
   // Handle different metadata structures
   if (metadata.images) {
     if (Array.isArray(metadata.images)) {
       // New structure with image objects
-      return metadata.images.map(img => typeof img === 'string' ? img : img.url).filter(Boolean);
+      return metadata.images
+        .map((img) => (typeof img === 'string' ? img : img.url))
+        .filter(Boolean);
     }
     return [];
   }
-  
+
   if (metadata.imageUrl) {
     return Array.isArray(metadata.imageUrl) ? metadata.imageUrl : [metadata.imageUrl];
   }
-  
+
   return [];
 }
 
@@ -150,7 +152,7 @@ export function getImageUrls(metadata) {
  * @returns {boolean} True if message has audio
  */
 export function hasAudio(message) {
-  return !!(message?.metadata?.audioUrl);
+  return !!message?.metadata?.audioUrl;
 }
 
 /**
@@ -179,7 +181,7 @@ export function hasMultimedia(message) {
  */
 export function getMultimediaSummary(message) {
   const metadata = message?.metadata;
-  
+
   return {
     hasAudio: hasAudio(message),
     hasImages: hasImages(message),
@@ -199,7 +201,7 @@ export function getMultimediaSummary(message) {
  */
 export function isValidAudioUrl(url) {
   if (!url || typeof url !== 'string') return false;
-  
+
   try {
     const urlObj = new URL(url);
     // Check for common audio file extensions or blob URLs
@@ -221,7 +223,7 @@ export function isValidAudioUrl(url) {
  */
 export function isValidImageUrl(url) {
   if (!url || typeof url !== 'string') return false;
-  
+
   try {
     const urlObj = new URL(url);
     // Check for common image file extensions or blob URLs
@@ -244,7 +246,7 @@ export function isValidImageUrl(url) {
  */
 export function formatAudioDuration(seconds) {
   if (!seconds || seconds < 0) return '0:00';
-  
+
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -257,16 +259,16 @@ export function formatAudioDuration(seconds) {
  */
 export function formatFileSize(bytes) {
   if (!bytes || bytes < 0) return '0 B';
-  
+
   const units = ['B', 'KB', 'MB', 'GB'];
   let size = bytes;
   let unitIndex = 0;
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
-  
+
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
@@ -279,7 +281,7 @@ export function createAudioBlobUrl(audioBlob) {
   if (!audioBlob || !(audioBlob instanceof Blob)) {
     throw new Error('Invalid audio blob');
   }
-  
+
   return URL.createObjectURL(audioBlob);
 }
 
@@ -302,7 +304,7 @@ export async function extractAudioMetadata(audioFile) {
   return new Promise((resolve, reject) => {
     const audio = new Audio();
     const url = URL.createObjectURL(audioFile);
-    
+
     audio.addEventListener('loadedmetadata', () => {
       const metadata = {
         duration: audio.duration,
@@ -310,16 +312,16 @@ export async function extractAudioMetadata(audioFile) {
         size: audioFile.size,
         name: audioFile.name
       };
-      
+
       URL.revokeObjectURL(url);
       resolve(metadata);
     });
-    
+
     audio.addEventListener('error', (error) => {
       URL.revokeObjectURL(url);
       reject(new Error('Failed to load audio metadata'));
     });
-    
+
     audio.src = url;
   });
 }
@@ -333,7 +335,7 @@ export async function extractImageMetadata(imageFile) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(imageFile);
-    
+
     img.onload = () => {
       const metadata = {
         width: img.width,
@@ -343,16 +345,16 @@ export async function extractImageMetadata(imageFile) {
         name: imageFile.name,
         aspectRatio: img.width / img.height
       };
-      
+
       URL.revokeObjectURL(url);
       resolve(metadata);
     };
-    
+
     img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error('Failed to load image metadata'));
     };
-    
+
     img.src = url;
   });
 }

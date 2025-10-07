@@ -95,10 +95,10 @@
         if (transcription) {
           // Update status immediately to show processing
           updateWaitingPhraseStatus();
-          
+
           // Send transcribed text (this will trigger waiting phrases)
           await sendTranscribedText(transcription);
-          
+
           // Update status after processing
           updateWaitingPhraseStatus();
         }
@@ -140,7 +140,7 @@
       {getTranslation($selectedLanguage, 'voiceChatMode')}
     </h2>
     <p class="text-amber-100">{getTranslation($selectedLanguage, 'talkToTutor')}</p>
-    
+
     <!-- Waiting phrase status indicator -->
     {#if waitingPhraseStatus && audioQueueInfo}
       <div class="mt-3 flex justify-center">

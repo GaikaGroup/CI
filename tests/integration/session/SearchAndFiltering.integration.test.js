@@ -141,7 +141,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThanOrEqual(4);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(session.mode).toBe('learn');
       });
     });
@@ -152,7 +152,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThan(0);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(session.mode).toBe('learn');
       });
     });
@@ -174,7 +174,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThanOrEqual(3);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(session.language).toBe('en');
       });
     });
@@ -196,7 +196,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThanOrEqual(3);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(new Date(session.updatedAt).getTime()).toBeGreaterThanOrEqual(
           new Date('2024-03-01').getTime()
         );
@@ -209,7 +209,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThanOrEqual(2);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(new Date(session.updatedAt).getTime()).toBeLessThanOrEqual(
           new Date('2024-02-28').getTime()
         );
@@ -223,7 +223,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThanOrEqual(2);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         const sessionDate = new Date(session.updatedAt).getTime();
         expect(sessionDate).toBeGreaterThanOrEqual(new Date('2024-02-01').getTime());
         expect(sessionDate).toBeLessThanOrEqual(new Date('2024-03-31').getTime());
@@ -250,7 +250,7 @@ describe('Session Search and Filtering Integration', () => {
       });
 
       expect(result.sessions.length).toBeGreaterThanOrEqual(2);
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(session.mode).toBe('learn');
         expect(session.language).toBe('en');
         const sessionDate = new Date(session.updatedAt).getTime();
@@ -267,7 +267,7 @@ describe('Session Search and Filtering Integration', () => {
         dateTo: '2024-12-31'
       });
 
-      result.sessions.forEach(session => {
+      result.sessions.forEach((session) => {
         expect(session.mode).toBe('learn');
         expect(session.language).toBe('en');
       });

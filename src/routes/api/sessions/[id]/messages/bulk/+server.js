@@ -1,5 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { MessageService, MessageError, MessageValidationError } from '$lib/modules/session/services/MessageService.js';
+import {
+  MessageService,
+  MessageError,
+  MessageValidationError
+} from '$lib/modules/session/services/MessageService.js';
 import { SessionNotFoundError } from '$lib/modules/session/services/SessionService.js';
 
 /**
@@ -37,17 +41,23 @@ export async function DELETE({ params, request, locals }) {
     }
 
     // Validate that all message IDs are strings
-    const invalidIds = body.messageIds.filter(id => typeof id !== 'string' || id.trim().length === 0);
+    const invalidIds = body.messageIds.filter(
+      (id) => typeof id !== 'string' || id.trim().length === 0
+    );
     if (invalidIds.length > 0) {
       return json({ error: 'All message IDs must be non-empty strings' }, { status: 400 });
     }
 
-    const deletedCount = await MessageService.bulkDeleteMessages(sessionId, body.messageIds, userId);
+    const deletedCount = await MessageService.bulkDeleteMessages(
+      sessionId,
+      body.messageIds,
+      userId
+    );
 
-    return json({ 
-      success: true, 
+    return json({
+      success: true,
       message: `Successfully deleted ${deletedCount} messages`,
-      deletedCount 
+      deletedCount
     });
   } catch (error) {
     console.error(`Error in DELETE /api/sessions/${params.id}/messages/bulk:`, error);

@@ -53,19 +53,21 @@ describe('Sessions Page - Text Mode Issues', () => {
         if (url.includes('/api/sessions')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              sessions: [],
-              pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
-            })
+            json: () =>
+              Promise.resolve({
+                sessions: [],
+                pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
+              })
           });
         }
         if (url.includes('/api/chat')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              response: 'AI response',
-              provider: { name: 'openai', model: 'gpt-4' }
-            })
+            json: () =>
+              Promise.resolve({
+                response: 'AI response',
+                provider: { name: 'openai', model: 'gpt-4' }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -73,7 +75,7 @@ describe('Sessions Page - Text Mode Issues', () => {
 
       // Test: Check if message input exists and works
       const messageInput = screen.queryByPlaceholderText(/type your message/i);
-      
+
       if (!messageInput) {
         console.error('ISSUE FOUND: Message input not found in text mode');
         expect(messageInput).toBeTruthy();
@@ -82,22 +84,23 @@ describe('Sessions Page - Text Mode Issues', () => {
 
       // Type a message
       await fireEvent.input(messageInput, { target: { value: 'Hello AI' } });
-      
+
       // Press Enter
       await fireEvent.keyPress(messageInput, { key: 'Enter', code: 'Enter' });
 
       // Wait for API call
-      await waitFor(() => {
-        const chatCalls = mockFetch.mock.calls.filter(call => 
-          call[0].includes('/api/chat')
-        );
-        
-        if (chatCalls.length === 0) {
-          console.error('ISSUE FOUND: No API call made to /api/chat when sending message');
-        }
-        
-        expect(chatCalls.length).toBeGreaterThan(0);
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          const chatCalls = mockFetch.mock.calls.filter((call) => call[0].includes('/api/chat'));
+
+          if (chatCalls.length === 0) {
+            console.error('ISSUE FOUND: No API call made to /api/chat when sending message');
+          }
+
+          expect(chatCalls.length).toBeGreaterThan(0);
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('should send message when user clicks send button', async () => {
@@ -105,19 +108,21 @@ describe('Sessions Page - Text Mode Issues', () => {
         if (url.includes('/api/sessions')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              sessions: [],
-              pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
-            })
+            json: () =>
+              Promise.resolve({
+                sessions: [],
+                pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
+              })
           });
         }
         if (url.includes('/api/chat')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              response: 'AI response',
-              provider: { name: 'openai', model: 'gpt-4' }
-            })
+            json: () =>
+              Promise.resolve({
+                response: 'AI response',
+                provider: { name: 'openai', model: 'gpt-4' }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -136,12 +141,13 @@ describe('Sessions Page - Text Mode Issues', () => {
       await fireEvent.input(messageInput, { target: { value: 'Test message' } });
       await fireEvent.click(sendButton);
 
-      await waitFor(() => {
-        const chatCalls = mockFetch.mock.calls.filter(call => 
-          call[0].includes('/api/chat')
-        );
-        expect(chatCalls.length).toBeGreaterThan(0);
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          const chatCalls = mockFetch.mock.calls.filter((call) => call[0].includes('/api/chat'));
+          expect(chatCalls.length).toBeGreaterThan(0);
+        },
+        { timeout: 3000 }
+      );
     });
 
     it('should display user message in chat after sending', async () => {
@@ -149,19 +155,21 @@ describe('Sessions Page - Text Mode Issues', () => {
         if (url.includes('/api/sessions')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              sessions: [],
-              pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
-            })
+            json: () =>
+              Promise.resolve({
+                sessions: [],
+                pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
+              })
           });
         }
         if (url.includes('/api/chat')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              response: 'AI response',
-              provider: { name: 'openai', model: 'gpt-4' }
-            })
+            json: () =>
+              Promise.resolve({
+                response: 'AI response',
+                provider: { name: 'openai', model: 'gpt-4' }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -179,13 +187,16 @@ describe('Sessions Page - Text Mode Issues', () => {
       await fireEvent.keyPress(messageInput, { key: 'Enter', code: 'Enter' });
 
       // Check if message appears in the chat
-      await waitFor(() => {
-        const messageElement = screen.queryByText(testMessage);
-        if (!messageElement) {
-          console.error('ISSUE FOUND: User message not displayed in chat after sending');
-        }
-        expect(messageElement).toBeTruthy();
-      }, { timeout: 3000 });
+      await waitFor(
+        () => {
+          const messageElement = screen.queryByText(testMessage);
+          if (!messageElement) {
+            console.error('ISSUE FOUND: User message not displayed in chat after sending');
+          }
+          expect(messageElement).toBeTruthy();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 
@@ -198,16 +209,19 @@ describe('Sessions Page - Text Mode Issues', () => {
         if (url.includes('/api/sessions') && !url.includes('/messages')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              sessions: [{
-                id: sessionId,
-                title: 'Test Session',
-                mode: 'fun',
-                language: 'en',
-                messageCount: 0
-              }],
-              pagination: { currentPage: 1, totalPages: 1, totalCount: 1 }
-            })
+            json: () =>
+              Promise.resolve({
+                sessions: [
+                  {
+                    id: sessionId,
+                    title: 'Test Session',
+                    mode: 'fun',
+                    language: 'en',
+                    messageCount: 0
+                  }
+                ],
+                pagination: { currentPage: 1, totalPages: 1, totalCount: 1 }
+              })
           });
         }
         if (url.includes(`/api/sessions/${sessionId}/messages`) && options?.method === 'POST') {
@@ -215,20 +229,22 @@ describe('Sessions Page - Text Mode Issues', () => {
           messagesSaved.push(body);
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              id: `msg-${Date.now()}`,
-              ...body,
-              createdAt: new Date().toISOString()
-            })
+            json: () =>
+              Promise.resolve({
+                id: `msg-${Date.now()}`,
+                ...body,
+                createdAt: new Date().toISOString()
+              })
           });
         }
         if (url.includes('/api/chat')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              response: 'AI response',
-              provider: { name: 'openai', model: 'gpt-4' }
-            })
+            json: () =>
+              Promise.resolve({
+                response: 'AI response',
+                provider: { name: 'openai', model: 'gpt-4' }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -240,12 +256,15 @@ describe('Sessions Page - Text Mode Issues', () => {
         await fireEvent.input(messageInput, { target: { value: 'Test message' } });
         await fireEvent.keyPress(messageInput, { key: 'Enter', code: 'Enter' });
 
-        await waitFor(() => {
-          if (messagesSaved.length === 0) {
-            console.error('ISSUE FOUND: Messages not being saved to session API');
-          }
-          expect(messagesSaved.length).toBeGreaterThan(0);
-        }, { timeout: 3000 });
+        await waitFor(
+          () => {
+            if (messagesSaved.length === 0) {
+              console.error('ISSUE FOUND: Messages not being saved to session API');
+            }
+            expect(messagesSaved.length).toBeGreaterThan(0);
+          },
+          { timeout: 3000 }
+        );
       }
     });
 
@@ -270,25 +289,29 @@ describe('Sessions Page - Text Mode Issues', () => {
         if (url.includes('/api/sessions') && !url.includes('/messages')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              sessions: [{
-                id: sessionId,
-                title: 'Test Session',
-                mode: 'fun',
-                language: 'en',
-                messageCount: 2
-              }],
-              pagination: { currentPage: 1, totalPages: 1, totalCount: 1 }
-            })
+            json: () =>
+              Promise.resolve({
+                sessions: [
+                  {
+                    id: sessionId,
+                    title: 'Test Session',
+                    mode: 'fun',
+                    language: 'en',
+                    messageCount: 2
+                  }
+                ],
+                pagination: { currentPage: 1, totalPages: 1, totalCount: 1 }
+              })
           });
         }
         if (url.includes(`/api/sessions/${sessionId}/messages`)) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              messages: mockMessages,
-              pagination: { currentPage: 1, totalPages: 1, totalCount: 2 }
-            })
+            json: () =>
+              Promise.resolve({
+                messages: mockMessages,
+                pagination: { currentPage: 1, totalPages: 1, totalCount: 2 }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -299,17 +322,20 @@ describe('Sessions Page - Text Mode Issues', () => {
       if (sessionButton) {
         await fireEvent.click(sessionButton);
 
-        await waitFor(() => {
-          const userMessage = screen.queryByText('Hello');
-          const assistantMessage = screen.queryByText('Hi there!');
-          
-          if (!userMessage || !assistantMessage) {
-            console.error('ISSUE FOUND: Messages not loaded when session is selected');
-          }
-          
-          expect(userMessage).toBeTruthy();
-          expect(assistantMessage).toBeTruthy();
-        }, { timeout: 3000 });
+        await waitFor(
+          () => {
+            const userMessage = screen.queryByText('Hello');
+            const assistantMessage = screen.queryByText('Hi there!');
+
+            if (!userMessage || !assistantMessage) {
+              console.error('ISSUE FOUND: Messages not loaded when session is selected');
+            }
+
+            expect(userMessage).toBeTruthy();
+            expect(assistantMessage).toBeTruthy();
+          },
+          { timeout: 3000 }
+        );
       }
     });
   });
@@ -319,7 +345,7 @@ describe('Sessions Page - Text Mode Issues', () => {
       // This test checks if the sessions page is using the right store
       // Import the stores
       const { messages } = await import('$lib/modules/chat/stores.js');
-      
+
       // Check initial state
       const initialMessages = get(messages);
       console.log('Initial messages in store:', initialMessages);
@@ -330,20 +356,20 @@ describe('Sessions Page - Text Mode Issues', () => {
 
     it('should update messages store when sending in text mode', async () => {
       const { messages, addMessage } = await import('$lib/modules/chat/stores.js');
-      
+
       // Clear messages
       messages.set([]);
-      
+
       // Add a message
       addMessage('user', 'Test message', []);
-      
+
       // Check if message was added
       const currentMessages = get(messages);
-      
+
       if (currentMessages.length === 0) {
         console.error('ISSUE FOUND: addMessage not updating messages store');
       }
-      
+
       expect(currentMessages.length).toBe(1);
       expect(currentMessages[0].content).toBe('Test message');
     });
@@ -352,15 +378,16 @@ describe('Sessions Page - Text Mode Issues', () => {
   describe('API Integration', () => {
     it('should call sendMessage from chat services', async () => {
       const { sendMessage } = await import('$lib/modules/chat/services.js');
-      
+
       mockFetch.mockImplementation((url) => {
         if (url.includes('/api/chat')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              response: 'AI response',
-              provider: { name: 'openai', model: 'gpt-4' }
-            })
+            json: () =>
+              Promise.resolve({
+                response: 'AI response',
+                provider: { name: 'openai', model: 'gpt-4' }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -368,11 +395,11 @@ describe('Sessions Page - Text Mode Issues', () => {
 
       // Call sendMessage
       const result = await sendMessage('Test message', []);
-      
+
       if (!result) {
         console.error('ISSUE FOUND: sendMessage returned false or failed');
       }
-      
+
       expect(result).toBe(true);
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/chat',
@@ -385,7 +412,7 @@ describe('Sessions Page - Text Mode Issues', () => {
 
     it('should handle API errors gracefully', async () => {
       const { sendMessage } = await import('$lib/modules/chat/services.js');
-      
+
       mockFetch.mockImplementation(() => {
         return Promise.resolve({
           ok: false,
@@ -394,9 +421,9 @@ describe('Sessions Page - Text Mode Issues', () => {
       });
 
       const result = await sendMessage('Test message', []);
-      
+
       expect(result).toBe(false);
-      
+
       if (consoleErrors.length === 0) {
         console.error('ISSUE FOUND: No error logged when API call fails');
       }
@@ -424,9 +451,10 @@ describe('Sessions Page - Text Mode Issues', () => {
 
     it('should render MessageList component in text mode', async () => {
       // Check if MessageList container is rendered
-      const messagesContainer = screen.queryByRole('region', { name: /messages/i }) ||
-                               document.querySelector('.messages-area') ||
-                               document.querySelector('[class*="message"]');
+      const messagesContainer =
+        screen.queryByRole('region', { name: /messages/i }) ||
+        document.querySelector('.messages-area') ||
+        document.querySelector('[class*="message"]');
 
       if (!messagesContainer) {
         console.error('ISSUE FOUND: MessageList component or messages container not found');
@@ -437,8 +465,8 @@ describe('Sessions Page - Text Mode Issues', () => {
 
     it('should hide VoiceChat component in text mode', async () => {
       // Check that voice chat is not visible
-      const voiceChat = screen.queryByText(/voice chat mode/i) ||
-                       screen.queryByText(/talk to your ai tutor/i);
+      const voiceChat =
+        screen.queryByText(/voice chat mode/i) || screen.queryByText(/talk to your ai tutor/i);
 
       if (voiceChat && voiceChat.offsetParent !== null) {
         console.error('ISSUE FOUND: VoiceChat component visible in text mode');
@@ -463,7 +491,7 @@ describe('Sessions Page - Text Mode Issues', () => {
 
       // Click voice mode
       await fireEvent.click(voiceButton);
-      
+
       await waitFor(() => {
         // Check if voice mode is active
         const isVoiceActive = voiceButton.classList.contains('active');
@@ -475,7 +503,7 @@ describe('Sessions Page - Text Mode Issues', () => {
 
       // Click text mode
       await fireEvent.click(textButton);
-      
+
       await waitFor(() => {
         // Check if text mode is active
         const isTextActive = textButton.classList.contains('active');
@@ -488,32 +516,32 @@ describe('Sessions Page - Text Mode Issues', () => {
 
     it('should preserve messages when switching modes', async () => {
       const { messages, addMessage } = await import('$lib/modules/chat/stores.js');
-      
+
       // Add some messages
       messages.set([]);
       addMessage('user', 'Message 1', []);
       addMessage('tutor', 'Response 1', []);
-      
+
       const messagesBefore = get(messages);
-      
+
       // Switch to voice mode
       const voiceButton = screen.queryByText(/voice chat/i);
       if (voiceButton) {
         await fireEvent.click(voiceButton);
       }
-      
+
       // Switch back to text mode
       const textButton = screen.queryByText(/text chat/i);
       if (textButton) {
         await fireEvent.click(textButton);
       }
-      
+
       const messagesAfter = get(messages);
-      
+
       if (messagesAfter.length !== messagesBefore.length) {
         console.error('ISSUE FOUND: Messages lost when switching modes');
       }
-      
+
       expect(messagesAfter.length).toBe(messagesBefore.length);
     });
   });
@@ -524,19 +552,21 @@ describe('Sessions Page - Text Mode Issues', () => {
         if (url.includes('/api/sessions')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              sessions: [],
-              pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
-            })
+            json: () =>
+              Promise.resolve({
+                sessions: [],
+                pagination: { currentPage: 1, totalPages: 0, totalCount: 0 }
+              })
           });
         }
         if (url.includes('/api/chat')) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({
-              response: 'AI response',
-              provider: { name: 'openai', model: 'gpt-4' }
-            })
+            json: () =>
+              Promise.resolve({
+                response: 'AI response',
+                provider: { name: 'openai', model: 'gpt-4' }
+              })
           });
         }
         return Promise.reject(new Error('Unknown endpoint'));
@@ -549,15 +579,18 @@ describe('Sessions Page - Text Mode Issues', () => {
         await fireEvent.keyPress(messageInput, { key: 'Enter', code: 'Enter' });
 
         // Should either create a session or handle gracefully
-        await waitFor(() => {
-          const hasError = consoleErrors.some(err => 
-            err.some(arg => typeof arg === 'string' && arg.includes('session'))
-          );
-          
-          if (hasError) {
-            console.error('ISSUE FOUND: Error when sending message without session');
-          }
-        }, { timeout: 2000 });
+        await waitFor(
+          () => {
+            const hasError = consoleErrors.some((err) =>
+              err.some((arg) => typeof arg === 'string' && arg.includes('session'))
+            );
+
+            if (hasError) {
+              console.error('ISSUE FOUND: Error when sending message without session');
+            }
+          },
+          { timeout: 2000 }
+        );
       }
     });
 
@@ -567,9 +600,9 @@ describe('Sessions Page - Text Mode Issues', () => {
       });
 
       const { sendMessage } = await import('$lib/modules/chat/services.js');
-      
+
       const result = await sendMessage('Test message', []);
-      
+
       expect(result).toBe(false);
       expect(consoleErrors.length).toBeGreaterThan(0);
     });

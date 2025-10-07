@@ -5,7 +5,7 @@
   - Implement dropdown toggle functionality (open/close on click)
   - Add dropdown menu with Users, Finance, Analytics links
   - Implement active page detection using $page store
-  - Add highlighting for Console button when on /admin/* routes
+  - Add highlighting for Console button when on /admin/\* routes
   - Add highlighting for current page within dropdown
   - Style component to match existing navigation design patterns
   - _Requirements: 4.1, 4.2, 4.4, 4.5_

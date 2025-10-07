@@ -4,31 +4,31 @@ export class IOCRResultStorage {
    * @param {string} messageId - The message ID
    * @param {object} result - The OCR result
    */
-  store(messageId, result) { 
-    throw new Error('Not implemented'); 
+  store(messageId, result) {
+    throw new Error('Not implemented');
   }
-  
+
   /**
    * Retrieve OCR result
    * @param {string} messageId - The message ID
    * @returns {object|null} - The OCR result or null if not found
    */
-  retrieve(messageId) { 
-    throw new Error('Not implemented'); 
+  retrieve(messageId) {
+    throw new Error('Not implemented');
   }
-  
+
   /**
    * Retrieve all OCR results
    * @returns {Array} - Array of all OCR results
    */
-  retrieveAll() { 
-    throw new Error('Not implemented'); 
+  retrieveAll() {
+    throw new Error('Not implemented');
   }
-  
+
   /**
    * Clear all OCR results
    */
-  clear() { 
-    throw new Error('Not implemented'); 
+  clear() {
+    throw new Error('Not implemented');
   }
 }

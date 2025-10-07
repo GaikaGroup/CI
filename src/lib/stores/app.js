@@ -13,7 +13,7 @@ export function setLoading(isLoading) {
 // Set error
 export function setError(error) {
   appError.set(error);
-  
+
   // Auto-clear error after 5 seconds
   if (error) {
     setTimeout(() => {
@@ -25,7 +25,7 @@ export function setError(error) {
 // Set notification
 export function setNotification(message, type = 'info') {
   appNotification.set({ message, type });
-  
+
   // Auto-clear notification after 3 seconds
   if (message) {
     setTimeout(() => {

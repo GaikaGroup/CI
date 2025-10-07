@@ -1,5 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { SessionService, SessionError, SessionNotFoundError, SessionValidationError } from '$lib/modules/session/services/SessionService.js';
+import {
+  SessionService,
+  SessionError,
+  SessionNotFoundError,
+  SessionValidationError
+} from '$lib/modules/session/services/SessionService.js';
 
 /**
  * Get a specific session by ID
@@ -28,7 +33,8 @@ export async function GET({ params, url, locals }) {
     console.error(`Error in GET /api/sessions/${params.id}:`, error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 
@@ -85,7 +91,11 @@ export async function PUT({ params, request, locals }) {
 
     // Validate specific fields
     if (updates.title !== undefined) {
-      if (!updates.title || typeof updates.title !== 'string' || updates.title.trim().length === 0) {
+      if (
+        !updates.title ||
+        typeof updates.title !== 'string' ||
+        updates.title.trim().length === 0
+      ) {
         return json({ error: 'Title cannot be empty' }, { status: 400 });
       }
       if (updates.title.length > 500) {
@@ -98,13 +108,22 @@ export async function PUT({ params, request, locals }) {
       return json({ error: 'Mode must be either "fun" or "learn"' }, { status: 400 });
     }
 
-    if (updates.language !== undefined && (typeof updates.language !== 'string' || updates.language.length > 10)) {
+    if (
+      updates.language !== undefined &&
+      (typeof updates.language !== 'string' || updates.language.length > 10)
+    ) {
       return json({ error: 'Invalid language parameter' }, { status: 400 });
     }
 
     if (updates.preview !== undefined) {
-      if (updates.preview !== null && (typeof updates.preview !== 'string' || updates.preview.length > 1000)) {
-        return json({ error: 'Preview must be a string with max 1000 characters' }, { status: 400 });
+      if (
+        updates.preview !== null &&
+        (typeof updates.preview !== 'string' || updates.preview.length > 1000)
+      ) {
+        return json(
+          { error: 'Preview must be a string with max 1000 characters' },
+          { status: 400 }
+        );
       }
       if (updates.preview) {
         updates.preview = updates.preview.trim();
@@ -117,7 +136,8 @@ export async function PUT({ params, request, locals }) {
     console.error(`Error in PUT /api/sessions/${params.id}:`, error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 
@@ -161,7 +181,8 @@ export async function DELETE({ params, locals }) {
     console.error(`Error in DELETE /api/sessions/${params.id}:`, error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 

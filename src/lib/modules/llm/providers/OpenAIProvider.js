@@ -1,6 +1,6 @@
 /**
  * OpenAI Provider Implementation
- * 
+ *
  * This class implements the ProviderInterface for the OpenAI API.
  */
 
@@ -37,7 +37,7 @@ export class OpenAIProvider extends ProviderInterface {
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.config.API_KEY}`
+          Authorization: `Bearer ${this.config.API_KEY}`
         },
         signal: AbortSignal.timeout(5000) // 5 second timeout
       });
@@ -60,19 +60,19 @@ export class OpenAIProvider extends ProviderInterface {
       const model = options.model || this.config.MODEL;
       const maxTokens = options.maxTokens || this.config.MAX_TOKENS;
       const temperature = options.temperature || this.config.TEMPERATURE;
-      
+
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
       }, this.config.TIMEOUT);
-      
+
       // Make the API request
       const response = await fetch(this.config.API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.API_KEY}`
+          Authorization: `Bearer ${this.config.API_KEY}`
         },
         body: JSON.stringify({
           model,
@@ -83,15 +83,15 @@ export class OpenAIProvider extends ProviderInterface {
         }),
         signal: controller.signal
       });
-      
+
       // Clear the timeout
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
       }
-      
+
       const data = await response.json();
       return this.formatResponse(data);
     } catch (error) {
@@ -111,20 +111,18 @@ export class OpenAIProvider extends ProviderInterface {
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.config.API_KEY}`
+          Authorization: `Bearer ${this.config.API_KEY}`
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to list models: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Filter for chat models only
-      return data.data
-        .filter(model => model.id.includes('gpt'))
-        .map(model => model.id);
+      return data.data.filter((model) => model.id.includes('gpt')).map((model) => model.id);
     } catch (error) {
       console.error('Error listing OpenAI models:', error);
       return [this.config.MODEL]; // Return default model as fallback
@@ -140,7 +138,7 @@ export class OpenAIProvider extends ProviderInterface {
     if (!rawResponse || !rawResponse.choices || !rawResponse.choices[0]) {
       throw new Error('Invalid response format from OpenAI');
     }
-    
+
     return {
       content: rawResponse.choices[0].message.content,
       provider: this.name,
@@ -161,11 +159,11 @@ export class OpenAIProvider extends ProviderInterface {
     if (error.message.includes('API key')) {
       return new Error('OpenAI API key is invalid or missing');
     }
-    
+
     if (error.message.includes('rate limit')) {
       return new Error('OpenAI rate limit exceeded. Please try again later.');
     }
-    
+
     return super.handleError(error);
   }
 }

@@ -8,41 +8,43 @@ Run this diagnostic script to quickly identify common issues:
 // Diagnostic script - paste into browser console
 async function diagnoseWaitingPhrases() {
   console.log('=== Waiting Phrases Diagnostic ===');
-  
+
   try {
     // Check service availability
-    const { waitingPhrasesService } = await import('/src/lib/modules/chat/waitingPhrasesService.js');
+    const { waitingPhrasesService } = await import(
+      '/src/lib/modules/chat/waitingPhrasesService.js'
+    );
     console.log('✓ Service module loaded');
-    
+
     // Check initialization
     const isInitialized = waitingPhrasesService.isServiceInitialized();
     console.log(`${isInitialized ? '✓' : '✗'} Service initialized: ${isInitialized}`);
-    
+
     if (!isInitialized) {
       console.log('Attempting to initialize...');
       await waitingPhrasesService.initializeWaitingPhrases();
       console.log('✓ Service initialized successfully');
     }
-    
+
     // Check configuration
     const config = waitingPhrasesService.config;
     console.log(`${config ? '✓' : '✗'} Configuration loaded: ${!!config}`);
-    
+
     if (config) {
       const categories = Object.keys(config.phrases);
       console.log(`✓ Available categories: ${categories.join(', ')}`);
-      
+
       const languages = new Set();
-      categories.forEach(cat => {
-        Object.keys(config.phrases[cat]).forEach(lang => languages.add(lang));
+      categories.forEach((cat) => {
+        Object.keys(config.phrases[cat]).forEach((lang) => languages.add(lang));
       });
       console.log(`✓ Available languages: ${Array.from(languages).join(', ')}`);
     }
-    
+
     // Test phrase selection
     console.log('\n--- Testing Phrase Selection ---');
     const testLanguages = ['en', 'es', 'ru'];
-    
+
     for (const lang of testLanguages) {
       try {
         const phrase = await waitingPhrasesService.selectWaitingPhrase(lang);
@@ -51,28 +53,30 @@ async function diagnoseWaitingPhrases() {
         console.log(`✗ ${lang}: ${error.message}`);
       }
     }
-    
+
     // Test translation
     console.log('\n--- Testing Translation ---');
     const { translationBridge } = await import('/src/lib/modules/chat/translationBridge.js');
-    
+
     try {
-      const translated = await translationBridge.translatePhrase('Let me think about this...', 'es');
+      const translated = await translationBridge.translatePhrase(
+        'Let me think about this...',
+        'es'
+      );
       console.log(`✓ Translation test: "${translated}"`);
     } catch (error) {
       console.log(`✗ Translation test failed: ${error.message}`);
     }
-    
+
     // Check cache stats
     console.log('\n--- Cache Statistics ---');
     const cacheStats = waitingPhrasesService.getCacheStats();
     console.log('Cache stats:', cacheStats);
-    
+
     const translationStats = translationBridge.getTranslationStats();
     console.log('Translation stats:', translationStats);
-    
+
     console.log('\n=== Diagnostic Complete ===');
-    
   } catch (error) {
     console.error('✗ Diagnostic failed:', error);
   }
@@ -87,11 +91,13 @@ diagnoseWaitingPhrases();
 ### Issue 1: Service Not Initializing
 
 **Symptoms:**
+
 - `waitingPhrasesService.isServiceInitialized()` returns `false`
 - Errors when calling `selectWaitingPhrase()`
 - Console shows "Service not initialized" warnings
 
 **Possible Causes:**
+
 1. Configuration file missing or corrupted
 2. Import path issues
 3. Network issues loading configuration
@@ -102,16 +108,16 @@ diagnoseWaitingPhrases();
 ```javascript
 // Check if configuration file exists
 fetch('/src/lib/config/waitingPhrases.json')
-  .then(response => {
+  .then((response) => {
     if (!response.ok) {
       console.error('Configuration file not found or inaccessible');
     }
     return response.json();
   })
-  .then(config => {
+  .then((config) => {
     console.log('Configuration loaded successfully:', config);
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('Failed to load configuration:', error);
   });
 
@@ -131,11 +137,13 @@ try {
 ### Issue 2: No Phrases Being Selected
 
 **Symptoms:**
+
 - `selectWaitingPhrase()` returns `null` or empty string
 - Always getting the same fallback phrase
 - Console shows "No phrases found" warnings
 
 **Possible Causes:**
+
 1. Language not supported in configuration
 2. Category doesn't exist
 3. Empty phrase arrays in configuration
@@ -167,11 +175,13 @@ console.log('General English phrases:', config?.phrases?.general?.en);
 ### Issue 3: Translation Not Working
 
 **Symptoms:**
+
 - Always getting English phrases regardless of selected language
 - Translation errors in console
 - `translationBridge.translatePhrase()` returns `null`
 
 **Possible Causes:**
+
 1. Translation service not initialized
 2. Unsupported language for translation
 3. Network issues
@@ -206,12 +216,14 @@ console.log('Translation stats:', stats);
 ### Issue 4: Performance Problems
 
 **Symptoms:**
+
 - Slow phrase selection (>1 second)
 - High memory usage
 - Browser becoming unresponsive
 - Cache hit rate very low
 
 **Possible Causes:**
+
 1. Cache not working properly
 2. Too many phrases in history
 3. Memory leaks in caching system
@@ -248,11 +260,13 @@ if (cacheStats.hitRate < 0.5) {
 ### Issue 5: Voice Synthesis Not Playing
 
 **Symptoms:**
+
 - Phrases are selected but no audio plays
 - Console shows synthesis errors
 - Audio queue shows waiting phrases but they don't play
 
 **Possible Causes:**
+
 1. Voice mode not active
 2. Audio context issues
 3. TTS service problems
@@ -294,11 +308,13 @@ if (audioContext?.state === 'suspended') {
 ### Issue 6: Configuration Validation Errors
 
 **Symptoms:**
+
 - Console shows configuration validation errors
 - Service falls back to default phrases
 - Specific languages or categories not working
 
 **Possible Causes:**
+
 1. Invalid JSON syntax in configuration file
 2. Schema validation failures
 3. Missing required fields
@@ -310,7 +326,7 @@ if (audioContext?.state === 'suspended') {
 // Validate configuration manually
 import { validateConfiguration } from '/src/lib/modules/chat/waitingPhrasesConfig.js';
 
-const config = await fetch('/src/lib/config/waitingPhrases.json').then(r => r.json());
+const config = await fetch('/src/lib/config/waitingPhrases.json').then((r) => r.json());
 const validation = validateConfiguration(config);
 
 if (!validation.isValid) {
@@ -328,8 +344,8 @@ console.log('Settings section:', config.settings);
 
 // Validate language codes
 const languageCodes = new Set();
-Object.values(config.phrases).forEach(category => {
-  Object.keys(category).forEach(lang => languageCodes.add(lang));
+Object.values(config.phrases).forEach((category) => {
+  Object.keys(category).forEach((lang) => languageCodes.add(lang));
 });
 
 console.log('Found language codes:', Array.from(languageCodes));
@@ -375,7 +391,7 @@ function monitorWaitingPhrases() {
     audioQueue: getAudioQueueStatus(),
     timestamp: new Date().toISOString()
   };
-  
+
   console.log('Waiting Phrases Monitor:', monitor);
   return monitor;
 }
@@ -394,11 +410,11 @@ const monitorInterval = setInterval(monitorWaitingPhrases, 5000);
 async function testAllLanguages() {
   const categories = waitingPhrasesService.getAvailableCategories();
   const results = {};
-  
+
   for (const category of categories) {
     results[category] = {};
     const languages = waitingPhrasesService.getAvailableLanguages(category);
-    
+
     for (const language of languages) {
       try {
         const phrase = await waitingPhrasesService.selectWaitingPhrase(language, category);
@@ -415,7 +431,7 @@ async function testAllLanguages() {
       }
     }
   }
-  
+
   console.log('Language test results:', results);
   return results;
 }
@@ -442,7 +458,7 @@ function analyzeMemoryUsage() {
       entries: waitingPhrasesService.phraseHistory || []
     }
   };
-  
+
   // Analyze phrase cache entries
   if (waitingPhrasesService.phraseCache) {
     for (const [key, entry] of waitingPhrasesService.phraseCache.entries()) {
@@ -455,7 +471,7 @@ function analyzeMemoryUsage() {
       });
     }
   }
-  
+
   // Analyze translation cache entries
   if (translationBridge.translationCache) {
     for (const [key, value] of translationBridge.translationCache.entries()) {
@@ -468,7 +484,7 @@ function analyzeMemoryUsage() {
       });
     }
   }
-  
+
   console.log('Memory usage analysis:', analysis);
   return analysis;
 }
@@ -478,16 +494,16 @@ analyzeMemoryUsage();
 
 ## Error Codes Reference
 
-| Code | Description | Solution |
-|------|-------------|----------|
-| WP001 | Service not initialized | Call `initializeWaitingPhrases()` |
-| WP002 | Configuration loading failed | Check configuration file exists and is valid JSON |
-| WP003 | No phrases found for language/category | Add phrases to configuration or use fallback |
-| WP004 | Translation service unavailable | Check network connection and translation bridge |
-| WP005 | Voice synthesis failed | Check TTS service and audio context |
-| WP006 | Cache corruption detected | Clear caches with `clearAllCaches()` |
-| WP007 | Invalid language code | Use valid ISO 639-1 language codes |
-| WP008 | Configuration validation failed | Fix configuration according to schema |
+| Code  | Description                            | Solution                                          |
+| ----- | -------------------------------------- | ------------------------------------------------- |
+| WP001 | Service not initialized                | Call `initializeWaitingPhrases()`                 |
+| WP002 | Configuration loading failed           | Check configuration file exists and is valid JSON |
+| WP003 | No phrases found for language/category | Add phrases to configuration or use fallback      |
+| WP004 | Translation service unavailable        | Check network connection and translation bridge   |
+| WP005 | Voice synthesis failed                 | Check TTS service and audio context               |
+| WP006 | Cache corruption detected              | Clear caches with `clearAllCaches()`              |
+| WP007 | Invalid language code                  | Use valid ISO 639-1 language codes                |
+| WP008 | Configuration validation failed        | Fix configuration according to schema             |
 
 ## Performance Benchmarks
 

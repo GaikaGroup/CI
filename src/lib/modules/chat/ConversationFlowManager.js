@@ -14,19 +14,19 @@ export class ConversationFlowManager {
     this.conversationContext = new Map();
     this.responseHistory = [];
     this.maxHistorySize = 10;
-    
+
     // State preservation
     this.preservedStates = new Map();
     this.maxPreservedStates = 5;
-    
+
     // Response tracking
     this.activeResponses = new Map();
     this.responseMetadata = new Map();
-    
+
     // Interruption handling
     this.interruptionHandlers = new Map();
     this.continuationOptions = new Map();
-    
+
     console.log('ConversationFlowManager initialized');
   }
 
@@ -37,7 +37,7 @@ export class ConversationFlowManager {
    */
   startResponse(response) {
     const responseId = `resp_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    
+
     const responseData = {
       id: responseId,
       text: response.text || '',
@@ -54,9 +54,9 @@ export class ConversationFlowManager {
 
     this.activeResponses.set(responseId, responseData);
     this.currentResponse = responseData;
-    
+
     console.log(`Started tracking response: ${responseId} (${responseData.type})`);
-    
+
     return responseId;
   }
 
@@ -73,19 +73,19 @@ export class ConversationFlowManager {
     // Split on natural pause points (sentences, clauses)
     const segments = text
       .split(/[.!?]+/)
-      .map(segment => segment.trim())
-      .filter(segment => segment.length > 0)
-      .map(segment => segment + (text.includes('.') ? '.' : ''));
+      .map((segment) => segment.trim())
+      .filter((segment) => segment.length > 0)
+      .map((segment) => segment + (text.includes('.') ? '.' : ''));
 
     // If no natural breaks, split on commas or long phrases
     if (segments.length === 1 && text.length > 100) {
       const commaSegments = text
         .split(',')
-        .map(segment => segment.trim())
-        .filter(segment => segment.length > 0);
-      
+        .map((segment) => segment.trim())
+        .filter((segment) => segment.length > 0);
+
       if (commaSegments.length > 1) {
-        return commaSegments.map((segment, index) => 
+        return commaSegments.map((segment, index) =>
           index < commaSegments.length - 1 ? segment + ',' : segment
         );
       }
@@ -101,13 +101,13 @@ export class ConversationFlowManager {
    */
   estimateResponseDuration(text) {
     if (!text) return 1000;
-    
+
     // Rough estimate: 150 words per minute, average 5 characters per word
     const wordsPerMinute = 150;
     const charactersPerWord = 5;
     const estimatedWords = text.length / charactersPerWord;
     const estimatedMinutes = estimatedWords / wordsPerMinute;
-    
+
     return Math.max(1000, estimatedMinutes * 60 * 1000); // At least 1 second
   }
 
@@ -126,8 +126,11 @@ export class ConversationFlowManager {
       }
 
       // Preserve current response state
-      const preservedState = await this.preserveResponseState(this.currentResponse, interruptionEvent);
-      
+      const preservedState = await this.preserveResponseState(
+        this.currentResponse,
+        interruptionEvent
+      );
+
       // Create interruption point
       this.interruptionPoint = {
         responseId: this.currentResponse.id,
@@ -148,7 +151,9 @@ export class ConversationFlowManager {
       this.currentResponse.status = 'interrupted';
       this.currentResponse.interruptedAt = Date.now();
 
-      console.log(`Response interrupted: ${this.currentResponse.id} at segment ${this.currentResponse.currentSegment}`);
+      console.log(
+        `Response interrupted: ${this.currentResponse.id} at segment ${this.currentResponse.currentSegment}`
+      );
 
       return {
         handled: true,
@@ -156,7 +161,6 @@ export class ConversationFlowManager {
         preservedState: preservedState,
         interruptionResponse: interruptionResponse
       };
-
     } catch (error) {
       console.error('Error handling conversation interruption:', error);
       return { handled: false, error: error.message };
@@ -171,7 +175,7 @@ export class ConversationFlowManager {
    */
   async preserveResponseState(response, interruptionEvent) {
     const stateId = `state_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    
+
     const preservedState = {
       id: stateId,
       responseId: response.id,
@@ -190,7 +194,7 @@ export class ConversationFlowManager {
 
     // Store preserved state
     this.preservedStates.set(stateId, preservedState);
-    
+
     // Manage preserved states size
     if (this.preservedStates.size > this.maxPreservedStates) {
       const oldestKey = Array.from(this.preservedStates.keys())[0];
@@ -198,7 +202,7 @@ export class ConversationFlowManager {
     }
 
     console.log(`Response state preserved: ${stateId}`);
-    
+
     return preservedState;
   }
 
@@ -222,7 +226,7 @@ export class ConversationFlowManager {
    */
   analyzeConversationFlow() {
     const recentResponses = this.responseHistory.slice(-5);
-    
+
     return {
       averageResponseLength: this.calculateAverageResponseLength(recentResponses),
       responseTypes: this.analyzeResponseTypes(recentResponses),
@@ -238,7 +242,7 @@ export class ConversationFlowManager {
    */
   calculateAverageResponseLength(responses) {
     if (responses.length === 0) return 0;
-    
+
     const totalLength = responses.reduce((sum, resp) => sum + (resp.text?.length || 0), 0);
     return totalLength / responses.length;
   }
@@ -250,7 +254,7 @@ export class ConversationFlowManager {
    */
   analyzeResponseTypes(responses) {
     const types = {};
-    responses.forEach(resp => {
+    responses.forEach((resp) => {
       const type = resp.type || 'unknown';
       types[type] = (types[type] || 0) + 1;
     });
@@ -264,8 +268,8 @@ export class ConversationFlowManager {
    */
   calculateInterruptionFrequency(responses) {
     if (responses.length === 0) return 0;
-    
-    const interruptedCount = responses.filter(resp => resp.status === 'interrupted').length;
+
+    const interruptedCount = responses.filter((resp) => resp.status === 'interrupted').length;
     return interruptedCount / responses.length;
   }
 
@@ -276,15 +280,15 @@ export class ConversationFlowManager {
    */
   analyzeConversationPace(responses) {
     if (responses.length < 2) return 'unknown';
-    
+
     const intervals = [];
     for (let i = 1; i < responses.length; i++) {
-      const interval = responses[i].startTime - responses[i-1].startTime;
+      const interval = responses[i].startTime - responses[i - 1].startTime;
       intervals.push(interval);
     }
-    
+
     const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-    
+
     if (avgInterval < 2000) return 'fast';
     if (avgInterval < 5000) return 'normal';
     return 'slow';
@@ -312,8 +316,11 @@ export class ConversationFlowManager {
       };
 
       // Use the interruption response generator
-      const generatedResponse = await interruptionResponseGenerator.generateResponse(language, context);
-      
+      const generatedResponse = await interruptionResponseGenerator.generateResponse(
+        language,
+        context
+      );
+
       // Create continuation options
       const continuationOptions = this.createContinuationOptions(language, currentResponse);
 
@@ -327,10 +334,9 @@ export class ConversationFlowManager {
         originalResponseId: currentResponse.id,
         confidence: generatedResponse.confidence
       };
-
     } catch (error) {
       console.error('Error generating interruption response:', error);
-      
+
       // Return fallback response
       return this.getFallbackInterruptionResponse(language);
     }
@@ -345,22 +351,22 @@ export class ConversationFlowManager {
   determineInterruptionResponseType(interruptionEvent, currentResponse) {
     const confidence = interruptionEvent.confidence || 0;
     const energy = interruptionEvent.energy || 0;
-    
+
     // High confidence interruption
     if (confidence > 0.8 && energy > 0.3) {
       return 'immediate_acknowledgment';
     }
-    
+
     // Medium confidence interruption
     if (confidence > 0.6) {
       return 'polite_acknowledgment';
     }
-    
+
     // Lower confidence interruption
     if (confidence > 0.4) {
       return 'gentle_acknowledgment';
     }
-    
+
     return 'minimal_acknowledgment';
   }
 
@@ -374,9 +380,9 @@ export class ConversationFlowManager {
   async generateInterruptionText(language, responseType, currentResponse) {
     const templates = this.getInterruptionTemplates(language);
     const template = templates[responseType] || templates.minimal_acknowledgment;
-    
+
     // Select random template if multiple options
-    const selectedTemplate = Array.isArray(template) 
+    const selectedTemplate = Array.isArray(template)
       ? template[Math.floor(Math.random() * template.length)]
       : template;
 
@@ -401,68 +407,56 @@ export class ConversationFlowManager {
       en: {
         immediate_acknowledgment: [
           "Yes? I'm listening.",
-          "What would you like to know?",
+          'What would you like to know?',
           "Go ahead, I'm here."
         ],
         polite_acknowledgment: [
-          "Sorry, did you want to ask something?",
+          'Sorry, did you want to ask something?',
           "I can pause here - what's your question?",
-          "Yes, what can I help you with?"
+          'Yes, what can I help you with?'
         ],
         gentle_acknowledgment: [
-          "Did you have a question?",
-          "Would you like me to pause?",
+          'Did you have a question?',
+          'Would you like me to pause?',
           "Is there something you'd like to ask?"
         ],
-        minimal_acknowledgment: [
-          "Yes?",
-          "Mm-hmm?",
-          "What is it?"
-        ]
+        minimal_acknowledgment: ['Yes?', 'Mm-hmm?', 'What is it?']
       },
       es: {
         immediate_acknowledgment: [
-          "¿Sí? Te escucho.",
-          "¿Qué te gustaría saber?",
-          "Adelante, estoy aquí."
+          '¿Sí? Te escucho.',
+          '¿Qué te gustaría saber?',
+          'Adelante, estoy aquí.'
         ],
         polite_acknowledgment: [
-          "Perdón, ¿querías preguntar algo?",
-          "Puedo pausar aquí - ¿cuál es tu pregunta?",
-          "Sí, ¿en qué puedo ayudarte?"
+          'Perdón, ¿querías preguntar algo?',
+          'Puedo pausar aquí - ¿cuál es tu pregunta?',
+          'Sí, ¿en qué puedo ayudarte?'
         ],
         gentle_acknowledgment: [
-          "¿Tenías una pregunta?",
-          "¿Te gustaría que haga una pausa?",
-          "¿Hay algo que quisieras preguntar?"
+          '¿Tenías una pregunta?',
+          '¿Te gustaría que haga una pausa?',
+          '¿Hay algo que quisieras preguntar?'
         ],
-        minimal_acknowledgment: [
-          "¿Sí?",
-          "¿Mm-hmm?",
-          "¿Qué pasa?"
-        ]
+        minimal_acknowledgment: ['¿Sí?', '¿Mm-hmm?', '¿Qué pasa?']
       },
       ru: {
         immediate_acknowledgment: [
-          "Да? Я слушаю.",
-          "Что бы вы хотели узнать?",
-          "Продолжайте, я здесь."
+          'Да? Я слушаю.',
+          'Что бы вы хотели узнать?',
+          'Продолжайте, я здесь.'
         ],
         polite_acknowledgment: [
-          "Извините, вы хотели что-то спросить?",
-          "Я могу сделать паузу - какой у вас вопрос?",
-          "Да, чем могу помочь?"
+          'Извините, вы хотели что-то спросить?',
+          'Я могу сделать паузу - какой у вас вопрос?',
+          'Да, чем могу помочь?'
         ],
         gentle_acknowledgment: [
-          "У вас есть вопрос?",
-          "Хотите, чтобы я сделал паузу?",
-          "Есть что-то, что вы хотели бы спросить?"
+          'У вас есть вопрос?',
+          'Хотите, чтобы я сделал паузу?',
+          'Есть что-то, что вы хотели бы спросить?'
         ],
-        minimal_acknowledgment: [
-          "Да?",
-          "Мм-хм?",
-          "Что такое?"
-        ]
+        minimal_acknowledgment: ['Да?', 'Мм-хм?', 'Что такое?']
       }
     };
 
@@ -477,7 +471,7 @@ export class ConversationFlowManager {
    */
   createContinuationOptions(language, currentResponse) {
     const hasRemainingContent = currentResponse.currentSegment < currentResponse.segments.length;
-    
+
     const options = {
       canContinue: hasRemainingContent,
       canRestart: true,
@@ -488,7 +482,7 @@ export class ConversationFlowManager {
       options.continueText = this.getContinuationText(language, 'continue');
       options.restartText = this.getContinuationText(language, 'restart');
     }
-    
+
     options.skipText = this.getContinuationText(language, 'skip');
     options.newQuestionText = this.getContinuationText(language, 'new_question');
 
@@ -504,22 +498,22 @@ export class ConversationFlowManager {
   getContinuationText(language, type) {
     const texts = {
       en: {
-        continue: "Should I continue where I left off?",
-        restart: "Should I start over?",
-        skip: "Should I move on to something else?",
-        new_question: "What would you like to know?"
+        continue: 'Should I continue where I left off?',
+        restart: 'Should I start over?',
+        skip: 'Should I move on to something else?',
+        new_question: 'What would you like to know?'
       },
       es: {
-        continue: "¿Debo continuar donde me quedé?",
-        restart: "¿Debo empezar de nuevo?",
-        skip: "¿Debo pasar a otra cosa?",
-        new_question: "¿Qué te gustaría saber?"
+        continue: '¿Debo continuar donde me quedé?',
+        restart: '¿Debo empezar de nuevo?',
+        skip: '¿Debo pasar a otra cosa?',
+        new_question: '¿Qué te gustaría saber?'
       },
       ru: {
-        continue: "Должен ли я продолжить с того места, где остановился?",
-        restart: "Должен ли я начать сначала?",
-        skip: "Должен ли я перейти к чему-то другому?",
-        new_question: "Что бы вы хотели узнать?"
+        continue: 'Должен ли я продолжить с того места, где остановился?',
+        restart: 'Должен ли я начать сначала?',
+        skip: 'Должен ли я перейти к чему-то другому?',
+        new_question: 'Что бы вы хотели узнать?'
       }
     };
 
@@ -533,9 +527,9 @@ export class ConversationFlowManager {
    */
   getFallbackInterruptionResponse(language) {
     const fallbackTexts = {
-      en: "Yes? What can I help you with?",
-      es: "¿Sí? ¿En qué puedo ayudarte?",
-      ru: "Да? Чем могу помочь?"
+      en: 'Yes? What can I help you with?',
+      es: '¿Sí? ¿En qué puedo ayudarte?',
+      ru: 'Да? Чем могу помочь?'
     };
 
     return {
@@ -562,7 +556,7 @@ export class ConversationFlowManager {
   async continueResponse(preservedStateId, options = {}) {
     try {
       const preservedState = this.preservedStates.get(preservedStateId);
-      
+
       if (!preservedState) {
         throw new Error('Preserved state not found');
       }
@@ -575,11 +569,11 @@ export class ConversationFlowManager {
 
       // Determine continuation strategy
       const continuationStrategy = this.determineContinuationStrategy(preservedState, options);
-      
+
       // Create continuation response based on strategy
       const continuationResponse = await this.createContinuationResponse(
-        preservedState, 
-        continuationStrategy, 
+        preservedState,
+        continuationStrategy,
         options
       );
 
@@ -589,7 +583,7 @@ export class ConversationFlowManager {
 
       // Generate transition phrase if needed
       const transitionPhrase = await this.generateTransitionPhrase(
-        preservedState, 
+        preservedState,
         continuationStrategy
       );
 
@@ -600,7 +594,6 @@ export class ConversationFlowManager {
         transitionPhrase: transitionPhrase,
         strategy: continuationStrategy
       };
-
     } catch (error) {
       console.error('Error continuing response:', error);
       return { success: false, error: error.message };
@@ -616,22 +609,22 @@ export class ConversationFlowManager {
   determineContinuationStrategy(preservedState, options) {
     const timeSinceInterruption = Date.now() - preservedState.interruptionTimestamp;
     const remainingSegments = preservedState.remainingSegments.length;
-    
+
     // If interruption was recent and there are few segments left, continue directly
     if (timeSinceInterruption < 10000 && remainingSegments <= 2) {
       return 'direct_continuation';
     }
-    
+
     // If interruption was longer ago, provide context
     if (timeSinceInterruption > 30000) {
       return 'contextual_continuation';
     }
-    
+
     // If there are many segments left, offer summary
     if (remainingSegments > 3) {
       return 'summary_continuation';
     }
-    
+
     // Default to smooth continuation
     return 'smooth_continuation';
   }
@@ -645,7 +638,7 @@ export class ConversationFlowManager {
    */
   async createContinuationResponse(preservedState, strategy, options) {
     const continuationId = `cont_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    
+
     let continuationText = '';
     let segments = [];
 
@@ -700,22 +693,22 @@ export class ConversationFlowManager {
   async generateContextPhrase(preservedState) {
     const contextPhrases = {
       en: [
-        "As I was saying,",
-        "To continue my previous point,",
-        "Going back to what I was explaining,",
-        "Let me pick up where I left off:"
+        'As I was saying,',
+        'To continue my previous point,',
+        'Going back to what I was explaining,',
+        'Let me pick up where I left off:'
       ],
       es: [
-        "Como estaba diciendo,",
-        "Para continuar con mi punto anterior,",
-        "Volviendo a lo que estaba explicando,",
-        "Permíteme retomar donde me quedé:"
+        'Como estaba diciendo,',
+        'Para continuar con mi punto anterior,',
+        'Volviendo a lo que estaba explicando,',
+        'Permíteme retomar donde me quedé:'
       ],
       ru: [
-        "Как я говорил,",
-        "Продолжая мою предыдущую мысль,",
-        "Возвращаясь к тому, что я объяснял,",
-        "Позвольте мне продолжить с того места, где остановился:"
+        'Как я говорил,',
+        'Продолжая мою предыдущую мысль,',
+        'Возвращаясь к тому, что я объяснял,',
+        'Позвольте мне продолжить с того места, где остановился:'
       ]
     };
 
@@ -731,22 +724,22 @@ export class ConversationFlowManager {
   async generateSummaryPhrase(preservedState) {
     const summaryPhrases = {
       en: [
-        "To summarize the key points:",
-        "Let me highlight the main ideas:",
-        "The essential points are:",
-        "In brief:"
+        'To summarize the key points:',
+        'Let me highlight the main ideas:',
+        'The essential points are:',
+        'In brief:'
       ],
       es: [
-        "Para resumir los puntos clave:",
-        "Permíteme destacar las ideas principales:",
-        "Los puntos esenciales son:",
-        "En resumen:"
+        'Para resumir los puntos clave:',
+        'Permíteme destacar las ideas principales:',
+        'Los puntos esenciales son:',
+        'En resumen:'
       ],
       ru: [
-        "Чтобы подвести итог ключевых моментов:",
-        "Позвольте мне выделить основные идеи:",
-        "Основные моменты:",
-        "Вкратце:"
+        'Чтобы подвести итог ключевых моментов:',
+        'Позвольте мне выделить основные идеи:',
+        'Основные моменты:',
+        'Вкратце:'
       ]
     };
 
@@ -761,24 +754,9 @@ export class ConversationFlowManager {
    */
   async generateSmoothTransition(preservedState) {
     const transitionPhrases = {
-      en: [
-        "So,",
-        "Now,",
-        "Continuing,",
-        "Moving on,"
-      ],
-      es: [
-        "Entonces,",
-        "Ahora,",
-        "Continuando,",
-        "Siguiendo,"
-      ],
-      ru: [
-        "Итак,",
-        "Теперь,",
-        "Продолжая,",
-        "Далее,"
-      ]
+      en: ['So,', 'Now,', 'Continuing,', 'Moving on,'],
+      es: ['Entonces,', 'Ahora,', 'Continuando,', 'Siguiendo,'],
+      ru: ['Итак,', 'Теперь,', 'Продолжая,', 'Далее,']
     };
 
     const phrases = transitionPhrases[preservedState.language] || transitionPhrases.en;
@@ -814,22 +792,22 @@ export class ConversationFlowManager {
   async generateTransitionPhrase(preservedState, strategy) {
     const transitionPhrases = {
       en: {
-        direct_continuation: "Where was I? Ah yes,",
-        contextual_continuation: "Let me continue from where we left off.",
-        summary_continuation: "Let me give you the key points.",
-        smooth_continuation: "Alright, continuing on,"
+        direct_continuation: 'Where was I? Ah yes,',
+        contextual_continuation: 'Let me continue from where we left off.',
+        summary_continuation: 'Let me give you the key points.',
+        smooth_continuation: 'Alright, continuing on,'
       },
       es: {
-        direct_continuation: "¿Dónde estaba? Ah sí,",
-        contextual_continuation: "Permíteme continuar desde donde lo dejamos.",
-        summary_continuation: "Déjame darte los puntos clave.",
-        smooth_continuation: "Bien, continuando,"
+        direct_continuation: '¿Dónde estaba? Ah sí,',
+        contextual_continuation: 'Permíteme continuar desde donde lo dejamos.',
+        summary_continuation: 'Déjame darte los puntos clave.',
+        smooth_continuation: 'Bien, continuando,'
       },
       ru: {
-        direct_continuation: "Где я остановился? Ах да,",
-        contextual_continuation: "Позвольте мне продолжить с того места, где мы остановились.",
-        summary_continuation: "Позвольте мне дать вам ключевые моменты.",
-        smooth_continuation: "Хорошо, продолжаем,"
+        direct_continuation: 'Где я остановился? Ах да,',
+        contextual_continuation: 'Позвольте мне продолжить с того места, где мы остановились.',
+        summary_continuation: 'Позвольте мне дать вам ключевые моменты.',
+        smooth_continuation: 'Хорошо, продолжаем,'
       }
     };
 
@@ -868,7 +846,6 @@ export class ConversationFlowManager {
         default:
           throw new Error(`Unknown choice: ${choice}`);
       }
-
     } catch (error) {
       console.error('Error handling user choice:', error);
       return { success: false, error: error.message };
@@ -930,9 +907,9 @@ export class ConversationFlowManager {
    */
   async handleNewQuestion(preservedState) {
     // Complete the current response as interrupted
-    this.completeResponse(preservedState.responseId, { 
-      interrupted: true, 
-      newQuestionRequested: true 
+    this.completeResponse(preservedState.responseId, {
+      interrupted: true,
+      newQuestionRequested: true
     });
 
     return {
@@ -949,12 +926,12 @@ export class ConversationFlowManager {
    */
   completeResponse(responseId, completionData = {}) {
     const response = this.activeResponses.get(responseId);
-    
+
     if (response) {
       response.status = 'completed';
       response.completedAt = Date.now();
       response.duration = response.completedAt - response.startTime;
-      
+
       // Add to history
       this.responseHistory.push({
         ...response,
@@ -968,7 +945,7 @@ export class ConversationFlowManager {
 
       // Remove from active responses
       this.activeResponses.delete(responseId);
-      
+
       // Clear current response if this was it
       if (this.currentResponse?.id === responseId) {
         this.currentResponse = null;
@@ -1022,7 +999,7 @@ export class ConversationFlowManager {
     this.activeResponses.clear();
     this.responseMetadata.clear();
     this.continuationOptions.clear();
-    
+
     console.log('ConversationFlowManager reset');
   }
 }

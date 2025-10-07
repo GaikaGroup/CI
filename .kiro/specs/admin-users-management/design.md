@@ -61,11 +61,13 @@ Since the application currently uses a mock authentication system without a dedi
 **File:** `src/lib/modules/navigation/components/Navigation.svelte`
 
 **Changes:**
+
 - Replace individual Finance and Analytics links with a Console dropdown component
 - Show Console dropdown only when `$user?.role === 'admin'`
 - Import and use `ConsoleDropdown.svelte` component
 
 **Desktop Navigation Structure:**
+
 ```
 [Console ▼]
   ├─ Users
@@ -74,6 +76,7 @@ Since the application currently uses a mock authentication system without a dedi
 ```
 
 **Mobile Navigation Structure:**
+
 ```
 [Console] (expandable)
   - Users
@@ -86,17 +89,20 @@ Since the application currently uses a mock authentication system without a dedi
 **File:** `src/lib/modules/navigation/components/ConsoleDropdown.svelte`
 
 **Responsibilities:**
+
 - Display "Console" button in navigation
 - Show dropdown menu on click/hover
-- Highlight Console button when on any /admin/* page
+- Highlight Console button when on any /admin/\* page
 - Highlight current page within dropdown
 - Handle navigation to Users, Finance, Analytics pages
 - Close dropdown after navigation (mobile)
 
 **Props:**
+
 - None (uses $page store to determine active route)
 
 **State:**
+
 - `isOpen` - Boolean for dropdown visibility
 - `currentPath` - Derived from $page.url.pathname
 
@@ -105,6 +111,7 @@ Since the application currently uses a mock authentication system without a dedi
 **File:** `src/routes/admin/users/+page.svelte`
 
 **Responsibilities:**
+
 - Display page header with title and description
 - Show summary statistics (total users, total sessions)
 - Render user table with columns: Email, Registration Date, Sessions, Messages
@@ -113,12 +120,14 @@ Since the application currently uses a mock authentication system without a dedi
 - Display notifications for errors
 
 **Props from Server:**
+
 - `data.user` - Current admin user object
 - `data.users` - Array of user objects with statistics
 - `data.statistics` - Summary statistics object
 - `data.error` - Error message if data fetch failed
 
 **State:**
+
 - `searchQuery` - Current search input value
 - `filteredUsers` - Computed list of users matching search
 
@@ -127,19 +136,21 @@ Since the application currently uses a mock authentication system without a dedi
 **File:** `src/routes/admin/users/+page.server.js`
 
 **Responsibilities:**
+
 - Verify user is authenticated and has admin role
 - Fetch user data from API endpoint
 - Handle errors gracefully
 - Return data to page component
 
 **Implementation Pattern:**
+
 ```javascript
 export const load = async ({ locals, cookies, fetch, url }) => {
   // 1. Get user from locals or cookies
   // 2. Verify user.role === 'admin', redirect if not
   // 3. Fetch from /api/admin/users
   // 4. Return { user, users, statistics, error }
-}
+};
 ```
 
 ### 4. Users API Endpoint
@@ -147,12 +158,14 @@ export const load = async ({ locals, cookies, fetch, url }) => {
 **File:** `src/routes/api/admin/users/+server.js`
 
 **Responsibilities:**
+
 - Verify admin authentication
 - Query database for user data
 - Aggregate statistics from sessions and messages
 - Return JSON response
 
 **Response Format:**
+
 ```json
 {
   "users": [
@@ -179,11 +192,11 @@ Since there's no User table, user data is derived from Session records:
 
 ```typescript
 interface UserData {
-  userId: string;           // From Session.userId
-  email: string;            // Derived from userId (mock auth uses email as identifier)
-  registrationDate: Date;   // Earliest Session.createdAt for this userId
-  sessionCount: number;     // Count of sessions for this userId
-  messageCount: number;     // Sum of Session.messageCount for this userId
+  userId: string; // From Session.userId
+  email: string; // Derived from userId (mock auth uses email as identifier)
+  registrationDate: Date; // Earliest Session.createdAt for this userId
+  sessionCount: number; // Count of sessions for this userId
+  messageCount: number; // Sum of Session.messageCount for this userId
 }
 ```
 
@@ -191,14 +204,15 @@ interface UserData {
 
 ```typescript
 interface Statistics {
-  totalUsers: number;       // Distinct count of userId in sessions
-  totalSessions: number;    // Total count of all sessions
+  totalUsers: number; // Distinct count of userId in sessions
+  totalSessions: number; // Total count of all sessions
 }
 ```
 
 ### Database Queries
 
 **Get All Users with Statistics:**
+
 ```javascript
 // Group sessions by userId
 const sessions = await prisma.session.groupBy({
@@ -215,7 +229,7 @@ const sessions = await prisma.session.groupBy({
 });
 
 // Transform to user data
-const users = sessions.map(s => ({
+const users = sessions.map((s) => ({
   userId: s.userId,
   email: s.userId, // In mock auth, userId is the email
   registrationDate: s._min.createdAt,
@@ -225,6 +239,7 @@ const users = sessions.map(s => ({
 ```
 
 **Get Statistics:**
+
 ```javascript
 const totalSessions = await prisma.session.count();
 const distinctUsers = await prisma.session.findMany({
@@ -324,6 +339,7 @@ const totalUsers = distinctUsers.length;
 ### Console Navigation
 
 **Desktop:** Dropdown menu in main navigation
+
 ```
 [Console ▼]
   Users
@@ -332,6 +348,7 @@ const totalUsers = distinctUsers.length;
 ```
 
 **Mobile:** Expandable section in mobile menu
+
 ```
 > Console
   - Users
@@ -346,6 +363,7 @@ const totalUsers = distinctUsers.length;
 The Console navigation will be implemented as a dropdown component:
 
 **Implementation Approach:**
+
 - Create a new `ConsoleDropdown.svelte` component
 - Similar pattern to `MyCoursesDropdown.svelte`
 - Shows Users, Finance, Analytics as dropdown items
@@ -353,19 +371,19 @@ The Console navigation will be implemented as a dropdown component:
 - Highlights the current page within the dropdown
 
 **Component Structure:**
+
 ```svelte
 <ConsoleDropdown>
-  - Console button (highlighted when on /admin/*)
-  - Dropdown menu:
-    - Users (highlighted when on /admin/users)
-    - Finance (highlighted when on /admin/finance)
-    - Analytics (highlighted when on /admin/analytics)
+  - Console button (highlighted when on /admin/*) - Dropdown menu: - Users (highlighted when on
+  /admin/users) - Finance (highlighted when on /admin/finance) - Analytics (highlighted when on
+  /admin/analytics)
 </ConsoleDropdown>
 ```
 
 ### Data Aggregation Performance
 
 For applications with many users:
+
 - Consider adding pagination (50 users per page)
 - Add database indexes on `userId` and `createdAt` fields
 - Cache statistics for better performance
@@ -375,6 +393,7 @@ Current implementation assumes moderate user count (<1000 users) where full tabl
 ### Future Enhancements
 
 Features intentionally excluded from this design but could be added later:
+
 - User detail modal/page
 - User account status management
 - Advanced filtering (date range, activity level)

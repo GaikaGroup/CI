@@ -26,7 +26,7 @@ export function highlightText(text, searchTerm, className = 'highlight') {
 
   const escapedTerm = escapeRegex(searchTerm.trim());
   const regex = new RegExp(`(${escapedTerm})`, 'gi');
-  
+
   return text.replace(regex, `<mark class="${className}">$1</mark>`);
 }
 
@@ -48,16 +48,14 @@ export function getSearchExcerpt(text, searchTerm, contextLength = 50) {
 
   if (index === -1) {
     // No match found, return beginning of text
-    return text.length > contextLength * 2 
-      ? text.substring(0, contextLength * 2) + '...'
-      : text;
+    return text.length > contextLength * 2 ? text.substring(0, contextLength * 2) + '...' : text;
   }
 
   const start = Math.max(0, index - contextLength);
   const end = Math.min(text.length, index + lowerTerm.length + contextLength);
 
   let excerpt = text.substring(start, end);
-  
+
   if (start > 0) {
     excerpt = '...' + excerpt;
   }

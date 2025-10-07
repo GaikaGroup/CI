@@ -1,6 +1,6 @@
 /**
  * PDF Extractor
- * 
+ *
  * This class is responsible for extracting text from PDF documents and rendering PDF pages to canvas.
  */
 export class PDFExtractor {

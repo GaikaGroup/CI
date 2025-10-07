@@ -1,5 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { MessageService, MessageError, MessageValidationError } from '$lib/modules/session/services/MessageService.js';
+import {
+  MessageService,
+  MessageError,
+  MessageValidationError
+} from '$lib/modules/session/services/MessageService.js';
 
 /**
  * Get recent messages across all user sessions

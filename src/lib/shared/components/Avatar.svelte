@@ -1,7 +1,7 @@
 <script>
   export let size = 'md'; // sm, md, lg
   export let emoji = '🤖';
-  
+
   // Size classes
   const sizeClasses = {
     sm: {
@@ -22,8 +22,14 @@
   };
 </script>
 
-<div class="{sizeClasses[size].outer} rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-  <div class="{sizeClasses[size].inner} rounded-full bg-white dark:bg-gray-800 flex items-center justify-center">
-    <div class="{sizeClasses[size].emoji}">{emoji}</div>
+<div
+  class="{sizeClasses[size]
+    .outer} rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg"
+>
+  <div
+    class="{sizeClasses[size]
+      .inner} rounded-full bg-white dark:bg-gray-800 flex items-center justify-center"
+  >
+    <div class={sizeClasses[size].emoji}>{emoji}</div>
   </div>
 </div>

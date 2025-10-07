@@ -5,7 +5,12 @@
   import { browser } from '$app/environment';
   import { user, checkAuth } from '$modules/auth/stores';
   import { sessionStore } from '$modules/session/stores/sessionStore.js';
-  import { chatMode as chatModeStore, messages, initializeChat, addMessage } from '$modules/chat/stores';
+  import {
+    chatMode as chatModeStore,
+    messages,
+    initializeChat,
+    addMessage
+  } from '$modules/chat/stores';
   import { MESSAGE_TYPES } from '$shared/utils/constants';
   import { setVoiceModeActive } from '$modules/chat/voiceServices';
   import MessageList from '$modules/chat/components/MessageList.svelte';
@@ -35,40 +40,44 @@
 
   async function handleSendMessage(event) {
     const { content, images } = event.detail;
-    
+
     if (!content.trim() && images.length === 0) return;
-    
+
     try {
       // If no current session, create one with the user's question as title
       if (!currentSessionId) {
         const title = content.substring(0, 50) + (content.length > 50 ? '...' : '');
-        const session = await sessionStore.createSession(title, 'fun', 'en', content.substring(0, 200));
+        const session = await sessionStore.createSession(
+          title,
+          'fun',
+          'en',
+          content.substring(0, 200)
+        );
         currentSessionId = session.id;
       }
-      
+
       // Add user message to store
       const messageId = Date.now();
-      
+
       // Extract URLs from image objects if images exist
       const imageUrls = images && images.length > 0 ? images.map((img) => img.url || img) : [];
-      
+
       addMessage(MESSAGE_TYPES.USER, content, images, messageId);
-      
+
       // Import the sendMessage function dynamically
       const { sendMessage } = await import('$modules/chat/services');
-      
+
       // Send message to LLM (this will add AI response to store)
       await sendMessage(content, imageUrls, currentSessionId);
-      
+
       // Update session title with first user message if it's still the default
-      const currentSession = $sessionStore.sessions.find(s => s.id === currentSessionId);
+      const currentSession = $sessionStore.sessions.find((s) => s.id === currentSessionId);
       if (currentSession && currentSession.title.startsWith('New Session')) {
         await sessionStore.updateSession(currentSessionId, {
           title: content.substring(0, 50) + (content.length > 50 ? '...' : ''),
           preview: content.substring(0, 200)
         });
       }
-      
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -76,19 +85,18 @@
 
   async function createNewSession() {
     if (isCreatingSession) return;
-    
+
     isCreatingSession = true;
     try {
       // Use a temporary title - will be updated with first user message
       const title = `New Session ${new Date().toLocaleDateString()}`;
-      
+
       const session = await sessionStore.createSession(title, 'fun', 'en');
       currentSessionId = session.id;
-      
+
       // Clear current messages to start fresh
       messages.set([]);
       initializeChat('Hello! How can I help you today?');
-      
     } catch (error) {
       console.error('Failed to create session:', error);
       alert('Failed to create new session');
@@ -101,28 +109,37 @@
     try {
       await sessionStore.selectSession(session.id);
       currentSessionId = session.id;
-      
+
       // Load ALL messages for this session from database
       const response = await fetch(`/api/sessions/${session.id}/messages?limit=200`);
       if (response.ok) {
         const data = await response.json();
         const loadedMessages = data.messages || [];
-        
+
         console.log('=== Session Load Debug ===');
         console.log(`Loading ${loadedMessages.length} messages for session ${session.id}`);
-        console.log('Raw messages from API:', loadedMessages.map(m => ({ type: m.type, content: m.content.substring(0, 50) })));
-        
+        console.log(
+          'Raw messages from API:',
+          loadedMessages.map((m) => ({ type: m.type, content: m.content.substring(0, 50) }))
+        );
+
         // Convert database messages to chat format
         const chatMessages = loadedMessages.map((msg, index) => ({
           id: msg.id || index + 1,
           type: msg.type === 'assistant' ? 'tutor' : msg.type, // Keep 'user' as 'user', convert 'assistant' to 'tutor'
           content: msg.content,
-          timestamp: new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
           metadata: msg.metadata || {},
           saved: true // Mark as already saved
         }));
-        
-        console.log('Converted messages:', chatMessages.map(m => ({ type: m.type, content: m.content.substring(0, 50) })));
+
+        console.log(
+          'Converted messages:',
+          chatMessages.map((m) => ({ type: m.type, content: m.content.substring(0, 50) }))
+        );
 
         if (chatMessages.length > 0) {
           messages.set(chatMessages);
@@ -136,7 +153,6 @@
         console.error('Failed to load messages:', response.status);
         messages.set([]);
       }
-      
     } catch (error) {
       console.error('Failed to select session:', error);
       messages.set([]);
@@ -146,10 +162,10 @@
   // Auto-save messages to current session
   async function saveMessageToSession(message) {
     if (!currentSessionId || !$user || !message.content) return;
-    
+
     // Don't save system messages or messages that are already saved
     if (message.type === 'system' || message.saved) return;
-    
+
     try {
       const response = await fetch(`/api/sessions/${currentSessionId}/messages`, {
         method: 'POST',
@@ -160,13 +176,13 @@
           metadata: message.metadata || {}
         })
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         console.error('Failed to save message:', error);
         return;
       }
-      
+
       // Update session preview with latest user message
       if (message.type === 'user') {
         await sessionStore.updateSession(currentSessionId, {
@@ -181,11 +197,11 @@
   onMount(async () => {
     await checkAuth();
     setMode('fun');
-    
+
     if ($user) {
       // Load existing sessions
       await sessionStore.loadSessions();
-      
+
       // Subscribe to messages to auto-save them
       let lastProcessedIndex = 0;
       messageUnsubscribe = messages.subscribe(($messages) => {
@@ -256,8 +272,8 @@
       <aside class="sessions-sidebar">
         <div class="sidebar-header">
           <h3>Sessions</h3>
-          <button 
-            class="new-session-btn" 
+          <button
+            class="new-session-btn"
             on:click={createNewSession}
             disabled={isCreatingSession}
             title="Create new session"
@@ -266,7 +282,7 @@
             New
           </button>
         </div>
-        
+
         <div class="sessions-list">
           {#if sessions.length === 0}
             <div class="empty-state-small">
@@ -281,13 +297,14 @@
               >
                 <div class="session-title">{session.title}</div>
                 <div class="session-meta">
-                  {new Date(session.updatedAt).toLocaleDateString('en-GB', { 
-                    day: '2-digit', 
-                    month: '2-digit', 
-                    year: 'numeric' 
-                  })} {new Date(session.updatedAt).toLocaleTimeString('en-GB', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date(session.updatedAt).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })}
+                  {new Date(session.updatedAt).toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit'
                   })} • {session.messageCount || 0} msg
                 </div>
               </button>
@@ -573,8 +590,9 @@
 
   .messages-area {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Input Area */
@@ -584,6 +602,12 @@
   }
 
   /* Override MessageList and MessageInput styles to match design */
+  :global(.sessions-page .messages-area > div) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
   :global(.sessions-page .message-list) {
     padding: 20px;
     height: 100%;
@@ -592,21 +616,27 @@
   :global(.sessions-page .message-input-container) {
     padding: 15px 20px;
   }
-  
+
   /* Ensure messages display properly with proper spacing */
   :global(.sessions-page .message) {
     margin-bottom: 16px;
   }
-  
+
   :global(.sessions-page .message.user) {
     display: flex;
     justify-content: flex-end;
   }
-  
+
   :global(.sessions-page .message.tutor),
   :global(.sessions-page .message.assistant) {
     display: flex;
     justify-content: flex-start;
+  }
+
+  /* Ensure MessageList takes full height and scrolls properly */
+  :global(.sessions-page .messages-area .flex-1) {
+    height: 100%;
+    max-height: none;
   }
 
   /* Improve message bubble appearance */

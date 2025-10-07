@@ -4,10 +4,10 @@ export class IImagePreprocessor {
    * @param {Uint8Array} buffer - The image buffer
    * @returns {Promise<HTMLCanvasElement>} - The preprocessed canvas
    */
-  async preprocess(buffer) { 
-    throw new Error('Not implemented'); 
+  async preprocess(buffer) {
+    throw new Error('Not implemented');
   }
-  
+
   /**
    * Detect image format from buffer based on magic numbers
    * @param {Uint8Array} buffer - The image buffer

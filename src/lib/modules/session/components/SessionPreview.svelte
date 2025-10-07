@@ -1,13 +1,13 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { goto } from '$app/navigation';
-  import { 
-    MessageSquare, 
-    Calendar, 
-    Globe, 
-    Sparkles, 
-    BookOpen, 
-    Edit2, 
+  import {
+    MessageSquare,
+    Calendar,
+    Globe,
+    Sparkles,
+    BookOpen,
+    Edit2,
     Trash2,
     Clock,
     Play
@@ -40,7 +40,7 @@
   // Format date helper
   function formatDate(date) {
     if (!date) return 'Unknown';
-    
+
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -51,9 +51,9 @@
     if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
     if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
       year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
     });
@@ -97,7 +97,7 @@
   // Continue session handler
   function handleContinueSession() {
     if (!session) return;
-    
+
     // Navigate to chat interface with session ID
     goto(`/sessions/${session.id}`);
     dispatch('continue', { sessionId: session.id });
@@ -106,7 +106,7 @@
   // View history handler
   function handleViewHistory() {
     if (!session) return;
-    
+
     // Navigate to history view
     goto(`/sessions/${session.id}/history`);
     dispatch('viewHistory', { sessionId: session.id });
@@ -188,14 +188,21 @@
           <h2 class="text-2xl font-bold text-stone-900 dark:text-white mb-2 break-words">
             {session.title}
           </h2>
-          
+
           <!-- Mode and Language badges -->
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium {mode === 'learn' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'}">
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium {mode ===
+              'learn'
+                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                : 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'}"
+            >
               <svelte:component this={getModeIcon(mode)} size={14} />
               {mode === 'learn' ? 'Learn Mode' : 'Fun Mode'}
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 dark:bg-gray-700 dark:text-gray-300 text-sm font-medium">
+            <span
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 dark:bg-gray-700 dark:text-gray-300 text-sm font-medium"
+            >
               <Globe size={14} />
               {getLanguageName(language)}
             </span>
@@ -226,7 +233,9 @@
 
     <!-- Session Statistics -->
     <div class="p-6 border-b border-stone-200 dark:border-gray-700">
-      <h3 class="text-sm font-semibold text-stone-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+      <h3
+        class="text-sm font-semibold text-stone-700 dark:text-gray-300 mb-3 uppercase tracking-wide"
+      >
         Session Statistics
       </h3>
       <div class="grid grid-cols-2 gap-4">
@@ -254,9 +263,7 @@
             <p class="text-sm font-semibold text-stone-900 dark:text-white">
               {formatDate(lastActivity)}
             </p>
-            <p class="text-xs text-stone-600 dark:text-gray-400">
-              Last activity
-            </p>
+            <p class="text-xs text-stone-600 dark:text-gray-400">Last activity</p>
           </div>
         </div>
 
@@ -269,9 +276,7 @@
             <p class="text-sm font-semibold text-stone-900 dark:text-white">
               {formatFullDate(createdDate)}
             </p>
-            <p class="text-xs text-stone-600 dark:text-gray-400">
-              Session created
-            </p>
+            <p class="text-xs text-stone-600 dark:text-gray-400">Session created</p>
           </div>
         </div>
       </div>
@@ -280,10 +285,14 @@
     <!-- Preview Content -->
     {#if session.preview}
       <div class="p-6 border-b border-stone-200 dark:border-gray-700">
-        <h3 class="text-sm font-semibold text-stone-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
+        <h3
+          class="text-sm font-semibold text-stone-700 dark:text-gray-300 mb-3 uppercase tracking-wide"
+        >
           Last Conversation
         </h3>
-        <div class="p-4 rounded-lg bg-stone-50 dark:bg-gray-800 border border-stone-200 dark:border-gray-700">
+        <div
+          class="p-4 rounded-lg bg-stone-50 dark:bg-gray-800 border border-stone-200 dark:border-gray-700"
+        >
           <p class="text-sm text-stone-700 dark:text-gray-300 leading-relaxed">
             {session.preview}
           </p>
@@ -301,7 +310,7 @@
           <Play size={18} />
           Continue Session
         </button>
-        
+
         <button
           on:click={handleViewHistory}
           class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-stone-800 dark:text-gray-100 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 dark:focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
@@ -319,13 +328,14 @@
       <div class="mb-6 text-stone-400 dark:text-gray-500">
         <MessageSquare size={64} class="mx-auto" />
       </div>
-      <h3 class="text-xl font-semibold text-stone-900 dark:text-white mb-2">
-        No Session Selected
-      </h3>
+      <h3 class="text-xl font-semibold text-stone-900 dark:text-white mb-2">No Session Selected</h3>
       <p class="text-stone-600 dark:text-gray-400 mb-6">
-        Choose a session from the sidebar to view its details, statistics, and continue your conversation with the AI tutor.
+        Choose a session from the sidebar to view its details, statistics, and continue your
+        conversation with the AI tutor.
       </p>
-      <div class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+      <div
+        class="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800"
+      >
         <p class="text-sm text-amber-800 dark:text-amber-300">
           💡 Tip: You can create a new session or search for existing ones using the sidebar.
         </p>
@@ -335,15 +345,13 @@
 {/if}
 
 <!-- Edit Title Modal -->
-<Modal
-  title="Edit Session Title"
-  open={showEditModal}
-  on:close={closeEditModal}
-  width="max-w-lg"
->
+<Modal title="Edit Session Title" open={showEditModal} on:close={closeEditModal} width="max-w-lg">
   <div class="space-y-4">
     <div>
-      <label for="edit-title" class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2">
+      <label
+        for="edit-title"
+        class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"
+      >
         Session Title
       </label>
       <input
@@ -363,12 +371,10 @@
   </div>
 
   <div slot="footer" class="flex justify-end gap-2">
-    <Button variant="secondary" on:click={closeEditModal} disabled={isUpdating}>
-      Cancel
-    </Button>
-    <Button 
-      variant="primary" 
-      on:click={handleSaveTitle} 
+    <Button variant="secondary" on:click={closeEditModal} disabled={isUpdating}>Cancel</Button>
+    <Button
+      variant="primary"
+      on:click={handleSaveTitle}
       disabled={!editedTitle.trim() || editedTitle === session?.title || isUpdating}
     >
       {isUpdating ? 'Saving...' : 'Save Changes'}
@@ -384,7 +390,9 @@
   width="max-w-md"
 >
   <div class="space-y-4">
-    <div class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+    <div
+      class="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+    >
       <p class="text-sm text-red-800 dark:text-red-300 font-medium mb-2">
         ⚠️ Warning: This action cannot be undone
       </p>
@@ -392,18 +400,19 @@
         Deleting this session will permanently remove all messages and conversation history.
       </p>
     </div>
-    
+
     {#if session}
       <div>
-        <p class="text-sm text-stone-700 dark:text-gray-300 mb-2">
-          You are about to delete:
-        </p>
-        <div class="p-3 rounded-lg bg-stone-100 dark:bg-gray-800 border border-stone-200 dark:border-gray-700">
+        <p class="text-sm text-stone-700 dark:text-gray-300 mb-2">You are about to delete:</p>
+        <div
+          class="p-3 rounded-lg bg-stone-100 dark:bg-gray-800 border border-stone-200 dark:border-gray-700"
+        >
           <p class="font-semibold text-stone-900 dark:text-white mb-1">
             {session.title}
           </p>
           <p class="text-xs text-stone-600 dark:text-gray-400">
-            {messageCount} {messageCount === 1 ? 'message' : 'messages'} • Created {formatDate(createdDate)}
+            {messageCount}
+            {messageCount === 1 ? 'message' : 'messages'} • Created {formatDate(createdDate)}
           </p>
         </div>
       </div>
@@ -411,11 +420,9 @@
   </div>
 
   <div slot="footer" class="flex justify-end gap-2">
-    <Button variant="secondary" on:click={closeDeleteConfirm} disabled={isDeleting}>
-      Cancel
-    </Button>
-    <Button 
-      variant="primary" 
+    <Button variant="secondary" on:click={closeDeleteConfirm} disabled={isDeleting}>Cancel</Button>
+    <Button
+      variant="primary"
       on:click={handleDeleteSession}
       disabled={isDeleting}
       class="bg-red-600 hover:bg-red-700 focus:ring-red-500"

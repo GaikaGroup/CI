@@ -74,7 +74,7 @@ export class InMemorySessionManager extends ISessionMemory {
    * @param {Object} newContext - New context information to merge
    */
   updateContext(newContext) {
-    this.memory.currentContext = {...this.memory.currentContext, ...newContext};
+    this.memory.currentContext = { ...this.memory.currentContext, ...newContext };
   }
 
   /**

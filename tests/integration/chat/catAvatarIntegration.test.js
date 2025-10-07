@@ -44,16 +44,16 @@ describe('Cat Avatar Integration Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup audio amplitude mock with realistic values
     amplitudeValues = [0.0, 0.1, 0.3, 0.5, 0.7, 0.4, 0.2, 0.0];
     amplitudeIndex = 0;
-    
+
     mockAudioAmplitude = {
       subscribe: vi.fn(),
       get: vi.fn(() => amplitudeValues[amplitudeIndex++ % amplitudeValues.length])
     };
-    
+
     vi.spyOn(voiceServices, 'audioAmplitude', 'get').mockReturnValue(mockAudioAmplitude);
   });
 
@@ -78,10 +78,13 @@ describe('Cat Avatar Integration Tests', () => {
       });
 
       // Start waiting phrase with varying amplitude
-      await waitingPhrasesService.playWaitingPhrase("Well, well, well. Let me think about this.", 'en');
+      await waitingPhrasesService.playWaitingPhrase(
+        'Well, well, well. Let me think about this.',
+        'en'
+      );
 
       // Wait for lip-sync to process amplitude changes
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Verify mouth overlay appears during speech
       const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
@@ -89,11 +92,11 @@ describe('Cat Avatar Integration Tests', () => {
 
       // Verify mouth image changes with amplitude
       const initialMouthSrc = mouthOverlay.src;
-      
+
       // Advance amplitude and wait for update
       amplitudeIndex += 2;
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Mouth position should potentially change with different amplitude
       // (Note: might be same if amplitude maps to same mouth position)
       expect(mouthOverlay.src).toBeTruthy();
@@ -116,9 +119,9 @@ describe('Cat Avatar Integration Tests', () => {
       // Test high amplitude (should use vowel mouth positions)
       amplitudeValues = [0.8, 0.9, 0.7, 0.8];
       amplitudeIndex = 0;
-      
-      await waitingPhrasesService.playWaitingPhrase("Ooooh, interesting!", 'en');
-      await new Promise(resolve => setTimeout(resolve, 200));
+
+      await waitingPhrasesService.playWaitingPhrase('Ooooh, interesting!', 'en');
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       let mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
       expect(mouthOverlay).toBeTruthy();
@@ -127,9 +130,9 @@ describe('Cat Avatar Integration Tests', () => {
       // Test low amplitude (should use consonant or closed mouth)
       amplitudeValues = [0.1, 0.05, 0.02, 0.0];
       amplitudeIndex = 0;
-      
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
       const lowAmplitudeMouth = mouthOverlay ? mouthOverlay.src : null;
 
@@ -155,13 +158,13 @@ describe('Cat Avatar Integration Tests', () => {
       amplitudeValues = [0.1, 0.8, 0.1, 0.8, 0.1, 0.8, 0.1, 0.8];
       amplitudeIndex = 0;
 
-      await waitingPhrasesService.playWaitingPhrase("Test oscillation prevention", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Test oscillation prevention', 'en');
 
       const mouthPositions = [];
-      
+
       // Sample mouth positions over time
       for (let i = 0; i < 8; i++) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
         mouthPositions.push(mouthOverlay ? mouthOverlay.src : null);
       }
@@ -169,8 +172,10 @@ describe('Cat Avatar Integration Tests', () => {
       // Should not oscillate rapidly between positions
       let rapidChanges = 0;
       for (let i = 1; i < mouthPositions.length - 1; i++) {
-        if (mouthPositions[i] !== mouthPositions[i-1] && 
-            mouthPositions[i] !== mouthPositions[i+1]) {
+        if (
+          mouthPositions[i] !== mouthPositions[i - 1] &&
+          mouthPositions[i] !== mouthPositions[i + 1]
+        ) {
           rapidChanges++;
         }
       }
@@ -197,17 +202,17 @@ describe('Cat Avatar Integration Tests', () => {
       amplitudeValues = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7];
       amplitudeIndex = 0;
 
-      await waitingPhrasesService.playWaitingPhrase("Gradual amplitude increase", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Gradual amplitude increase', 'en');
 
       // Monitor transitions
       const transitionTimes = [];
       let lastMouthSrc = null;
 
       for (let i = 0; i < 8; i++) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
         const currentMouthSrc = mouthOverlay ? mouthOverlay.src : null;
-        
+
         if (currentMouthSrc !== lastMouthSrc) {
           transitionTimes.push(Date.now());
           lastMouthSrc = currentMouthSrc;
@@ -243,7 +248,7 @@ describe('Cat Avatar Integration Tests', () => {
       expect(avatarImage.src).toContain('happy');
 
       // Mouth overlay should still work with emotion
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
       expect(mouthOverlay).toBeTruthy();
     });
@@ -263,7 +268,7 @@ describe('Cat Avatar Integration Tests', () => {
       });
 
       // Start waiting phrase
-      await waitingPhrasesService.playWaitingPhrase("Let me think...", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Let me think...', 'en');
 
       // Change emotion during playback
       await component.$set({ emotion: 'surprised' });
@@ -280,7 +285,7 @@ describe('Cat Avatar Integration Tests', () => {
 
     it('should support all emotion states with waiting phrases', async () => {
       const emotions = ['neutral', 'happy', 'surprised', 'sad', 'angry'];
-      
+
       for (const emotion of emotions) {
         const { container, component } = render(CatAvatar, {
           props: {
@@ -303,7 +308,7 @@ describe('Cat Avatar Integration Tests', () => {
         expect(avatarImage.src).toBeTruthy();
 
         // Verify lip-sync works with emotion
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
         expect(mouthOverlay).toBeTruthy();
 
@@ -330,11 +335,11 @@ describe('Cat Avatar Integration Tests', () => {
       // Start waiting phrase
       amplitudeValues = [0.3, 0.4, 0.5, 0.4, 0.3];
       amplitudeIndex = 0;
-      
-      await waitingPhrasesService.playWaitingPhrase("Let me think about this...", 'en');
-      
+
+      await waitingPhrasesService.playWaitingPhrase('Let me think about this...', 'en');
+
       // Verify mouth animation during waiting phrase
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       let mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
       expect(mouthOverlay).toBeTruthy();
       const waitingPhraseMouth = mouthOverlay.src;
@@ -344,12 +349,12 @@ describe('Cat Avatar Integration Tests', () => {
       amplitudeIndex = 0;
 
       // Continue speaking (simulating AI response)
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       // Verify animation continues smoothly
       mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
       expect(mouthOverlay).toBeTruthy();
-      
+
       // Should still be animating (speaking state maintained)
       expect(voiceServices.audioAmplitude.get().get()).toBeGreaterThan(0);
     });
@@ -374,7 +379,7 @@ describe('Cat Avatar Integration Tests', () => {
 
       // Start speaking (waiting phrase)
       await component.$set({ speaking: true });
-      await waitingPhrasesService.playWaitingPhrase("Starting to speak", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Starting to speak', 'en');
 
       // Should show mouth overlay
       await waitFor(() => {
@@ -386,12 +391,15 @@ describe('Cat Avatar Integration Tests', () => {
       await component.$set({ speaking: false });
 
       // Should eventually hide mouth overlay (with fade out)
-      await waitFor(() => {
-        // May take time due to fade out animation
-        const mouthAfterStop = container.querySelector('img[alt="Cat mouth"]');
-        // Mouth may still be visible during fade out, but opacity should be changing
-        // or it should disappear after fade completes
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          // May take time due to fade out animation
+          const mouthAfterStop = container.querySelector('img[alt="Cat mouth"]');
+          // Mouth may still be visible during fade out, but opacity should be changing
+          // or it should disappear after fade completes
+        },
+        { timeout: 1000 }
+      );
     });
 
     it('should handle rapid speaking state changes gracefully', async () => {
@@ -410,13 +418,13 @@ describe('Cat Avatar Integration Tests', () => {
 
       // Rapid state changes
       await component.$set({ speaking: true });
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       await component.$set({ speaking: false });
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       await component.$set({ speaking: true });
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // Should handle gracefully without errors
       const avatarImage = container.querySelector('img[alt="Cat avatar"]');
@@ -440,8 +448,8 @@ describe('Cat Avatar Integration Tests', () => {
       });
 
       // Start animation
-      await waitingPhrasesService.playWaitingPhrase("Testing cleanup", 'en');
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await waitingPhrasesService.playWaitingPhrase('Testing cleanup', 'en');
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Destroy component
       component.$destroy();
@@ -453,7 +461,7 @@ describe('Cat Avatar Integration Tests', () => {
 
     it('should handle multiple avatar instances efficiently', async () => {
       const avatars = [];
-      
+
       // Create multiple avatar instances
       for (let i = 0; i < 3; i++) {
         const { container, component } = render(CatAvatar, {
@@ -463,26 +471,28 @@ describe('Cat Avatar Integration Tests', () => {
             emotion: 'neutral'
           }
         });
-        
+
         avatars.push({ container, component });
       }
 
       // Wait for all to load
-      await Promise.all(avatars.map(({ container }) => 
-        waitFor(() => {
-          const baseImage = container.querySelector('img[alt="Cat avatar"]');
-          expect(baseImage).toBeTruthy();
-        })
-      ));
+      await Promise.all(
+        avatars.map(({ container }) =>
+          waitFor(() => {
+            const baseImage = container.querySelector('img[alt="Cat avatar"]');
+            expect(baseImage).toBeTruthy();
+          })
+        )
+      );
 
       // Start waiting phrases on all
-      await Promise.all(avatars.map((_, i) => 
-        waitingPhrasesService.playWaitingPhrase(`Test phrase ${i}`, 'en')
-      ));
+      await Promise.all(
+        avatars.map((_, i) => waitingPhrasesService.playWaitingPhrase(`Test phrase ${i}`, 'en'))
+      );
 
       // All should animate
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       avatars.forEach(({ container }) => {
         const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
         expect(mouthOverlay).toBeTruthy();
@@ -510,20 +520,20 @@ describe('Cat Avatar Integration Tests', () => {
       const updateTimes = [];
       let lastMouthSrc = null;
 
-      await waitingPhrasesService.playWaitingPhrase("Consistent frame rate test", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Consistent frame rate test', 'en');
 
       // Sample over 1 second
       const startTime = Date.now();
       while (Date.now() - startTime < 1000) {
         const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
         const currentMouthSrc = mouthOverlay ? mouthOverlay.src : null;
-        
+
         if (currentMouthSrc !== lastMouthSrc) {
           updateTimes.push(Date.now());
           lastMouthSrc = currentMouthSrc;
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 16)); // ~60fps
+
+        await new Promise((resolve) => setTimeout(resolve, 16)); // ~60fps
       }
 
       // Should have reasonable update frequency (not too fast, not too slow)

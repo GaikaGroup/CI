@@ -56,7 +56,9 @@
   }
 </script>
 
-<div class="border-t dark:border-gray-700 dark:bg-gray-800 border-stone-200 bg-stone-50 p-4">
+<div
+  class="border-t dark:border-gray-700 dark:bg-gray-800 border-stone-200 bg-stone-50 p-4 flex-shrink-0"
+>
   <!-- Selected Files Preview -->
   {#if $selectedImages.length > 0}
     <div class="mb-4 flex flex-wrap gap-2">

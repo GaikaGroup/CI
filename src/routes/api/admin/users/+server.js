@@ -5,7 +5,7 @@ import { STORAGE_KEYS } from '$shared/utils/constants';
 /**
  * Get all users with statistics
  * GET /api/admin/users
- * 
+ *
  * Returns:
  * - users: Array of user objects with email, registration date, session count, message count
  * - statistics: Total users and total sessions
@@ -50,7 +50,7 @@ export async function GET({ locals, cookies }) {
     });
 
     // Transform to user data
-    const users = sessionGroups.map(group => ({
+    const users = sessionGroups.map((group) => ({
       userId: group.userId,
       email: group.userId, // In mock auth, userId is the email
       registrationDate: group._min.createdAt,

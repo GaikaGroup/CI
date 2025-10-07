@@ -85,7 +85,7 @@ describe('Welcome Messages', () => {
     it('should generate continuation message in different languages', () => {
       const ruMessage = generateContinuationMessage('fun', 'ru', 'Тест');
       expect(ruMessage).toContain('возвращением');
-      
+
       const esMessage = generateContinuationMessage('fun', 'es', 'Prueba');
       expect(esMessage).toContain('Bienvenido');
     });
@@ -105,21 +105,21 @@ describe('Welcome Messages', () => {
 
     it('should include English', () => {
       const languages = getSupportedLanguages();
-      const english = languages.find(lang => lang.code === 'en');
+      const english = languages.find((lang) => lang.code === 'en');
       expect(english).toBeDefined();
       expect(english.name).toBe('English');
     });
 
     it('should include Russian', () => {
       const languages = getSupportedLanguages();
-      const russian = languages.find(lang => lang.code === 'ru');
+      const russian = languages.find((lang) => lang.code === 'ru');
       expect(russian).toBeDefined();
       expect(russian.name).toBe('Русский');
     });
 
     it('should have code and name properties', () => {
       const languages = getSupportedLanguages();
-      languages.forEach(lang => {
+      languages.forEach((lang) => {
         expect(lang).toHaveProperty('code');
         expect(lang).toHaveProperty('name');
         expect(typeof lang.code).toBe('string');
@@ -180,20 +180,20 @@ describe('Welcome Messages', () => {
   describe('Consistency Across Languages', () => {
     it('should maintain similar tone across languages for fun mode', () => {
       const languages = ['en', 'ru', 'es', 'fr', 'de'];
-      const messages = languages.map(lang => generateWelcomeMessage('fun', lang));
-      
+      const messages = languages.map((lang) => generateWelcomeMessage('fun', lang));
+
       // All should contain the fun emoji
-      messages.forEach(message => {
+      messages.forEach((message) => {
         expect(message).toContain('🎉');
       });
     });
 
     it('should maintain similar tone across languages for learn mode', () => {
       const languages = ['en', 'ru', 'es', 'fr', 'de'];
-      const messages = languages.map(lang => generateWelcomeMessage('learn', lang));
-      
+      const messages = languages.map((lang) => generateWelcomeMessage('learn', lang));
+
       // All should contain the learn emoji
-      messages.forEach(message => {
+      messages.forEach((message) => {
         expect(message).toContain('📚');
       });
     });

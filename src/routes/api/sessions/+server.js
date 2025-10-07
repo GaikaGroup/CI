@@ -1,5 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { SessionService, SessionError, SessionNotFoundError, SessionValidationError } from '$lib/modules/session/services/SessionService.js';
+import {
+  SessionService,
+  SessionError,
+  SessionNotFoundError,
+  SessionValidationError
+} from '$lib/modules/session/services/SessionService.js';
 
 /**
  * Get user sessions with pagination and filtering
@@ -37,11 +42,11 @@ export async function GET({ url, locals }) {
     // Validate sort parameters
     const validSortFields = ['updatedAt', 'createdAt', 'title', 'messageCount'];
     const validSortOrders = ['asc', 'desc'];
-    
+
     if (!validSortFields.includes(sortBy)) {
       return json({ error: 'Invalid sortBy parameter' }, { status: 400 });
     }
-    
+
     if (!validSortOrders.includes(sortOrder)) {
       return json({ error: 'Invalid sortOrder parameter' }, { status: 400 });
     }
@@ -67,11 +72,11 @@ export async function GET({ url, locals }) {
       mode,
       language,
       dateFrom,
-      dateTo,
+      dateTo
     };
 
     let result;
-    
+
     // Use search if query provided, otherwise get regular sessions
     if (search && search.trim().length > 0) {
       result = await SessionService.searchSessions(userId, search.trim(), options);
@@ -84,7 +89,8 @@ export async function GET({ url, locals }) {
     console.error('Error in GET /api/sessions:', error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 
@@ -150,7 +156,8 @@ export async function POST({ request, locals }) {
     console.error('Error in POST /api/sessions:', error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 

@@ -20,33 +20,33 @@ export async function POST({ request }) {
     // For development/testing, simulate a successful response if API key is not set
     if (TTS_CONFIG.API_KEY === 'your-api-key-here') {
       console.log('Using simulated TTS response (no API key provided)');
-      
+
       // Create a simple audio blob with a beep sound
       const audioContext = new AudioContext();
       const oscillator = audioContext.createOscillator();
       const destination = audioContext.createMediaStreamDestination();
-      
+
       oscillator.type = 'sine';
       oscillator.frequency.value = 440; // A4 note
       oscillator.connect(destination);
       oscillator.start();
-      
+
       // Record for 1 second
       const mediaRecorder = new MediaRecorder(destination.stream);
       const chunks = [];
-      
+
       mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
       mediaRecorder.start();
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       mediaRecorder.stop();
-      
-      await new Promise(resolve => {
+
+      await new Promise((resolve) => {
         mediaRecorder.onstop = resolve;
       });
-      
+
       const blob = new Blob(chunks, { type: 'audio/wav' });
-      
+
       return new Response(blob, {
         headers: { 'Content-Type': 'audio/wav' }
       });
@@ -57,7 +57,7 @@ export async function POST({ request }) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TTS_CONFIG.API_KEY}`
+        Authorization: `Bearer ${TTS_CONFIG.API_KEY}`
       },
       body: JSON.stringify({
         model: TTS_CONFIG.MODEL,

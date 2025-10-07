@@ -7,7 +7,7 @@
 
   // Get current preferences
   let preferences = { ...voiceUxPolisher.userPreferences };
-  
+
   // Reactive language for translations
   $: currentLanguage = $selectedLanguage;
 
@@ -113,11 +113,11 @@
 
   function handleSave() {
     saving = true;
-    
+
     try {
       // Update the UX polisher with new preferences
       voiceUxPolisher.userPreferences = { ...preferences };
-      
+
       // Save advanced preferences if shown
       if (showAdvanced) {
         voiceUxPolisher.advancedPreferences = { ...advancedPreferences };
@@ -130,7 +130,7 @@
       }
 
       dispatch('preferencesUpdated', { preferences, advancedPreferences });
-      
+
       console.log('Voice preferences saved:', preferences);
     } catch (error) {
       console.error('Error saving voice preferences:', error);
@@ -190,7 +190,11 @@
       {t.interruptionSensitivity}
       <span class="help-text">{t.interruptionSensitivityHelp}</span>
     </label>
-    <select id="interruption-sensitivity" bind:value={preferences.interruptionSensitivity} class="preference-select">
+    <select
+      id="interruption-sensitivity"
+      bind:value={preferences.interruptionSensitivity}
+      class="preference-select"
+    >
       <option value="low">{t.low}</option>
       <option value="medium">{t.medium}</option>
       <option value="high">{t.high}</option>
@@ -233,29 +237,25 @@
   </div>
 
   <!-- Advanced Settings Toggle -->
-  <button 
-    class="advanced-toggle" 
-    on:click={toggleAdvanced}
-    type="button"
-  >
+  <button class="advanced-toggle" on:click={toggleAdvanced} type="button">
     {showAdvanced ? t.hideAdvanced : t.showAdvanced}
   </button>
 
   {#if showAdvanced}
     <div class="advanced-settings">
       <h4 class="advanced-title">{t.advanced}</h4>
-      
+
       <div class="preference-group">
         <label class="preference-label" for="interruption-threshold">
           Interruption Threshold
           <span class="help-text">Confidence level required to detect interruptions (0.1-1.0)</span>
         </label>
-        <input 
+        <input
           id="interruption-threshold"
-          type="range" 
-          min="0.1" 
-          max="1.0" 
-          step="0.1" 
+          type="range"
+          min="0.1"
+          max="1.0"
+          step="0.1"
           bind:value={advancedPreferences.interruptionThreshold}
           class="preference-range"
         />
@@ -267,12 +267,12 @@
           Response Delay (ms)
           <span class="help-text">Delay before responding to interruptions</span>
         </label>
-        <input 
+        <input
           id="response-delay"
-          type="range" 
-          min="100" 
-          max="2000" 
-          step="100" 
+          type="range"
+          min="100"
+          max="2000"
+          step="100"
           bind:value={advancedPreferences.responseDelay}
           class="preference-range"
         />
@@ -281,40 +281,28 @@
 
       <div class="preference-group">
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            bind:checked={advancedPreferences.naturalPauses}
-          />
+          <input type="checkbox" bind:checked={advancedPreferences.naturalPauses} />
           Natural Pauses in Long Responses
         </label>
       </div>
 
       <div class="preference-group">
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            bind:checked={advancedPreferences.contextualAcknowledgments}
-          />
+          <input type="checkbox" bind:checked={advancedPreferences.contextualAcknowledgments} />
           Contextual Acknowledgments
         </label>
       </div>
 
       <div class="preference-group">
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            bind:checked={advancedPreferences.proactiveHelp}
-          />
+          <input type="checkbox" bind:checked={advancedPreferences.proactiveHelp} />
           Proactive Help Suggestions
         </label>
       </div>
 
       <div class="preference-group">
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            bind:checked={advancedPreferences.accessibilityEnhancements}
-          />
+          <input type="checkbox" bind:checked={advancedPreferences.accessibilityEnhancements} />
           Accessibility Enhancements
         </label>
       </div>
@@ -322,20 +310,11 @@
   {/if}
 
   <div class="preference-actions">
-    <button 
-      class="save-button" 
-      on:click={handleSave}
-      disabled={saving}
-      type="button"
-    >
+    <button class="save-button" on:click={handleSave} disabled={saving} type="button">
       {saving ? 'Saving...' : t.save}
     </button>
-    
-    <button 
-      class="reset-button" 
-      on:click={handleReset}
-      type="button"
-    >
+
+    <button class="reset-button" on:click={handleReset} type="button">
       {t.reset}
     </button>
   </div>
@@ -412,7 +391,7 @@
     cursor: pointer;
   }
 
-  .checkbox-label input[type="checkbox"] {
+  .checkbox-label input[type='checkbox'] {
     margin: 0;
   }
 

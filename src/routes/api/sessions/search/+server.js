@@ -1,5 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { SessionService, SessionError, SessionValidationError } from '$lib/modules/session/services/SessionService.js';
+import {
+  SessionService,
+  SessionError,
+  SessionValidationError
+} from '$lib/modules/session/services/SessionService.js';
 
 /**
  * Search sessions by title and preview content
@@ -54,7 +58,7 @@ export async function GET({ url, locals }) {
       mode,
       language,
       dateFrom,
-      dateTo,
+      dateTo
     };
 
     const result = await SessionService.searchSessions(userId, query.trim(), options);
@@ -63,7 +67,8 @@ export async function GET({ url, locals }) {
     console.error('Error in GET /api/sessions/search:', error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 

@@ -17,7 +17,7 @@ export class VoiceDiagnostics {
     this.isMonitoring = false;
     this.monitoringInterval = null;
     this.healthCheckInterval = null;
-    
+
     // Health check configuration
     this.healthCheckConfig = {
       interval: 30000, // 30 seconds
@@ -29,7 +29,7 @@ export class VoiceDiagnostics {
         bufferUnderrunRate: 0.02 // 2% max buffer underrun rate
       }
     };
-    
+
     // Performance monitoring configuration
     this.performanceConfig = {
       sampleInterval: 5000, // 5 seconds
@@ -40,7 +40,7 @@ export class VoiceDiagnostics {
         lowAudioQuality: 0.7 // 70% quality threshold
       }
     };
-    
+
     // User experience metrics
     this.uxMetrics = {
       sessionMetrics: new Map(),
@@ -52,7 +52,7 @@ export class VoiceDiagnostics {
         featureUsageStats: {}
       }
     };
-    
+
     // System health status
     this.systemHealth = {
       overall: 'unknown',
@@ -66,7 +66,7 @@ export class VoiceDiagnostics {
       lastHealthCheck: null,
       issues: []
     };
-    
+
     // Performance metrics storage
     this.performanceMetrics = {
       audioProcessing: [],
@@ -76,7 +76,7 @@ export class VoiceDiagnostics {
       networkLatency: [],
       userInteractions: []
     };
-    
+
     console.log('VoiceDiagnostics initialized:', this.diagnosticId);
   }
 
@@ -97,22 +97,22 @@ export class VoiceDiagnostics {
     } = options;
 
     this.isMonitoring = true;
-    
+
     // Start health checks
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
     }, healthCheckInterval);
-    
+
     // Start performance monitoring
     this.monitoringInterval = setInterval(() => {
       this.collectPerformanceMetrics();
     }, performanceInterval);
-    
+
     // Enable real-time alerts if requested
     if (enableRealTimeAlerts) {
       this.enableRealTimeAlerts();
     }
-    
+
     console.log('Voice monitoring started with intervals:', {
       healthCheck: healthCheckInterval,
       performance: performanceInterval
@@ -128,17 +128,17 @@ export class VoiceDiagnostics {
     }
 
     this.isMonitoring = false;
-    
+
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
       this.healthCheckInterval = null;
     }
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
     }
-    
+
     console.log('Voice monitoring stopped');
   }
 
@@ -148,10 +148,10 @@ export class VoiceDiagnostics {
    */
   async performHealthCheck() {
     const startTime = performance.now();
-    
+
     try {
       console.log('Performing voice system health check...');
-      
+
       const healthResults = {
         timestamp: Date.now(),
         overall: 'healthy',
@@ -163,42 +163,43 @@ export class VoiceDiagnostics {
 
       // Check audio processing health
       healthResults.components.audioProcessing = await this.checkAudioProcessingHealth();
-      
+
       // Check speech synthesis health
       healthResults.components.speechSynthesis = await this.checkSpeechSynthesisHealth();
-      
+
       // Check interruption detection health
-      healthResults.components.interruptionDetection = await this.checkInterruptionDetectionHealth();
-      
+      healthResults.components.interruptionDetection =
+        await this.checkInterruptionDetectionHealth();
+
       // Check avatar synchronization health
       healthResults.components.avatarSync = await this.checkAvatarSyncHealth();
-      
+
       // Check conversation flow health
       healthResults.components.conversationFlow = await this.checkConversationFlowHealth();
-      
+
       // Analyze performance metrics
       healthResults.performance = this.analyzePerformanceMetrics();
-      
+
       // Determine overall health
       healthResults.overall = this.calculateOverallHealth(healthResults.components);
-      
+
       // Generate issues and recommendations
       healthResults.issues = this.identifyHealthIssues(healthResults);
       healthResults.recommendations = this.generateHealthRecommendations(healthResults);
-      
+
       // Update system health status
       this.systemHealth = {
         ...healthResults,
         lastHealthCheck: Date.now()
       };
-      
+
       const duration = performance.now() - startTime;
       console.log(`Health check completed in ${duration.toFixed(1)}ms:`, healthResults.overall);
-      
+
       return healthResults;
     } catch (error) {
       console.error('Error during health check:', error);
-      
+
       const errorResult = {
         timestamp: Date.now(),
         overall: 'error',
@@ -207,7 +208,7 @@ export class VoiceDiagnostics {
         issues: ['Health check system failure'],
         recommendations: ['Restart voice system', 'Check browser compatibility']
       };
-      
+
       this.systemHealth = errorResult;
       return errorResult;
     }
@@ -221,12 +222,12 @@ export class VoiceDiagnostics {
     try {
       const bufferStats = audioBufferManager.getBufferStats();
       const errorStats = voiceErrorHandler.getErrorStats();
-      
+
       // Check for audio processing issues
       const audioErrors = errorStats.errorTypeBreakdown.audio_processing_failure || 0;
       const totalErrors = errorStats.totalErrors;
       const audioErrorRate = totalErrors > 0 ? audioErrors / totalErrors : 0;
-      
+
       // Check buffer performance
       const bufferHealth = {
         bufferedItems: bufferStats.totalBuffered,
@@ -234,16 +235,16 @@ export class VoiceDiagnostics {
         memoryUsage: bufferStats.totalSize,
         isHealthy: bufferStats.totalBuffered < 10 && bufferStats.totalSize < 50 * 1024 * 1024 // 50MB
       };
-      
+
       // Determine health status
       let status = 'healthy';
       const issues = [];
-      
+
       if (audioErrorRate > this.healthCheckConfig.thresholds.errorRate) {
         status = 'degraded';
         issues.push(`High audio error rate: ${(audioErrorRate * 100).toFixed(1)}%`);
       }
-      
+
       if (!bufferHealth.isHealthy) {
         status = 'degraded';
         if (bufferStats.totalBuffered >= 10) {
@@ -253,7 +254,7 @@ export class VoiceDiagnostics {
           issues.push(`High memory usage: ${(bufferStats.totalSize / 1024 / 1024).toFixed(1)}MB`);
         }
       }
-      
+
       return {
         status: status,
         errorRate: audioErrorRate,
@@ -282,28 +283,28 @@ export class VoiceDiagnostics {
     try {
       const loggerStats = voiceInteractionLogger.getStats();
       const performanceAnalytics = voiceInteractionLogger.getPerformanceAnalytics();
-      
+
       // Check synthesis failure rate
       const synthesisFailures = performanceAnalytics.synthesisFailures || 0;
       const totalInteractions = performanceAnalytics.totalInteractions || 1;
       const failureRate = synthesisFailures / totalInteractions;
-      
+
       // Check average response time
       const avgResponseTime = performanceAnalytics.averageResponseTime || 0;
-      
+
       let status = 'healthy';
       const issues = [];
-      
+
       if (failureRate > this.healthCheckConfig.thresholds.errorRate) {
         status = 'degraded';
         issues.push(`High synthesis failure rate: ${(failureRate * 100).toFixed(1)}%`);
       }
-      
+
       if (avgResponseTime > this.healthCheckConfig.thresholds.responseTime) {
         status = 'degraded';
         issues.push(`Slow response time: ${avgResponseTime.toFixed(0)}ms`);
       }
-      
+
       return {
         status: status,
         failureRate: failureRate,
@@ -334,19 +335,19 @@ export class VoiceDiagnostics {
       const performanceAnalytics = voiceInteractionLogger.getPerformanceAnalytics();
       const interruptionCount = performanceAnalytics.interruptionCount || 0;
       const recentInterruptions = performanceAnalytics.recentActivity?.interruptionRate || 0;
-      
+
       // Check if interruption detection is working
       const hasRecentActivity = recentInterruptions > 0 || interruptionCount > 0;
-      
+
       let status = 'healthy';
       const issues = [];
-      
+
       // Check for microphone access
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
           // Test microphone access (this is a simplified check)
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach((track) => track.stop());
         } catch (micError) {
           status = 'degraded';
           issues.push('Microphone access denied or unavailable');
@@ -355,7 +356,7 @@ export class VoiceDiagnostics {
         status = 'degraded';
         issues.push('MediaDevices API not available');
       }
-      
+
       return {
         status: status,
         interruptionCount: interruptionCount,
@@ -387,10 +388,10 @@ export class VoiceDiagnostics {
         isVoiceModeActive: get(isVoiceModeActive),
         isSpeaking: get(isSpeaking)
       };
-      
+
       let status = 'healthy';
       const issues = [];
-      
+
       // Basic avatar health checks
       if (voiceState.isVoiceModeActive) {
         // Avatar should be available in voice mode
@@ -399,7 +400,7 @@ export class VoiceDiagnostics {
         // Not in voice mode, so avatar sync is not applicable
         status = 'inactive';
       }
-      
+
       return {
         status: status,
         voiceState: voiceState,
@@ -426,22 +427,22 @@ export class VoiceDiagnostics {
     try {
       const loggerStats = voiceInteractionLogger.getStats();
       const currentLanguage = get(selectedLanguage);
-      
+
       let status = 'healthy';
       const issues = [];
-      
+
       // Check if conversation system is active
       if (loggerStats.currentSessionId) {
         status = 'active';
       } else {
         status = 'inactive';
       }
-      
+
       // Check language consistency
       if (!currentLanguage) {
         issues.push('No language selected');
       }
-      
+
       return {
         status: status,
         sessionId: loggerStats.currentSessionId,
@@ -476,7 +477,7 @@ export class VoiceDiagnostics {
         networkLatency: this.analyzeMetricArray(this.performanceMetrics.networkLatency),
         trends: this.analyzeTrends()
       };
-      
+
       return analysis;
     } catch (error) {
       console.error('Error analyzing performance metrics:', error);
@@ -493,16 +494,16 @@ export class VoiceDiagnostics {
     if (!metrics || metrics.length === 0) {
       return { count: 0, average: 0, min: 0, max: 0, trend: 'stable' };
     }
-    
-    const values = metrics.map(m => m.value || m);
+
+    const values = metrics.map((m) => m.value || m);
     const sum = values.reduce((a, b) => a + b, 0);
     const average = sum / values.length;
     const min = Math.min(...values);
     const max = Math.max(...values);
-    
+
     // Calculate trend (simple linear regression)
     const trend = this.calculateTrend(values);
-    
+
     return {
       count: values.length,
       average: average,
@@ -520,15 +521,15 @@ export class VoiceDiagnostics {
    */
   calculateTrend(values) {
     if (values.length < 2) return 'stable';
-    
+
     const n = values.length;
     const sumX = (n * (n - 1)) / 2; // Sum of indices
     const sumY = values.reduce((a, b) => a + b, 0);
     const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
     const sumX2 = values.reduce((sum, _, x) => sum + x * x, 0);
-    
+
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-    
+
     if (slope > 0.1) return 'increasing';
     if (slope < -0.1) return 'decreasing';
     return 'stable';
@@ -544,25 +545,25 @@ export class VoiceDiagnostics {
       concerns: [],
       improvements: []
     };
-    
+
     // Analyze each metric type for trends
-    Object.keys(this.performanceMetrics).forEach(metricType => {
+    Object.keys(this.performanceMetrics).forEach((metricType) => {
       const analysis = this.analyzeMetricArray(this.performanceMetrics[metricType]);
-      
+
       if (analysis.trend === 'increasing' && metricType !== 'userInteractions') {
         trends.concerns.push(`${metricType} is increasing`);
       } else if (analysis.trend === 'decreasing' && metricType !== 'userInteractions') {
         trends.improvements.push(`${metricType} is decreasing`);
       }
     });
-    
+
     // Determine overall trend
     if (trends.concerns.length > trends.improvements.length) {
       trends.overall = 'degrading';
     } else if (trends.improvements.length > trends.concerns.length) {
       trends.overall = 'improving';
     }
-    
+
     return trends;
   }
 
@@ -572,12 +573,13 @@ export class VoiceDiagnostics {
    * @returns {string} Overall health status
    */
   calculateOverallHealth(components) {
-    const statuses = Object.values(components).map(c => c.status);
-    
+    const statuses = Object.values(components).map((c) => c.status);
+
     if (statuses.includes('error')) return 'error';
     if (statuses.includes('degraded')) return 'degraded';
-    if (statuses.every(s => s === 'healthy' || s === 'active' || s === 'inactive')) return 'healthy';
-    
+    if (statuses.every((s) => s === 'healthy' || s === 'active' || s === 'inactive'))
+      return 'healthy';
+
     return 'unknown';
   }
 
@@ -588,19 +590,19 @@ export class VoiceDiagnostics {
    */
   identifyHealthIssues(healthResults) {
     const issues = [];
-    
+
     // Collect issues from all components
-    Object.values(healthResults.components).forEach(component => {
+    Object.values(healthResults.components).forEach((component) => {
       if (component.issues) {
         issues.push(...component.issues);
       }
     });
-    
+
     // Add performance-based issues
     if (healthResults.performance.trends?.concerns) {
       issues.push(...healthResults.performance.trends.concerns);
     }
-    
+
     return issues;
   }
 
@@ -611,7 +613,7 @@ export class VoiceDiagnostics {
    */
   generateHealthRecommendations(healthResults) {
     const recommendations = [];
-    
+
     // Audio processing recommendations
     const audioHealth = healthResults.components.audioProcessing;
     if (audioHealth?.status === 'degraded') {
@@ -622,7 +624,7 @@ export class VoiceDiagnostics {
         recommendations.push('Check network connection and audio device settings');
       }
     }
-    
+
     // Speech synthesis recommendations
     const synthesisHealth = healthResults.components.speechSynthesis;
     if (synthesisHealth?.status === 'degraded') {
@@ -633,18 +635,18 @@ export class VoiceDiagnostics {
         recommendations.push('Consider using faster TTS service or reduce text length');
       }
     }
-    
+
     // Interruption detection recommendations
     const interruptionHealth = healthResults.components.interruptionDetection;
     if (interruptionHealth?.status === 'degraded') {
       recommendations.push('Check microphone permissions and device settings');
     }
-    
+
     // General performance recommendations
     if (healthResults.performance.trends?.overall === 'degrading') {
       recommendations.push('Monitor system resources and consider performance optimization');
     }
-    
+
     return recommendations;
   }
 
@@ -654,7 +656,7 @@ export class VoiceDiagnostics {
   collectPerformanceMetrics() {
     try {
       const timestamp = Date.now();
-      
+
       // Collect audio processing metrics
       const bufferStats = audioBufferManager.getBufferStats();
       this.addPerformanceMetric('memoryUsage', {
@@ -663,7 +665,7 @@ export class VoiceDiagnostics {
         unit: 'bytes',
         context: 'audio_buffer'
       });
-      
+
       // Collect speech synthesis metrics
       const loggerAnalytics = voiceInteractionLogger.getPerformanceAnalytics();
       if (loggerAnalytics.averageResponseTime > 0) {
@@ -674,7 +676,7 @@ export class VoiceDiagnostics {
           context: 'response_time'
         });
       }
-      
+
       // Collect user interaction metrics
       this.addPerformanceMetric('userInteractions', {
         timestamp: timestamp,
@@ -682,10 +684,9 @@ export class VoiceDiagnostics {
         unit: 'count',
         context: 'total_interactions'
       });
-      
+
       // Clean old metrics
       this.cleanOldMetrics();
-      
     } catch (error) {
       console.error('Error collecting performance metrics:', error);
     }
@@ -700,9 +701,9 @@ export class VoiceDiagnostics {
     if (!this.performanceMetrics[type]) {
       this.performanceMetrics[type] = [];
     }
-    
+
     this.performanceMetrics[type].push(metric);
-    
+
     // Limit metric history
     const maxMetrics = 100;
     if (this.performanceMetrics[type].length > maxMetrics) {
@@ -716,10 +717,10 @@ export class VoiceDiagnostics {
   cleanOldMetrics() {
     const now = Date.now();
     const maxAge = this.performanceConfig.metricsRetention;
-    
-    Object.keys(this.performanceMetrics).forEach(type => {
+
+    Object.keys(this.performanceMetrics).forEach((type) => {
       this.performanceMetrics[type] = this.performanceMetrics[type].filter(
-        metric => now - metric.timestamp < maxAge
+        (metric) => now - metric.timestamp < maxAge
       );
     });
   }
@@ -738,15 +739,9 @@ export class VoiceDiagnostics {
    */
   trackUserExperience(uxData) {
     try {
-      const {
-        sessionId,
-        interactionType,
-        success,
-        duration,
-        userSatisfaction,
-        errorEncountered
-      } = uxData;
-      
+      const { sessionId, interactionType, success, duration, userSatisfaction, errorEncountered } =
+        uxData;
+
       // Update session metrics
       if (!this.uxMetrics.sessionMetrics.has(sessionId)) {
         this.uxMetrics.sessionMetrics.set(sessionId, {
@@ -757,7 +752,7 @@ export class VoiceDiagnostics {
           errorCount: 0
         });
       }
-      
+
       const sessionMetrics = this.uxMetrics.sessionMetrics.get(sessionId);
       sessionMetrics.interactions.push({
         type: interactionType,
@@ -767,14 +762,13 @@ export class VoiceDiagnostics {
         userSatisfaction: userSatisfaction,
         errorEncountered: errorEncountered
       });
-      
+
       if (success) sessionMetrics.successCount++;
       if (errorEncountered) sessionMetrics.errorCount++;
       if (duration) sessionMetrics.totalDuration += duration;
-      
+
       // Update aggregated metrics
       this.updateAggregatedUXMetrics();
-      
     } catch (error) {
       console.error('Error tracking user experience:', error);
     }
@@ -785,17 +779,21 @@ export class VoiceDiagnostics {
    */
   updateAggregatedUXMetrics() {
     const sessions = Array.from(this.uxMetrics.sessionMetrics.values());
-    
+
     if (sessions.length === 0) return;
-    
-    const totalInteractions = sessions.reduce((sum, session) => sum + session.interactions.length, 0);
+
+    const totalInteractions = sessions.reduce(
+      (sum, session) => sum + session.interactions.length,
+      0
+    );
     const successfulInteractions = sessions.reduce((sum, session) => sum + session.successCount, 0);
     const totalDuration = sessions.reduce((sum, session) => sum + session.totalDuration, 0);
-    
+
     this.uxMetrics.aggregatedMetrics = {
       totalSessions: sessions.length,
       averageSessionDuration: totalDuration / sessions.length,
-      interactionSuccessRate: totalInteractions > 0 ? successfulInteractions / totalInteractions : 0,
+      interactionSuccessRate:
+        totalInteractions > 0 ? successfulInteractions / totalInteractions : 0,
       totalInteractions: totalInteractions
     };
   }
@@ -813,7 +811,7 @@ export class VoiceDiagnostics {
         includeUXMetrics = true,
         includeRecommendations = true
       } = options;
-      
+
       const report = {
         timestamp: Date.now(),
         diagnosticId: this.diagnosticId,
@@ -826,32 +824,31 @@ export class VoiceDiagnostics {
           }
         }
       };
-      
+
       if (includeHealthCheck) {
         report.healthCheck = await this.performHealthCheck();
       }
-      
+
       if (includePerformanceMetrics) {
         report.performanceMetrics = {
           current: this.performanceMetrics,
           analysis: this.analyzePerformanceMetrics()
         };
       }
-      
+
       if (includeUXMetrics) {
         report.userExperience = {
           sessionMetrics: Object.fromEntries(this.uxMetrics.sessionMetrics),
           aggregatedMetrics: this.uxMetrics.aggregatedMetrics
         };
       }
-      
+
       if (includeRecommendations && report.healthCheck) {
         report.recommendations = this.generateHealthRecommendations(report.healthCheck);
       }
-      
+
       console.log('Diagnostic report generated:', report.timestamp);
       return report;
-      
     } catch (error) {
       console.error('Error generating diagnostic report:', error);
       return {
@@ -868,27 +865,26 @@ export class VoiceDiagnostics {
    * @returns {Object} Exported diagnostic data
    */
   exportDiagnosticData(options = {}) {
-    const {
-      format = 'json',
-      includeRawMetrics = false
-    } = options;
-    
+    const { format = 'json', includeRawMetrics = false } = options;
+
     const exportData = {
       exportTimestamp: Date.now(),
       diagnosticId: this.diagnosticId,
       systemHealth: this.systemHealth,
-      performanceMetrics: includeRawMetrics ? this.performanceMetrics : this.analyzePerformanceMetrics(),
+      performanceMetrics: includeRawMetrics
+        ? this.performanceMetrics
+        : this.analyzePerformanceMetrics(),
       uxMetrics: this.uxMetrics.aggregatedMetrics,
       configuration: {
         healthCheckConfig: this.healthCheckConfig,
         performanceConfig: this.performanceConfig
       }
     };
-    
+
     if (format === 'csv') {
       return this.convertDiagnosticsToCSV(exportData);
     }
-    
+
     return exportData;
   }
 
@@ -900,7 +896,7 @@ export class VoiceDiagnostics {
   convertDiagnosticsToCSV(exportData) {
     const headers = ['timestamp', 'metric_type', 'metric_name', 'value', 'unit', 'status'];
     const rows = [];
-    
+
     // Add health check data
     if (exportData.systemHealth.components) {
       Object.entries(exportData.systemHealth.components).forEach(([component, data]) => {
@@ -914,7 +910,7 @@ export class VoiceDiagnostics {
         ]);
       });
     }
-    
+
     // Add performance metrics
     if (exportData.performanceMetrics) {
       Object.entries(exportData.performanceMetrics).forEach(([metric, data]) => {
@@ -930,8 +926,8 @@ export class VoiceDiagnostics {
         }
       });
     }
-    
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+
+    return [headers, ...rows].map((row) => row.join(',')).join('\n');
   }
 
   /**
@@ -960,7 +956,7 @@ export class VoiceDiagnostics {
       networkLatency: [],
       userInteractions: []
     };
-    
+
     this.uxMetrics.sessionMetrics.clear();
     this.uxMetrics.aggregatedMetrics = {
       totalSessions: 0,
@@ -969,7 +965,7 @@ export class VoiceDiagnostics {
       interactionSuccessRate: 0,
       featureUsageStats: {}
     };
-    
+
     this.systemHealth = {
       overall: 'unknown',
       components: {
@@ -982,7 +978,7 @@ export class VoiceDiagnostics {
       lastHealthCheck: null,
       issues: []
     };
-    
+
     console.log('Voice diagnostics data reset');
   }
 

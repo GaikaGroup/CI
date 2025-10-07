@@ -37,8 +37,8 @@ export class SessionValidationError extends SessionError {
 const RETRY_CONFIG = {
   maxAttempts: 3,
   baseDelay: 1000, // 1 second
-  maxDelay: 5000,  // 5 seconds
-  backoffFactor: 2,
+  maxDelay: 5000, // 5 seconds
+  backoffFactor: 2
 };
 
 /**
@@ -49,14 +49,16 @@ const RETRY_CONFIG = {
  */
 async function withRetry(operation, config = RETRY_CONFIG) {
   let lastError;
-  
+
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await operation();
     } catch (error) {
-      if (error instanceof DatabaseNotReadyError ||
-          error?.code === 'DATABASE_NOT_READY' ||
-          error?.name === 'PrismaClientInitializationError') {
+      if (
+        error instanceof DatabaseNotReadyError ||
+        error?.code === 'DATABASE_NOT_READY' ||
+        error?.name === 'PrismaClientInitializationError'
+      ) {
         throw new SessionError(
           'Database is not ready. Run "prisma generate" and ensure the Postgres instance is running.',
           'DATABASE_NOT_READY',
@@ -65,30 +67,36 @@ async function withRetry(operation, config = RETRY_CONFIG) {
       }
 
       lastError = error;
-      
+
       // Don't retry validation errors or not found errors
-      if (error instanceof SessionValidationError || 
-          error instanceof SessionNotFoundError ||
-          error.code === 'P2025') { // Prisma record not found
+      if (
+        error instanceof SessionValidationError ||
+        error instanceof SessionNotFoundError ||
+        error.code === 'P2025'
+      ) {
+        // Prisma record not found
         throw error;
       }
-      
+
       // Don't retry on the last attempt
       if (attempt === config.maxAttempts) {
         break;
       }
-      
+
       // Calculate delay with exponential backoff
       const delay = Math.min(
         config.baseDelay * Math.pow(config.backoffFactor, attempt - 1),
         config.maxDelay
       );
-      
-      console.warn(`Database operation failed (attempt ${attempt}/${config.maxAttempts}), retrying in ${delay}ms:`, error.message);
-      await new Promise(resolve => setTimeout(resolve, delay));
+
+      console.warn(
+        `Database operation failed (attempt ${attempt}/${config.maxAttempts}), retrying in ${delay}ms:`,
+        error.message
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  
+
   throw new SessionError(
     `Database operation failed after ${config.maxAttempts} attempts: ${lastError.message}`,
     'DATABASE_RETRY_FAILED',
@@ -103,25 +111,28 @@ async function withRetry(operation, config = RETRY_CONFIG) {
  */
 function validateSessionData(sessionData) {
   const { title, mode, language, userId } = sessionData;
-  
+
   if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
     throw new SessionValidationError('User ID is required', 'userId');
   }
-  
+
   if (!title || typeof title !== 'string' || title.trim().length === 0) {
     throw new SessionValidationError('Session title is required', 'title');
   }
-  
+
   if (title.length > 500) {
     throw new SessionValidationError('Session title must be 500 characters or less', 'title');
   }
-  
+
   if (mode && !['fun', 'learn'].includes(mode)) {
     throw new SessionValidationError('Mode must be either "fun" or "learn"', 'mode');
   }
-  
+
   if (language && (typeof language !== 'string' || language.length > 10)) {
-    throw new SessionValidationError('Language must be a valid language code (max 10 characters)', 'language');
+    throw new SessionValidationError(
+      'Language must be a valid language code (max 10 characters)',
+      'language'
+    );
   }
 }
 
@@ -144,7 +155,10 @@ function isDatabaseNotReadyError(error) {
       return true;
     }
 
-    if (current?.code === 'DATABASE_NOT_READY' || current?.name === 'PrismaClientInitializationError') {
+    if (
+      current?.code === 'DATABASE_NOT_READY' ||
+      current?.name === 'PrismaClientInitializationError'
+    ) {
       return true;
     }
 
@@ -168,10 +182,17 @@ export class SessionService {
    * @param {boolean} createWelcomeMessage - Whether to create a welcome message (default: true)
    * @returns {Promise<Object>} Created session object
    */
-  static async createSession(userId, title, mode = 'fun', language = 'en', preview = null, createWelcomeMessage = true) {
+  static async createSession(
+    userId,
+    title,
+    mode = 'fun',
+    language = 'en',
+    preview = null,
+    createWelcomeMessage = true
+  ) {
     const sessionData = { userId, title, mode, language, preview };
     validateSessionData(sessionData);
-    
+
     return withRetry(async () => {
       try {
         // Create session and optionally add welcome message in a transaction
@@ -183,14 +204,14 @@ export class SessionService {
               title: title.trim(),
               mode,
               language,
-              preview: preview?.trim() || null,
-            },
+              preview: preview?.trim() || null
+            }
           });
-          
+
           // Create welcome message if requested
           if (createWelcomeMessage) {
             const welcomeText = generateWelcomeMessage(mode, language);
-            
+
             await tx.message.create({
               data: {
                 sessionId: session.id,
@@ -202,7 +223,7 @@ export class SessionService {
                 }
               }
             });
-            
+
             // Update session message count and preview
             session = await tx.session.update({
               where: { id: session.id },
@@ -212,11 +233,13 @@ export class SessionService {
               }
             });
           }
-          
+
           return session;
         });
-        
-        console.log(`Session created: ${result.id} for user: ${userId} with welcome message: ${createWelcomeMessage}`);
+
+        console.log(
+          `Session created: ${result.id} for user: ${userId} with welcome message: ${createWelcomeMessage}`
+        );
         return result;
       } catch (error) {
         if (isDatabaseNotReadyError(error)) {
@@ -249,7 +272,7 @@ export class SessionService {
     if (!userId || typeof userId !== 'string') {
       throw new SessionValidationError('User ID is required', 'userId');
     }
-    
+
     const {
       page = 1,
       limit = 20,
@@ -258,29 +281,29 @@ export class SessionService {
       mode = null,
       language = null,
       dateFrom = null,
-      dateTo = null,
+      dateTo = null
     } = options;
-    
+
     // Validate pagination parameters
     if (page < 1 || limit < 1 || limit > 100) {
       throw new SessionValidationError('Invalid pagination parameters', 'pagination');
     }
-    
+
     const skip = (page - 1) * limit;
     const orderBy = { [sortBy]: sortOrder };
-    
+
     // Build where clause with filters
     const where = { userId };
     if (mode) where.mode = mode;
     if (language) where.language = language;
-    
+
     // Add date range filtering
     if (dateFrom || dateTo) {
       where.updatedAt = {};
       if (dateFrom) where.updatedAt.gte = new Date(dateFrom);
       if (dateTo) where.updatedAt.lte = new Date(dateTo);
     }
-    
+
     return withRetry(async () => {
       try {
         const [sessions, totalCount] = await Promise.all([
@@ -297,18 +320,18 @@ export class SessionService {
           }),
           db.session.count({ where })
         ]);
-        
+
         // Update messageCount for sessions where it might be out of sync
-        const sessionsWithCorrectCount = sessions.map(session => ({
+        const sessionsWithCorrectCount = sessions.map((session) => ({
           ...session,
           messageCount: session._count.messages,
-          _count: undefined, // Remove the _count field from response
+          _count: undefined // Remove the _count field from response
         }));
-        
+
         const totalPages = Math.ceil(totalCount / limit);
         const hasNextPage = page < totalPages;
         const hasPreviousPage = page > 1;
-        
+
         return {
           sessions: sessionsWithCorrectCount,
           pagination: {
@@ -317,8 +340,8 @@ export class SessionService {
             totalCount,
             limit,
             hasNextPage,
-            hasPreviousPage,
-          },
+            hasPreviousPage
+          }
         };
       } catch (error) {
         if (isDatabaseNotReadyError(error)) {
@@ -344,28 +367,30 @@ export class SessionService {
     if (!sessionId || !userId) {
       throw new SessionValidationError('Session ID and User ID are required');
     }
-    
+
     return withRetry(async () => {
       try {
         const session = await db.session.findFirst({
           where: {
             id: sessionId,
-            userId, // Ensure user can only access their own sessions
+            userId // Ensure user can only access their own sessions
           },
           include: {
-            messages: includeMessages ? {
-              orderBy: { createdAt: 'asc' }
-            } : false,
+            messages: includeMessages
+              ? {
+                  orderBy: { createdAt: 'asc' }
+                }
+              : false,
             _count: {
               select: { messages: true }
             }
           }
         });
-        
+
         if (!session) {
           throw new SessionNotFoundError(sessionId);
         }
-        
+
         // Update messageCount if it's out of sync
         if (session.messageCount !== session._count.messages) {
           await db.session.update({
@@ -374,10 +399,10 @@ export class SessionService {
           });
           session.messageCount = session._count.messages;
         }
-        
+
         // Remove _count from response
         delete session._count;
-        
+
         return session;
       } catch (error) {
         if (error instanceof SessionNotFoundError) {
@@ -386,11 +411,10 @@ export class SessionService {
         if (isDatabaseNotReadyError(error)) {
           throw error;
         }
-        throw new SessionError(
-          `Failed to get session: ${error.message}`,
-          'SESSION_FETCH_FAILED',
-          { sessionId, userId }
-        );
+        throw new SessionError(`Failed to get session: ${error.message}`, 'SESSION_FETCH_FAILED', {
+          sessionId,
+          userId
+        });
       }
     });
   }
@@ -406,42 +430,42 @@ export class SessionService {
     if (!sessionId || !userId) {
       throw new SessionValidationError('Session ID and User ID are required');
     }
-    
+
     // Validate update data
     const allowedFields = ['title', 'preview', 'mode', 'language'];
     const updateData = {};
-    
+
     for (const [key, value] of Object.entries(updates)) {
       if (allowedFields.includes(key) && value !== undefined) {
         updateData[key] = value;
       }
     }
-    
+
     if (Object.keys(updateData).length === 0) {
       throw new SessionValidationError('No valid fields to update');
     }
-    
+
     // Validate the update data
     if (updateData.title !== undefined) {
       validateSessionData({ ...updateData, userId });
     }
-    
+
     return withRetry(async () => {
       try {
         // First check if session exists and belongs to user
         const existingSession = await db.session.findFirst({
           where: { id: sessionId, userId }
         });
-        
+
         if (!existingSession) {
           throw new SessionNotFoundError(sessionId);
         }
-        
+
         const updatedSession = await db.session.update({
           where: { id: sessionId },
-          data: updateData,
+          data: updateData
         });
-        
+
         console.log(`Session updated: ${sessionId} by user: ${userId}`);
         return updatedSession;
       } catch (error) {
@@ -470,23 +494,23 @@ export class SessionService {
     if (!sessionId || !userId) {
       throw new SessionValidationError('Session ID and User ID are required');
     }
-    
+
     return withRetry(async () => {
       try {
         // First check if session exists and belongs to user
         const existingSession = await db.session.findFirst({
           where: { id: sessionId, userId }
         });
-        
+
         if (!existingSession) {
           throw new SessionNotFoundError(sessionId);
         }
-        
+
         // Delete session (messages will be deleted automatically due to CASCADE)
         await db.session.delete({
           where: { id: sessionId }
         });
-        
+
         console.log(`Session deleted: ${sessionId} by user: ${userId}`);
         return true;
       } catch (error) {
@@ -520,46 +544,46 @@ export class SessionService {
     if (!userId || typeof userId !== 'string') {
       throw new SessionValidationError('User ID is required', 'userId');
     }
-    
+
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
       throw new SessionValidationError('Search query is required', 'query');
     }
-    
+
     const {
       page = 1,
       limit = 20,
       mode = null,
       language = null,
       dateFrom = null,
-      dateTo = null,
+      dateTo = null
     } = options;
-    
+
     if (page < 1 || limit < 1 || limit > 100) {
       throw new SessionValidationError('Invalid pagination parameters', 'pagination');
     }
-    
+
     const skip = (page - 1) * limit;
     const searchTerm = query.trim();
-    
+
     // Build where clause with full-text search
     const where = {
       userId,
       OR: [
         { title: { contains: searchTerm, mode: 'insensitive' } },
-        { preview: { contains: searchTerm, mode: 'insensitive' } },
-      ],
+        { preview: { contains: searchTerm, mode: 'insensitive' } }
+      ]
     };
-    
+
     if (mode) where.mode = mode;
     if (language) where.language = language;
-    
+
     // Add date range filtering
     if (dateFrom || dateTo) {
       where.updatedAt = {};
       if (dateFrom) where.updatedAt.gte = new Date(dateFrom);
       if (dateTo) where.updatedAt.lte = new Date(dateTo);
     }
-    
+
     return withRetry(async () => {
       try {
         const [sessions, totalCount] = await Promise.all([
@@ -576,12 +600,12 @@ export class SessionService {
           }),
           db.session.count({ where })
         ]);
-        
+
         // Add highlighting information to sessions
-        const sessionsWithHighlighting = sessions.map(session => {
+        const sessionsWithHighlighting = sessions.map((session) => {
           const titleMatch = session.title.toLowerCase().includes(searchTerm.toLowerCase());
           const previewMatch = session.preview?.toLowerCase().includes(searchTerm.toLowerCase());
-          
+
           return {
             ...session,
             messageCount: session._count.messages,
@@ -589,15 +613,15 @@ export class SessionService {
             _searchMeta: {
               matchedIn: {
                 title: titleMatch,
-                preview: previewMatch,
+                preview: previewMatch
               },
-              searchTerm,
-            },
+              searchTerm
+            }
           };
         });
-        
+
         const totalPages = Math.ceil(totalCount / limit);
-        
+
         return {
           sessions: sessionsWithHighlighting,
           pagination: {
@@ -606,9 +630,9 @@ export class SessionService {
             totalCount,
             limit,
             hasNextPage: page < totalPages,
-            hasPreviousPage: page > 1,
+            hasPreviousPage: page > 1
           },
-          query: searchTerm,
+          query: searchTerm
         };
       } catch (error) {
         if (isDatabaseNotReadyError(error)) {
@@ -632,7 +656,7 @@ export class SessionService {
     if (!userId || typeof userId !== 'string') {
       throw new SessionValidationError('User ID is required', 'userId');
     }
-    
+
     return withRetry(async () => {
       try {
         const [totalSessions, funSessions, learnSessions, totalMessages] = await Promise.all([
@@ -645,19 +669,19 @@ export class SessionService {
             }
           })
         ]);
-        
+
         const recentSession = await db.session.findFirst({
           where: { userId },
           orderBy: { updatedAt: 'desc' },
           select: { updatedAt: true }
         });
-        
+
         return {
           totalSessions,
           funSessions,
           learnSessions,
           totalMessages,
-          lastActivity: recentSession?.updatedAt || null,
+          lastActivity: recentSession?.updatedAt || null
         };
       } catch (error) {
         if (isDatabaseNotReadyError(error)) {
@@ -681,18 +705,18 @@ export class SessionService {
     if (!sessionId) {
       throw new SessionValidationError('Session ID is required');
     }
-    
+
     return withRetry(async () => {
       try {
         const messageCount = await db.message.count({
           where: { sessionId }
         });
-        
+
         await db.session.update({
           where: { id: sessionId },
           data: { messageCount }
         });
-        
+
         return messageCount;
       } catch (error) {
         if (isDatabaseNotReadyError(error)) {

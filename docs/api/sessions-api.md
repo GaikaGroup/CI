@@ -17,6 +17,7 @@ All endpoints are prefixed with `/api`
 Get user sessions with pagination and filtering.
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
 - `sortBy` (optional): Sort field - `updatedAt`, `createdAt`, `title`, `messageCount` (default: `updatedAt`)
@@ -26,6 +27,7 @@ Get user sessions with pagination and filtering.
 - `search` (optional): Search query for title and preview content
 
 **Response:**
+
 ```json
 {
   "sessions": [
@@ -57,6 +59,7 @@ Get user sessions with pagination and filtering.
 Create a new session.
 
 **Request Body:**
+
 ```json
 {
   "title": "string (required)",
@@ -67,6 +70,7 @@ Create a new session.
 ```
 
 **Response:** `201 Created`
+
 ```json
 {
   "id": "uuid",
@@ -86,9 +90,11 @@ Create a new session.
 Get a specific session by ID.
 
 **Query Parameters:**
+
 - `includeMessages` (optional): Include messages in response (default: false)
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -109,6 +115,7 @@ Get a specific session by ID.
 Update a session.
 
 **Request Body:**
+
 ```json
 {
   "title": "string (optional)",
@@ -119,6 +126,7 @@ Update a session.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -138,6 +146,7 @@ Update a session.
 Delete a session and all its messages.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -152,12 +161,14 @@ Delete a session and all its messages.
 Get messages for a session with pagination.
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 50, max: 200)
 - `sortOrder` (optional): Sort order - `asc` or `desc` (default: `asc`)
 - `type` (optional): Filter by message type - `user` or `assistant`
 
 **Response:**
+
 ```json
 {
   "messages": [
@@ -191,6 +202,7 @@ Get messages for a session with pagination.
 Add a new message to a session.
 
 **Request Body:**
+
 ```json
 {
   "type": "user|assistant (required)",
@@ -205,6 +217,7 @@ Add a new message to a session.
 ```
 
 **Response:** `201 Created`
+
 ```json
 {
   "id": "uuid",
@@ -221,6 +234,7 @@ Add a new message to a session.
 Get a specific message by ID.
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -237,6 +251,7 @@ Get a specific message by ID.
 Update a message.
 
 **Request Body:**
+
 ```json
 {
   "content": "string (optional)",
@@ -245,6 +260,7 @@ Update a message.
 ```
 
 **Response:**
+
 ```json
 {
   "id": "uuid",
@@ -261,6 +277,7 @@ Update a message.
 Delete a message.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -275,6 +292,7 @@ Delete a message.
 Search sessions by title and preview content.
 
 **Query Parameters:**
+
 - `q` (required): Search query
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
@@ -282,6 +300,7 @@ Search sessions by title and preview content.
 - `language` (optional): Filter by language
 
 **Response:**
+
 ```json
 {
   "sessions": [...],
@@ -295,6 +314,7 @@ Search sessions by title and preview content.
 Search messages by content.
 
 **Query Parameters:**
+
 - `q` (required): Search query
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Items per page (default: 20, max: 100)
@@ -302,6 +322,7 @@ Search messages by content.
 - `type` (optional): Filter by message type - `user` or `assistant`
 
 **Response:**
+
 ```json
 {
   "messages": [...],
@@ -315,6 +336,7 @@ Search messages by content.
 Get session and message statistics for the authenticated user.
 
 **Response:**
+
 ```json
 {
   "sessions": {
@@ -341,9 +363,11 @@ Get session and message statistics for the authenticated user.
 Get recent messages across all user sessions.
 
 **Query Parameters:**
+
 - `limit` (optional): Number of recent messages (default: 10, max: 100)
 
 **Response:**
+
 ```json
 {
   "messages": [
@@ -372,6 +396,7 @@ Get recent messages across all user sessions.
 Bulk delete messages from a session.
 
 **Request Body:**
+
 ```json
 {
   "messageIds": ["uuid1", "uuid2", "uuid3"]
@@ -379,6 +404,7 @@ Bulk delete messages from a session.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -392,6 +418,7 @@ Bulk delete messages from a session.
 All endpoints may return the following error responses:
 
 ### 400 Bad Request
+
 ```json
 {
   "error": "Validation error message"
@@ -399,6 +426,7 @@ All endpoints may return the following error responses:
 ```
 
 ### 401 Unauthorized
+
 ```json
 {
   "error": "Authentication required"
@@ -406,6 +434,7 @@ All endpoints may return the following error responses:
 ```
 
 ### 403 Forbidden
+
 ```json
 {
   "error": "Access denied"
@@ -413,6 +442,7 @@ All endpoints may return the following error responses:
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "error": "Session not found"
@@ -420,6 +450,7 @@ All endpoints may return the following error responses:
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "error": "Internal server error"

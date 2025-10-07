@@ -1,26 +1,44 @@
 #!/bin/bash
 
 # Start Database Script for AI Tutor Platform
-# This script starts the Prisma Postgres database
+# This script sets up and starts the PostgreSQL database
 
-echo "🗄️  Starting Prisma Postgres Database..."
+echo "🗄️  Starting PostgreSQL Database..."
 echo "=========================================="
 
-# Check if Prisma CLI is installed
-if ! command -v prisma &> /dev/null; then
-    echo "❌ Prisma CLI not found. Installing..."
-    npm install -g prisma
+# Check if PostgreSQL is installed
+if ! command -v psql &> /dev/null; then
+    echo "❌ PostgreSQL not found. Please install PostgreSQL first:"
+    echo "   brew install postgresql"
+    echo "   or visit: https://www.postgresql.org/download/"
+    exit 1
 fi
 
-# Start Prisma Postgres
-echo "📦 Starting Prisma Postgres..."
-npx prisma dev
+# Check if PostgreSQL service is running
+if ! pgrep -x "postgres" > /dev/null; then
+    echo "📦 Starting PostgreSQL service..."
+    brew services start postgresql
+    sleep 3
+fi
+
+# Create database if it doesn't exist
+echo "🔧 Setting up database..."
+createdb ai_tutor_sessions 2>/dev/null || echo "Database already exists"
+
+# Generate Prisma client
+echo "🔄 Generating Prisma client..."
+npx prisma generate
+
+# Run database migrations
+echo "🚀 Running database migrations..."
+npx prisma db push
 
 echo ""
-echo "✅ Database started successfully!"
+echo "✅ Database setup completed successfully!"
 echo ""
 echo "Database is running on:"
-echo "  - Port: 51214"
-echo "  - Connection: Check DATABASE_URL in .env"
+echo "  - Host: localhost"
+echo "  - Port: 5432"
+echo "  - Database: ai_tutor_sessions"
 echo ""
-echo "To stop the database, press Ctrl+C"
+echo "To stop PostgreSQL: brew services stop postgresql"

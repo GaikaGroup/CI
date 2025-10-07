@@ -8,7 +8,8 @@ import { writable, derived, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import { user, isAuthenticated } from '$lib/modules/auth/stores.js';
 
-const DATABASE_NOT_READY_FALLBACK_MESSAGE = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+const DATABASE_NOT_READY_FALLBACK_MESSAGE =
+  'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
 
 /**
  * Session state interface
@@ -76,7 +77,7 @@ function createSessionStore() {
     },
 
     setPersistenceUnavailable(message = DATABASE_NOT_READY_FALLBACK_MESSAGE) {
-      update(state => ({
+      update((state) => ({
         ...state,
         persistence: {
           available: false,
@@ -87,7 +88,7 @@ function createSessionStore() {
     },
 
     clearPersistenceWarning() {
-      update(state => ({
+      update((state) => ({
         ...state,
         persistence: {
           available: true,
@@ -102,7 +103,7 @@ function createSessionStore() {
     async initialize() {
       const currentUser = get(user);
       const authenticated = get(isAuthenticated);
-      
+
       if (!authenticated || !currentUser) {
         this.reset();
         return;
@@ -139,8 +140,10 @@ function createSessionStore() {
           sortBy: options.sortBy || currentState.filters.sortBy,
           sortOrder: options.sortOrder || currentState.filters.sortOrder,
           mode: options.mode !== undefined ? options.mode : currentState.filters.mode,
-          language: options.language !== undefined ? options.language : currentState.filters.language,
-          dateFrom: options.dateFrom !== undefined ? options.dateFrom : currentState.filters.dateFrom,
+          language:
+            options.language !== undefined ? options.language : currentState.filters.language,
+          dateFrom:
+            options.dateFrom !== undefined ? options.dateFrom : currentState.filters.dateFrom,
           dateTo: options.dateTo !== undefined ? options.dateTo : currentState.filters.dateTo
         };
 
@@ -154,15 +157,14 @@ function createSessionStore() {
 
         const response = await fetch(`/api/sessions?${params.toString()}`);
         const result = await this.handleApiResponse(response, 'Failed to load sessions');
-        
-        update(state => ({
+
+        update((state) => ({
           ...state,
           sessions: result.sessions,
           pagination: result.pagination,
           loading: false,
           error: null
         }));
-
       } catch (error) {
         console.error('[SessionStore] Failed to load sessions:', error);
         this.setError(error.message || 'Failed to load sessions');
@@ -194,7 +196,7 @@ function createSessionStore() {
         const newSession = await this.handleApiResponse(response, 'Failed to create session');
 
         // Add the new session to the beginning of the list
-        update(state => ({
+        update((state) => ({
           ...state,
           sessions: [newSession, ...state.sessions],
           currentSession: newSession,
@@ -232,14 +234,13 @@ function createSessionStore() {
 
         const updatedSession = await this.handleApiResponse(response, 'Failed to update session');
 
-        update(state => ({
+        update((state) => ({
           ...state,
-          sessions: state.sessions.map(session =>
+          sessions: state.sessions.map((session) =>
             session.id === sessionId ? updatedSession : session
           ),
-          currentSession: state.currentSession?.id === sessionId 
-            ? updatedSession 
-            : state.currentSession,
+          currentSession:
+            state.currentSession?.id === sessionId ? updatedSession : state.currentSession,
           error: null
         }));
 
@@ -267,15 +268,11 @@ function createSessionStore() {
 
         await this.handleApiResponse(response, 'Failed to delete session');
 
-        update(state => ({
+        update((state) => ({
           ...state,
-          sessions: state.sessions.filter(session => session.id !== sessionId),
-          currentSession: state.currentSession?.id === sessionId 
-            ? null 
-            : state.currentSession,
-          selectedSessionId: state.selectedSessionId === sessionId 
-            ? null 
-            : state.selectedSessionId,
+          sessions: state.sessions.filter((session) => session.id !== sessionId),
+          currentSession: state.currentSession?.id === sessionId ? null : state.currentSession,
+          selectedSessionId: state.selectedSessionId === sessionId ? null : state.selectedSessionId,
           error: null
         }));
 
@@ -314,8 +311,10 @@ function createSessionStore() {
           page: options.page || 1,
           limit: options.limit || currentState.pagination.limit,
           mode: options.mode !== undefined ? options.mode : currentState.filters.mode,
-          language: options.language !== undefined ? options.language : currentState.filters.language,
-          dateFrom: options.dateFrom !== undefined ? options.dateFrom : currentState.filters.dateFrom,
+          language:
+            options.language !== undefined ? options.language : currentState.filters.language,
+          dateFrom:
+            options.dateFrom !== undefined ? options.dateFrom : currentState.filters.dateFrom,
           dateTo: options.dateTo !== undefined ? options.dateTo : currentState.filters.dateTo
         };
 
@@ -329,15 +328,14 @@ function createSessionStore() {
 
         const response = await fetch(`/api/sessions?${params.toString()}`);
         const result = await this.handleApiResponse(response, 'Failed to search sessions');
-        
-        update(state => ({
+
+        update((state) => ({
           ...state,
           sessions: result.sessions,
           pagination: result.pagination,
           loading: false,
           error: null
         }));
-
       } catch (error) {
         console.error('[SessionStore] Failed to search sessions:', error);
         this.setError(error.message || 'Failed to search sessions');
@@ -360,8 +358,8 @@ function createSessionStore() {
       try {
         const response = await fetch(`/api/sessions/${sessionId}`);
         const session = await this.handleApiResponse(response, 'Failed to load session');
-        
-        update(state => ({
+
+        update((state) => ({
           ...state,
           currentSession: session,
           selectedSessionId: sessionId,
@@ -382,7 +380,7 @@ function createSessionStore() {
      * Clear current session selection
      */
     clearSelection() {
-      update(state => ({
+      update((state) => ({
         ...state,
         currentSession: null,
         selectedSessionId: null
@@ -393,7 +391,7 @@ function createSessionStore() {
      * Set search query
      */
     setSearchQuery(query) {
-      update(state => ({
+      update((state) => ({
         ...state,
         searchQuery: query
       }));
@@ -403,7 +401,7 @@ function createSessionStore() {
      * Set filters
      */
     setFilters(filters) {
-      update(state => ({
+      update((state) => ({
         ...state,
         filters: { ...state.filters, ...filters }
       }));
@@ -415,7 +413,7 @@ function createSessionStore() {
     async applyFilters(filters) {
       this.setFilters(filters);
       const currentState = get({ subscribe });
-      
+
       if (currentState.searchQuery) {
         await this.searchSessions(currentState.searchQuery, { page: 1 });
       } else {
@@ -433,7 +431,7 @@ function createSessionStore() {
         dateFrom: null,
         dateTo: null
       });
-      
+
       const currentState = get({ subscribe });
       if (currentState.searchQuery) {
         await this.searchSessions(currentState.searchQuery, { page: 1 });
@@ -446,7 +444,7 @@ function createSessionStore() {
      * Set loading state
      */
     setLoading(loading) {
-      update(state => ({
+      update((state) => ({
         ...state,
         loading
       }));
@@ -456,7 +454,7 @@ function createSessionStore() {
      * Set error state
      */
     setError(error) {
-      update(state => ({
+      update((state) => ({
         ...state,
         error
       }));
@@ -479,7 +477,7 @@ function createSessionStore() {
       }
 
       const nextPage = currentState.pagination.currentPage + 1;
-      
+
       if (currentState.searchQuery) {
         await this.searchSessions(currentState.searchQuery, { page: nextPage });
       } else {
@@ -497,7 +495,7 @@ function createSessionStore() {
       }
 
       const prevPage = currentState.pagination.currentPage - 1;
-      
+
       if (currentState.searchQuery) {
         await this.searchSessions(currentState.searchQuery, { page: prevPage });
       } else {
@@ -515,62 +513,47 @@ export const sessionStore = createSessionStore();
 /**
  * Derived store for filtered sessions based on current filters and search
  */
-export const filteredSessions = derived(
-  [sessionStore],
-  ([$sessionStore]) => {
-    let sessions = $sessionStore.sessions;
-    
-    // Additional client-side filtering can be added here if needed
-    // The main filtering is done server-side in the search/load operations
-    
-    return sessions;
-  }
-);
+export const filteredSessions = derived([sessionStore], ([$sessionStore]) => {
+  let sessions = $sessionStore.sessions;
+
+  // Additional client-side filtering can be added here if needed
+  // The main filtering is done server-side in the search/load operations
+
+  return sessions;
+});
 
 /**
  * Derived store for current session with messages
  */
-export const currentSessionWithMessages = derived(
-  [sessionStore],
-  ([$sessionStore]) => {
-    return $sessionStore.currentSession;
-  }
-);
+export const currentSessionWithMessages = derived([sessionStore], ([$sessionStore]) => {
+  return $sessionStore.currentSession;
+});
 
 /**
  * Derived store for session statistics
  */
-export const sessionStats = derived(
-  [sessionStore],
-  ([$sessionStore]) => {
-    const sessions = $sessionStore.sessions;
-    
-    return {
-      total: sessions.length,
-      funSessions: sessions.filter(s => s.mode === 'fun').length,
-      learnSessions: sessions.filter(s => s.mode === 'learn').length,
-      totalMessages: sessions.reduce((sum, s) => sum + (s.messageCount || 0), 0),
-      languages: [...new Set(sessions.map(s => s.language))],
-      recentSession: sessions.length > 0 ? sessions[0] : null
-    };
-  }
-);
+export const sessionStats = derived([sessionStore], ([$sessionStore]) => {
+  const sessions = $sessionStore.sessions;
+
+  return {
+    total: sessions.length,
+    funSessions: sessions.filter((s) => s.mode === 'fun').length,
+    learnSessions: sessions.filter((s) => s.mode === 'learn').length,
+    totalMessages: sessions.reduce((sum, s) => sum + (s.messageCount || 0), 0),
+    languages: [...new Set(sessions.map((s) => s.language))],
+    recentSession: sessions.length > 0 ? sessions[0] : null
+  };
+});
 
 /**
  * Derived store for loading state
  */
-export const isSessionLoading = derived(
-  [sessionStore],
-  ([$sessionStore]) => $sessionStore.loading
-);
+export const isSessionLoading = derived([sessionStore], ([$sessionStore]) => $sessionStore.loading);
 
 /**
  * Derived store for error state
  */
-export const sessionError = derived(
-  [sessionStore],
-  ([$sessionStore]) => $sessionStore.error
-);
+export const sessionError = derived([sessionStore], ([$sessionStore]) => $sessionStore.error);
 
 /**
  * Derived store for search state
@@ -583,25 +566,19 @@ export const isSearching = derived(
 /**
  * Derived store for active filters count
  */
-export const activeFiltersCount = derived(
-  [sessionStore],
-  ([$sessionStore]) => {
-    let count = 0;
-    const filters = $sessionStore.filters;
-    if (filters.mode) count++;
-    if (filters.language) count++;
-    if (filters.dateFrom || filters.dateTo) count++;
-    return count;
-  }
-);
+export const activeFiltersCount = derived([sessionStore], ([$sessionStore]) => {
+  let count = 0;
+  const filters = $sessionStore.filters;
+  if (filters.mode) count++;
+  if (filters.language) count++;
+  if (filters.dateFrom || filters.dateTo) count++;
+  return count;
+});
 
 /**
  * Derived store for checking if any filters are active
  */
-export const hasActiveFilters = derived(
-  [activeFiltersCount],
-  ([$count]) => $count > 0
-);
+export const hasActiveFilters = derived([activeFiltersCount], ([$count]) => $count > 0);
 
 /**
  * Initialize session store when auth state changes

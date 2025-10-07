@@ -23,7 +23,7 @@ export const LLM_FEATURES = {
 
   // Enable provider switching in the UI (for development/testing)
   ENABLE_PROVIDER_SWITCHING:
-      (import.meta.env.VITE_ENABLE_PROVIDER_SWITCHING ?? 'false') === 'true' || import.meta.env.DEV
+    (import.meta.env.VITE_ENABLE_PROVIDER_SWITCHING ?? 'false') === 'true' || import.meta.env.DEV
 };
 
 // -----------------------------
@@ -46,13 +46,14 @@ export const PROVIDER_CONFIG = {
 // -----------------------------
 // Ollama (local LLM) Configuration
 // -----------------------------
-const OLLAMA_MODELS_RAW =
-    (import.meta.env.VITE_OLLAMA_MODELS ??
-        // sensible defaults for 8 GB machines
-        'qwen2.5:1.5b,qwen2.5:7b')
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean);
+const OLLAMA_MODELS_RAW = (
+  import.meta.env.VITE_OLLAMA_MODELS ??
+  // sensible defaults for 8 GB machines
+  'qwen2.5:1.5b,qwen2.5:7b'
+)
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 export const OLLAMA_CONFIG = {
   // Ollama API endpoint
@@ -68,7 +69,7 @@ export const OLLAMA_CONFIG = {
    * Back-compat single model (some parts of the app may still read .MODEL)
    * If you only use the new MODELS field, you can ignore this.
    */
-  MODEL: OLLAMA_MODELS_RAW[0] || (import.meta.env.VITE_OLLAMA_MODEL || 'qwen2.5:1.5b'),
+  MODEL: OLLAMA_MODELS_RAW[0] || import.meta.env.VITE_OLLAMA_MODEL || 'qwen2.5:1.5b',
 
   // Max tokens to generate per response (keep conservative for 8 GB)
   MAX_TOKENS: parseInt(import.meta.env.VITE_OLLAMA_MAX_TOKENS || '256', 10),

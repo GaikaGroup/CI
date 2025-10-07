@@ -1,6 +1,6 @@
 /**
  * Session module
- * 
+ *
  * This module provides session-based memory for maintaining conversation context
  * and database services for persistent session and message management.
  */
@@ -11,17 +11,17 @@ import { SessionFactory } from './SessionFactory.js';
 import { SessionStorageAdapter } from './SessionStorageAdapter.js';
 
 // Database services
-import { 
-  SessionService, 
-  SessionError, 
-  SessionNotFoundError, 
-  SessionValidationError 
+import {
+  SessionService,
+  SessionError,
+  SessionNotFoundError,
+  SessionValidationError
 } from './services/SessionService.js';
-import { 
-  MessageService, 
-  MessageError, 
-  MessageNotFoundError, 
-  MessageValidationError 
+import {
+  MessageService,
+  MessageError,
+  MessageNotFoundError,
+  MessageValidationError
 } from './services/MessageService.js';
 
 // Export all components
@@ -31,11 +31,11 @@ export {
   InMemorySessionManager,
   SessionFactory,
   SessionStorageAdapter,
-  
+
   // Database services
   SessionService,
   MessageService,
-  
+
   // Error classes
   SessionError,
   SessionNotFoundError,

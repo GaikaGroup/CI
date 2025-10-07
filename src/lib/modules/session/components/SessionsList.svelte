@@ -1,8 +1,26 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
-  import { Search, Plus, Calendar, MessageSquare, Trash2, Edit2, Globe, Sparkles, BookOpen, Filter, X } from 'lucide-svelte';
-  import { sessionStore, isSessionLoading, sessionError, activeFiltersCount, hasActiveFilters } from '../stores/sessionStore.js';
+  import {
+    Search,
+    Plus,
+    Calendar,
+    MessageSquare,
+    Trash2,
+    Edit2,
+    Globe,
+    Sparkles,
+    BookOpen,
+    Filter,
+    X
+  } from 'lucide-svelte';
+  import {
+    sessionStore,
+    isSessionLoading,
+    sessionError,
+    activeFiltersCount,
+    hasActiveFilters
+  } from '../stores/sessionStore.js';
   import { user } from '$lib/modules/auth/stores.js';
   import Modal from '$lib/shared/components/Modal.svelte';
   import Button from '$lib/shared/components/Button.svelte';
@@ -27,7 +45,8 @@
   let filterDateFrom = '';
   let filterDateTo = '';
 
-  const DATABASE_NOT_READY_MESSAGE = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+  const DATABASE_NOT_READY_MESSAGE =
+    'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
 
   // Reactive statements
   $: sessions = $sessionStore?.sessions || [];
@@ -72,7 +91,7 @@
   // Debounced search handler
   function handleSearchInput(event) {
     searchQuery = event.target.value;
-    
+
     // Clear existing timeout
     if (searchTimeout) {
       clearTimeout(searchTimeout);
@@ -118,9 +137,9 @@
         newSessionMode,
         newSessionLanguage
       );
-      
+
       closeNewSessionModal();
-      
+
       // Navigate to the chat interface for the new session
       goto(`/sessions/${session.id}`);
     } catch (err) {
@@ -144,7 +163,7 @@
     try {
       await sessionStore.deleteSession(deleteConfirmSessionId);
       closeDeleteConfirm();
-      
+
       // Clear selection if deleted session was selected
       if (selectedSessionId === deleteConfirmSessionId) {
         selectedSessionId = null;
@@ -167,7 +186,7 @@
   }
 
   async function saveEditedTitle(sessionId) {
-    if (!editingTitle.trim() || editingTitle === sessions.find(s => s.id === sessionId)?.title) {
+    if (!editingTitle.trim() || editingTitle === sessions.find((s) => s.id === sessionId)?.title) {
       cancelEditing();
       return;
     }
@@ -201,7 +220,7 @@
       dateFrom: filterDateFrom || null,
       dateTo: filterDateTo || null
     };
-    
+
     await sessionStore.applyFilters(filters);
     showFilters = false;
   }
@@ -247,7 +266,7 @@
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
@@ -264,7 +283,9 @@
   });
 </script>
 
-<div class="flex flex-col h-full bg-white dark:bg-gray-800 border-r border-stone-200 dark:border-gray-700">
+<div
+  class="flex flex-col h-full bg-white dark:bg-gray-800 border-r border-stone-200 dark:border-gray-700"
+>
   <!-- Header with search and new session button -->
   <div class="p-4 border-b border-stone-200 dark:border-gray-700">
     <div class="flex items-center justify-between mb-3">
@@ -272,13 +293,17 @@
       <div class="flex items-center gap-2">
         <button
           on:click={toggleFilters}
-          class="relative p-2 rounded-lg {filtersActive ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' : 'bg-stone-100 dark:bg-gray-700 text-stone-600 dark:text-gray-400'} hover:bg-amber-200 dark:hover:bg-amber-900/40 transition-colors"
+          class="relative p-2 rounded-lg {filtersActive
+            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
+            : 'bg-stone-100 dark:bg-gray-700 text-stone-600 dark:text-gray-400'} hover:bg-amber-200 dark:hover:bg-amber-900/40 transition-colors"
           aria-label="Filter sessions"
           title="Filter sessions"
         >
           <Filter size={20} />
           {#if filtersCount > 0}
-            <span class="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 text-white text-xs rounded-full flex items-center justify-center">
+            <span
+              class="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 text-white text-xs rounded-full flex items-center justify-center"
+            >
               {filtersCount}
             </span>
           {/if}
@@ -296,7 +321,10 @@
 
     <!-- Search input -->
     <div class="relative">
-      <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 dark:text-gray-500" size={18} />
+      <Search
+        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 dark:text-gray-500"
+        size={18}
+      />
       <input
         type="text"
         placeholder="Search sessions..."
@@ -308,7 +336,9 @@
 
     <!-- Filter Panel -->
     {#if showFilters}
-      <div class="mt-3 p-3 bg-stone-50 dark:bg-gray-750 rounded-lg border border-stone-200 dark:border-gray-600">
+      <div
+        class="mt-3 p-3 bg-stone-50 dark:bg-gray-750 rounded-lg border border-stone-200 dark:border-gray-600"
+      >
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-medium text-stone-900 dark:text-white">Filters</h3>
           <button
@@ -395,7 +425,10 @@
 
   {#if persistenceUnavailable}
     <div class="px-4">
-      <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 shadow-sm dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200" role="alert">
+      <div
+        class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 shadow-sm dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200"
+        role="alert"
+      >
         <p class="font-semibold">Session persistence unavailable</p>
         <p class="mt-1 leading-snug">{persistenceMessage}</p>
       </div>
@@ -431,7 +464,9 @@
         <MessageSquare class="mx-auto mb-4 text-stone-400 dark:text-gray-500" size={48} />
         <h3 class="text-lg font-medium text-stone-900 dark:text-white mb-2">No sessions yet</h3>
         <p class="text-sm text-stone-600 dark:text-gray-400 mb-4">
-          {searchQuery ? 'No sessions match your search.' : 'Create your first session to get started!'}
+          {searchQuery
+            ? 'No sessions match your search.'
+            : 'Create your first session to get started!'}
         </p>
         {#if !searchQuery}
           <button
@@ -449,7 +484,10 @@
         {#each sessions as session (session.id)}
           <button
             on:click={() => handleSessionSelect(session.id)}
-            class="w-full p-4 text-left hover:bg-stone-50 dark:hover:bg-gray-750 transition-colors {selectedSessionId === session.id ? 'bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-600' : ''}"
+            class="w-full p-4 text-left hover:bg-stone-50 dark:hover:bg-gray-750 transition-colors {selectedSessionId ===
+            session.id
+              ? 'bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-600'
+              : ''}"
           >
             <div class="flex items-start justify-between gap-2 mb-2">
               <div class="flex-1 min-w-0">
@@ -472,7 +510,7 @@
                   </h3>
                 {/if}
               </div>
-              
+
               <div class="flex items-center gap-1 flex-shrink-0">
                 <button
                   on:click={(e) => startEditingTitle(session.id, session.title, e)}
@@ -527,7 +565,9 @@
 
       <!-- Pagination -->
       {#if totalPages > 1}
-        <div class="p-4 border-t border-stone-200 dark:border-gray-700 flex items-center justify-between">
+        <div
+          class="p-4 border-t border-stone-200 dark:border-gray-700 flex items-center justify-between"
+        >
           <button
             on:click={handlePreviousPage}
             disabled={!hasPreviousPage || loading}
@@ -560,7 +600,10 @@
 >
   <div class="space-y-4">
     <div>
-      <label for="session-title" class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-1">
+      <label
+        for="session-title"
+        class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-1"
+      >
         Session Title
       </label>
       <input
@@ -574,18 +617,24 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2">
-        Mode
-      </label>
+      <label class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-2"> Mode </label>
       <div class="grid grid-cols-2 gap-3">
         {#each modeOptions as option}
           <button
             type="button"
-            on:click={() => newSessionMode = option.value}
-            class="p-3 rounded-lg border-2 transition-all {newSessionMode === option.value ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20' : 'border-stone-300 dark:border-gray-600 hover:border-stone-400 dark:hover:border-gray-500'}"
+            on:click={() => (newSessionMode = option.value)}
+            class="p-3 rounded-lg border-2 transition-all {newSessionMode === option.value
+              ? 'border-amber-600 bg-amber-50 dark:bg-amber-900/20'
+              : 'border-stone-300 dark:border-gray-600 hover:border-stone-400 dark:hover:border-gray-500'}"
           >
             <div class="flex items-center gap-2 mb-1">
-              <svelte:component this={option.icon} size={18} class={newSessionMode === option.value ? 'text-amber-600' : 'text-stone-600 dark:text-gray-400'} />
+              <svelte:component
+                this={option.icon}
+                size={18}
+                class={newSessionMode === option.value
+                  ? 'text-amber-600'
+                  : 'text-stone-600 dark:text-gray-400'}
+              />
               <span class="font-medium text-stone-900 dark:text-white">{option.label}</span>
             </div>
           </button>
@@ -594,7 +643,10 @@
     </div>
 
     <div>
-      <label for="session-language" class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-1">
+      <label
+        for="session-language"
+        class="block text-sm font-medium text-stone-700 dark:text-gray-300 mb-1"
+      >
         Language
       </label>
       <select
@@ -610,9 +662,7 @@
   </div>
 
   <div slot="footer" class="flex justify-end gap-2">
-    <Button variant="secondary" on:click={closeNewSessionModal}>
-      Cancel
-    </Button>
+    <Button variant="secondary" on:click={closeNewSessionModal}>Cancel</Button>
     <Button variant="primary" on:click={handleCreateSession} disabled={!newSessionTitle.trim()}>
       Create Session
     </Button>
@@ -627,14 +677,17 @@
   width="max-w-md"
 >
   <p class="text-stone-700 dark:text-gray-300">
-    Are you sure you want to delete this session? This action cannot be undone and will permanently delete all messages in this session.
+    Are you sure you want to delete this session? This action cannot be undone and will permanently
+    delete all messages in this session.
   </p>
 
   <div slot="footer" class="flex justify-end gap-2">
-    <Button variant="secondary" on:click={closeDeleteConfirm}>
-      Cancel
-    </Button>
-    <Button variant="primary" on:click={handleDeleteSession} class="bg-red-600 hover:bg-red-700 focus:ring-red-500">
+    <Button variant="secondary" on:click={closeDeleteConfirm}>Cancel</Button>
+    <Button
+      variant="primary"
+      on:click={handleDeleteSession}
+      class="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+    >
       Delete
     </Button>
   </div>

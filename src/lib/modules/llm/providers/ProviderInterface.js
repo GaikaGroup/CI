@@ -1,6 +1,6 @@
 /**
  * Provider Interface for LLM Providers
- * 
+ *
  * This interface defines the standard methods that all LLM providers must implement.
  * It ensures consistency across different providers like OpenAI and Ollama.
  */
@@ -18,7 +18,7 @@ export class ProviderInterface {
     if (this.constructor === ProviderInterface) {
       throw new Error('ProviderInterface is an abstract class and cannot be instantiated directly');
     }
-    
+
     this.config = config;
     this.name = 'abstract-provider';
   }

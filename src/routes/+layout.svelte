@@ -1,5 +1,6 @@
 <script>
   import '../app.css';
+  import 'katex/dist/katex.min.css';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import Navigation from '$modules/navigation/components/Navigation.svelte';

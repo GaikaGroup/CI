@@ -91,7 +91,10 @@ export const securityConfig = {
 export const apiConfig = {
   corsOrigin: getEnvVar('CORS_ORIGIN', dev ? 'http://localhost:5173' : 'https://ai-tutor.com'),
   corsCredentials: getBooleanEnvVar('CORS_CREDENTIALS', true),
-  baseUrl: getEnvVar('API_BASE_URL', dev ? 'http://localhost:5173/api' : 'https://ai-tutor.com/api'),
+  baseUrl: getEnvVar(
+    'API_BASE_URL',
+    dev ? 'http://localhost:5173/api' : 'https://ai-tutor.com/api'
+  ),
   timeout: getNumericEnvVar('API_TIMEOUT', 30000),
   maxPayloadSize: getEnvVar('API_MAX_PAYLOAD_SIZE', '10mb'),
   enableCompression: getBooleanEnvVar('API_ENABLE_COMPRESSION', !dev)
@@ -130,7 +133,7 @@ export const featureFlags = {
  */
 export function validateEnvironment() {
   const requiredVars = [];
-  
+
   if (!dev) {
     // Production-only required variables
     if (!getEnvVar('DATABASE_URL')) requiredVars.push('DATABASE_URL');
@@ -141,7 +144,7 @@ export function validateEnvironment() {
       requiredVars.push('JWT_SECRET');
     }
   }
-  
+
   if (requiredVars.length > 0) {
     throw new Error(`Missing required environment variables: ${requiredVars.join(', ')}`);
   }

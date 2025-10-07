@@ -11,22 +11,16 @@ export default defineConfig({
     exclude: ['node_modules/**', 'build/**'],
     coverage: {
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/**',
-        'tests/**',
-        'build/**',
-        '**/*.config.js',
-        '**/*.config.ts'
-      ]
+      exclude: ['node_modules/**', 'tests/**', 'build/**', '**/*.config.js', '**/*.config.ts']
     },
     testTimeout: 15000, // 15 seconds for e2e tests
-    hookTimeout: 10000  // 10 seconds for setup/teardown
+    hookTimeout: 10000 // 10 seconds for setup/teardown
   },
   resolve: {
     alias: {
-      '$lib': new URL('./src/lib', import.meta.url).pathname,
-      '$modules': new URL('./src/lib/modules', import.meta.url).pathname,
-      '$shared': new URL('./src/lib/shared', import.meta.url).pathname
+      $lib: new URL('./src/lib', import.meta.url).pathname,
+      $modules: new URL('./src/lib/modules', import.meta.url).pathname,
+      $shared: new URL('./src/lib/shared', import.meta.url).pathname
     }
   }
 });

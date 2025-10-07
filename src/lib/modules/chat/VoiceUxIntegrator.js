@@ -20,7 +20,7 @@ export class VoiceUxIntegrator {
       edgeCasesHandled: 0,
       naturalResponsesGenerated: 0
     };
-    
+
     console.log('VoiceUxIntegrator initialized');
   }
 
@@ -43,7 +43,6 @@ export class VoiceUxIntegrator {
 
       this.isInitialized = true;
       console.log('Voice UX Integration system initialized successfully');
-
     } catch (error) {
       console.error('Error initializing Voice UX Integration system:', error);
       throw error;
@@ -57,7 +56,7 @@ export class VoiceUxIntegrator {
    */
   startSession(sessionOptions = {}) {
     const sessionId = `ux_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     this.activeSession = {
       id: sessionId,
       startTime: Date.now(),
@@ -101,7 +100,7 @@ export class VoiceUxIntegrator {
       // Handle any errors that occurred
       if (interactionContext.error) {
         const errorResult = await voiceErrorHandler.handleError(
-          interactionContext.error, 
+          interactionContext.error,
           interactionContext
         );
         polishingResult.errorHandling = errorResult;
@@ -127,10 +126,9 @@ export class VoiceUxIntegrator {
         edgeCasesHandled: polishingResult.edgeCasesHandled || 0,
         userSatisfactionScore: polishingResult.userSatisfactionScore || 0.5
       };
-
     } catch (error) {
       console.error('Error processing voice interaction:', error);
-      
+
       // Handle processing errors gracefully
       const fallbackResult = await this.handleProcessingError(error, interactionContext);
       return fallbackResult;
@@ -178,7 +176,6 @@ export class VoiceUxIntegrator {
         language: context.detectedLanguage || get(selectedLanguage),
         confidence: response.confidence || 0.8
       };
-
     } catch (error) {
       console.error('Error generating enhanced response:', error);
       return this.getFallbackResponse(context);
@@ -202,27 +199,29 @@ export class VoiceUxIntegrator {
    * @param {Object} context - Error context
    * @returns {Promise<Object>} Recovery response
    */
-  async generateErrorRecoveryResponse(context) { // eslint-disable-line no-unused-vars
+  async generateErrorRecoveryResponse(context) {
+    // eslint-disable-line no-unused-vars
     const language = context.detectedLanguage || get(selectedLanguage);
-    
+
     const recoveryMessages = {
       en: {
         network_error: "I'm experiencing some connection issues, but I'm still here to help.",
-        audio_error: "There seems to be an audio hiccup. Let me try that again.",
-        processing_error: "I encountered a small technical issue. Please give me a moment.",
+        audio_error: 'There seems to be an audio hiccup. Let me try that again.',
+        processing_error: 'I encountered a small technical issue. Please give me a moment.',
         general_error: "Something went wrong, but I'm working to fix it."
       },
       es: {
-        network_error: "Estoy experimentando algunos problemas de conexión, pero sigo aquí para ayudar.",
-        audio_error: "Parece haber un problema de audio. Déjame intentar de nuevo.",
-        processing_error: "Encontré un pequeño problema técnico. Dame un momento por favor.",
-        general_error: "Algo salió mal, pero estoy trabajando para solucionarlo."
+        network_error:
+          'Estoy experimentando algunos problemas de conexión, pero sigo aquí para ayudar.',
+        audio_error: 'Parece haber un problema de audio. Déjame intentar de nuevo.',
+        processing_error: 'Encontré un pequeño problema técnico. Dame un momento por favor.',
+        general_error: 'Algo salió mal, pero estoy trabajando para solucionarlo.'
       },
       ru: {
-        network_error: "У меня проблемы с подключением, но я всё ещё здесь, чтобы помочь.",
-        audio_error: "Кажется, есть проблема с аудио. Позвольте мне попробовать ещё раз.",
-        processing_error: "Я столкнулся с небольшой технической проблемой. Дайте мне минуту.",
-        general_error: "Что-то пошло не так, но я работаю над исправлением."
+        network_error: 'У меня проблемы с подключением, но я всё ещё здесь, чтобы помочь.',
+        audio_error: 'Кажется, есть проблема с аудио. Позвольте мне попробовать ещё раз.',
+        processing_error: 'Я столкнулся с небольшой технической проблемой. Дайте мне минуту.',
+        general_error: 'Что-то пошло не так, но я работаю над исправлением.'
       }
     };
 
@@ -245,25 +244,37 @@ export class VoiceUxIntegrator {
    */
   async generateContextualHelpResponse(context) {
     const language = context.detectedLanguage || get(selectedLanguage);
-    
+
     const helpMessages = {
       en: {
-        voice_commands: "You can interrupt me anytime by just starting to speak. I'll pause and listen.",
-        technical_issues: "If you're having technical issues, try refreshing the page or checking your microphone settings.",
-        interaction_tips: "For the best experience, speak clearly and wait for me to acknowledge before continuing.",
-        general_help: "I'm here to help! Feel free to ask questions or let me know if you need assistance with anything."
+        voice_commands:
+          "You can interrupt me anytime by just starting to speak. I'll pause and listen.",
+        technical_issues:
+          "If you're having technical issues, try refreshing the page or checking your microphone settings.",
+        interaction_tips:
+          'For the best experience, speak clearly and wait for me to acknowledge before continuing.',
+        general_help:
+          "I'm here to help! Feel free to ask questions or let me know if you need assistance with anything."
       },
       es: {
-        voice_commands: "Puedes interrumpirme en cualquier momento simplemente empezando a hablar. Haré una pausa y escucharé.",
-        technical_issues: "Si tienes problemas técnicos, intenta actualizar la página o revisar la configuración de tu micrófono.",
-        interaction_tips: "Para la mejor experiencia, habla claramente y espera a que reconozca antes de continuar.",
-        general_help: "¡Estoy aquí para ayudar! Siéntete libre de hacer preguntas o déjame saber si necesitas ayuda con algo."
+        voice_commands:
+          'Puedes interrumpirme en cualquier momento simplemente empezando a hablar. Haré una pausa y escucharé.',
+        technical_issues:
+          'Si tienes problemas técnicos, intenta actualizar la página o revisar la configuración de tu micrófono.',
+        interaction_tips:
+          'Para la mejor experiencia, habla claramente y espera a que reconozca antes de continuar.',
+        general_help:
+          '¡Estoy aquí para ayudar! Siéntete libre de hacer preguntas o déjame saber si necesitas ayuda con algo.'
       },
       ru: {
-        voice_commands: "Вы можете прервать меня в любое время, просто начав говорить. Я сделаю паузу и буду слушать.",
-        technical_issues: "Если у вас технические проблемы, попробуйте обновить страницу или проверить настройки микрофона.",
-        interaction_tips: "Для лучшего опыта говорите четко и ждите моего подтверждения перед продолжением.",
-        general_help: "Я здесь, чтобы помочь! Не стесняйтесь задавать вопросы или дайте знать, если нужна помощь с чем-либо."
+        voice_commands:
+          'Вы можете прервать меня в любое время, просто начав говорить. Я сделаю паузу и буду слушать.',
+        technical_issues:
+          'Если у вас технические проблемы, попробуйте обновить страницу или проверить настройки микрофона.',
+        interaction_tips:
+          'Для лучшего опыта говорите четко и ждите моего подтверждения перед продолжением.',
+        general_help:
+          'Я здесь, чтобы помочь! Не стесняйтесь задавать вопросы или дайте знать, если нужна помощь с чем-либо.'
       }
     };
 
@@ -302,7 +313,7 @@ export class VoiceUxIntegrator {
   async applyNaturalLanguageEnhancements(response, context) {
     // Apply user preference-based modifications
     const preferences = voiceUxPolisher.userPreferences;
-    
+
     let enhancedText = response.text;
 
     // Adjust response style based on preferences
@@ -337,10 +348,10 @@ export class VoiceUxIntegrator {
   makeConcise(text) {
     // Remove unnecessary words and phrases
     return text
-      .replace(/I'm here and ready to help\./g, "Ready to help.")
-      .replace(/Let me /g, "")
-      .replace(/I can /g, "")
-      .replace(/Please /g, "")
+      .replace(/I'm here and ready to help\./g, 'Ready to help.')
+      .replace(/Let me /g, '')
+      .replace(/I can /g, '')
+      .replace(/Please /g, '')
       .trim();
   }
 
@@ -353,7 +364,7 @@ export class VoiceUxIntegrator {
   makeDetailed(text, context) {
     // Add helpful context and explanations
     if (text.includes("I'm here")) {
-      return text + " Feel free to ask me anything or let me know how I can assist you today.";
+      return text + ' Feel free to ask me anything or let me know how I can assist you today.';
     }
     return text;
   }
@@ -369,11 +380,11 @@ export class VoiceUxIntegrator {
     if (context.isFollowUp) {
       return `Continuing our conversation, ${text.toLowerCase()}`;
     }
-    
+
     if (context.isFirstInteraction) {
       return `Welcome! ${text}`;
     }
-    
+
     return text;
   }
 
@@ -384,11 +395,11 @@ export class VoiceUxIntegrator {
    */
   getFallbackResponse(context) {
     const language = context.detectedLanguage || get(selectedLanguage);
-    
+
     const fallbackMessages = {
       en: "I'm here to help. What can I do for you?",
-      es: "Estoy aquí para ayudar. ¿Qué puedo hacer por ti?",
-      ru: "Я здесь, чтобы помочь. Что я могу для вас сделать?"
+      es: 'Estoy aquí para ayudar. ¿Qué puedo hacer por ti?',
+      ru: 'Я здесь, чтобы помочь. Что я могу для вас сделать?'
     };
 
     return {
@@ -407,13 +418,13 @@ export class VoiceUxIntegrator {
    */
   classifyErrorType(error) {
     if (!error) return 'general_error';
-    
+
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('network') || message.includes('fetch')) return 'network_error';
     if (message.includes('audio') || message.includes('microphone')) return 'audio_error';
     if (message.includes('processing') || message.includes('timeout')) return 'processing_error';
-    
+
     return 'general_error';
   }
 
@@ -462,7 +473,8 @@ export class VoiceUxIntegrator {
     if (!this.activeSession) return;
 
     this.activeSession.edgeCasesHandled += result.edgeCasesHandled || 0;
-    this.activeSession.userSatisfactionScore = result.userSatisfactionScore || this.activeSession.userSatisfactionScore;
+    this.activeSession.userSatisfactionScore =
+      result.userSatisfactionScore || this.activeSession.userSatisfactionScore;
   }
 
   /**
@@ -500,13 +512,14 @@ export class VoiceUxIntegrator {
 
     // Update global metrics
     this.uxMetrics.sessionsCompleted++;
-    this.uxMetrics.averageSatisfaction = 
-      (this.uxMetrics.averageSatisfaction * (this.uxMetrics.sessionsCompleted - 1) + 
-       sessionSummary.userSatisfactionScore) / this.uxMetrics.sessionsCompleted;
+    this.uxMetrics.averageSatisfaction =
+      (this.uxMetrics.averageSatisfaction * (this.uxMetrics.sessionsCompleted - 1) +
+        sessionSummary.userSatisfactionScore) /
+      this.uxMetrics.sessionsCompleted;
     this.uxMetrics.edgeCasesHandled += sessionSummary.edgeCasesHandled;
 
     console.log('Voice UX session ended:', sessionSummary);
-    
+
     this.activeSession = null;
     return sessionSummary;
   }
@@ -523,7 +536,8 @@ export class VoiceUxIntegrator {
    * Initialize components
    * @param {Object} options - Initialization options
    */
-  async initializeComponents(options) { // eslint-disable-line no-unused-vars
+  async initializeComponents(options) {
+    // eslint-disable-line no-unused-vars
     // Components are initialized as singletons
     console.log('Voice UX components initialized');
   }
@@ -543,13 +557,15 @@ export class VoiceUxIntegrator {
   getUxStatistics() {
     return {
       global: this.uxMetrics,
-      currentSession: this.activeSession ? {
-        id: this.activeSession.id,
-        duration: Date.now() - this.activeSession.startTime,
-        interactions: this.activeSession.interactions.length,
-        edgeCasesHandled: this.activeSession.edgeCasesHandled,
-        userSatisfactionScore: this.activeSession.userSatisfactionScore
-      } : null,
+      currentSession: this.activeSession
+        ? {
+            id: this.activeSession.id,
+            duration: Date.now() - this.activeSession.startTime,
+            interactions: this.activeSession.interactions.length,
+            edgeCasesHandled: this.activeSession.edgeCasesHandled,
+            userSatisfactionScore: this.activeSession.userSatisfactionScore
+          }
+        : null,
       polisher: voiceUxPolisher.getUxStats(),
       errorHandler: voiceErrorHandler.getErrorStats(),
       responseGenerator: interruptionResponseGenerator.getStats()

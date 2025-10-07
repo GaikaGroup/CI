@@ -31,9 +31,11 @@ global.AudioContext = vi.fn(() => ({
 }));
 
 global.navigator.mediaDevices = {
-  getUserMedia: vi.fn(() => Promise.resolve({
-    getTracks: () => [{ stop: vi.fn() }]
-  }))
+  getUserMedia: vi.fn(() =>
+    Promise.resolve({
+      getTracks: () => [{ stop: vi.fn() }]
+    })
+  )
 };
 
 // Mock fetch for API calls
@@ -46,17 +48,17 @@ describe('System Integration Tests', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Setup audio context mock
     mockAudioContext = new AudioContext();
-    
+
     // Setup media stream mock
     mockMediaStream = {
       getTracks: () => [{ stop: vi.fn() }]
     };
-    
+
     global.navigator.mediaDevices.getUserMedia.mockResolvedValue(mockMediaStream);
-    
+
     // Mock successful API responses
     global.fetch.mockResolvedValue({
       ok: true,
@@ -80,7 +82,7 @@ describe('System Integration Tests', () => {
       });
 
       // Start waiting phrase
-      const phrase = "Let me think about this...";
+      const phrase = 'Let me think about this...';
       await waitingPhrasesService.playWaitingPhrase(phrase, 'en');
 
       // Wait for animation to start
@@ -103,21 +105,21 @@ describe('System Integration Tests', () => {
       });
 
       // Simulate waiting phrase ending and AI response starting
-      const waitingPhrase = "Hmm, interesting question...";
+      const waitingPhrase = 'Hmm, interesting question...';
       const aiResponse = "Here's what I think about that.";
 
       // Start waiting phrase
       await waitingPhrasesService.playWaitingPhrase(waitingPhrase, 'en');
-      
+
       // Simulate transition to AI response
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Verify continuous speaking state
       expect(voiceServices.isSpeaking.get()).toBe(true);
-      
+
       // Verify no animation interruption
-      const mouthImages = component.$$.ctx.filter(ctx => 
-        ctx && typeof ctx === 'string' && ctx.includes('mouth')
+      const mouthImages = component.$$.ctx.filter(
+        (ctx) => ctx && typeof ctx === 'string' && ctx.includes('mouth')
       );
       expect(mouthImages.length).toBeGreaterThan(0);
     });
@@ -132,7 +134,7 @@ describe('System Integration Tests', () => {
       });
 
       // Start waiting phrase
-      await waitingPhrasesService.playWaitingPhrase("Let me consider this...", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Let me consider this...', 'en');
 
       // Change emotion during playback
       await component.$set({ emotion: 'happy' });
@@ -161,10 +163,10 @@ describe('System Integration Tests', () => {
       }));
 
       // Start waiting phrase
-      await waitingPhrasesService.playWaitingPhrase("Well, well, well...", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Well, well, well...', 'en');
 
       // Wait for lip sync to process
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Verify mouth position changes
       const mouthOverlay = container.querySelector('img[alt="Cat mouth"]');
@@ -237,7 +239,7 @@ describe('System Integration Tests', () => {
       vi.spyOn(voiceServices, 'isWaitingPhraseActive').mockReturnValue(true);
 
       // Trigger status update
-      await new Promise(resolve => setTimeout(resolve, 250)); // Wait for status update interval
+      await new Promise((resolve) => setTimeout(resolve, 250)); // Wait for status update interval
 
       // Verify queue status is displayed
       const queueInfo = container.querySelector('[class*="phrases"]');
@@ -250,7 +252,7 @@ describe('System Integration Tests', () => {
 
       // Start waiting phrase
       vi.spyOn(voiceServices, 'isWaitingPhraseActive').mockReturnValue(true);
-      await waitingPhrasesService.playWaitingPhrase("Let me think...", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Let me think...', 'en');
 
       // Simulate user interruption (new recording)
       vi.spyOn(voiceServices, 'startRecording').mockResolvedValue();
@@ -268,10 +270,10 @@ describe('System Integration Tests', () => {
       const mockSelectedLanguage = { subscribe: vi.fn(), get: () => 'es' };
       const mockGetTranslation = vi.fn((lang, key) => {
         const translations = {
-          'es': {
-            'thinking': 'Pensando...',
-            'voiceChatMode': 'Modo de Chat de Voz',
-            'talkToTutor': 'Habla con el tutor'
+          es: {
+            thinking: 'Pensando...',
+            voiceChatMode: 'Modo de Chat de Voz',
+            talkToTutor: 'Habla con el tutor'
           }
         };
         return translations[lang]?.[key] || key;
@@ -299,13 +301,13 @@ describe('System Integration Tests', () => {
 
       // Test waiting phrase selection in Russian
       const phrase = await waitingPhrasesService.selectWaitingPhrase('ru');
-      
+
       expect(phrase).toBeTruthy();
       expect(typeof phrase).toBe('string');
 
       // Verify translation bridge is used for fallback
       vi.spyOn(translationBridge, 'translatePhrase').mockResolvedValue('Позвольте мне подумать...');
-      
+
       const translatedPhrase = await translationBridge.translatePhrase('Let me think...', 'ru');
       expect(translatedPhrase).toBe('Позвольте мне подумать...');
     });
@@ -333,12 +335,12 @@ describe('System Integration Tests', () => {
     it('should handle translation fallback when target language unavailable', async () => {
       // Test with unsupported language
       const unsupportedLang = 'zh';
-      
+
       // Mock translation fallback
       vi.spyOn(translationBridge, 'translatePhrase').mockResolvedValue('让我想想...');
-      
+
       const phrase = await waitingPhrasesService.selectWaitingPhrase(unsupportedLang);
-      
+
       expect(phrase).toBeTruthy();
       expect(translationBridge.translatePhrase).toHaveBeenCalled();
     });
@@ -346,16 +348,18 @@ describe('System Integration Tests', () => {
     it('should cache translated phrases to avoid repeated API calls', async () => {
       const targetLang = 'fr';
       const originalPhrase = 'Let me think about this...';
-      
+
       // Mock translation
-      vi.spyOn(translationBridge, 'translatePhrase').mockResolvedValue('Laissez-moi réfléchir à cela...');
-      
+      vi.spyOn(translationBridge, 'translatePhrase').mockResolvedValue(
+        'Laissez-moi réfléchir à cela...'
+      );
+
       // First call should trigger translation
       const phrase1 = await translationBridge.translatePhrase(originalPhrase, targetLang);
-      
+
       // Second call should use cache
       const phrase2 = await translationBridge.translatePhrase(originalPhrase, targetLang);
-      
+
       expect(phrase1).toBe(phrase2);
       expect(translationBridge.translatePhrase).toHaveBeenCalledTimes(2); // Called twice but should use cache internally
     });
@@ -365,7 +369,7 @@ describe('System Integration Tests', () => {
     it('should gracefully handle cat avatar animation errors', async () => {
       // Mock avatar animation failure
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       // Simulate animation error
       vi.spyOn(voiceServices, 'audioAmplitude', 'get').mockImplementation(() => {
         throw new Error('Animation error');
@@ -380,11 +384,11 @@ describe('System Integration Tests', () => {
       });
 
       // Start waiting phrase despite animation error
-      await waitingPhrasesService.playWaitingPhrase("Test phrase", 'en');
+      await waitingPhrasesService.playWaitingPhrase('Test phrase', 'en');
 
       // Verify error is logged but system continues
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
 
@@ -400,7 +404,7 @@ describe('System Integration Tests', () => {
 
       // Should still render with fallback text
       const { container } = render(VoiceChat);
-      
+
       expect(container).toBeTruthy();
       // Should show fallback English text
       expect(container.textContent).toContain('recording');
@@ -408,8 +412,10 @@ describe('System Integration Tests', () => {
 
     it('should maintain voice chat functionality when waiting phrases fail', async () => {
       // Mock waiting phrases service failure
-      vi.spyOn(waitingPhrasesService, 'playWaitingPhrase').mockRejectedValue(new Error('Waiting phrase error'));
-      
+      vi.spyOn(waitingPhrasesService, 'playWaitingPhrase').mockRejectedValue(
+        new Error('Waiting phrase error')
+      );
+
       const { container } = render(VoiceChat);
 
       // Mock voice services
@@ -432,13 +438,13 @@ describe('System Integration Tests', () => {
   describe('Performance Integration', () => {
     it('should not impact voice chat response times significantly', async () => {
       const startTime = Date.now();
-      
+
       // Simulate complete voice interaction with waiting phrases
       await voiceServices.sendTranscribedText('Test message');
-      
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       // Should complete within reasonable time (allowing for test overhead)
       expect(responseTime).toBeLessThan(1000);
     });
@@ -463,9 +469,9 @@ describe('System Integration Tests', () => {
       }
 
       const results = await Promise.all(promises);
-      
+
       // All should complete successfully
-      results.forEach(phrase => {
+      results.forEach((phrase) => {
         expect(phrase).toBeTruthy();
         expect(typeof phrase).toBe('string');
       });

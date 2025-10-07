@@ -63,10 +63,7 @@ describe('Multimedia Support Integration', () => {
         transcription: 'Hello, this is a voice message'
       });
 
-      const message = await chatStore.sendMessage(
-        'Hello, this is a voice message',
-        voiceMetadata
-      );
+      const message = await chatStore.sendMessage('Hello, this is a voice message', voiceMetadata);
 
       expect(message).toBeDefined();
       expect(message.content).toBe('Hello, this is a voice message');
@@ -92,7 +89,7 @@ describe('Multimedia Support Integration', () => {
 
       const state = get(chatStore);
       expect(state.messages).toHaveLength(1);
-      
+
       const message = state.messages[0];
       expect(hasAudio(message)).toBe(true);
       expect(getAudioUrl(message.metadata)).toBe('https://example.com/voice.mp3');
@@ -107,15 +104,9 @@ describe('Multimedia Support Integration', () => {
       });
 
       // Add images to metadata
-      voiceMetadata.images = [
-        'https://example.com/image1.jpg',
-        'https://example.com/image2.jpg'
-      ];
+      voiceMetadata.images = ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'];
 
-      const message = await chatStore.sendMessage(
-        'Look at this image',
-        voiceMetadata
-      );
+      const message = await chatStore.sendMessage('Look at this image', voiceMetadata);
 
       expect(message.metadata.type).toBe('voice');
       expect(message.metadata.images).toHaveLength(2);
@@ -133,10 +124,7 @@ describe('Multimedia Support Integration', () => {
         imageDimensions: { width: 800, height: 600 }
       });
 
-      const message = await chatStore.sendMessage(
-        'Check out this image',
-        imageMetadata
-      );
+      const message = await chatStore.sendMessage('Check out this image', imageMetadata);
 
       expect(message).toBeDefined();
       expect(message.metadata.type).toBe('image');
@@ -154,13 +142,10 @@ describe('Multimedia Support Integration', () => {
         ]
       });
 
-      const message = await chatStore.sendMessage(
-        'Here are multiple images',
-        imageMetadata
-      );
+      const message = await chatStore.sendMessage('Here are multiple images', imageMetadata);
 
       expect(message.metadata.images).toHaveLength(3);
-      
+
       const imageUrls = getImageUrls(message.metadata);
       expect(imageUrls).toHaveLength(3);
       expect(imageUrls[0]).toBe('https://example.com/image1.jpg');
@@ -180,7 +165,7 @@ describe('Multimedia Support Integration', () => {
 
       const state = get(chatStore);
       const message = state.messages[0];
-      
+
       expect(hasImages(message)).toBe(true);
       const imageUrls = getImageUrls(message.metadata);
       expect(imageUrls[0]).toBe('https://example.com/persistent-image.jpg');
@@ -249,10 +234,7 @@ describe('Multimedia Support Integration', () => {
         emotion: 'neutral'
       });
 
-      await chatStore.addAssistantMessage(
-        'This appears to be a test image',
-        audioMetadata
-      );
+      await chatStore.addAssistantMessage('This appears to be a test image', audioMetadata);
 
       // Verify conversation
       const state = get(chatStore);
@@ -348,7 +330,7 @@ describe('Multimedia Support Integration', () => {
     it('should find messages with audio', async () => {
       // Add messages with and without audio
       await chatStore.sendMessage('Text only');
-      
+
       const voiceMetadata = createVoiceMetadata({
         audioUrl: 'https://example.com/voice.mp3',
         language: 'en'
@@ -356,8 +338,8 @@ describe('Multimedia Support Integration', () => {
       await chatStore.sendMessage('Voice message', voiceMetadata);
 
       const state = get(chatStore);
-      const messagesWithAudio = state.messages.filter(msg => hasAudio(msg));
-      
+      const messagesWithAudio = state.messages.filter((msg) => hasAudio(msg));
+
       expect(messagesWithAudio).toHaveLength(1);
       expect(messagesWithAudio[0].content).toBe('Voice message');
     });
@@ -365,15 +347,15 @@ describe('Multimedia Support Integration', () => {
     it('should find messages with images', async () => {
       // Add messages with and without images
       await chatStore.sendMessage('Text only');
-      
+
       const imageMetadata = createImageMetadata({
         imageUrl: 'https://example.com/image.jpg'
       });
       await chatStore.sendMessage('Image message', imageMetadata);
 
       const state = get(chatStore);
-      const messagesWithImages = state.messages.filter(msg => hasImages(msg));
-      
+      const messagesWithImages = state.messages.filter((msg) => hasImages(msg));
+
       expect(messagesWithImages).toHaveLength(1);
       expect(messagesWithImages[0].content).toBe('Image message');
     });

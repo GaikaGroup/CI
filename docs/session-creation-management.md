@@ -5,6 +5,7 @@ This document describes the session creation and management functionality implem
 ## Overview
 
 The session creation and management system allows users to:
+
 - Create new learning sessions with mode (Fun/Learn) and language selection
 - Automatically receive welcome messages based on the selected mode and language
 - Navigate directly to the chat interface after session creation
@@ -16,6 +17,7 @@ The session creation and management system allows users to:
 ### 1. Session Creation with Mode and Language Selection
 
 Users can create new sessions through a modal interface that allows them to:
+
 - Enter a session title
 - Select between Fun Mode and Learn Mode
 - Choose from 10 supported languages (English, Russian, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese)
@@ -25,10 +27,12 @@ Users can create new sessions through a modal interface that allows them to:
 ### 2. Automatic Welcome Messages
 
 When a new session is created, the system automatically generates and adds a welcome message based on:
+
 - **Mode**: Different messages for Fun and Learn modes
 - **Language**: Localized messages in the user's selected language
 
 Welcome messages are:
+
 - Friendly and engaging for Fun mode (with 🎉 emoji)
 - Professional and educational for Learn mode (with 📚 emoji)
 - Culturally appropriate for each supported language
@@ -51,6 +55,7 @@ Welcome messages are:
 ### 3. Automatic Navigation to Chat Interface
 
 After creating a session, users are automatically navigated to the chat interface at `/sessions/[id]` where they can:
+
 - View the session details
 - See the welcome message
 - Start chatting immediately
@@ -60,6 +65,7 @@ After creating a session, users are automatically navigated to the chat interfac
 ### 4. Session Title Editing
 
 Users can edit session titles directly from the sessions list by:
+
 - Clicking the edit icon next to a session
 - Typing the new title
 - Pressing Enter to save or Escape to cancel
@@ -71,6 +77,7 @@ Changes are saved immediately to the database.
 ### 5. Session Deletion with Confirmation
 
 Users can delete sessions with a confirmation dialog that:
+
 - Warns about permanent deletion
 - Explains that all messages will be deleted
 - Requires explicit confirmation before deletion
@@ -87,15 +94,15 @@ Session creation uses a database transaction to ensure atomicity:
 const result = await db.$transaction(async (tx) => {
   // 1. Create the session
   let session = await tx.session.create({ ... });
-  
+
   // 2. Create welcome message (if requested)
   if (createWelcomeMessage) {
     await tx.message.create({ ... });
-    
+
     // 3. Update session with message count and preview
     session = await tx.session.update({ ... });
   }
-  
+
   return session;
 });
 ```
@@ -105,6 +112,7 @@ This ensures that if any step fails, the entire operation is rolled back.
 ### Welcome Message Generation
 
 The `generateWelcomeMessage()` function:
+
 - Takes mode and language as parameters
 - Returns a localized, mode-appropriate welcome message
 - Falls back to English if the language is not supported
@@ -118,6 +126,7 @@ const welcomeMessage = generateWelcomeMessage('fun', 'en');
 ### Session Store Integration
 
 The session store (`sessionStore.js`) provides methods for:
+
 - `createSession(title, mode, language)` - Creates a new session
 - `updateSession(sessionId, updates)` - Updates session properties
 - `deleteSession(sessionId)` - Deletes a session
@@ -126,6 +135,7 @@ The session store (`sessionStore.js`) provides methods for:
 ### Chat Store Integration
 
 The chat store (`chatStore.js`) provides:
+
 - `initializeSession(sessionId)` - Loads messages for a session
 - `initializeFromSession(session)` - Sets up chat state from session object
 - `addMessage(type, content, metadata)` - Adds messages to the session
@@ -161,9 +171,11 @@ The chat store (`chatStore.js`) provides:
 ## API Endpoints
 
 ### POST /api/sessions
+
 Creates a new session with optional welcome message.
 
 **Request Body**:
+
 ```json
 {
   "title": "Math Practice",
@@ -173,6 +185,7 @@ Creates a new session with optional welcome message.
 ```
 
 **Response**:
+
 ```json
 {
   "id": "session-id",
@@ -188,9 +201,11 @@ Creates a new session with optional welcome message.
 ```
 
 ### PUT /api/sessions/[id]
+
 Updates session properties (title, mode, language, preview).
 
 ### DELETE /api/sessions/[id]
+
 Deletes a session and all associated messages.
 
 ## Testing

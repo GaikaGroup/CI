@@ -5,7 +5,7 @@ vi.mock('../../../src/lib/database/index.js', () => ({
   db: {
     session: {
       groupBy: vi.fn(),
-      count: vi.fn(),
+      count: vi.fn()
     }
   }
 }));
@@ -137,7 +137,7 @@ describe('Users Page Integration Tests', () => {
 
       // Simulate client-side filtering
       const searchQuery = 'alice';
-      const filteredUsers = data.users.filter(user =>
+      const filteredUsers = data.users.filter((user) =>
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
@@ -173,7 +173,7 @@ describe('Users Page Integration Tests', () => {
 
       // Simulate client-side filtering with no matches
       const searchQuery = 'nonexistent';
-      const filteredUsers = data.users.filter(user =>
+      const filteredUsers = data.users.filter((user) =>
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
 

@@ -12,14 +12,14 @@ const prisma = new PrismaClient();
 async function checkMessages() {
   try {
     const sessionId = process.argv[2];
-    
+
     if (!sessionId) {
       console.log('Usage: node scripts/check-messages.js <session-id>');
       console.log('\nAvailable sessions:');
       const sessions = await prisma.session.findMany({
         select: { id: true, title: true }
       });
-      sessions.forEach(s => console.log(`  ${s.id} - ${s.title}`));
+      sessions.forEach((s) => console.log(`  ${s.id} - ${s.title}`));
       process.exit(0);
     }
 
@@ -35,7 +35,9 @@ async function checkMessages() {
     } else {
       console.log(`Found ${messages.length} message(s):\n`);
       messages.forEach((msg, index) => {
-        console.log(`${index + 1}. [${msg.type.toUpperCase()}] ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`);
+        console.log(
+          `${index + 1}. [${msg.type.toUpperCase()}] ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`
+        );
         console.log(`   Created: ${msg.createdAt}`);
         console.log('');
       });

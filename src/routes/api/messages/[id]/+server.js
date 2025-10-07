@@ -1,5 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { MessageService, MessageError, MessageNotFoundError, MessageValidationError } from '$lib/modules/session/services/MessageService.js';
+import {
+  MessageService,
+  MessageError,
+  MessageNotFoundError,
+  MessageValidationError
+} from '$lib/modules/session/services/MessageService.js';
 
 /**
  * Get a specific message by ID
@@ -81,7 +86,11 @@ export async function PUT({ params, request, locals }) {
 
     // Validate content if provided
     if (updates.content !== undefined) {
-      if (!updates.content || typeof updates.content !== 'string' || updates.content.trim().length === 0) {
+      if (
+        !updates.content ||
+        typeof updates.content !== 'string' ||
+        updates.content.trim().length === 0
+      ) {
         return json({ error: 'Content cannot be empty' }, { status: 400 });
       }
       if (updates.content.length > 50000) {
@@ -91,7 +100,11 @@ export async function PUT({ params, request, locals }) {
     }
 
     // Validate metadata if provided
-    if (updates.metadata !== undefined && updates.metadata !== null && typeof updates.metadata !== 'object') {
+    if (
+      updates.metadata !== undefined &&
+      updates.metadata !== null &&
+      typeof updates.metadata !== 'object'
+    ) {
       return json({ error: 'Metadata must be an object' }, { status: 400 });
     }
 
@@ -118,7 +131,7 @@ export async function PUT({ params, request, locals }) {
 
     return json({ error: 'Internal server error' }, { status: 500 });
   }
-}/**
+} /**
 
  * Delete a message
  * DELETE /api/messages/[id]

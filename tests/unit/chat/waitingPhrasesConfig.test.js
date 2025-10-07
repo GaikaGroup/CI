@@ -85,7 +85,9 @@ describe('Waiting Phrases Configuration', () => {
 
       const result = validateConfiguration(invalidConfig);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('Language "en" in category "general" must contain at least one phrase');
+      expect(result.errors).toContain(
+        'Language "en" in category "general" must contain at least one phrase'
+      );
     });
 
     it('should reject invalid settings', () => {
@@ -116,7 +118,7 @@ describe('Waiting Phrases Configuration', () => {
   describe('loadWaitingPhrasesConfig', () => {
     it('should load configuration successfully', async () => {
       const config = await loadWaitingPhrasesConfig();
-      
+
       expect(config).toBeDefined();
       expect(config.phrases).toBeDefined();
       expect(config.settings).toBeDefined();
@@ -148,13 +150,17 @@ describe('Waiting Phrases Configuration', () => {
     it('should fallback to default language when requested language not found', () => {
       const phrases = getPhrasesForLanguage(testConfig, 'fr', 'general');
       expect(phrases).toEqual(['Hello', 'Hi']);
-      expect(mockConsole.warn).toHaveBeenCalledWith('Language "fr" not found in category "general", falling back to "en"');
+      expect(mockConsole.warn).toHaveBeenCalledWith(
+        'Language "fr" not found in category "general", falling back to "en"'
+      );
     });
 
     it('should fallback to general category when category not found', () => {
       const phrases = getPhrasesForLanguage(testConfig, 'en', 'nonexistent');
       expect(phrases).toEqual(['Hello', 'Hi']);
-      expect(mockConsole.warn).toHaveBeenCalledWith('Category "nonexistent" not found, falling back to "general"');
+      expect(mockConsole.warn).toHaveBeenCalledWith(
+        'Category "nonexistent" not found, falling back to "general"'
+      );
     });
 
     it('should return default phrases when all fallbacks fail', () => {

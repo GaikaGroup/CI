@@ -26,21 +26,21 @@ graph TB
     B --> C[Audio Buffer Manager]
     B --> D[Interruption Handler]
     B --> E[Conversation Flow Manager]
-    
+
     C --> F[Smooth Audio Pipeline]
     C --> G[Stuttering Prevention]
-    
+
     D --> H[Speech Detection]
     D --> I[Language Detection]
     D --> J[Interruption Response Generator]
-    
+
     E --> K[Context Preservation]
     E --> L[Response Continuation]
-    
+
     F --> M[Cat Avatar Controller]
     G --> M
     J --> M
-    
+
     M --> N[Synchronized Mouth Animation]
     M --> O[Proper State Transitions]
 ```
@@ -74,6 +74,7 @@ class AudioBufferManager {
 ```
 
 **Key Features**:
+
 - Pre-loading and buffering of waiting phrase audio
 - Crossfading between audio segments
 - Silence padding to prevent abrupt transitions
@@ -113,6 +114,7 @@ class InterruptionDetector {
 ```
 
 **Key Features**:
+
 - Real-time voice activity detection during bot speech
 - Language detection from interrupting speech
 - Confidence scoring for interruption intent
@@ -152,6 +154,7 @@ class ConversationFlowManager {
 ```
 
 **Key Features**:
+
 - Context-aware interruption handling
 - Multilingual interruption responses
 - Response continuation management
@@ -184,6 +187,7 @@ class EnhancedAvatarController {
 ```
 
 **Key Features**:
+
 - Improved lip-sync accuracy with audio analysis
 - Proper mouth closure at speech end
 - Smooth state transitions
@@ -371,30 +375,35 @@ class NetworkErrorHandler {
 ## Implementation Phases
 
 ### Phase 1: Audio Stuttering Fix
+
 - Implement AudioBufferManager
 - Add crossfading capabilities
 - Enhance audio preprocessing
 - Fix mouth animation synchronization
 
 ### Phase 2: Interruption Detection
+
 - Build InterruptionDetector
 - Implement voice activity detection
 - Add language detection capabilities
 - Create basic interruption responses
 
 ### Phase 3: Conversation Flow Enhancement
+
 - Develop ConversationFlowManager
 - Implement context preservation
 - Add response continuation logic
 - Create multilingual interruption phrases
 
 ### Phase 4: Avatar Improvements
+
 - Enhance lip-sync accuracy
 - Improve state transitions
 - Add interruption-specific animations
 - Optimize performance
 
 ### Phase 5: Testing and Optimization
+
 - Comprehensive testing suite
 - Performance optimization
 - User experience refinement
@@ -403,24 +412,28 @@ class NetworkErrorHandler {
 ## Performance Considerations
 
 ### Audio Processing
+
 - Use Web Audio API for low-latency processing
 - Implement efficient buffering strategies
 - Optimize crossfading algorithms
 - Monitor memory usage for audio buffers
 
 ### Real-time Detection
+
 - Minimize interruption detection latency (<100ms)
 - Optimize voice activity detection algorithms
 - Use efficient audio analysis techniques
 - Balance accuracy vs. performance
 
 ### Memory Management
+
 - Implement LRU cache for audio buffers
 - Clean up unused audio data
 - Monitor conversation state size
 - Optimize avatar animation resources
 
 ### Network Optimization
+
 - Cache common interruption responses
 - Implement request prioritization
 - Use compression for audio data
@@ -429,18 +442,21 @@ class NetworkErrorHandler {
 ## Security and Privacy
 
 ### Audio Data Handling
+
 - Process audio locally when possible
 - Encrypt audio data in transit
 - Implement data retention policies
 - Provide user control over audio storage
 
 ### Language Detection Privacy
+
 - Use on-device processing when available
 - Minimize data sent to external services
 - Implement user consent mechanisms
 - Provide opt-out options
 
 ### Conversation Context
+
 - Encrypt stored conversation state
 - Implement session-based storage
 - Provide context clearing options

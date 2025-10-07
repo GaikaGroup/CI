@@ -30,9 +30,11 @@ global.AudioContext = vi.fn(() => ({
 }));
 
 global.navigator.mediaDevices = {
-  getUserMedia: vi.fn(() => Promise.resolve({
-    getTracks: () => [{ stop: vi.fn() }]
-  }))
+  getUserMedia: vi.fn(() =>
+    Promise.resolve({
+      getTracks: () => [{ stop: vi.fn() }]
+    })
+  )
 };
 
 global.fetch = vi.fn();
@@ -49,7 +51,7 @@ global.Audio = vi.fn(() => ({
 describe('User Experience Validation Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup successful API responses
     global.fetch.mockImplementation((url) => {
       if (url.includes('/api/transcribe')) {
@@ -59,7 +61,7 @@ describe('User Experience Validation Tests', () => {
         });
       } else if (url.includes('/api/chat')) {
         // Simulate AI response delay
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           setTimeout(() => {
             resolve({
               ok: true,
@@ -82,7 +84,7 @@ describe('User Experience Validation Tests', () => {
     );
     vi.spyOn(waitingPhrasesService, 'playWaitingPhrase').mockImplementation(async () => {
       // Simulate phrase duration
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
     });
     vi.spyOn(waitingPhrasesService, 'isEnabled').mockReturnValue(true);
   });
@@ -94,20 +96,21 @@ describe('User Experience Validation Tests', () => {
   describe('Silence Elimination', () => {
     it('should eliminate awkward silence during AI response generation', async () => {
       const { container } = render(VoiceChat);
-      
+
       const silencePeriods = [];
       let lastActivityTime = Date.now();
-      
+
       // Monitor for periods of inactivity (silence)
       const checkActivity = () => {
-        const hasActivity = 
+        const hasActivity =
           container.textContent.includes('Recording') ||
           container.textContent.includes('Processing') ||
           container.textContent.includes('Thinking');
-          
+
         if (!hasActivity) {
           const silenceDuration = Date.now() - lastActivityTime;
-          if (silenceDuration > 500) { // More than 500ms of silence
+          if (silenceDuration > 500) {
+            // More than 500ms of silence
             silencePeriods.push(silenceDuration);
           }
         } else {
@@ -119,20 +122,23 @@ describe('User Experience Validation Tests', () => {
 
       try {
         const micButton = container.querySelector('button[aria-label*="recording"]');
-        
+
         // Perform voice interaction
         await fireEvent.click(micButton);
         await fireEvent.click(micButton);
 
         // Wait for complete processing
-        await waitFor(() => {
-          expect(container.textContent).not.toContain('Processing');
-        }, { timeout: 10000 });
+        await waitFor(
+          () => {
+            expect(container.textContent).not.toContain('Processing');
+          },
+          { timeout: 10000 }
+        );
 
         clearInterval(activityMonitor);
 
         // Should have minimal silence periods
-        const longSilences = silencePeriods.filter(duration => duration > 2000);
+        const longSilences = silencePeriods.filter((duration) => duration > 2000);
         expect(longSilences.length).toBe(0); // No silences longer than 2 seconds
 
         // Verify waiting phrase was used to fill silence
@@ -152,7 +158,7 @@ describe('User Experience Validation Tests', () => {
           });
         } else if (url.includes('/api/chat')) {
           // Simulate very long AI processing (5 seconds)
-          return new Promise(resolve => {
+          return new Promise((resolve) => {
             setTimeout(() => {
               resolve({
                 ok: true,
@@ -170,9 +176,9 @@ describe('User Experience Validation Tests', () => {
       });
 
       const { container } = render(VoiceChat);
-      
+
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -189,9 +195,12 @@ describe('User Experience Validation Tests', () => {
         }
       }, 500);
 
-      await waitFor(() => {
-        expect(container.textContent).not.toContain('Processing');
-      }, { timeout: 15000 });
+      await waitFor(
+        () => {
+          expect(container.textContent).not.toContain('Processing');
+        },
+        { timeout: 15000 }
+      );
 
       clearInterval(statusCheck);
       expect(thinkingStatusSeen).toBe(true);
@@ -199,10 +208,10 @@ describe('User Experience Validation Tests', () => {
 
     it('should handle varying AI response times gracefully', async () => {
       const responseTimes = [500, 1500, 3000, 800, 2200]; // Different response times
-      
+
       for (let i = 0; i < responseTimes.length; i++) {
         const responseTime = responseTimes[i];
-        
+
         // Mock different response times
         global.fetch.mockImplementation((url) => {
           if (url.includes('/api/transcribe')) {
@@ -211,7 +220,7 @@ describe('User Experience Validation Tests', () => {
               json: () => Promise.resolve({ text: `Question ${i + 1}` })
             });
           } else if (url.includes('/api/chat')) {
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
               setTimeout(() => {
                 resolve({
                   ok: true,
@@ -230,9 +239,9 @@ describe('User Experience Validation Tests', () => {
 
         const { container } = render(VoiceChat);
         const micButton = container.querySelector('button[aria-label*="recording"]');
-        
+
         const startTime = Date.now();
-        
+
         await fireEvent.click(micButton);
         await fireEvent.click(micButton);
 
@@ -243,12 +252,15 @@ describe('User Experience Validation Tests', () => {
           });
         }
 
-        await waitFor(() => {
-          expect(container.textContent).not.toContain('Processing');
-        }, { timeout: responseTime + 5000 });
+        await waitFor(
+          () => {
+            expect(container.textContent).not.toContain('Processing');
+          },
+          { timeout: responseTime + 5000 }
+        );
 
         const totalTime = Date.now() - startTime;
-        
+
         // Should handle each response time appropriately
         expect(totalTime).toBeGreaterThan(responseTime - 100); // Allow some margin
         expect(totalTime).toBeLessThan(responseTime + 3000); // Should not add excessive overhead
@@ -259,9 +271,9 @@ describe('User Experience Validation Tests', () => {
   describe('Natural Conversation Flow', () => {
     it('should create natural conversation rhythm with waiting phrases', async () => {
       const { container } = render(VoiceChat);
-      
+
       const conversationEvents = [];
-      
+
       // Track conversation flow events
       const originalPlayPhrase = waitingPhrasesService.playWaitingPhrase;
       waitingPhrasesService.playWaitingPhrase.mockImplementation(async (...args) => {
@@ -271,41 +283,44 @@ describe('User Experience Validation Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       conversationEvents.push({ type: 'userSpeechEnd', time: Date.now() });
-      
+
       await fireEvent.click(micButton);
       conversationEvents.push({ type: 'processingStart', time: Date.now() });
 
-      await waitFor(() => {
-        expect(container.textContent).not.toContain('Processing');
-      }, { timeout: 10000 });
-      
+      await waitFor(
+        () => {
+          expect(container.textContent).not.toContain('Processing');
+        },
+        { timeout: 10000 }
+      );
+
       conversationEvents.push({ type: 'responseComplete', time: Date.now() });
 
       // Analyze conversation flow
-      const waitingPhraseStart = conversationEvents.find(e => e.type === 'waitingPhraseStart');
-      const userSpeechEnd = conversationEvents.find(e => e.type === 'userSpeechEnd');
-      const processingStart = conversationEvents.find(e => e.type === 'processingStart');
+      const waitingPhraseStart = conversationEvents.find((e) => e.type === 'waitingPhraseStart');
+      const userSpeechEnd = conversationEvents.find((e) => e.type === 'userSpeechEnd');
+      const processingStart = conversationEvents.find((e) => e.type === 'processingStart');
 
       // Waiting phrase should start shortly after user speech ends
       expect(waitingPhraseStart.time - userSpeechEnd.time).toBeLessThan(500);
-      
+
       // Processing should start around the same time as waiting phrase
       expect(Math.abs(processingStart.time - waitingPhraseStart.time)).toBeLessThan(200);
     });
 
     it('should provide appropriate phrase variety for natural feel', async () => {
       const phrases = [];
-      
+
       // Mock different phrases for variety
       let phraseIndex = 0;
       const mockPhrases = [
         'Let me think about this...',
         'Hmm, interesting question.',
         'Give me a moment to consider.',
-        'Well, that\'s a good point.',
+        "Well, that's a good point.",
         'Let me process this carefully.'
       ];
 
@@ -320,7 +335,7 @@ describe('User Experience Validation Tests', () => {
       for (let i = 0; i < 5; i++) {
         const { container } = render(VoiceChat);
         const micButton = container.querySelector('button[aria-label*="recording"]');
-        
+
         await fireEvent.click(micButton);
         await fireEvent.click(micButton);
 
@@ -332,7 +347,7 @@ describe('User Experience Validation Tests', () => {
       // Should have variety in phrases
       const uniquePhrases = new Set(phrases);
       expect(uniquePhrases.size).toBeGreaterThan(1);
-      
+
       // Should not repeat consecutive phrases
       for (let i = 1; i < phrases.length; i++) {
         expect(phrases[i]).not.toBe(phrases[i - 1]);
@@ -341,12 +356,12 @@ describe('User Experience Validation Tests', () => {
 
     it('should maintain conversational personality consistency', async () => {
       const { container } = render(VoiceChat);
-      
+
       // Mock phrases with consistent personality
       const personalityPhrases = [
         'Well, well, well. Let me think about this.',
-        'Hmm, that\'s quite interesting!',
-        'Oh, I see what you\'re asking. Give me a moment.',
+        "Hmm, that's quite interesting!",
+        "Oh, I see what you're asking. Give me a moment.",
         'Fascinating question! Let me consider this carefully.'
       ];
 
@@ -355,7 +370,7 @@ describe('User Experience Validation Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -371,7 +386,7 @@ describe('User Experience Validation Tests', () => {
   describe('Visual and Audio Feedback', () => {
     it('should provide clear visual indicators for waiting phrase status', async () => {
       const { container } = render(VoiceChat);
-      
+
       // Mock waiting phrase active state
       vi.spyOn(voiceServices, 'isWaitingPhraseActive').mockReturnValue(true);
       vi.spyOn(voiceServices, 'getAudioQueueStatus').mockReturnValue({
@@ -381,7 +396,7 @@ describe('User Experience Validation Tests', () => {
       });
 
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
 
@@ -425,9 +440,9 @@ describe('User Experience Validation Tests', () => {
 
     it('should provide smooth transitions between states', async () => {
       const { container } = render(VoiceChat);
-      
+
       const stateTransitions = [];
-      
+
       // Monitor state changes
       const observer = new MutationObserver(() => {
         const currentState = {
@@ -436,41 +451,44 @@ describe('User Experience Validation Tests', () => {
           thinking: container.textContent.includes('Thinking'),
           ready: container.textContent.includes('Hold to record')
         };
-        
+
         stateTransitions.push({
           ...currentState,
           timestamp: Date.now()
         });
       });
 
-      observer.observe(container, { 
-        childList: true, 
-        subtree: true, 
-        characterData: true 
+      observer.observe(container, {
+        childList: true,
+        subtree: true,
+        characterData: true
       });
 
       try {
         const micButton = container.querySelector('button[aria-label*="recording"]');
-        
+
         await fireEvent.click(micButton);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         await fireEvent.click(micButton);
-        
-        await waitFor(() => {
-          expect(container.textContent).not.toContain('Processing');
-        }, { timeout: 10000 });
+
+        await waitFor(
+          () => {
+            expect(container.textContent).not.toContain('Processing');
+          },
+          { timeout: 10000 }
+        );
 
         observer.disconnect();
 
         // Should have smooth state transitions
         expect(stateTransitions.length).toBeGreaterThan(2);
-        
+
         // Should transition through expected states
-        const hasRecording = stateTransitions.some(s => s.recording);
-        const hasProcessing = stateTransitions.some(s => s.processing);
-        const hasThinking = stateTransitions.some(s => s.thinking);
-        
+        const hasRecording = stateTransitions.some((s) => s.recording);
+        const hasProcessing = stateTransitions.some((s) => s.processing);
+        const hasThinking = stateTransitions.some((s) => s.thinking);
+
         expect(hasRecording).toBe(true);
         expect(hasProcessing).toBe(true);
         expect(hasThinking).toBe(true);
@@ -483,19 +501,19 @@ describe('User Experience Validation Tests', () => {
   describe('Accessibility and Usability', () => {
     it('should maintain accessibility during waiting phrase playback', async () => {
       const { container } = render(VoiceChat);
-      
+
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       // Should have proper ARIA labels
       expect(micButton.getAttribute('aria-label')).toBeTruthy();
-      
+
       await fireEvent.click(micButton);
-      
+
       // ARIA label should update during recording
       expect(micButton.getAttribute('aria-label')).toContain('Stop recording');
-      
+
       await fireEvent.click(micButton);
-      
+
       // Should maintain accessibility during processing
       await waitFor(() => {
         expect(micButton.getAttribute('aria-label')).toBeTruthy();
@@ -504,16 +522,16 @@ describe('User Experience Validation Tests', () => {
 
     it('should provide keyboard navigation support', async () => {
       const { container } = render(VoiceChat);
-      
+
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       // Should be focusable
       micButton.focus();
       expect(document.activeElement).toBe(micButton);
-      
+
       // Should respond to keyboard events
       await fireEvent.keyDown(micButton, { key: 'Enter' });
-      
+
       await waitFor(() => {
         expect(container.textContent).toContain('Recording');
       });
@@ -521,22 +539,25 @@ describe('User Experience Validation Tests', () => {
 
     it('should handle disabled states appropriately', async () => {
       const { container } = render(VoiceChat);
-      
+
       const micButton = container.querySelector('button[aria-label*="recording"]');
       const imageButton = container.querySelector('button[aria-label="Upload image"]');
-      
+
       await fireEvent.click(micButton);
       await fireEvent.click(micButton);
-      
+
       // Buttons should be disabled during processing
       await waitFor(() => {
         expect(imageButton.disabled).toBe(true);
       });
-      
+
       // Should re-enable after processing
-      await waitFor(() => {
-        expect(imageButton.disabled).toBe(false);
-      }, { timeout: 10000 });
+      await waitFor(
+        () => {
+          expect(imageButton.disabled).toBe(false);
+        },
+        { timeout: 10000 }
+      );
     });
   });
 
@@ -544,35 +565,43 @@ describe('User Experience Validation Tests', () => {
     it('should not significantly impact voice chat response times', async () => {
       // Test with waiting phrases enabled
       const { container: withPhrases } = render(VoiceChat);
-      
+
       const startTimeWithPhrases = Date.now();
       const micButtonWithPhrases = withPhrases.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButtonWithPhrases);
       await fireEvent.click(micButtonWithPhrases);
-      
-      await waitFor(() => {
-        expect(withPhrases.textContent).not.toContain('Processing');
-      }, { timeout: 10000 });
-      
+
+      await waitFor(
+        () => {
+          expect(withPhrases.textContent).not.toContain('Processing');
+        },
+        { timeout: 10000 }
+      );
+
       const endTimeWithPhrases = Date.now();
       const timeWithPhrases = endTimeWithPhrases - startTimeWithPhrases;
 
       // Test with waiting phrases disabled
       waitingPhrasesService.isEnabled.mockReturnValue(false);
-      
+
       const { container: withoutPhrases } = render(VoiceChat);
-      
+
       const startTimeWithoutPhrases = Date.now();
-      const micButtonWithoutPhrases = withoutPhrases.querySelector('button[aria-label*="recording"]');
-      
+      const micButtonWithoutPhrases = withoutPhrases.querySelector(
+        'button[aria-label*="recording"]'
+      );
+
       await fireEvent.click(micButtonWithoutPhrases);
       await fireEvent.click(micButtonWithoutPhrases);
-      
-      await waitFor(() => {
-        expect(withoutPhrases.textContent).not.toContain('Processing');
-      }, { timeout: 10000 });
-      
+
+      await waitFor(
+        () => {
+          expect(withoutPhrases.textContent).not.toContain('Processing');
+        },
+        { timeout: 10000 }
+      );
+
       const endTimeWithoutPhrases = Date.now();
       const timeWithoutPhrases = endTimeWithoutPhrases - startTimeWithoutPhrases;
 
@@ -583,36 +612,39 @@ describe('User Experience Validation Tests', () => {
 
     it('should maintain smooth UI performance during waiting phrase playback', async () => {
       const { container } = render(VoiceChat);
-      
+
       const performanceMarks = [];
-      
+
       // Monitor performance during interaction
       const startMark = performance.now();
-      
+
       const micButton = container.querySelector('button[aria-label*="recording"]');
-      
+
       await fireEvent.click(micButton);
       performanceMarks.push({ event: 'recordingStart', time: performance.now() });
-      
+
       await fireEvent.click(micButton);
       performanceMarks.push({ event: 'recordingStop', time: performance.now() });
-      
+
       await waitFor(() => {
         expect(container.textContent).toContain('Thinking');
       });
       performanceMarks.push({ event: 'thinkingStart', time: performance.now() });
-      
-      await waitFor(() => {
-        expect(container.textContent).not.toContain('Processing');
-      }, { timeout: 10000 });
+
+      await waitFor(
+        () => {
+          expect(container.textContent).not.toContain('Processing');
+        },
+        { timeout: 10000 }
+      );
       performanceMarks.push({ event: 'complete', time: performance.now() });
 
       // Analyze performance
       const totalTime = performanceMarks[performanceMarks.length - 1].time - startMark;
-      
+
       // Should complete in reasonable time
       expect(totalTime).toBeLessThan(10000); // 10 seconds max
-      
+
       // Should have reasonable intervals between events
       for (let i = 1; i < performanceMarks.length; i++) {
         const interval = performanceMarks[i].time - performanceMarks[i - 1].time;

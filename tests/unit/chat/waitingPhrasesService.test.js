@@ -57,7 +57,7 @@ vi.mock('../../../src/lib/modules/chat/waitingPhrasesConfig.js', () => ({
 }));
 
 // Mock chat stores for incremental waiting phrase tests
-const mockMessages: any[] = [];
+const mockMessages = [];
 vi.mock('../../../src/lib/modules/chat/stores', () => ({
   addMessage: vi.fn((type, content, _images, id, meta) => {
     mockMessages.push({ id, type, content, ...meta });

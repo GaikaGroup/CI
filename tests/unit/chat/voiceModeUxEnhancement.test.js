@@ -48,7 +48,7 @@ describe('AudioBufferManager', () => {
   beforeEach(() => {
     audioBufferManager = new AudioBufferManager();
     mockBlob = new Blob(['test audio data'], { type: 'audio/wav' });
-    
+
     // Mock AudioContext methods
     mockAudioContext.decodeAudioData.mockResolvedValue(mockAudioBuffer);
     mockAudioContext.createBuffer.mockReturnValue(mockAudioBuffer);
@@ -98,7 +98,7 @@ describe('AudioBufferManager', () => {
 
     it('should handle buffering errors gracefully', async () => {
       mockAudioContext.decodeAudioData.mockRejectedValue(new Error('Decode failed'));
-      
+
       const metadata = { id: 'test-audio' };
       const result = await audioBufferManager.bufferAudio(mockBlob, metadata);
 
@@ -106,24 +106,25 @@ describe('AudioBufferManager', () => {
       expect(result.metadata.error).toBeDefined();
     });
   });
-});descri
+});
+descri;
 be('InterruptionDetector', () => {
   let interruptionDetector;
   let mockMediaStream;
 
   beforeEach(() => {
     interruptionDetector = new InterruptionDetector();
-    
+
     mockMediaStream = {
       getTracks: vi.fn(() => [{ stop: vi.fn() }])
     };
-    
+
     navigator.mediaDevices.getUserMedia.mockResolvedValue(mockMediaStream);
-    
+
     mockAudioContext.createMediaStreamSource.mockReturnValue({
       connect: vi.fn()
     });
-    
+
     mockAudioContext.createAnalyser.mockReturnValue({
       fftSize: 256,
       smoothingTimeConstant: 0.3,
@@ -147,7 +148,7 @@ be('InterruptionDetector', () => {
 
     it('should initialize with audio context and media stream', async () => {
       await interruptionDetector.initialize(mockAudioContext);
-      
+
       expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({
         audio: {
           echoCancellation: true,
@@ -168,14 +169,14 @@ be('InterruptionDetector', () => {
     it('should detect voice activity above threshold', () => {
       const energy = 0.2; // Above threshold
       interruptionDetector.vadBuffer = [0.2, 0.25, 0.22]; // Fill buffer
-      
+
       const result = interruptionDetector.detectVoiceActivity(energy);
       expect(result).toBe(true);
     });
 
     it('should not detect voice activity below threshold', () => {
       const energy = 0.05; // Below threshold
-      
+
       const result = interruptionDetector.detectVoiceActivity(energy);
       expect(result).toBe(false);
     });
@@ -185,16 +186,16 @@ be('InterruptionDetector', () => {
     it('should register and call interruption callbacks', async () => {
       const callback = vi.fn();
       interruptionDetector.onInterruption(callback);
-      
+
       // Simulate interruption
       const mockEvent = {
         timestamp: Date.now(),
         energy: 0.3,
         confidence: 0.8
       };
-      
+
       await interruptionDetector.triggerInterruption(0.3);
-      
+
       expect(callback).toHaveBeenCalled();
     });
   });
@@ -210,7 +211,7 @@ describe('LanguageDetector', () => {
   describe('language detection from text', () => {
     it('should detect Russian from Cyrillic text', () => {
       const result = languageDetector.detectLanguageFromText('Привет мир');
-      
+
       expect(result.language).toBe('ru');
       expect(result.confidence).toBe(0.9);
       expect(result.method).toBe('text_analysis');
@@ -218,21 +219,21 @@ describe('LanguageDetector', () => {
 
     it('should detect Spanish from Spanish text', () => {
       const result = languageDetector.detectLanguageFromText('Hola, ¿cómo estás?');
-      
+
       expect(result.language).toBe('es');
       expect(result.confidence).toBe(0.8);
     });
 
     it('should default to English for Latin text', () => {
       const result = languageDetector.detectLanguageFromText('Hello world');
-      
+
       expect(result.language).toBe('en');
       expect(result.confidence).toBe(0.7);
     });
 
     it('should handle empty text gracefully', () => {
       const result = languageDetector.detectLanguageFromText('');
-      
+
       expect(result.language).toBe('en'); // Fallback
       expect(result.method).toBe('fallback');
     });
@@ -248,11 +249,11 @@ describe('LanguageDetector', () => {
       };
 
       const scores = languageDetector.analyzeAudioCharacteristics(audioMetrics);
-      
+
       expect(scores).toHaveProperty('en');
       expect(scores).toHaveProperty('es');
       expect(scores).toHaveProperty('ru');
-      expect(Object.values(scores).every(score => score >= 0 && score <= 1)).toBe(true);
+      expect(Object.values(scores).every((score) => score >= 0 && score <= 1)).toBe(true);
     });
   });
 });
@@ -273,7 +274,7 @@ describe('ConversationFlowManager', () => {
       };
 
       const responseId = conversationFlowManager.startResponse(response);
-      
+
       expect(responseId).toMatch(/^resp_\d+_[a-z0-9]+$/);
       expect(conversationFlowManager.currentResponse).toBeDefined();
       expect(conversationFlowManager.currentResponse.text).toBe(response.text);
@@ -282,7 +283,7 @@ describe('ConversationFlowManager', () => {
     it('should segment response text properly', () => {
       const text = 'First sentence. Second sentence! Third sentence?';
       const segments = conversationFlowManager.segmentResponse(text);
-      
+
       expect(segments).toHaveLength(3);
       expect(segments[0]).toBe('First sentence.');
       expect(segments[1]).toBe('Second sentence!');
@@ -292,7 +293,7 @@ describe('ConversationFlowManager', () => {
     it('should estimate response duration', () => {
       const text = 'This is a test response with multiple words.';
       const duration = conversationFlowManager.estimateResponseDuration(text);
-      
+
       expect(duration).toBeGreaterThan(1000); // At least 1 second
       expect(typeof duration).toBe('number');
     });
@@ -316,7 +317,7 @@ describe('ConversationFlowManager', () => {
       };
 
       const result = await conversationFlowManager.handleInterruption(interruptionEvent);
-      
+
       expect(result.handled).toBe(true);
       expect(result.preservedState).toBeDefined();
       expect(result.interruptionResponse).toBeDefined();
@@ -340,7 +341,7 @@ describe('AvatarStateManager', () => {
       };
 
       await avatarStateManager.transitionToState(newState);
-      
+
       const currentState = avatarStateManager.getCurrentState();
       expect(currentState.currentState).toBe('speaking');
       expect(currentState.emotion).toBe('happy');

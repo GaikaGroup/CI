@@ -56,7 +56,7 @@ function createChatStore() {
         // Get session details
         const sessionState = get(sessionStore);
         let session = sessionState.currentSession;
-        
+
         if (!session || session.id !== sessionId) {
           session = await sessionStore.selectSession(sessionId);
         }
@@ -68,7 +68,7 @@ function createChatStore() {
           currentUser.id
         );
 
-        update(state => ({
+        update((state) => ({
           ...state,
           sessionId,
           messages: result.messages,
@@ -78,7 +78,6 @@ function createChatStore() {
           loading: false,
           error: null
         }));
-
       } catch (error) {
         console.error('[ChatStore] Failed to initialize session:', error);
         this.setError(error.message || 'Failed to load session messages');
@@ -96,7 +95,7 @@ function createChatStore() {
         throw new Error('Session object is required');
       }
 
-      update(state => ({
+      update((state) => ({
         ...state,
         sessionId: session.id,
         mode: session.mode,
@@ -112,7 +111,7 @@ function createChatStore() {
     async addMessage(type, content, metadata = null) {
       const currentUser = get(user);
       const currentState = get({ subscribe });
-      
+
       if (!currentUser) {
         throw new Error('User not authenticated');
       }
@@ -131,7 +130,7 @@ function createChatStore() {
         );
 
         // Add message to local state
-        update(state => ({
+        update((state) => ({
           ...state,
           messages: [...state.messages, newMessage],
           error: null
@@ -187,11 +186,9 @@ function createChatStore() {
           currentUser.id
         );
 
-        update(state => ({
+        update((state) => ({
           ...state,
-          messages: state.messages.map(msg =>
-            msg.id === messageId ? updatedMessage : msg
-          ),
+          messages: state.messages.map((msg) => (msg.id === messageId ? updatedMessage : msg)),
           error: null
         }));
 
@@ -215,9 +212,9 @@ function createChatStore() {
       try {
         await MessageService.deleteMessage(messageId, currentUser.id);
 
-        update(state => ({
+        update((state) => ({
           ...state,
-          messages: state.messages.filter(msg => msg.id !== messageId),
+          messages: state.messages.filter((msg) => msg.id !== messageId),
           error: null
         }));
 
@@ -244,7 +241,7 @@ function createChatStore() {
     async loadMoreMessages() {
       const currentUser = get(user);
       const currentState = get({ subscribe });
-      
+
       if (!currentUser || !currentState.sessionId) {
         return;
       }
@@ -263,14 +260,13 @@ function createChatStore() {
           currentUser.id
         );
 
-        update(state => ({
+        update((state) => ({
           ...state,
           messages: [...state.messages, ...result.messages],
           pagination: result.pagination,
           loading: false,
           error: null
         }));
-
       } catch (error) {
         console.error('[ChatStore] Failed to load more messages:', error);
         this.setError(error.message || 'Failed to load more messages');
@@ -282,7 +278,7 @@ function createChatStore() {
      * Set current message being typed
      */
     setCurrentMessage(message) {
-      update(state => ({
+      update((state) => ({
         ...state,
         currentMessage: message
       }));
@@ -292,7 +288,7 @@ function createChatStore() {
      * Set typing indicator
      */
     setTyping(isTyping) {
-      update(state => ({
+      update((state) => ({
         ...state,
         isTyping
       }));
@@ -303,8 +299,8 @@ function createChatStore() {
      */
     async setMode(mode) {
       const currentState = get({ subscribe });
-      
-      update(state => ({
+
+      update((state) => ({
         ...state,
         mode
       }));
@@ -324,8 +320,8 @@ function createChatStore() {
      */
     async setLanguage(language) {
       const currentState = get({ subscribe });
-      
-      update(state => ({
+
+      update((state) => ({
         ...state,
         language
       }));
@@ -344,7 +340,7 @@ function createChatStore() {
      * Set loading state
      */
     setLoading(loading) {
-      update(state => ({
+      update((state) => ({
         ...state,
         loading
       }));
@@ -354,7 +350,7 @@ function createChatStore() {
      * Set error state
      */
     setError(error) {
-      update(state => ({
+      update((state) => ({
         ...state,
         error
       }));
@@ -371,7 +367,7 @@ function createChatStore() {
      * Clear current session but keep store structure
      */
     clearSession() {
-      update(state => ({
+      update((state) => ({
         ...state,
         messages: [],
         sessionId: null,
@@ -389,19 +385,21 @@ function createChatStore() {
       const welcomeMessages = {
         fun: {
           en: "Hi there! I'm your AI tutor and I'm here to make learning fun! What would you like to explore today?",
-          es: "¡Hola! Soy tu tutor de IA y estoy aquí para hacer que el aprendizaje sea divertido. ¿Qué te gustaría explorar hoy?",
+          es: '¡Hola! Soy tu tutor de IA y estoy aquí para hacer que el aprendizaje sea divertido. ¿Qué te gustaría explorar hoy?',
           fr: "Salut ! Je suis votre tuteur IA et je suis là pour rendre l'apprentissage amusant ! Qu'aimeriez-vous explorer aujourd'hui ?",
-          de: "Hallo! Ich bin dein KI-Tutor und bin hier, um das Lernen spaßig zu machen! Was möchtest du heute erkunden?"
+          de: 'Hallo! Ich bin dein KI-Tutor und bin hier, um das Lernen spaßig zu machen! Was möchtest du heute erkunden?'
         },
         learn: {
           en: "Welcome to your focused learning session. I'm here to help you master new concepts and skills. What subject would you like to work on?",
-          es: "Bienvenido a tu sesión de aprendizaje enfocado. Estoy aquí para ayudarte a dominar nuevos conceptos y habilidades. ¿En qué materia te gustaría trabajar?",
+          es: 'Bienvenido a tu sesión de aprendizaje enfocado. Estoy aquí para ayudarte a dominar nuevos conceptos y habilidades. ¿En qué materia te gustaría trabajar?',
           fr: "Bienvenue dans votre session d'apprentissage ciblée. Je suis là pour vous aider à maîtriser de nouveaux concepts et compétences. Sur quel sujet aimeriez-vous travailler ?",
-          de: "Willkommen zu deiner fokussierten Lernsitzung. Ich bin hier, um dir zu helfen, neue Konzepte und Fähigkeiten zu meistern. An welchem Fach möchtest du arbeiten?"
+          de: 'Willkommen zu deiner fokussierten Lernsitzung. Ich bin hier, um dir zu helfen, neue Konzepte und Fähigkeiten zu meistern. An welchem Fach möchtest du arbeiten?'
         }
       };
 
-      return welcomeMessages[mode]?.[language] || welcomeMessages[mode]?.en || welcomeMessages.fun.en;
+      return (
+        welcomeMessages[mode]?.[language] || welcomeMessages[mode]?.en || welcomeMessages.fun.en
+      );
     }
   };
 }
@@ -414,59 +412,45 @@ export const chatStore = createChatStore();
 /**
  * Derived store for user messages only
  */
-export const userMessages = derived(
-  [chatStore],
-  ([$chatStore]) => $chatStore.messages.filter(msg => msg.type === 'user')
+export const userMessages = derived([chatStore], ([$chatStore]) =>
+  $chatStore.messages.filter((msg) => msg.type === 'user')
 );
 
 /**
  * Derived store for assistant messages only
  */
-export const assistantMessages = derived(
-  [chatStore],
-  ([$chatStore]) => $chatStore.messages.filter(msg => msg.type === 'assistant')
+export const assistantMessages = derived([chatStore], ([$chatStore]) =>
+  $chatStore.messages.filter((msg) => msg.type === 'assistant')
 );
 
 /**
  * Derived store for message statistics
  */
-export const messageStats = derived(
-  [chatStore],
-  ([$chatStore]) => {
-    const messages = $chatStore.messages;
-    return {
-      total: messages.length,
-      userMessages: messages.filter(msg => msg.type === 'user').length,
-      assistantMessages: messages.filter(msg => msg.type === 'assistant').length,
-      hasMessages: messages.length > 0,
-      lastMessage: messages.length > 0 ? messages[messages.length - 1] : null
-    };
-  }
-);
+export const messageStats = derived([chatStore], ([$chatStore]) => {
+  const messages = $chatStore.messages;
+  return {
+    total: messages.length,
+    userMessages: messages.filter((msg) => msg.type === 'user').length,
+    assistantMessages: messages.filter((msg) => msg.type === 'assistant').length,
+    hasMessages: messages.length > 0,
+    lastMessage: messages.length > 0 ? messages[messages.length - 1] : null
+  };
+});
 
 /**
  * Derived store for chat loading state
  */
-export const isChatLoading = derived(
-  [chatStore],
-  ([$chatStore]) => $chatStore.loading
-);
+export const isChatLoading = derived([chatStore], ([$chatStore]) => $chatStore.loading);
 
 /**
  * Derived store for chat error state
  */
-export const chatError = derived(
-  [chatStore],
-  ([$chatStore]) => $chatStore.error
-);
+export const chatError = derived([chatStore], ([$chatStore]) => $chatStore.error);
 
 /**
  * Derived store for typing state
  */
-export const isTyping = derived(
-  [chatStore],
-  ([$chatStore]) => $chatStore.isTyping
-);
+export const isTyping = derived([chatStore], ([$chatStore]) => $chatStore.isTyping);
 
 /**
  * Export all stores and utilities

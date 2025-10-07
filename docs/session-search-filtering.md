@@ -5,6 +5,7 @@ This document describes the search and filtering capabilities implemented for th
 ## Overview
 
 The session search and filtering system allows users to quickly find and organize their learning sessions through:
+
 - Real-time text search across session titles and preview content
 - Filtering by mode (Fun/Learn)
 - Filtering by language
@@ -19,17 +20,19 @@ The session search and filtering system allows users to quickly find and organiz
 Users can search sessions by typing in the search box. The search is debounced (300ms) to reduce API calls and improve performance.
 
 **Search Behavior:**
+
 - Case-insensitive search
 - Searches both title and preview content
 - Returns results with highlighting metadata
 - Maintains pagination for large result sets
 
 **Implementation:**
+
 ```javascript
 // In SessionsList.svelte
 function handleSearchInput(event) {
   searchQuery = event.target.value;
-  
+
   if (searchTimeout) {
     clearTimeout(searchTimeout);
   }
@@ -49,14 +52,17 @@ function handleSearchInput(event) {
 Users can filter sessions by multiple criteria simultaneously:
 
 #### Mode Filter
+
 - **Options:** All Modes, Fun Mode, Learn Mode
 - **Behavior:** Shows only sessions matching the selected mode
 
 #### Language Filter
+
 - **Options:** All Languages, English, Spanish, Russian (extensible)
 - **Behavior:** Shows only sessions in the selected language
 
 #### Date Range Filter
+
 - **Options:** From date, To date
 - **Behavior:** Shows sessions updated within the specified date range
 - **Format:** ISO date strings (YYYY-MM-DD)
@@ -64,14 +70,17 @@ Users can filter sessions by multiple criteria simultaneously:
 ### 3. Search Result Highlighting
 
 When a search query is active, matching terms are highlighted in:
+
 - Session titles
 - Session preview text
 
 **Highlighting Styles:**
+
 - Light mode: Yellow background (#fef3c7) with brown text (#92400e)
 - Dark mode: Dark brown background (#78350f) with light yellow text (#fef3c7)
 
 **Implementation:**
+
 ```javascript
 // Using the highlightText utility
 import { highlightText } from '../utils/searchHighlight.js';
@@ -89,6 +98,7 @@ import { highlightText } from '../utils/searchHighlight.js';
 The filter state is managed in the session store and persists across page navigation within the session.
 
 **Filter State Structure:**
+
 ```javascript
 filters: {
   mode: null,           // 'fun' | 'learn' | null
@@ -103,11 +113,13 @@ filters: {
 ## API Endpoints
 
 ### Search Sessions
+
 ```
 GET /api/sessions/search?q={query}&mode={mode}&language={lang}&dateFrom={date}&dateTo={date}
 ```
 
 **Query Parameters:**
+
 - `q` (required): Search query string
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Results per page (default: 20, max: 100)
@@ -117,6 +129,7 @@ GET /api/sessions/search?q={query}&mode={mode}&language={lang}&dateFrom={date}&d
 - `dateTo` (optional): Filter to date (ISO string)
 
 **Response:**
+
 ```json
 {
   "sessions": [
@@ -149,11 +162,13 @@ GET /api/sessions/search?q={query}&mode={mode}&language={lang}&dateFrom={date}&d
 ```
 
 ### Get Sessions with Filters
+
 ```
 GET /api/sessions?mode={mode}&language={lang}&dateFrom={date}&dateTo={date}
 ```
 
 **Query Parameters:**
+
 - `page` (optional): Page number (default: 1)
 - `limit` (optional): Results per page (default: 20, max: 100)
 - `sortBy` (optional): Sort field (default: 'updatedAt')
@@ -187,6 +202,7 @@ CREATE INDEX idx_session_search ON sessions(title, preview);
 ## Store Methods
 
 ### searchSessions(query, options)
+
 Searches sessions by title and preview content.
 
 ```javascript
@@ -198,6 +214,7 @@ await sessionStore.searchSessions('math', {
 ```
 
 ### applyFilters(filters)
+
 Applies filters and reloads sessions.
 
 ```javascript
@@ -210,6 +227,7 @@ await sessionStore.applyFilters({
 ```
 
 ### clearFilters()
+
 Clears all filters and reloads sessions.
 
 ```javascript
@@ -217,6 +235,7 @@ await sessionStore.clearFilters();
 ```
 
 ### setFilters(filters)
+
 Sets filter values without reloading (use applyFilters to reload).
 
 ```javascript
@@ -226,6 +245,7 @@ sessionStore.setFilters({ mode: 'fun' });
 ## Utility Functions
 
 ### highlightText(text, searchTerm, className)
+
 Highlights search terms in text with HTML mark tags.
 
 ```javascript
@@ -236,6 +256,7 @@ const highlighted = highlightText('This is a test', 'test');
 ```
 
 ### getSearchExcerpt(text, searchTerm, contextLength)
+
 Returns an excerpt of text around the search term.
 
 ```javascript
@@ -246,6 +267,7 @@ const excerpt = getSearchExcerpt(longText, 'search term', 50);
 ```
 
 ### containsSearchTerm(text, searchTerm)
+
 Checks if text contains the search term (case-insensitive).
 
 ```javascript
@@ -255,6 +277,7 @@ const hasMatch = containsSearchTerm('Hello World', 'world'); // true
 ```
 
 ### getMatchPositions(text, searchTerm)
+
 Returns all match positions in text.
 
 ```javascript
@@ -269,12 +292,14 @@ const positions = getMatchPositions('test test test', 'test');
 ### Filter Panel
 
 The filter panel is toggled by clicking the filter button in the sessions list header. It shows:
+
 - Mode dropdown
 - Language dropdown
 - Date range inputs (from/to)
 - Apply and Clear buttons
 
 **Active Filter Indicator:**
+
 - Filter button shows a badge with the count of active filters
 - Button color changes when filters are active (amber background)
 
@@ -293,11 +318,13 @@ Search results show highlighted terms using the `<mark>` HTML element with custo
 ## Testing
 
 ### Unit Tests
+
 - Search highlighting utilities
 - Store method interfaces
 - Service method signatures
 
 ### Integration Tests
+
 - Search functionality with database
 - Filter combinations
 - Date range filtering

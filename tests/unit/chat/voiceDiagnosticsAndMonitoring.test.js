@@ -137,7 +137,7 @@ describe('VoiceDiagnostics', () => {
 
       expect(Array.isArray(issues)).toBe(true);
       // Issues should be strings describing problems
-      issues.forEach(issue => {
+      issues.forEach((issue) => {
         expect(typeof issue).toBe('string');
         expect(issue.length).toBeGreaterThan(0);
       });
@@ -149,7 +149,7 @@ describe('VoiceDiagnostics', () => {
 
       expect(Array.isArray(recommendations)).toBe(true);
       // Recommendations should be actionable strings
-      recommendations.forEach(recommendation => {
+      recommendations.forEach((recommendation) => {
         expect(typeof recommendation).toBe('string');
         expect(recommendation.length).toBeGreaterThan(0);
       });
@@ -194,8 +194,8 @@ describe('VoiceDiagnostics', () => {
     });
 
     it('should clean old metrics based on retention policy', () => {
-      const oldTimestamp = Date.now() - (2 * 3600000); // 2 hours ago
-      
+      const oldTimestamp = Date.now() - 2 * 3600000; // 2 hours ago
+
       // Add old metric
       diagnostics.addPerformanceMetric('audioProcessing', {
         timestamp: oldTimestamp,
@@ -235,7 +235,7 @@ describe('VoiceDiagnostics', () => {
       diagnostics.trackUserExperience(uxData);
 
       expect(diagnostics.uxMetrics.sessionMetrics.has('test-session')).toBe(true);
-      
+
       const sessionMetrics = diagnostics.uxMetrics.sessionMetrics.get('test-session');
       expect(sessionMetrics.interactions.length).toBe(1);
       expect(sessionMetrics.successCount).toBe(1);
@@ -371,7 +371,7 @@ describe('VoicePerformanceMonitor', () => {
       monitor.updatePerformanceBuffer(timestamp);
 
       // Add some old data to test cleanup
-      const oldTimestamp = timestamp - (2 * 3600000); // 2 hours ago
+      const oldTimestamp = timestamp - 2 * 3600000; // 2 hours ago
       monitor.performanceBuffer.audioLatency.push({
         timestamp: oldTimestamp,
         value: 100
@@ -381,7 +381,7 @@ describe('VoicePerformanceMonitor', () => {
 
       // Old data should be removed
       const hasOldData = monitor.performanceBuffer.audioLatency.some(
-        entry => entry.timestamp === oldTimestamp
+        (entry) => entry.timestamp === oldTimestamp
       );
       expect(hasOldData).toBe(false);
     });
@@ -427,8 +427,8 @@ describe('VoicePerformanceMonitor', () => {
 
       expect(Array.isArray(issues)).toBe(true);
       expect(issues.length).toBeGreaterThan(0);
-      expect(issues.some(issue => issue.includes('latency'))).toBe(true);
-      expect(issues.some(issue => issue.includes('memory'))).toBe(true);
+      expect(issues.some((issue) => issue.includes('latency'))).toBe(true);
+      expect(issues.some((issue) => issue.includes('memory'))).toBe(true);
     });
   });
 
@@ -551,13 +551,8 @@ describe('VoiceUXMetricsTracker', () => {
           { status: 'completed', successful: true },
           { status: 'abandoned', successful: false }
         ],
-        errors: [
-          { recoveryTime: 500 }
-        ],
-        satisfactionEvents: [
-          { overallSatisfaction: 4 },
-          { overallSatisfaction: 3 }
-        ]
+        errors: [{ recoveryTime: 500 }],
+        satisfactionEvents: [{ overallSatisfaction: 4 }, { overallSatisfaction: 3 }]
       };
 
       const metrics = tracker.calculateSessionMetrics(mockSession);
@@ -705,7 +700,7 @@ describe('VoiceUXMetricsTracker', () => {
       tracker.trackFeatureUsage(featureData);
 
       expect(tracker.uxMetrics.engagement.featureUsage).toHaveProperty('voice_interruption');
-      
+
       const featureMetrics = tracker.uxMetrics.engagement.featureUsage.voice_interruption;
       expect(featureMetrics.usageCount).toBe(1);
       expect(featureMetrics.userSatisfaction).toBe(4);
@@ -733,7 +728,8 @@ describe('VoiceUXMetricsTracker', () => {
     it('should calculate interaction frequency correctly', () => {
       // Add test interactions with timestamps (in chronological order)
       const now = Date.now();
-      for (let i = 4; i >= 0; i--) { // Reverse order to simulate chronological addition
+      for (let i = 4; i >= 0; i--) {
+        // Reverse order to simulate chronological addition
         tracker.interactionBuffer.push({
           timestamp: now - i * 10000 // 10 seconds apart
         });
@@ -748,7 +744,7 @@ describe('VoiceUXMetricsTracker', () => {
   describe('Data Export', () => {
     it('should export UX data in different formats', () => {
       tracker.startTracking();
-      
+
       // Add some test data
       tracker.trackInteraction({
         type: 'test',
@@ -790,7 +786,7 @@ describe('VoiceUXMetricsTracker', () => {
 
       const recentInteractions = tracker.getRecentInteractions(5);
       expect(recentInteractions.length).toBe(5);
-      
+
       // Should be the most recent ones (last 5 added to the array)
       expect(recentInteractions[0].id).toBe('interaction_5');
       expect(recentInteractions[4].id).toBe('interaction_9');

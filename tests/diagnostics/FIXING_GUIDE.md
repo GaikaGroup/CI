@@ -5,11 +5,13 @@ This guide provides step-by-step instructions for fixing common issues with text
 ## Quick Diagnosis
 
 Run this in your browser console on `/sessions` page:
+
 ```javascript
 // Copy and paste the contents of browserConsoleTest.js
 ```
 
 Or run the automated tests:
+
 ```bash
 npm test tests/diagnostics/sessionsPageTextModeDiagnostics.js
 ```
@@ -19,10 +21,12 @@ npm test tests/diagnostics/sessionsPageTextModeDiagnostics.js
 ### Issue 1: MessageInput Component Not Rendering
 
 **Symptoms:**
+
 - No text input field visible in text mode
 - Cannot type messages
 
 **Diagnosis:**
+
 ```bash
 # Check if component is imported
 grep -n "MessageInput" src/routes/sessions/+page.svelte
@@ -31,6 +35,7 @@ grep -n "MessageInput" src/routes/sessions/+page.svelte
 **Fix:**
 
 1. Ensure MessageInput is imported:
+
 ```svelte
 <script>
   import MessageInput from '$modules/chat/components/MessageInput.svelte';
@@ -38,6 +43,7 @@ grep -n "MessageInput" src/routes/sessions/+page.svelte
 ```
 
 2. Ensure it's rendered in the text mode block:
+
 ```svelte
 {#if $chatModeStore === 'text'}
   <div class="messages-area">
@@ -56,11 +62,13 @@ grep -n "MessageInput" src/routes/sessions/+page.svelte
 ### Issue 2: handleSendMessage Not Working
 
 **Symptoms:**
+
 - Clicking send button does nothing
 - Pressing Enter does nothing
 - No API calls made
 
 **Diagnosis:**
+
 ```bash
 # Check if function exists
 grep -n "handleSendMessage" src/routes/sessions/+page.svelte
@@ -69,19 +77,19 @@ grep -n "handleSendMessage" src/routes/sessions/+page.svelte
 **Fix:**
 
 1. Ensure handleSendMessage is defined:
+
 ```javascript
 async function handleSendMessage(event) {
   const { content, images } = event.detail;
-  
+
   if (!content.trim() && images.length === 0) return;
-  
+
   try {
     // Import sendMessage dynamically or at top
     const { sendMessage } = await import('$modules/chat/services');
-    
+
     // Send message to LLM
     await sendMessage(content, images);
-    
   } catch (error) {
     console.error('Failed to send message:', error);
   }
@@ -89,6 +97,7 @@ async function handleSendMessage(event) {
 ```
 
 2. Ensure it's bound to MessageInput:
+
 ```svelte
 <MessageInput on:send={handleSendMessage} />
 ```
@@ -98,10 +107,12 @@ async function handleSendMessage(event) {
 ### Issue 3: Messages Not Displaying
 
 **Symptoms:**
+
 - Messages sent but not visible
 - Empty chat area
 
 **Diagnosis:**
+
 ```bash
 # Check if MessageList is rendered
 grep -n "MessageList" src/routes/sessions/+page.svelte
@@ -110,6 +121,7 @@ grep -n "MessageList" src/routes/sessions/+page.svelte
 **Fix:**
 
 1. Ensure MessageList is imported:
+
 ```svelte
 <script>
   import MessageList from '$modules/chat/components/MessageList.svelte';
@@ -117,6 +129,7 @@ grep -n "MessageList" src/routes/sessions/+page.svelte
 ```
 
 2. Ensure it's in the text mode block:
+
 ```svelte
 {#if $chatModeStore === 'text'}
   <div class="messages-area">
@@ -126,6 +139,7 @@ grep -n "MessageList" src/routes/sessions/+page.svelte
 ```
 
 3. Ensure messages store is imported and used:
+
 ```javascript
 import { messages } from '$modules/chat/stores';
 
@@ -137,10 +151,12 @@ import { messages } from '$modules/chat/stores';
 ### Issue 4: Messages Not Persisting
 
 **Symptoms:**
+
 - Messages disappear on page reload
 - Messages not saved to database
 
 **Diagnosis:**
+
 ```bash
 # Check if saveMessageToSession exists
 grep -n "saveMessageToSession" src/routes/sessions/+page.svelte
@@ -149,13 +165,14 @@ grep -n "saveMessageToSession" src/routes/sessions/+page.svelte
 **Fix:**
 
 1. Add auto-save function:
+
 ```javascript
 async function saveMessageToSession(message) {
   if (!currentSessionId || !$user || !message.content) return;
-  
+
   // Don't save system messages or already saved messages
   if (message.type === 'system' || message.saved) return;
-  
+
   try {
     const response = await fetch(`/api/sessions/${currentSessionId}/messages`, {
       method: 'POST',
@@ -166,15 +183,14 @@ async function saveMessageToSession(message) {
         metadata: message.metadata || {}
       })
     });
-    
+
     if (!response.ok) {
       console.error('Failed to save message');
       return;
     }
-    
+
     // Mark message as saved
     message.saved = true;
-    
   } catch (error) {
     console.error('Failed to save message:', error);
   }
@@ -182,6 +198,7 @@ async function saveMessageToSession(message) {
 ```
 
 2. Subscribe to messages and auto-save:
+
 ```javascript
 onMount(() => {
   // Subscribe to messages to auto-save them
@@ -203,18 +220,20 @@ onMount(() => {
 ### Issue 5: Session Not Created
 
 **Symptoms:**
+
 - Error: "No session ID"
 - Messages not associated with session
 
 **Fix:**
 
 1. Create session before sending first message:
+
 ```javascript
 async function handleSendMessage(event) {
   const { content, images } = event.detail;
-  
+
   if (!content.trim() && images.length === 0) return;
-  
+
   try {
     // If no current session, create one
     if (!currentSessionId) {
@@ -222,11 +241,10 @@ async function handleSendMessage(event) {
       const session = await sessionStore.createSession(title, 'fun', 'en');
       currentSessionId = session.id;
     }
-    
+
     // Send message
     const { sendMessage } = await import('$modules/chat/services');
     await sendMessage(content, images);
-    
   } catch (error) {
     console.error('Failed to send message:', error);
   }
@@ -238,40 +256,41 @@ async function handleSendMessage(event) {
 ### Issue 6: Messages Not Loading on Session Select
 
 **Symptoms:**
+
 - Selecting session shows empty chat
 - Previous messages not displayed
 
 **Fix:**
 
 1. Add selectSession function:
+
 ```javascript
 async function selectSession(session) {
   try {
     await sessionStore.selectSession(session.id);
     currentSessionId = session.id;
-    
+
     // Load messages for this session
     const response = await fetch(`/api/sessions/${session.id}/messages?limit=200`);
     if (response.ok) {
       const data = await response.json();
       const loadedMessages = data.messages || [];
-      
+
       // Convert database messages to chat format
       const chatMessages = loadedMessages.map((msg, index) => ({
         id: msg.id || index + 1,
         type: msg.type === 'assistant' ? 'tutor' : msg.type,
         content: msg.content,
-        timestamp: new Date(msg.createdAt).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
         }),
         metadata: msg.metadata || {},
         saved: true
       }));
-      
+
       messages.set(chatMessages);
     }
-    
   } catch (error) {
     console.error('Failed to select session:', error);
     messages.set([]);
@@ -280,11 +299,9 @@ async function selectSession(session) {
 ```
 
 2. Bind to session click:
+
 ```svelte
-<button
-  class="session-item"
-  on:click={() => selectSession(session)}
->
+<button class="session-item" on:click={() => selectSession(session)}>
   {session.title}
 </button>
 ```
@@ -294,22 +311,26 @@ async function selectSession(session) {
 ### Issue 7: Store Not Updating UI
 
 **Symptoms:**
+
 - Messages in store but not in UI
 - UI not reactive
 
 **Fix:**
 
 1. Ensure store is imported correctly:
+
 ```javascript
 import { messages } from '$modules/chat/stores';
 ```
 
 2. Use reactive statement:
+
 ```javascript
 $: currentMessages = $messages;
 ```
 
 3. Or use store directly in template:
+
 ```svelte
 {#each $messages as message}
   <div>{message.content}</div>
@@ -321,12 +342,14 @@ $: currentMessages = $messages;
 ### Issue 8: sendMessage Service Not Called
 
 **Symptoms:**
+
 - No API call to /api/chat
 - No AI response
 
 **Fix:**
 
 1. Ensure sendMessage is imported:
+
 ```javascript
 import { sendMessage } from '$modules/chat/services';
 // OR
@@ -334,11 +357,13 @@ const { sendMessage } = await import('$modules/chat/services');
 ```
 
 2. Ensure it's called with correct parameters:
+
 ```javascript
 await sendMessage(content, images, sessionId);
 ```
 
 3. Ensure it's awaited:
+
 ```javascript
 // ❌ Wrong
 sendMessage(content, images);
@@ -424,6 +449,7 @@ $: {
 See `src/routes/sessions/+page.svelte` for the complete implementation.
 
 Key sections:
+
 - Lines 1-20: Imports
 - Lines 30-70: handleSendMessage function
 - Lines 100-150: selectSession function

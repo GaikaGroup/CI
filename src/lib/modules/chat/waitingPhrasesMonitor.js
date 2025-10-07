@@ -22,13 +22,13 @@ export class WaitingPhrasesMonitor {
       averageSelectionTime: 0,
       averageTranslationTime: 0
     };
-    
+
     this.performanceLog = [];
     this.errorLog = [];
     this.isMonitoring = false;
     this.monitoringInterval = null;
     this.startTime = Date.now();
-    
+
     // Performance thresholds
     this.thresholds = {
       selectionTime: 100, // ms
@@ -57,9 +57,9 @@ export class WaitingPhrasesMonitor {
 
     this.isMonitoring = true;
     this.startTime = Date.now();
-    
+
     console.log('Starting waiting phrases monitoring...');
-    
+
     if (enableMetrics) {
       this.monitoringInterval = setInterval(() => {
         this.collectMetrics();
@@ -84,7 +84,7 @@ export class WaitingPhrasesMonitor {
     }
 
     this.isMonitoring = false;
-    
+
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
@@ -140,7 +140,6 @@ export class WaitingPhrasesMonitor {
       }
 
       return currentMetrics;
-
     } catch (error) {
       console.error('Error collecting metrics:', error);
       this.logError('METRICS_COLLECTION_ERROR', error);
@@ -156,13 +155,15 @@ export class WaitingPhrasesMonitor {
 
     // Check cache hit rate
     if (metrics.translation.hitRate < this.thresholds.cacheHitRate) {
-      warnings.push(`Low translation cache hit rate: ${(metrics.translation.hitRate * 100).toFixed(1)}%`);
+      warnings.push(
+        `Low translation cache hit rate: ${(metrics.translation.hitRate * 100).toFixed(1)}%`
+      );
     }
 
     // Check error rate
     const totalOperations = this.metrics.phraseSelections + this.metrics.translations;
     const errorRate = totalOperations > 0 ? this.metrics.errors / totalOperations : 0;
-    
+
     if (errorRate > this.thresholds.errorRate) {
       warnings.push(`High error rate: ${(errorRate * 100).toFixed(1)}%`);
     }
@@ -188,19 +189,19 @@ export class WaitingPhrasesMonitor {
   setupPerformanceLogging() {
     // Wrap phrase selection method
     const originalSelectPhrase = waitingPhrasesService.selectWaitingPhrase;
-    
-    waitingPhrasesService.selectWaitingPhrase = async function(...args) {
+
+    waitingPhrasesService.selectWaitingPhrase = async function (...args) {
       const startTime = performance.now();
-      
+
       try {
         const result = await originalSelectPhrase.apply(this, args);
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         // Update metrics
         monitor.metrics.phraseSelections++;
         monitor.updateAverageTime('selection', duration);
-        
+
         // Log performance entry
         monitor.logPerformance('PHRASE_SELECTION', {
           duration,
@@ -209,45 +210,44 @@ export class WaitingPhrasesMonitor {
           success: true,
           phraseLength: result?.length || 0
         });
-        
+
         return result;
-        
       } catch (error) {
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         monitor.metrics.errors++;
         monitor.logError('PHRASE_SELECTION_ERROR', error, {
           duration,
           language: args[0],
           category: args[1]
         });
-        
+
         throw error;
       }
     };
 
     // Wrap translation method
     const originalTranslate = translationBridge.translatePhrase;
-    
-    translationBridge.translatePhrase = async function(...args) {
+
+    translationBridge.translatePhrase = async function (...args) {
       const startTime = performance.now();
-      
+
       try {
         const result = await originalTranslate.apply(this, args);
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         // Update metrics
         monitor.metrics.translations++;
         monitor.updateAverageTime('translation', duration);
-        
+
         if (result !== null) {
           monitor.metrics.cacheHits++;
         } else {
           monitor.metrics.cacheMisses++;
         }
-        
+
         // Log performance entry
         monitor.logPerformance('TRANSLATION', {
           duration,
@@ -256,20 +256,19 @@ export class WaitingPhrasesMonitor {
           success: result !== null,
           cached: monitor.translationBridge.translationCache.has(`${args[0]}:${args[1]}`)
         });
-        
+
         return result;
-        
       } catch (error) {
         const endTime = performance.now();
         const duration = endTime - startTime;
-        
+
         monitor.metrics.errors++;
         monitor.logError('TRANSLATION_ERROR', error, {
           duration,
           phrase: args[0]?.substring(0, 50) + '...',
           language: args[1]
         });
-        
+
         throw error;
       }
     };
@@ -281,8 +280,10 @@ export class WaitingPhrasesMonitor {
   setupErrorTracking() {
     // Global error handler for waiting phrases
     window.addEventListener('error', (event) => {
-      if (event.filename?.includes('waitingPhrases') || 
-          event.error?.stack?.includes('waitingPhrases')) {
+      if (
+        event.filename?.includes('waitingPhrases') ||
+        event.error?.stack?.includes('waitingPhrases')
+      ) {
         this.logError('GLOBAL_ERROR', event.error, {
           filename: event.filename,
           lineno: event.lineno,
@@ -307,12 +308,12 @@ export class WaitingPhrasesMonitor {
   updateAverageTime(type, duration) {
     const key = type === 'selection' ? 'averageSelectionTime' : 'averageTranslationTime';
     const countKey = type === 'selection' ? 'phraseSelections' : 'translations';
-    
+
     const currentAvg = this.metrics[key];
     const count = this.metrics[countKey];
-    
+
     // Calculate new average using incremental formula
-    this.metrics[key] = ((currentAvg * (count - 1)) + duration) / count;
+    this.metrics[key] = (currentAvg * (count - 1) + duration) / count;
   }
 
   /**
@@ -373,7 +374,7 @@ export class WaitingPhrasesMonitor {
   getPerformanceReport() {
     const uptime = Date.now() - this.startTime;
     const totalOperations = this.metrics.phraseSelections + this.metrics.translations;
-    
+
     return {
       uptime,
       totalOperations,
@@ -382,8 +383,10 @@ export class WaitingPhrasesMonitor {
         phraseSelectionsPerMinute: (this.metrics.phraseSelections / (uptime / 60000)).toFixed(2),
         translationsPerMinute: (this.metrics.translations / (uptime / 60000)).toFixed(2),
         errorRate: totalOperations > 0 ? (this.metrics.errors / totalOperations).toFixed(4) : 0,
-        cacheHitRate: this.metrics.translations > 0 ? 
-          (this.metrics.cacheHits / this.metrics.translations).toFixed(4) : 0
+        cacheHitRate:
+          this.metrics.translations > 0
+            ? (this.metrics.cacheHits / this.metrics.translations).toFixed(4)
+            : 0
       },
       thresholds: { ...this.thresholds },
       recentErrors: this.errorLog.slice(-10),
@@ -398,20 +401,20 @@ export class WaitingPhrasesMonitor {
   getHealthStatus() {
     const report = this.getPerformanceReport();
     const issues = [];
-    
+
     // Check for issues
     if (report.rates.errorRate > this.thresholds.errorRate) {
       issues.push(`High error rate: ${(report.rates.errorRate * 100).toFixed(1)}%`);
     }
-    
+
     if (report.rates.cacheHitRate < this.thresholds.cacheHitRate) {
       issues.push(`Low cache hit rate: ${(report.rates.cacheHitRate * 100).toFixed(1)}%`);
     }
-    
+
     if (this.metrics.averageSelectionTime > this.thresholds.selectionTime) {
       issues.push(`Slow phrase selection: ${this.metrics.averageSelectionTime.toFixed(1)}ms`);
     }
-    
+
     if (this.metrics.averageTranslationTime > this.thresholds.translationTime) {
       issues.push(`Slow translation: ${this.metrics.averageTranslationTime.toFixed(1)}ms`);
     }
@@ -452,11 +455,11 @@ export class WaitingPhrasesMonitor {
       averageSelectionTime: 0,
       averageTranslationTime: 0
     };
-    
+
     this.performanceLog = [];
     this.errorLog = [];
     this.startTime = Date.now();
-    
+
     console.log('Monitoring data reset');
   }
 }

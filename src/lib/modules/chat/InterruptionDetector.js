@@ -13,20 +13,20 @@ export class InterruptionDetector {
     this.speechThreshold = 0.08; // Optimized amplitude threshold
     this.interruptionTimeout = 400; // Reduced for faster response
     this.backgroundNoiseLevel = 0.02; // Background noise threshold
-    
+
     // Audio processing
     this.audioContext = null;
     this.mediaStream = null;
     this.analyser = null;
     this.dataArray = null;
     this.sourceNode = null;
-    
+
     // Optimized Voice Activity Detection (VAD) parameters
     this.vadBuffer = [];
     this.vadBufferSize = 8; // Reduced for faster detection
     this.vadThreshold = 0.12; // Lowered for better sensitivity
     this.vadConsecutiveFrames = 2; // Reduced for quicker response
-    
+
     // Adaptive sensitivity settings
     this.adaptiveSensitivity = {
       enabled: true,
@@ -38,7 +38,7 @@ export class InterruptionDetector {
       recentFalsePositives: 0,
       recentMissedDetections: 0
     };
-    
+
     // Performance optimization
     this.detectionOptimization = {
       skipFrames: 0, // Skip frames for performance
@@ -46,18 +46,18 @@ export class InterruptionDetector {
       maxSkipFrames: 2,
       fastMode: false
     };
-    
+
     // Interruption detection state
     this.interruptionCallbacks = [];
     this.lastInterruptionTime = 0;
     this.interruptionCooldown = 1000; // ms between interruptions
     this.detectionActive = false;
-    
+
     // Audio analysis
     this.analysisFrame = null;
     this.energyHistory = [];
     this.energyHistorySize = 20;
-    
+
     console.log('InterruptionDetector initialized');
   }
 
@@ -69,7 +69,7 @@ export class InterruptionDetector {
   async initialize(audioContext) {
     try {
       this.audioContext = audioContext;
-      
+
       // Request microphone access
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -83,24 +83,23 @@ export class InterruptionDetector {
       // Create audio analysis chain
       this.sourceNode = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.analyser = this.audioContext.createAnalyser();
-      
+
       // Configure analyser for voice detection
       this.analyser.fftSize = 256;
       this.analyser.smoothingTimeConstant = 0.3;
       this.analyser.minDecibels = -90;
       this.analyser.maxDecibels = -10;
-      
+
       // Connect audio chain
       this.sourceNode.connect(this.analyser);
-      
+
       // Initialize data array
       this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-      
+
       // Calibrate background noise
       await this.calibrateBackgroundNoise();
-      
+
       console.log('InterruptionDetector initialized successfully');
-      
     } catch (error) {
       console.error('Failed to initialize InterruptionDetector:', error);
       throw error;
@@ -113,22 +112,24 @@ export class InterruptionDetector {
    */
   async calibrateBackgroundNoise() {
     console.log('Calibrating background noise level...');
-    
+
     const samples = [];
     const sampleCount = 30; // 30 samples over 1.5 seconds
-    
+
     for (let i = 0; i < sampleCount; i++) {
       const energy = this.getAudioEnergy();
       samples.push(energy);
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    
+
     // Calculate average and set threshold above background noise
     const avgNoise = samples.reduce((sum, val) => sum + val, 0) / samples.length;
     this.backgroundNoiseLevel = Math.max(0.02, avgNoise * 1.5);
     this.vadThreshold = Math.max(0.15, avgNoise * 3);
-    
-    console.log(`Background noise calibrated: ${this.backgroundNoiseLevel.toFixed(3)}, VAD threshold: ${this.vadThreshold.toFixed(3)}`);
+
+    console.log(
+      `Background noise calibrated: ${this.backgroundNoiseLevel.toFixed(3)}, VAD threshold: ${this.vadThreshold.toFixed(3)}`
+    );
   }
 
   /**
@@ -149,7 +150,7 @@ export class InterruptionDetector {
     this.detectionActive = true;
     this.vadBuffer = [];
     this.energyHistory = [];
-    
+
     console.log('Started listening for interruptions');
     this.startAudioAnalysis();
   }
@@ -164,12 +165,12 @@ export class InterruptionDetector {
 
     this.isListening = false;
     this.detectionActive = false;
-    
+
     if (this.analysisFrame) {
       cancelAnimationFrame(this.analysisFrame);
       this.analysisFrame = null;
     }
-    
+
     console.log('Stopped listening for interruptions');
   }
 
@@ -185,7 +186,7 @@ export class InterruptionDetector {
       try {
         // Get current audio energy
         const energy = this.getAudioEnergy();
-        
+
         // Add to energy history
         this.energyHistory.push(energy);
         if (this.energyHistory.length > this.energyHistorySize) {
@@ -194,14 +195,13 @@ export class InterruptionDetector {
 
         // Perform voice activity detection
         const isVoiceDetected = this.detectVoiceActivity(energy);
-        
+
         if (isVoiceDetected) {
           this.handlePotentialInterruption(energy);
         }
 
         // Continue analysis
         this.analysisFrame = requestAnimationFrame(analyze);
-        
       } catch (error) {
         console.error('Error in audio analysis:', error);
         this.stopListening();
@@ -222,23 +222,23 @@ export class InterruptionDetector {
 
     // Get frequency data
     this.analyser.getByteFrequencyData(this.dataArray);
-    
+
     // Calculate RMS energy focusing on speech frequencies (300-3400 Hz)
     const sampleRate = this.audioContext.sampleRate;
     const binSize = sampleRate / this.analyser.fftSize;
     const startBin = Math.floor(300 / binSize);
     const endBin = Math.floor(3400 / binSize);
-    
+
     let sum = 0;
     let count = 0;
-    
+
     for (let i = startBin; i < Math.min(endBin, this.dataArray.length); i++) {
       sum += this.dataArray[i] * this.dataArray[i];
       count++;
     }
-    
+
     if (count === 0) return 0;
-    
+
     const rms = Math.sqrt(sum / count) / 255; // Normalize to 0-1
     return rms;
   }
@@ -270,8 +270,8 @@ export class InterruptionDetector {
     }
 
     // Use adaptive threshold
-    const currentThreshold = this.adaptiveSensitivity.enabled 
-      ? this.adaptiveSensitivity.currentThreshold 
+    const currentThreshold = this.adaptiveSensitivity.enabled
+      ? this.adaptiveSensitivity.currentThreshold
       : this.vadThreshold;
 
     // Quick energy check with background noise consideration
@@ -282,8 +282,8 @@ export class InterruptionDetector {
 
     // Optimized threshold checking
     const recentSamples = this.vadBuffer.slice(-this.vadConsecutiveFrames);
-    const aboveThreshold = recentSamples.filter(sample => sample > currentThreshold).length;
-    
+    const aboveThreshold = recentSamples.filter((sample) => sample > currentThreshold).length;
+
     if (aboveThreshold < this.vadConsecutiveFrames) {
       return false;
     }
@@ -291,7 +291,7 @@ export class InterruptionDetector {
     // Enhanced energy pattern analysis
     const energyVariance = this.calculateEnergyVariance(recentSamples);
     const isConsistentEnergy = energyVariance < 0.05; // Low variance indicates consistent speech
-    
+
     // Skip expensive spectral analysis in fast mode or if energy is very high
     if (this.detectionOptimization.fastMode || energy > currentThreshold * 2) {
       return isConsistentEnergy;
@@ -299,7 +299,7 @@ export class InterruptionDetector {
 
     // Full spectral analysis for borderline cases
     const hasVoiceCharacteristics = this.analyzeVoiceCharacteristics();
-    
+
     return hasVoiceCharacteristics && isConsistentEnergy;
   }
 
@@ -310,9 +310,9 @@ export class InterruptionDetector {
    */
   calculateEnergyVariance(samples) {
     if (samples.length < 2) return 0;
-    
+
     const mean = samples.reduce((sum, val) => sum + val, 0) / samples.length;
-    const squaredDiffs = samples.map(val => Math.pow(val - mean, 2));
+    const squaredDiffs = samples.map((val) => Math.pow(val - mean, 2));
     return squaredDiffs.reduce((sum, val) => sum + val, 0) / samples.length;
   }
 
@@ -327,22 +327,22 @@ export class InterruptionDetector {
 
     // Get frequency data
     this.analyser.getByteFrequencyData(this.dataArray);
-    
+
     // Quick frequency analysis - focus on speech range
     const sampleRate = this.audioContext.sampleRate;
     const binSize = sampleRate / this.analyser.fftSize;
-    
+
     // Optimized frequency bands
     const speechBand = this.getEnergyInBand(300, 3000, binSize); // Core speech range
     const noiseBand = this.getEnergyInBand(50, 200, binSize); // Low frequency noise
     const highBand = this.getEnergyInBand(4000, 8000, binSize); // High frequency
-    
+
     const totalEnergy = speechBand + noiseBand + highBand;
     if (totalEnergy < 0.05) return false;
-    
+
     const speechRatio = speechBand / totalEnergy;
     const noiseRatio = noiseBand / totalEnergy;
-    
+
     // Optimized voice detection criteria
     return speechRatio > 0.4 && speechRatio < 0.85 && noiseRatio < 0.3;
   }
@@ -358,27 +358,27 @@ export class InterruptionDetector {
 
     // Get frequency data
     this.analyser.getByteFrequencyData(this.dataArray);
-    
+
     // Analyze frequency distribution for speech patterns
     const sampleRate = this.audioContext.sampleRate;
     const binSize = sampleRate / this.analyser.fftSize;
-    
+
     // Define frequency bands for speech analysis
     const fundamentalBand = this.getEnergyInBand(80, 300, binSize); // Fundamental frequency
     const formantBand = this.getEnergyInBand(300, 3400, binSize); // Formant frequencies
     const highBand = this.getEnergyInBand(3400, 8000, binSize); // High frequencies
-    
+
     // Voice characteristics:
     // 1. Strong formant energy
     // 2. Moderate fundamental energy
     // 3. Lower high-frequency energy (compared to noise)
-    
+
     const totalEnergy = fundamentalBand + formantBand + highBand;
     if (totalEnergy < 0.1) return false;
-    
+
     const formantRatio = formantBand / totalEnergy;
     const highRatio = highBand / totalEnergy;
-    
+
     // Voice typically has strong formant energy (40-70%) and lower high-frequency content
     return formantRatio > 0.4 && formantRatio < 0.8 && highRatio < 0.4;
   }
@@ -393,16 +393,16 @@ export class InterruptionDetector {
   getEnergyInBand(startFreq, endFreq, binSize) {
     const startBin = Math.floor(startFreq / binSize);
     const endBin = Math.floor(endFreq / binSize);
-    
+
     let sum = 0;
     let count = 0;
-    
+
     for (let i = startBin; i < Math.min(endBin, this.dataArray.length); i++) {
       sum += this.dataArray[i];
       count++;
     }
-    
-    return count > 0 ? (sum / count) / 255 : 0;
+
+    return count > 0 ? sum / count / 255 : 0;
   }
 
   /**
@@ -411,7 +411,7 @@ export class InterruptionDetector {
    */
   async handlePotentialInterruption(energy) {
     const now = Date.now();
-    
+
     // Check cooldown period
     if (now - this.lastInterruptionTime < this.interruptionCooldown) {
       return;
@@ -419,7 +419,7 @@ export class InterruptionDetector {
 
     // Confirm interruption with sustained voice activity
     const isConfirmed = await this.confirmInterruption(energy);
-    
+
     if (isConfirmed) {
       this.lastInterruptionTime = now;
       await this.triggerInterruption(energy);
@@ -437,7 +437,7 @@ export class InterruptionDetector {
       const requiredSamples = 5; // Need 5 consecutive samples
       let sampleCount = 0;
       const maxSamples = 10; // Maximum samples to check
-      
+
       const checkSample = () => {
         if (sampleCount >= maxSamples) {
           resolve(false);
@@ -446,7 +446,7 @@ export class InterruptionDetector {
 
         const energy = this.getAudioEnergy();
         sampleCount++;
-        
+
         if (energy > this.vadThreshold && this.analyzeVoiceCharacteristics()) {
           confirmationSamples++;
           if (confirmationSamples >= requiredSamples) {
@@ -471,13 +471,13 @@ export class InterruptionDetector {
   async triggerInterruption(energy) {
     try {
       console.log(`Interruption detected! Energy: ${energy.toFixed(3)}`);
-      
+
       // Capture audio buffer for language detection
       const audioBuffer = await this.captureAudioBuffer();
-      
+
       // Detect language from the interruption
       const languageDetection = await this.detectInterruptionLanguage(audioBuffer, energy);
-      
+
       // Create interruption event
       const interruptionEvent = {
         timestamp: Date.now(),
@@ -491,17 +491,18 @@ export class InterruptionDetector {
         languageScores: languageDetection.scores
       };
 
-      console.log(`Language detected in interruption: ${languageDetection.language} (confidence: ${languageDetection.confidence})`);
+      console.log(
+        `Language detected in interruption: ${languageDetection.language} (confidence: ${languageDetection.confidence})`
+      );
 
       // Notify all callbacks
-      this.interruptionCallbacks.forEach(callback => {
+      this.interruptionCallbacks.forEach((callback) => {
         try {
           callback(interruptionEvent);
         } catch (error) {
           console.error('Error in interruption callback:', error);
         }
       });
-
     } catch (error) {
       console.error('Error triggering interruption:', error);
     }
@@ -525,12 +526,11 @@ export class InterruptionDetector {
 
       // Use language detector
       const detection = await languageDetector.detectLanguage(audioBuffer, audioMetrics);
-      
+
       return detection;
-      
     } catch (error) {
       console.error('Error detecting language from interruption:', error);
-      
+
       // Return fallback language
       return languageDetector.getFallbackLanguage();
     }
@@ -555,14 +555,14 @@ export class InterruptionDetector {
     // Base confidence on energy level relative to thresholds
     const energyRatio = energy / this.vadThreshold;
     const baseConfidence = Math.min(1, energyRatio / 2);
-    
+
     // Adjust based on recent energy history
     if (this.energyHistory.length > 5) {
       const recentAvg = this.energyHistory.slice(-5).reduce((sum, val) => sum + val, 0) / 5;
       const consistencyBonus = recentAvg > this.vadThreshold ? 0.2 : 0;
       return Math.min(1, baseConfidence + consistencyBonus);
     }
-    
+
     return baseConfidence;
   }
 
@@ -595,12 +595,12 @@ export class InterruptionDetector {
     if (settings.speechThreshold !== undefined) {
       this.speechThreshold = Math.max(0.05, Math.min(0.5, settings.speechThreshold));
     }
-    
+
     if (settings.vadThreshold !== undefined) {
       this.vadThreshold = Math.max(0.08, Math.min(0.8, settings.vadThreshold));
       this.adaptiveSensitivity.currentThreshold = this.vadThreshold;
     }
-    
+
     if (settings.interruptionTimeout !== undefined) {
       this.interruptionTimeout = Math.max(100, Math.min(2000, settings.interruptionTimeout));
     }
@@ -609,7 +609,9 @@ export class InterruptionDetector {
       this.adaptiveSensitivity.enabled = settings.adaptiveSensitivity;
     }
 
-    console.log(`Updated sensitivity: speech=${this.speechThreshold}, vad=${this.vadThreshold}, timeout=${this.interruptionTimeout}, adaptive=${this.adaptiveSensitivity.enabled}`);
+    console.log(
+      `Updated sensitivity: speech=${this.speechThreshold}, vad=${this.vadThreshold}, timeout=${this.interruptionTimeout}, adaptive=${this.adaptiveSensitivity.enabled}`
+    );
   }
 
   /**
@@ -621,23 +623,27 @@ export class InterruptionDetector {
     if (!this.adaptiveSensitivity.enabled) return;
 
     const adaptation = this.adaptiveSensitivity;
-    
+
     if (wasFalsePositive) {
       adaptation.recentFalsePositives++;
       // Increase threshold to reduce false positives
       adaptation.currentThreshold = Math.min(
         adaptation.maxThreshold,
-        adaptation.currentThreshold + (adaptation.adaptationRate * 0.5)
+        adaptation.currentThreshold + adaptation.adaptationRate * 0.5
       );
-      console.log(`Adapted threshold up due to false positive: ${adaptation.currentThreshold.toFixed(3)}`);
+      console.log(
+        `Adapted threshold up due to false positive: ${adaptation.currentThreshold.toFixed(3)}`
+      );
     } else if (!wasCorrectDetection) {
       adaptation.recentMissedDetections++;
       // Decrease threshold to catch more interruptions
       adaptation.currentThreshold = Math.max(
         adaptation.minThreshold,
-        adaptation.currentThreshold - (adaptation.adaptationRate * 0.3)
+        adaptation.currentThreshold - adaptation.adaptationRate * 0.3
       );
-      console.log(`Adapted threshold down due to missed detection: ${adaptation.currentThreshold.toFixed(3)}`);
+      console.log(
+        `Adapted threshold down due to missed detection: ${adaptation.currentThreshold.toFixed(3)}`
+      );
     } else {
       // Correct detection - gradually return to base threshold
       const targetThreshold = adaptation.baseThreshold;
@@ -661,7 +667,7 @@ export class InterruptionDetector {
    */
   setFastMode(enabled) {
     this.detectionOptimization.fastMode = enabled;
-    
+
     if (enabled) {
       // Optimize for speed
       this.detectionOptimization.maxSkipFrames = 3;
@@ -673,7 +679,7 @@ export class InterruptionDetector {
       this.vadConsecutiveFrames = 2;
       this.vadBufferSize = 8;
     }
-    
+
     console.log(`Fast detection mode: ${enabled ? 'enabled' : 'disabled'}`);
   }
 
@@ -700,7 +706,7 @@ export class InterruptionDetector {
     // Adjust for noise level
     switch (noiseLevel) {
       case 'low':
-        settings.vadThreshold = 0.10;
+        settings.vadThreshold = 0.1;
         settings.speechThreshold = 0.06;
         break;
       case 'high':
@@ -758,23 +764,22 @@ export class InterruptionDetector {
   cleanup() {
     try {
       this.stopListening();
-      
+
       if (this.mediaStream) {
-        this.mediaStream.getTracks().forEach(track => track.stop());
+        this.mediaStream.getTracks().forEach((track) => track.stop());
         this.mediaStream = null;
       }
-      
+
       if (this.sourceNode) {
         this.sourceNode.disconnect();
         this.sourceNode = null;
       }
-      
+
       this.analyser = null;
       this.dataArray = null;
       this.interruptionCallbacks = [];
-      
+
       console.log('InterruptionDetector cleaned up');
-      
     } catch (error) {
       console.error('Error cleaning up InterruptionDetector:', error);
     }

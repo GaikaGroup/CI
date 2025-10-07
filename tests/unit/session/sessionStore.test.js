@@ -5,7 +5,11 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { sessionStore, chatStore, sessionUtils } from '../../../src/lib/modules/session/stores/index.js';
+import {
+  sessionStore,
+  chatStore,
+  sessionUtils
+} from '../../../src/lib/modules/session/stores/index.js';
 import { user, isAuthenticated } from '../../../src/lib/modules/auth/stores.js';
 
 // Mock the services
@@ -34,11 +38,11 @@ describe('Session Store', () => {
     // Reset stores
     sessionStore.reset();
     chatStore.reset();
-    
+
     // Mock authenticated user
     user.set({ id: 'test-user-1', name: 'Test User' });
     isAuthenticated.set(true);
-    
+
     // Clear all mocks
     vi.clearAllMocks();
   });
@@ -46,7 +50,7 @@ describe('Session Store', () => {
   describe('sessionStore', () => {
     it('should initialize with default state', () => {
       const state = get(sessionStore);
-      
+
       expect(state.sessions).toEqual([]);
       expect(state.currentSession).toBeNull();
       expect(state.loading).toBe(false);
@@ -89,7 +93,7 @@ describe('Session Store', () => {
       const initialState = get(sessionStore);
       initialState.currentSession = { id: 'test-session' };
       initialState.selectedSessionId = 'test-session';
-      
+
       // Then clear it
       sessionStore.clearSelection();
       const state = get(sessionStore);
@@ -102,11 +106,11 @@ describe('Session Store', () => {
       sessionStore.setLoading(true);
       sessionStore.setError('test error');
       sessionStore.setSearchQuery('test');
-      
+
       // Reset
       sessionStore.reset();
       const state = get(sessionStore);
-      
+
       expect(state.sessions).toEqual([]);
       expect(state.currentSession).toBeNull();
       expect(state.loading).toBe(false);
@@ -118,7 +122,7 @@ describe('Session Store', () => {
   describe('chatStore', () => {
     it('should initialize with default state', () => {
       const state = get(chatStore);
-      
+
       expect(state.messages).toEqual([]);
       expect(state.currentMessage).toBe('');
       expect(state.isTyping).toBe(false);
@@ -157,7 +161,7 @@ describe('Session Store', () => {
     it('should generate welcome messages', () => {
       const funWelcome = chatStore.getWelcomeMessage('fun', 'en');
       const learnWelcome = chatStore.getWelcomeMessage('learn', 'en');
-      
+
       expect(funWelcome).toContain('fun');
       expect(learnWelcome).toContain('focused learning');
       expect(typeof funWelcome).toBe('string');
@@ -171,11 +175,11 @@ describe('Session Store', () => {
       const initialState = get(chatStore);
       initialState.sessionId = 'test-session';
       initialState.messages = [{ id: 1, content: 'test' }];
-      
+
       // Clear session
       chatStore.clearSession();
       const state = get(chatStore);
-      
+
       expect(state.messages).toEqual([]);
       expect(state.sessionId).toBeNull();
       expect(state.currentMessage).toBe('');
@@ -187,11 +191,11 @@ describe('Session Store', () => {
       chatStore.setCurrentMessage('test');
       chatStore.setTyping(true);
       chatStore.setMode('learn');
-      
+
       // Reset
       chatStore.reset();
       const state = get(chatStore);
-      
+
       expect(state.messages).toEqual([]);
       expect(state.currentMessage).toBe('');
       expect(state.isTyping).toBe(false);
@@ -221,7 +225,7 @@ describe('Derived Stores', () => {
     // For now, just verify the store exists and returns an object
     const { sessionStats } = await import('../../../src/lib/modules/session/stores/index.js');
     const stats = get(sessionStats);
-    
+
     expect(typeof stats).toBe('object');
     expect(typeof stats.total).toBe('number');
     expect(typeof stats.funSessions).toBe('number');
@@ -231,7 +235,7 @@ describe('Derived Stores', () => {
   it('should provide message statistics', async () => {
     const { messageStats } = await import('../../../src/lib/modules/session/stores/index.js');
     const stats = get(messageStats);
-    
+
     expect(typeof stats).toBe('object');
     expect(typeof stats.total).toBe('number');
     expect(typeof stats.userMessages).toBe('number');

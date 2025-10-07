@@ -25,7 +25,7 @@ vi.mock('$lib/modules/chat/voiceServices', () => {
       },
       set: (newValue) => {
         value = newValue;
-        subscribers.forEach(fn => fn(value));
+        subscribers.forEach((fn) => fn(value));
       }
     };
   };
@@ -57,7 +57,7 @@ vi.mock('$lib/modules/chat/stores', () => {
       },
       set: (newValue) => {
         value = newValue;
-        subscribers.forEach(fn => fn(value));
+        subscribers.forEach((fn) => fn(value));
       }
     };
   };

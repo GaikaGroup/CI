@@ -4,8 +4,8 @@ const config = {
   kit: {
     adapter: adapter(),
     alias: {
-      '$modules': 'src/lib/modules',
-      '$shared': 'src/lib/shared'
+      $modules: 'src/lib/modules',
+      $shared: 'src/lib/shared'
     }
   }
 };

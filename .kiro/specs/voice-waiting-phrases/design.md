@@ -25,14 +25,14 @@ sequenceDiagram
     WaitingPhrases->>WaitingPhrases: Select random phrase
     WaitingPhrases->>TTS: Synthesize waiting phrase
     TTS->>Avatar: Play waiting phrase + animate
-    
+
     par Response Generation
         ChatAPI->>ChatAPI: Generate AI response
     and Waiting Phrase Playback
         Avatar->>Avatar: Animate during phrase
         Avatar->>WaitingPhrases: Phrase complete
     end
-    
+
     ChatAPI->>TTS: Synthesize AI response
     TTS->>Avatar: Play AI response + animate
 ```
@@ -52,12 +52,14 @@ sequenceDiagram
 **Purpose**: Core service managing phrase selection, caching, and playback coordination.
 
 **Key Functions**:
+
 - `initializeWaitingPhrases()`: Load and cache phrases from configuration
 - `selectWaitingPhrase(language)`: Select appropriate phrase for user's language
 - `playWaitingPhrase(phrase, language)`: Synthesize and queue phrase for playback
 - `getTranslatedPhrase(phrase, targetLanguage)`: Handle translation fallback
 
 **Interface**:
+
 ```javascript
 export interface WaitingPhrasesService {
   initializeWaitingPhrases(): Promise<void>;
@@ -72,6 +74,7 @@ export interface WaitingPhrasesService {
 **Purpose**: Centralized configuration file containing all waiting phrases in multiple languages.
 
 **Structure**:
+
 ```json
 {
   "phrases": {
@@ -96,9 +99,18 @@ export interface WaitingPhrasesService {
     },
     "contextual": {
       "math": {
-        "en": ["Let me work through this calculation...", "Mathematical problems require careful thought..."],
-        "ru": ["Позвольте мне проработать этот расчет...", "Математические задачи требуют внимательного размышления..."],
-        "es": ["Déjame resolver este cálculo...", "Los problemas matemáticos requieren un pensamiento cuidadoso..."]
+        "en": [
+          "Let me work through this calculation...",
+          "Mathematical problems require careful thought..."
+        ],
+        "ru": [
+          "Позвольте мне проработать этот расчет...",
+          "Математические задачи требуют внимательного размышления..."
+        ],
+        "es": [
+          "Déjame resolver este cálculo...",
+          "Los problemas matemáticos requieren un pensamiento cuidadoso..."
+        ]
       }
     }
   },
@@ -115,6 +127,7 @@ export interface WaitingPhrasesService {
 **Purpose**: Modify existing `voiceServices.js` to integrate waiting phrases into the voice chat flow.
 
 **Key Modifications**:
+
 - Add waiting phrase playback before AI response generation
 - Implement phrase queue management alongside existing audio queue
 - Ensure smooth transitions between waiting phrases and AI responses
@@ -125,6 +138,7 @@ export interface WaitingPhrasesService {
 **Purpose**: Bridge between waiting phrases and existing i18n system for translation fallback.
 
 **Key Functions**:
+
 - `translatePhrase(phrase, targetLanguage)`: Use existing translation mechanism
 - `detectPhraseLanguage(phrase)`: Determine source language of phrase
 - `getCachedTranslation(phrase, language)`: Manage translation cache
@@ -132,6 +146,7 @@ export interface WaitingPhrasesService {
 ## Data Models
 
 ### Phrase Configuration Model
+
 ```javascript
 {
   phrases: {
@@ -148,6 +163,7 @@ export interface WaitingPhrasesService {
 ```
 
 ### Phrase Selection State
+
 ```javascript
 {
   lastSelectedPhrase: string,
@@ -158,6 +174,7 @@ export interface WaitingPhrasesService {
 ```
 
 ### Audio Queue Enhancement
+
 ```javascript
 {
   type: 'waiting' | 'response',

@@ -69,10 +69,7 @@ describe('Multimedia Helpers', () => {
 
     it('should create image metadata for multiple images', () => {
       const metadata = createImageMetadata({
-        imageUrl: [
-          'https://example.com/image1.jpg',
-          'https://example.com/image2.jpg'
-        ]
+        imageUrl: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg']
       });
 
       expect(metadata.type).toBe('image');
@@ -132,10 +129,7 @@ describe('Multimedia Helpers', () => {
   describe('getImageUrls', () => {
     it('should extract image URLs from new structure', () => {
       const metadata = {
-        images: [
-          { url: 'https://example.com/img1.jpg' },
-          { url: 'https://example.com/img2.jpg' }
-        ]
+        images: [{ url: 'https://example.com/img1.jpg' }, { url: 'https://example.com/img2.jpg' }]
       };
       const urls = getImageUrls(metadata);
       expect(urls).toHaveLength(2);
@@ -319,12 +313,12 @@ describe('Multimedia Helpers', () => {
     it('should create blob URL from audio blob', () => {
       const blob = new Blob(['audio data'], { type: 'audio/mp3' });
       const url = createAudioBlobUrl(blob);
-      
+
       // In test environment, URL.createObjectURL might be mocked
       // Just verify it returns a string
       expect(typeof url).toBe('string');
       expect(url.length).toBeGreaterThan(0);
-      
+
       // Clean up
       URL.revokeObjectURL(url);
     });
@@ -339,7 +333,7 @@ describe('Multimedia Helpers', () => {
     it('should revoke blob URL', () => {
       const blob = new Blob(['data']);
       const url = URL.createObjectURL(blob);
-      
+
       // Should not throw
       revokeBlobUrl(url);
     });

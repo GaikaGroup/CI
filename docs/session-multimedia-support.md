@@ -11,6 +11,7 @@ The AI Tutor Sessions feature now includes comprehensive multimedia support, all
 Users can send voice messages that are automatically transcribed and stored with audio metadata.
 
 **Features:**
+
 - Voice recording with microphone
 - Automatic transcription using Whisper API
 - Audio metadata storage (duration, language, transcription)
@@ -18,6 +19,7 @@ Users can send voice messages that are automatically transcribed and stored with
 - Seamless integration with existing voice services
 
 **Metadata Structure:**
+
 ```javascript
 {
   type: 'voice',
@@ -34,6 +36,7 @@ Users can send voice messages that are automatically transcribed and stored with
 Users can attach images to their messages for visual context.
 
 **Features:**
+
 - Single or multiple image uploads
 - Image metadata extraction (dimensions, size, type)
 - Image preview in chat
@@ -41,6 +44,7 @@ Users can attach images to their messages for visual context.
 - Support for common image formats (JPG, PNG, GIF, WebP)
 
 **Metadata Structure:**
+
 ```javascript
 {
   type: 'image',
@@ -62,6 +66,7 @@ Users can attach images to their messages for visual context.
 AI responses can include synthesized audio that users can play back.
 
 **Features:**
+
 - Audio playback controls for AI responses
 - Duration display
 - Emotion-based synthesis
@@ -69,6 +74,7 @@ AI responses can include synthesized audio that users can play back.
 - Support for multiple audio formats
 
 **Metadata Structure:**
+
 ```javascript
 {
   type: 'audio_response',
@@ -86,6 +92,7 @@ AI responses can include synthesized audio that users can play back.
 Messages can contain multiple types of multimedia content simultaneously.
 
 **Example:**
+
 - Voice message with attached images
 - Text message with audio response
 - Image with voice description
@@ -137,19 +144,20 @@ if (hasImages(message)) {
 The `SessionChat.svelte` component has been enhanced to support multimedia:
 
 **Voice Recording:**
+
 ```javascript
 async function toggleRecording() {
   if (!$isRecording) {
     await startRecording();
   } else {
     const transcription = await stopRecording();
-    
+
     // Create voice metadata
     const voiceMetadata = createVoiceMetadata({
       language: $selectedLanguage,
       transcription: transcription
     });
-    
+
     // Send message with metadata
     await chatStore.sendMessage(transcription, voiceMetadata);
   }
@@ -157,10 +165,11 @@ async function toggleRecording() {
 ```
 
 **Image Upload:**
+
 ```javascript
 async function handleImageUpload(event) {
   const files = Array.from(event.target.files);
-  
+
   // Extract metadata for each image
   const fileObjects = await Promise.all(
     files.map(async (file) => {
@@ -174,25 +183,26 @@ async function handleImageUpload(event) {
       };
     })
   );
-  
+
   $selectedImages = [...$selectedImages, ...fileObjects];
 }
 ```
 
 **Sending Messages with Images:**
+
 ```javascript
 async function handleSendMessage() {
   const content = messageInput.trim();
   const images = $selectedImages;
-  
+
   // Create metadata
   let metadata = null;
   if (images && images.length > 0) {
     metadata = createImageMetadata({
-      imageUrl: images.map(img => img.url)
+      imageUrl: images.map((img) => img.url)
     });
   }
-  
+
   // Send message
   await chatStore.sendMessage(content, metadata);
 }
@@ -210,9 +220,9 @@ CREATE TABLE messages (
   content   String   @db.Text
   metadata  Json?    -- Stores multimedia metadata
   createdAt DateTime @default(now())
-  
+
   session   Session  @relation(...)
-  
+
   @@index([sessionId, createdAt])
 )
 ```
@@ -248,10 +258,7 @@ const audioMetadata = createAudioResponseMetadata({
   emotion: 'neutral'
 });
 
-await chatStore.addAssistantMessage(
-  'This appears to be a test object',
-  audioMetadata
-);
+await chatStore.addAssistantMessage('This appears to be a test object', audioMetadata);
 ```
 
 ### Example 3: Text Message with Multiple Images
@@ -273,6 +280,7 @@ await chatStore.sendMessage('Here are the diagrams', imageMetadata);
 ### Voice Controls
 
 In voice mode, users see:
+
 - Microphone button for recording
 - Recording indicator
 - Processing status
@@ -282,6 +290,7 @@ In voice mode, users see:
 ### Message Display
 
 Messages with multimedia show:
+
 - Audio playback controls with duration
 - Image thumbnails with dimensions
 - Voice message indicator
@@ -291,6 +300,7 @@ Messages with multimedia show:
 ### Responsive Design
 
 All multimedia components are responsive:
+
 - Mobile: Stacked layout with touch-friendly controls
 - Tablet: Optimized spacing and sizing
 - Desktop: Full-featured layout with hover states
@@ -300,6 +310,7 @@ All multimedia components are responsive:
 ### Unit Tests
 
 Test multimedia helper functions:
+
 ```bash
 npm test -- tests/unit/session/multimediaHelpers.test.js --run
 ```
@@ -307,6 +318,7 @@ npm test -- tests/unit/session/multimediaHelpers.test.js --run
 ### Integration Tests
 
 Test multimedia support in sessions:
+
 ```bash
 npm test -- tests/integration/session/MultimediaSupport.test.js --run
 ```
@@ -314,18 +326,21 @@ npm test -- tests/integration/session/MultimediaSupport.test.js --run
 ## Performance Considerations
 
 ### Audio Handling
+
 - Blob URLs are created for local audio files
 - URLs are revoked when no longer needed to free memory
 - Audio is buffered for smooth playback
 - Waiting phrases are pre-buffered for instant playback
 
 ### Image Handling
+
 - Images are lazy-loaded
 - Thumbnails are generated for large images
 - Blob URLs are managed efficiently
 - Image metadata is extracted asynchronously
 
 ### Database Storage
+
 - Metadata is stored as JSONB for efficient querying
 - Indexes support fast retrieval
 - Large files are stored externally (URLs only in DB)
@@ -334,12 +349,14 @@ npm test -- tests/integration/session/MultimediaSupport.test.js --run
 ## Security Considerations
 
 ### Input Validation
+
 - File types are validated before upload
 - File sizes are checked against limits
 - URLs are validated before storage
 - Metadata is sanitized
 
 ### Access Control
+
 - Users can only access their own multimedia
 - Session ownership is verified
 - Blob URLs are scoped to the session
@@ -348,6 +365,7 @@ npm test -- tests/integration/session/MultimediaSupport.test.js --run
 ## Future Enhancements
 
 Potential improvements:
+
 1. Video support
 2. Audio waveform visualization
 3. Image editing/annotation
@@ -362,18 +380,21 @@ Potential improvements:
 ## Troubleshooting
 
 ### Audio Not Playing
+
 - Check browser audio permissions
 - Verify audio URL is valid
 - Check audio format compatibility
 - Ensure audio context is initialized
 
 ### Images Not Displaying
+
 - Verify image URL is accessible
 - Check image format support
 - Ensure blob URLs haven't been revoked
 - Check browser console for errors
 
 ### Voice Recording Issues
+
 - Check microphone permissions
 - Verify MediaRecorder API support
 - Check network connectivity for transcription
@@ -384,6 +405,7 @@ Potential improvements:
 See `src/lib/modules/session/utils/multimediaHelpers.js` for complete API documentation.
 
 Key functions:
+
 - `createVoiceMetadata(options)` - Create voice metadata
 - `createImageMetadata(options)` - Create image metadata
 - `createAudioResponseMetadata(options)` - Create audio response metadata

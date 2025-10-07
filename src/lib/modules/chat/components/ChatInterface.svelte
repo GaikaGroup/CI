@@ -556,7 +556,7 @@
   <div
     class="{$darkMode
       ? 'bg-gray-800 border-gray-700'
-      : 'bg-white border-stone-200'} rounded-2xl shadow-sm border overflow-hidden"
+      : 'bg-white border-stone-200'} rounded-2xl shadow-sm border overflow-hidden flex flex-col h-full max-h-[600px]"
   >
     <!-- Language Indicator and Change Button -->
     {#if $selectedLanguage && !showLanguageSelector}

@@ -12,12 +12,12 @@ import { getPrismaClient } from './connection.js';
 export async function isDatabaseCurrent() {
   try {
     const prisma = getPrismaClient();
-    
+
     // Try to query the sessions table to verify schema exists
     await prisma.session.findFirst({
-      take: 1,
+      take: 1
     });
-    
+
     return true;
   } catch (error) {
     console.warn('Database schema check failed:', error.message);
@@ -32,7 +32,7 @@ export async function isDatabaseCurrent() {
 export async function getMigrationStatus() {
   try {
     const prisma = getPrismaClient();
-    
+
     // Check if _prisma_migrations table exists
     const result = await prisma.$queryRaw`
       SELECT EXISTS (
@@ -41,28 +41,28 @@ export async function getMigrationStatus() {
         AND table_name = '_prisma_migrations'
       );
     `;
-    
+
     const migrationsTableExists = result[0]?.exists || false;
-    
+
     if (!migrationsTableExists) {
       return {
         hasTable: false,
         appliedMigrations: [],
-        pendingMigrations: true,
+        pendingMigrations: true
       };
     }
-    
+
     // Get applied migrations
     const appliedMigrations = await prisma.$queryRaw`
       SELECT migration_name, applied_steps_count, finished_at
       FROM _prisma_migrations
       ORDER BY finished_at DESC;
     `;
-    
+
     return {
       hasTable: true,
       appliedMigrations,
-      pendingMigrations: false,
+      pendingMigrations: false
     };
   } catch (error) {
     console.error('Failed to get migration status:', error);
@@ -70,7 +70,7 @@ export async function getMigrationStatus() {
       hasTable: false,
       appliedMigrations: [],
       pendingMigrations: true,
-      error: error.message,
+      error: error.message
     };
   }
 }
@@ -83,10 +83,10 @@ export async function verifySchema() {
   try {
     const prisma = getPrismaClient();
     const issues = [];
-    
+
     // Check if required tables exist
     const tables = ['sessions', 'messages'];
-    
+
     for (const tableName of tables) {
       const result = await prisma.$queryRaw`
         SELECT EXISTS (
@@ -95,19 +95,15 @@ export async function verifySchema() {
           AND table_name = ${tableName}
         );
       `;
-      
+
       if (!result[0]?.exists) {
         issues.push(`Missing table: ${tableName}`);
       }
     }
-    
+
     // Check if required indexes exist
-    const requiredIndexes = [
-      'idx_user_sessions',
-      'idx_session_search',
-      'idx_session_messages',
-    ];
-    
+    const requiredIndexes = ['idx_user_sessions', 'idx_session_search', 'idx_session_messages'];
+
     for (const indexName of requiredIndexes) {
       const result = await prisma.$queryRaw`
         SELECT EXISTS (
@@ -116,21 +112,21 @@ export async function verifySchema() {
           AND indexname = ${indexName}
         );
       `;
-      
+
       if (!result[0]?.exists) {
         issues.push(`Missing index: ${indexName}`);
       }
     }
-    
+
     return {
       isValid: issues.length === 0,
-      issues,
+      issues
     };
   } catch (error) {
     console.error('Schema verification failed:', error);
     return {
       isValid: false,
-      issues: [`Schema verification error: ${error.message}`],
+      issues: [`Schema verification error: ${error.message}`]
     };
   }
 }
@@ -144,14 +140,14 @@ export async function resetDatabase() {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Database reset is not allowed in production');
   }
-  
+
   try {
     const prisma = getPrismaClient();
-    
+
     // Delete all data in reverse dependency order
     await prisma.message.deleteMany();
     await prisma.session.deleteMany();
-    
+
     console.log('Database reset completed successfully');
     return true;
   } catch (error) {

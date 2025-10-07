@@ -17,7 +17,7 @@ export class TranslationBridge {
       translations: 0,
       failures: 0
     };
-    
+
     // Predefined translations for common waiting phrases
     this.waitingPhraseTranslations = {
       en: {
@@ -31,19 +31,29 @@ export class TranslationBridge {
         'Analyzing your question...': 'analyzing',
         'Working on this...': 'working',
         'Just a second...': 'second',
-        'Ooh, this is a good one! Let me chew on this for a sec... I\'m piecing together some really cool connections that\'ll make this worth the wait.': 'goodOne',
-        'You\'ve got me thinking hard on this one! I\'m digging through everything I know to make sure I don\'t miss anything important.': 'thinkingHard',
-        'Hang on, this deserves the full treatment... I\'m sorting through a bunch of different angles so I can give you something really solid.': 'fullTreatment',
-        'Nice question! I\'m taking a beat to really think this through properly instead of just throwing something quick at you.': 'niceQuestion',
-        'You\'ve stumped me in the best way! I\'m working through this step by step because I want to make sure I nail it for you.': 'stumped',
-        'Hold up, let me really dig into this one... There\'s more to unpack here than meets the eye, and I want to get it right.': 'digDeep',
-        'This is the kind of question I love! Give me a moment to connect all the pieces - I\'ve got some interesting stuff brewing up here.': 'loveQuestion',
-        'You\'re making me work for it, and I\'m here for it! I\'m taking my time to make sure I give you something actually useful, not just quick and dirty.': 'workForIt',
-        'Alright, you\'ve got my gears turning... I\'m running through this from a few different directions to make sure I cover all the bases.': 'gearsTurning',
-        'This one\'s got layers! I\'m taking a minute to really break it down properly because you deserve better than a half-baked answer.': 'gotLayers'
+        "Ooh, this is a good one! Let me chew on this for a sec... I'm piecing together some really cool connections that'll make this worth the wait.":
+          'goodOne',
+        "You've got me thinking hard on this one! I'm digging through everything I know to make sure I don't miss anything important.":
+          'thinkingHard',
+        "Hang on, this deserves the full treatment... I'm sorting through a bunch of different angles so I can give you something really solid.":
+          'fullTreatment',
+        "Nice question! I'm taking a beat to really think this through properly instead of just throwing something quick at you.":
+          'niceQuestion',
+        "You've stumped me in the best way! I'm working through this step by step because I want to make sure I nail it for you.":
+          'stumped',
+        "Hold up, let me really dig into this one... There's more to unpack here than meets the eye, and I want to get it right.":
+          'digDeep',
+        "This is the kind of question I love! Give me a moment to connect all the pieces - I've got some interesting stuff brewing up here.":
+          'loveQuestion',
+        "You're making me work for it, and I'm here for it! I'm taking my time to make sure I give you something actually useful, not just quick and dirty.":
+          'workForIt',
+        "Alright, you've got my gears turning... I'm running through this from a few different directions to make sure I cover all the bases.":
+          'gearsTurning',
+        "This one's got layers! I'm taking a minute to really break it down properly because you deserve better than a half-baked answer.":
+          'gotLayers'
       }
     };
-    
+
     // Extended translations for waiting phrases
     this.extendedTranslations = {
       ru: {
@@ -57,16 +67,26 @@ export class TranslationBridge {
         analyzing: 'Анализирую ваш вопрос...',
         working: 'Работаю над этим...',
         second: 'Секундочку...',
-        goodOne: 'Ого, это интересный вопрос! Дай-ка я над этим покумекаю... Тут такие классные связи вырисовываются, что стоит подождать.',
-        thinkingHard: 'Ты меня реально заставил задуматься! Перерываю все, что знаю, чтобы ничего важного не упустить.',
-        fullTreatment: 'Подожди, это заслуживает серьезного подхода... Разбираю кучу разных углов зрения, чтобы дать тебе что-то реально толковое.',
-        niceQuestion: 'Классный вопрос! Беру паузу, чтобы как следует все обдумать, а не выдавать первое, что в голову пришло.',
-        stumped: 'Ты меня здорово озадачил! Разбираю по шагам, потому что хочу точно попасть в яблочко.',
-        digDeep: 'Стоп, дай-ка я в это углублюсь... Тут больше нюансов, чем кажется на первый взгляд, и я хочу все правильно разложить.',
-        loveQuestion: 'Обожаю такие вопросы! Дай минутку связать все кусочки - тут такая интересная штука вырисовывается.',
-        workForIt: 'Заставляешь меня попотеть, и мне это нравится! Не тороплюсь, чтобы дать тебе что-то реально полезное, а не абы как.',
-        gearsTurning: 'Ладно, ты запустил мои мозги... Прогоняю это с разных сторон, чтобы ничего не упустить.',
-        gotLayers: 'Тут много слоев! Беру минутку, чтобы все как следует разобрать, потому что ты заслуживаешь не сырой ответ.'
+        goodOne:
+          'Ого, это интересный вопрос! Дай-ка я над этим покумекаю... Тут такие классные связи вырисовываются, что стоит подождать.',
+        thinkingHard:
+          'Ты меня реально заставил задуматься! Перерываю все, что знаю, чтобы ничего важного не упустить.',
+        fullTreatment:
+          'Подожди, это заслуживает серьезного подхода... Разбираю кучу разных углов зрения, чтобы дать тебе что-то реально толковое.',
+        niceQuestion:
+          'Классный вопрос! Беру паузу, чтобы как следует все обдумать, а не выдавать первое, что в голову пришло.',
+        stumped:
+          'Ты меня здорово озадачил! Разбираю по шагам, потому что хочу точно попасть в яблочко.',
+        digDeep:
+          'Стоп, дай-ка я в это углублюсь... Тут больше нюансов, чем кажется на первый взгляд, и я хочу все правильно разложить.',
+        loveQuestion:
+          'Обожаю такие вопросы! Дай минутку связать все кусочки - тут такая интересная штука вырисовывается.',
+        workForIt:
+          'Заставляешь меня попотеть, и мне это нравится! Не тороплюсь, чтобы дать тебе что-то реально полезное, а не абы как.',
+        gearsTurning:
+          'Ладно, ты запустил мои мозги... Прогоняю это с разных сторон, чтобы ничего не упустить.',
+        gotLayers:
+          'Тут много слоев! Беру минутку, чтобы все как следует разобрать, потому что ты заслуживаешь не сырой ответ.'
       },
       es: {
         thinking: 'Déjame pensar en esto...',
@@ -79,16 +99,26 @@ export class TranslationBridge {
         analyzing: 'Analizando tu pregunta...',
         working: 'Trabajando en esto...',
         second: 'Solo un segundo...',
-        goodOne: '¡Uy, esta está buena! Déjame masticar esto un ratito... Estoy conectando cosas súper interesantes que van a valer la pena.',
-        thinkingHard: '¡Me tienes pensando en serio con esta! Estoy rebuscando todo lo que sé para no dejarme nada importante.',
-        fullTreatment: 'Espérate, esto se merece el tratamiento completo... Estoy revisando un montón de enfoques diferentes para darte algo realmente sólido.',
-        niceQuestion: '¡Buena pregunta! Me tomo un momento para pensarlo bien en lugar de soltarte cualquier cosa rápida.',
-        stumped: '¡Me has dejado pensando de la mejor manera! Lo estoy trabajando paso a paso porque quiero clavártela perfecta.',
-        digDeep: 'Para, déjame profundizar en esta... Hay más que desentrañar de lo que parece a simple vista, y quiero hacerlo bien.',
-        loveQuestion: '¡Este es el tipo de pregunta que me encanta! Dame un momento para conectar todas las piezas - tengo algo interesante cocinándose aquí.',
-        workForIt: 'Me estás haciendo trabajar, ¡y me gusta! Me tomo mi tiempo para darte algo realmente útil, no algo rápido y chapucero.',
-        gearsTurning: 'Bueno, me tienes los engranajes girando... Lo estoy viendo desde varias direcciones para asegurarme de cubrir todas las bases.',
-        gotLayers: '¡Esta tiene capas! Me tomo un minuto para desglosarla bien porque te mereces algo mejor que una respuesta a medias.'
+        goodOne:
+          '¡Uy, esta está buena! Déjame masticar esto un ratito... Estoy conectando cosas súper interesantes que van a valer la pena.',
+        thinkingHard:
+          '¡Me tienes pensando en serio con esta! Estoy rebuscando todo lo que sé para no dejarme nada importante.',
+        fullTreatment:
+          'Espérate, esto se merece el tratamiento completo... Estoy revisando un montón de enfoques diferentes para darte algo realmente sólido.',
+        niceQuestion:
+          '¡Buena pregunta! Me tomo un momento para pensarlo bien en lugar de soltarte cualquier cosa rápida.',
+        stumped:
+          '¡Me has dejado pensando de la mejor manera! Lo estoy trabajando paso a paso porque quiero clavártela perfecta.',
+        digDeep:
+          'Para, déjame profundizar en esta... Hay más que desentrañar de lo que parece a simple vista, y quiero hacerlo bien.',
+        loveQuestion:
+          '¡Este es el tipo de pregunta que me encanta! Dame un momento para conectar todas las piezas - tengo algo interesante cocinándose aquí.',
+        workForIt:
+          'Me estás haciendo trabajar, ¡y me gusta! Me tomo mi tiempo para darte algo realmente útil, no algo rápido y chapucero.',
+        gearsTurning:
+          'Bueno, me tienes los engranajes girando... Lo estoy viendo desde varias direcciones para asegurarme de cubrir todas las bases.',
+        gotLayers:
+          '¡Esta tiene capas! Me tomo un minuto para desglosarla bien porque te mereces algo mejor que una respuesta a medias.'
       }
     };
   }
@@ -121,7 +151,7 @@ export class TranslationBridge {
 
       // Try to find translation using predefined mappings
       let translatedPhrase = await this._translateUsingPredefinedMappings(phrase, targetLanguage);
-      
+
       if (translatedPhrase) {
         this.cacheStats.translations++;
         this._cacheTranslation(cacheKey, translatedPhrase);
@@ -131,7 +161,7 @@ export class TranslationBridge {
 
       // Try pattern-based translation for common phrase patterns
       translatedPhrase = await this._translateUsingPatterns(phrase, targetLanguage);
-      
+
       if (translatedPhrase) {
         this.cacheStats.translations++;
         this._cacheTranslation(cacheKey, translatedPhrase);
@@ -143,9 +173,8 @@ export class TranslationBridge {
       this.cacheStats.failures++;
       this._cacheTranslation(cacheKey, null);
       console.log(`Translation not available for ${targetLanguage}, will use original phrase`);
-      
-      return null;
 
+      return null;
     } catch (error) {
       console.error('Error translating phrase:', error);
       this.cacheStats.failures++;
@@ -164,7 +193,7 @@ export class TranslationBridge {
     // Check if we have a direct mapping for this phrase
     const englishMappings = this.waitingPhraseTranslations.en;
     const translationKey = englishMappings[phrase];
-    
+
     if (translationKey && this.extendedTranslations[targetLanguage]) {
       const translation = this.extendedTranslations[targetLanguage][translationKey];
       if (translation) {
@@ -243,7 +272,7 @@ export class TranslationBridge {
    */
   _cacheTranslation(cacheKey, translation) {
     this.translationCache.set(cacheKey, translation);
-    
+
     // Limit cache size to prevent memory issues
     if (this.translationCache.size > 200) {
       const firstKey = this.translationCache.keys().next().value;
@@ -260,7 +289,7 @@ export class TranslationBridge {
   addPhraseTranslation(englishPhrase, translationKey, translations) {
     // Add to English mappings
     this.waitingPhraseTranslations.en[englishPhrase] = translationKey;
-    
+
     // Add translations for each language
     for (const [lang, translation] of Object.entries(translations)) {
       if (!this.extendedTranslations[lang]) {
@@ -268,7 +297,7 @@ export class TranslationBridge {
       }
       this.extendedTranslations[lang][translationKey] = translation;
     }
-    
+
     console.log(`Added translation for phrase: "${englishPhrase}" with key: "${translationKey}"`);
   }
 
@@ -301,7 +330,9 @@ export class TranslationBridge {
       stats: {
         ...this.cacheStats,
         hitRate: this.cacheStats.hits / (this.cacheStats.hits + this.cacheStats.misses) || 0,
-        successRate: this.cacheStats.translations / (this.cacheStats.translations + this.cacheStats.failures) || 0
+        successRate:
+          this.cacheStats.translations /
+            (this.cacheStats.translations + this.cacheStats.failures) || 0
       }
     };
   }
@@ -327,14 +358,16 @@ export class TranslationBridge {
    */
   async warmUpCache(languages = ['ru', 'es'], phrases = null) {
     const phrasesToTranslate = phrases || Object.keys(this.waitingPhraseTranslations.en);
-    
-    console.log(`Warming up translation cache for ${languages.length} languages and ${phrasesToTranslate.length} phrases...`);
-    
+
+    console.log(
+      `Warming up translation cache for ${languages.length} languages and ${phrasesToTranslate.length} phrases...`
+    );
+
     let translatedCount = 0;
-    
+
     for (const language of languages) {
       if (language === 'en') continue; // Skip English
-      
+
       for (const phrase of phrasesToTranslate) {
         try {
           const translation = await this.translatePhrase(phrase, language);
@@ -346,7 +379,7 @@ export class TranslationBridge {
         }
       }
     }
-    
+
     console.log(`Translation cache warmed up: ${translatedCount} translations cached`);
   }
 
@@ -371,7 +404,7 @@ export class TranslationBridge {
     if (translationData.mappings) {
       Object.assign(this.waitingPhraseTranslations, translationData.mappings);
     }
-    
+
     if (translationData.translations) {
       for (const [lang, translations] of Object.entries(translationData.translations)) {
         if (!this.extendedTranslations[lang]) {
@@ -380,7 +413,7 @@ export class TranslationBridge {
         Object.assign(this.extendedTranslations[lang], translations);
       }
     }
-    
+
     console.log('Additional translations imported successfully');
   }
 }

@@ -2,7 +2,7 @@ import { IOCRResultStorage } from '../interfaces/IOCRResultStorage';
 
 /**
  * Memory-based OCR Result Storage
- * 
+ *
  * This class implements the IOCRResultStorage interface and stores OCR results in memory.
  */
 export class MemoryOCRResultStorage extends IOCRResultStorage {

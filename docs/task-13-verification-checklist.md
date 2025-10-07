@@ -14,6 +14,7 @@ Use this checklist to verify that all search and filtering features are working 
 ## 1. Real-Time Search
 
 ### Basic Search
+
 - [ ] Navigate to `/sessions`
 - [ ] Type "test" in the search box
 - [ ] Verify search is debounced (doesn't search on every keystroke)
@@ -21,12 +22,14 @@ Use this checklist to verify that all search and filtering features are working 
 - [ ] Verify matching sessions are displayed
 
 ### Search Highlighting
+
 - [ ] Verify search terms are highlighted in session titles
 - [ ] Verify search terms are highlighted in preview text
 - [ ] Verify highlighting works in both light and dark modes
 - [ ] Verify highlighting is case-insensitive
 
 ### Search Behavior
+
 - [ ] Search for a term that exists in titles
 - [ ] Search for a term that exists in previews
 - [ ] Search for a term that doesn't exist (verify empty state)
@@ -62,12 +65,14 @@ Use this checklist to verify that all search and filtering features are working 
 ## 4. Date Range Filtering
 
 ### From Date Only
+
 - [ ] Open filter panel
 - [ ] Set "From" date to a past date (e.g., 2024-01-01)
 - [ ] Click "Apply"
 - [ ] Verify only sessions updated after that date are shown
 
 ### To Date Only
+
 - [ ] Open filter panel
 - [ ] Clear "From" date
 - [ ] Set "To" date to a past date (e.g., 2024-06-30)
@@ -75,6 +80,7 @@ Use this checklist to verify that all search and filtering features are working 
 - [ ] Verify only sessions updated before that date are shown
 
 ### Date Range
+
 - [ ] Open filter panel
 - [ ] Set "From" date to 2024-01-01
 - [ ] Set "To" date to 2024-12-31
@@ -110,12 +116,14 @@ Use this checklist to verify that all search and filtering features are working 
 ## 8. Filter UI/UX
 
 ### Filter Button
+
 - [ ] Verify filter button is visible in header
 - [ ] Verify button shows filter icon
 - [ ] Verify button changes color when filters are active
 - [ ] Verify badge shows correct count of active filters
 
 ### Filter Panel
+
 - [ ] Verify panel opens when filter button is clicked
 - [ ] Verify panel closes when X button is clicked
 - [ ] Verify panel closes when "Apply" is clicked
@@ -142,6 +150,7 @@ Use this checklist to verify that all search and filtering features are working 
 ## 11. API Endpoints
 
 ### Search Endpoint
+
 ```bash
 # Test basic search
 curl "http://localhost:5173/api/sessions/search?q=test"
@@ -158,6 +167,7 @@ curl "http://localhost:5173/api/sessions/search?q=test&dateFrom=2024-01-01&dateT
 - [ ] Verify pagination works correctly
 
 ### Sessions Endpoint with Filters
+
 ```bash
 # Test mode filter
 curl "http://localhost:5173/api/sessions?mode=learn"
@@ -199,21 +209,25 @@ npm test -- tests/integration/session/SearchAndFiltering.integration.test.js --r
 ## 14. Edge Cases
 
 ### Empty States
+
 - [ ] Search with no results shows appropriate message
 - [ ] Filters with no results show appropriate message
 - [ ] Empty session list shows appropriate message
 
 ### Special Characters
+
 - [ ] Search with special characters works correctly
 - [ ] Search with quotes works correctly
 - [ ] Search with symbols works correctly
 
 ### Long Text
+
 - [ ] Long session titles display correctly
 - [ ] Long preview text is truncated properly
 - [ ] Highlighting works with long text
 
 ### Rapid Actions
+
 - [ ] Rapidly typing in search box doesn't cause issues
 - [ ] Rapidly clicking filter buttons doesn't cause issues
 - [ ] Rapidly changing filters doesn't cause issues
@@ -243,6 +257,7 @@ npm test -- tests/integration/session/SearchAndFiltering.integration.test.js --r
 ## 18. Browser Compatibility
 
 Test in multiple browsers:
+
 - [ ] Chrome/Chromium
 - [ ] Firefox
 - [ ] Safari
@@ -253,7 +268,7 @@ Test in multiple browsers:
 Document any issues found during verification:
 
 | Issue | Severity | Description | Status |
-|-------|----------|-------------|--------|
+| ----- | -------- | ----------- | ------ |
 |       |          |             |        |
 
 ## Sign-Off
@@ -264,9 +279,9 @@ Document any issues found during verification:
 - [ ] Documentation is complete
 - [ ] Ready for production
 
-**Verified By:** _______________  
-**Date:** _______________  
-**Notes:** _______________
+**Verified By:** ******\_\_\_******  
+**Date:** ******\_\_\_******  
+**Notes:** ******\_\_\_******
 
 ---
 

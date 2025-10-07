@@ -1,5 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { MessageService, MessageError, MessageNotFoundError, MessageValidationError } from '$lib/modules/session/services/MessageService.js';
+import {
+  MessageService,
+  MessageError,
+  MessageNotFoundError,
+  MessageValidationError
+} from '$lib/modules/session/services/MessageService.js';
 import { SessionNotFoundError } from '$lib/modules/session/services/SessionService.js';
 
 /**
@@ -20,7 +25,7 @@ export async function GET({ params, url, locals }) {
 
     const userId = locals.user.id;
     const sessionId = params.id;
-    
+
     console.log(`[API] GET /api/sessions/${sessionId}/messages - userId: ${userId}`);
 
     if (!sessionId) {
@@ -48,7 +53,7 @@ export async function GET({ params, url, locals }) {
       page,
       limit,
       sortOrder,
-      type,
+      type
     };
 
     const result = await MessageService.getSessionMessages(sessionId, options, userId);

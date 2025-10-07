@@ -33,7 +33,7 @@ A comprehensive sidebar component for displaying and managing user sessions.
 ```svelte
 <script>
   import { SessionsList } from '$lib/modules/session/components';
-  
+
   let selectedSessionId = null;
 </script>
 
@@ -52,6 +52,7 @@ A comprehensive sidebar component for displaying and managing user sessions.
 #### Session Metadata Display
 
 Each session in the list shows:
+
 - **Title**: Session name (editable inline)
 - **Preview**: First few lines of conversation (if available)
 - **Date**: Relative time (e.g., "2h ago", "3d ago")
@@ -76,6 +77,7 @@ Each session in the list shows:
 #### Styling
 
 The component uses Tailwind CSS with dark mode support:
+
 - Light theme: Stone color palette
 - Dark theme: Gray color palette
 - Accent color: Amber (amber-600)
@@ -84,6 +86,7 @@ The component uses Tailwind CSS with dark mode support:
 #### State Management
 
 The component integrates with:
+
 - `sessionStore`: Main session state management
 - `isSessionLoading`: Loading state
 - `sessionError`: Error state
@@ -92,6 +95,7 @@ The component integrates with:
 #### Events
 
 The component handles:
+
 - Session selection (updates `selectedSessionId` prop)
 - Session creation (navigates to `/sessions/{id}`)
 - Session updates (title editing)
@@ -116,10 +120,12 @@ The component handles:
 ## Testing
 
 Tests are located in:
+
 - `tests/unit/session/SessionsList.test.js` - Unit tests
 - `tests/integration/session/SessionsList.integration.test.js` - Integration tests
 
 Run tests with:
+
 ```bash
 npm test -- SessionsList
 ```
@@ -127,6 +133,7 @@ npm test -- SessionsList
 ## Future Enhancements
 
 Potential improvements for future iterations:
+
 - Drag and drop to reorder sessions
 - Bulk operations (delete multiple sessions)
 - Session tags/categories

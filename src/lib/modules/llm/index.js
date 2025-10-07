@@ -1,6 +1,6 @@
 /**
  * LLM Module Index
- * 
+ *
  * This file exports the LLM module components and registers them with the DI container.
  */
 
@@ -21,15 +21,15 @@ export function initializeLLMModule() {
   // Create and register the provider manager
   const providerManager = new ProviderManager();
   container.register('llmProviderManager', providerManager);
-  
+
   // Create and register the resource monitor
   const resourceMonitor = new ResourceMonitor();
   container.register('llmResourceMonitor', resourceMonitor);
-  
+
   // Start resource monitoring if local LLM is enabled
   if (LLM_FEATURES.ENABLE_LOCAL_LLM) {
     resourceMonitor.startMonitoring();
-    
+
     // Add a listener to switch providers when resources are constrained
     resourceMonitor.addListener((data) => {
       if (data.memoryThresholdExceeded || data.cpuThresholdExceeded) {
@@ -38,7 +38,7 @@ export function initializeLLMModule() {
       }
     });
   }
-  
+
   console.log('LLM module initialized');
   return { providerManager, resourceMonitor };
 }

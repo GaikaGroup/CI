@@ -24,7 +24,7 @@ export const dbConfig = {
   pool: {
     min: parseInt(env.DATABASE_POOL_MIN || '2'),
     max: parseInt(env.DATABASE_POOL_MAX || '10'),
-    timeout: parseInt(env.DATABASE_TIMEOUT || '30000'),
+    timeout: parseInt(env.DATABASE_TIMEOUT || '30000')
   },
 
   // Session-specific settings
@@ -33,14 +33,14 @@ export const dbConfig = {
     timeout: parseInt(env.SESSION_TIMEOUT || '86400000'), // 24 hours
     maxMessages: parseInt(env.SESSION_MAX_MESSAGES || '1000'),
     cleanupInterval: parseInt(env.SESSION_CLEANUP_INTERVAL || '3600000'), // 1 hour
-    archiveAfterDays: parseInt(env.SESSION_ARCHIVE_AFTER_DAYS || '90'),
+    archiveAfterDays: parseInt(env.SESSION_ARCHIVE_AFTER_DAYS || '90')
   },
 
   // Security settings
   security: {
     jwtSecret: env.JWT_SECRET || 'your-jwt-secret-key-change-this-in-production',
     jwtExpiresIn: env.JWT_EXPIRES_IN || '24h',
-    bcryptRounds: parseInt(env.BCRYPT_ROUNDS || '12'),
+    bcryptRounds: parseInt(env.BCRYPT_ROUNDS || '12')
   },
 
   // Rate limiting
@@ -48,8 +48,8 @@ export const dbConfig = {
     window: parseInt(env.RATE_LIMIT_WINDOW || '900000'), // 15 minutes
     maxRequests: parseInt(env.RATE_LIMIT_MAX_REQUESTS || '100'),
     sessionCreate: parseInt(env.RATE_LIMIT_SESSION_CREATE || '10'),
-    messageSend: parseInt(env.RATE_LIMIT_MESSAGE_SEND || '60'),
-  },
+    messageSend: parseInt(env.RATE_LIMIT_MESSAGE_SEND || '60')
+  }
 };
 
 /**
@@ -64,7 +64,10 @@ export function validateConfig() {
     errors.push('DATABASE_URL is required');
   }
 
-  if (!env.SESSION_SECRET || env.SESSION_SECRET === 'your-super-secret-session-key-change-this-in-production') {
+  if (
+    !env.SESSION_SECRET ||
+    env.SESSION_SECRET === 'your-super-secret-session-key-change-this-in-production'
+  ) {
     errors.push('SESSION_SECRET must be set to a secure value');
   }
 
@@ -87,7 +90,7 @@ export function validateConfig() {
 
   return {
     isValid: errors.length === 0,
-    errors,
+    errors
   };
 }
 
@@ -100,6 +103,6 @@ export function getConnectionString(environment = 'development') {
   if (environment === 'test') {
     return env.TEST_DATABASE_URL || dbConfig.url.replace(dbConfig.name, `${dbConfig.name}_test`);
   }
-  
+
   return dbConfig.url;
 }

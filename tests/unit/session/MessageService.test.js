@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { MessageService, MessageError, MessageNotFoundError, MessageValidationError } from '../../../src/lib/modules/session/services/MessageService.js';
+import {
+  MessageService,
+  MessageError,
+  MessageNotFoundError,
+  MessageValidationError
+} from '../../../src/lib/modules/session/services/MessageService.js';
 import { SessionNotFoundError } from '../../../src/lib/modules/session/services/SessionService.js';
 
 // Mock the database connection
@@ -13,7 +18,7 @@ vi.mock('../../../src/lib/database/index.js', () => ({
     session: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
-      update: vi.fn(),
+      update: vi.fn()
     },
     message: {
       create: vi.fn(),
@@ -23,19 +28,21 @@ vi.mock('../../../src/lib/database/index.js', () => ({
       update: vi.fn(),
       delete: vi.fn(),
       deleteMany: vi.fn(),
-      count: vi.fn(),
+      count: vi.fn()
     },
-    $transaction: vi.fn(),
+    $transaction: vi.fn()
   }
 }));
 
 // Mock SessionService
 vi.mock('../../../src/lib/modules/session/services/SessionService.js', async () => {
-  const actual = await vi.importActual('../../../src/lib/modules/session/services/SessionService.js');
+  const actual = await vi.importActual(
+    '../../../src/lib/modules/session/services/SessionService.js'
+  );
   return {
     ...actual,
     SessionService: {
-      getSession: vi.fn(),
+      getSession: vi.fn()
     }
   };
 });
@@ -56,22 +63,22 @@ describe('MessageService', () => {
         type: 'user',
         content: 'Hello, world!',
         metadata: null,
-        createdAt: new Date(),
+        createdAt: new Date()
       };
 
       SessionService.getSession.mockResolvedValue({
         id: 'session-123',
-        userId: 'user-123',
+        userId: 'user-123'
       });
 
       db.$transaction.mockImplementation(async (callback) => {
         return await callback({
           message: {
-            create: vi.fn().mockResolvedValue(mockMessage),
+            create: vi.fn().mockResolvedValue(mockMessage)
           },
           session: {
-            update: vi.fn().mockResolvedValue({}),
-          },
+            update: vi.fn().mockResolvedValue({})
+          }
         });
       });
 
@@ -91,7 +98,7 @@ describe('MessageService', () => {
       const metadata = {
         audioUrl: 'https://example.com/audio.mp3',
         language: 'en',
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       };
 
       const mockMessage = {
@@ -100,22 +107,22 @@ describe('MessageService', () => {
         type: 'assistant',
         content: 'Hello back!',
         metadata,
-        createdAt: new Date(),
+        createdAt: new Date()
       };
 
       SessionService.getSession.mockResolvedValue({
         id: 'session-123',
-        userId: 'user-123',
+        userId: 'user-123'
       });
 
       db.$transaction.mockImplementation(async (callback) => {
         return await callback({
           message: {
-            create: vi.fn().mockResolvedValue(mockMessage),
+            create: vi.fn().mockResolvedValue(mockMessage)
           },
           session: {
-            update: vi.fn().mockResolvedValue({}),
-          },
+            update: vi.fn().mockResolvedValue({})
+          }
         });
       });
 
@@ -131,28 +138,28 @@ describe('MessageService', () => {
     });
 
     it('should throw validation error for missing sessionId', async () => {
-      await expect(
-        MessageService.addMessage('', 'user', 'Hello')
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.addMessage('', 'user', 'Hello')).rejects.toThrow(
+        MessageValidationError
+      );
     });
 
     it('should throw validation error for invalid message type', async () => {
-      await expect(
-        MessageService.addMessage('session-123', 'invalid', 'Hello')
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.addMessage('session-123', 'invalid', 'Hello')).rejects.toThrow(
+        MessageValidationError
+      );
     });
 
     it('should throw validation error for empty content', async () => {
-      await expect(
-        MessageService.addMessage('session-123', 'user', '')
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.addMessage('session-123', 'user', '')).rejects.toThrow(
+        MessageValidationError
+      );
     });
 
     it('should throw validation error for content too long', async () => {
       const longContent = 'a'.repeat(50001);
-      await expect(
-        MessageService.addMessage('session-123', 'user', longContent)
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.addMessage('session-123', 'user', longContent)).rejects.toThrow(
+        MessageValidationError
+      );
     });
 
     it('should throw validation error for invalid metadata', async () => {
@@ -178,20 +185,20 @@ describe('MessageService', () => {
           sessionId: 'session-123',
           type: 'user',
           content: 'Hello',
-          createdAt: new Date(),
+          createdAt: new Date()
         },
         {
           id: 'message-2',
           sessionId: 'session-123',
           type: 'assistant',
           content: 'Hi there!',
-          createdAt: new Date(),
-        },
+          createdAt: new Date()
+        }
       ];
 
       SessionService.getSession.mockResolvedValue({
         id: 'session-123',
-        userId: 'user-123',
+        userId: 'user-123'
       });
 
       db.message.findMany.mockResolvedValue(mockMessages);
@@ -207,7 +214,7 @@ describe('MessageService', () => {
         where: { sessionId: 'session-123' },
         orderBy: { createdAt: 'asc' },
         skip: 0,
-        take: 10,
+        take: 10
       });
 
       expect(result.messages).toHaveLength(2);
@@ -221,23 +228,20 @@ describe('MessageService', () => {
           id: 'message-1',
           sessionId: 'session-123',
           type: 'user',
-          content: 'Hello',
-        },
+          content: 'Hello'
+        }
       ];
 
       db.message.findMany.mockResolvedValue(mockMessages);
       db.message.count.mockResolvedValue(1);
 
-      const result = await MessageService.getSessionMessages(
-        'session-123',
-        { type: 'user' }
-      );
+      const result = await MessageService.getSessionMessages('session-123', { type: 'user' });
 
       expect(db.message.findMany).toHaveBeenCalledWith({
         where: { sessionId: 'session-123', type: 'user' },
         orderBy: { createdAt: 'asc' },
         skip: 0,
-        take: 50,
+        take: 50
       });
 
       expect(result.messages).toHaveLength(1);
@@ -262,8 +266,8 @@ describe('MessageService', () => {
         type: 'user',
         content: 'Hello',
         session: {
-          userId: 'user-123',
-        },
+          userId: 'user-123'
+        }
       };
 
       db.message.findUnique.mockResolvedValue(mockMessage);
@@ -285,24 +289,24 @@ describe('MessageService', () => {
     it('should throw MessageNotFoundError for non-existent message', async () => {
       db.message.findUnique.mockResolvedValue(null);
 
-      await expect(
-        MessageService.getMessage('non-existent', 'user-123')
-      ).rejects.toThrow(MessageNotFoundError);
+      await expect(MessageService.getMessage('non-existent', 'user-123')).rejects.toThrow(
+        MessageNotFoundError
+      );
     });
 
     it('should throw access denied error for unauthorized user', async () => {
       const mockMessage = {
         id: 'message-123',
         session: {
-          userId: 'other-user',
-        },
+          userId: 'other-user'
+        }
       };
 
       db.message.findUnique.mockResolvedValue(mockMessage);
 
-      await expect(
-        MessageService.getMessage('message-123', 'user-123')
-      ).rejects.toThrow(MessageError);
+      await expect(MessageService.getMessage('message-123', 'user-123')).rejects.toThrow(
+        MessageError
+      );
     });
   });
 
@@ -312,13 +316,13 @@ describe('MessageService', () => {
         id: 'message-123',
         content: 'Old content',
         session: {
-          userId: 'user-123',
-        },
+          userId: 'user-123'
+        }
       };
 
       const updatedMessage = {
         ...existingMessage,
-        content: 'New content',
+        content: 'New content'
       };
 
       db.message.findUnique.mockResolvedValue(existingMessage);
@@ -357,20 +361,20 @@ describe('MessageService', () => {
         id: 'message-123',
         session: {
           id: 'session-123',
-          userId: 'user-123',
-        },
+          userId: 'user-123'
+        }
       };
 
       db.message.findUnique.mockResolvedValue(existingMessage);
-      
+
       db.$transaction.mockImplementation(async (callback) => {
         return await callback({
           message: {
-            delete: vi.fn().mockResolvedValue(existingMessage),
+            delete: vi.fn().mockResolvedValue(existingMessage)
           },
           session: {
-            update: vi.fn().mockResolvedValue({}),
-          },
+            update: vi.fn().mockResolvedValue({})
+          }
         });
       });
 
@@ -382,9 +386,9 @@ describe('MessageService', () => {
     it('should throw MessageNotFoundError for non-existent message', async () => {
       db.message.findUnique.mockResolvedValue(null);
 
-      await expect(
-        MessageService.deleteMessage('non-existent', 'user-123')
-      ).rejects.toThrow(MessageNotFoundError);
+      await expect(MessageService.deleteMessage('non-existent', 'user-123')).rejects.toThrow(
+        MessageNotFoundError
+      );
     });
   });
 
@@ -398,9 +402,9 @@ describe('MessageService', () => {
             id: 'session-123',
             title: 'Test Session',
             mode: 'fun',
-            language: 'en',
-          },
-        },
+            language: 'en'
+          }
+        }
       ];
 
       db.message.findMany.mockResolvedValue(mockMessages);
@@ -432,13 +436,13 @@ describe('MessageService', () => {
     });
 
     it('should throw validation error for invalid limit', async () => {
-      await expect(
-        MessageService.getRecentMessages('user-123', 0)
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.getRecentMessages('user-123', 0)).rejects.toThrow(
+        MessageValidationError
+      );
 
-      await expect(
-        MessageService.getRecentMessages('user-123', 101)
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.getRecentMessages('user-123', 101)).rejects.toThrow(
+        MessageValidationError
+      );
     });
   });
 
@@ -450,9 +454,9 @@ describe('MessageService', () => {
           content: 'Hello world',
           session: {
             id: 'session-123',
-            title: 'Test Session',
-          },
-        },
+            title: 'Test Session'
+          }
+        }
       ];
 
       db.message.findMany.mockResolvedValue(mockMessages);
@@ -463,7 +467,7 @@ describe('MessageService', () => {
       expect(db.message.findMany).toHaveBeenCalledWith({
         where: {
           session: { userId: 'user-123' },
-          content: { contains: 'hello', mode: 'insensitive' },
+          content: { contains: 'hello', mode: 'insensitive' }
         },
         orderBy: { createdAt: 'desc' },
         skip: 0,
@@ -485,9 +489,9 @@ describe('MessageService', () => {
     });
 
     it('should throw validation error for empty query', async () => {
-      await expect(
-        MessageService.searchMessages('user-123', '')
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.searchMessages('user-123', '')).rejects.toThrow(
+        MessageValidationError
+      );
     });
   });
 
@@ -497,25 +501,21 @@ describe('MessageService', () => {
 
       SessionService.getSession.mockResolvedValue({
         id: 'session-123',
-        userId: 'user-123',
+        userId: 'user-123'
       });
 
       db.$transaction.mockImplementation(async (callback) => {
         return await callback({
           message: {
-            deleteMany: vi.fn().mockResolvedValue({ count: 3 }),
+            deleteMany: vi.fn().mockResolvedValue({ count: 3 })
           },
           session: {
-            update: vi.fn().mockResolvedValue({}),
-          },
+            update: vi.fn().mockResolvedValue({})
+          }
         });
       });
 
-      const result = await MessageService.bulkDeleteMessages(
-        'session-123',
-        messageIds,
-        'user-123'
-      );
+      const result = await MessageService.bulkDeleteMessages('session-123', messageIds, 'user-123');
 
       expect(result).toBe(3);
     });
@@ -528,7 +528,7 @@ describe('MessageService', () => {
 
     it('should throw validation error for too many message IDs', async () => {
       const tooManyIds = Array.from({ length: 101 }, (_, i) => `message-${i}`);
-      
+
       await expect(
         MessageService.bulkDeleteMessages('session-123', tooManyIds, 'user-123')
       ).rejects.toThrow(MessageValidationError);
@@ -539,7 +539,7 @@ describe('MessageService', () => {
     it('should get message statistics', async () => {
       db.message.count
         .mockResolvedValueOnce(100) // total messages
-        .mockResolvedValueOnce(60)  // user messages
+        .mockResolvedValueOnce(60) // user messages
         .mockResolvedValueOnce(40); // assistant messages
 
       db.message.findFirst.mockResolvedValue({
@@ -552,7 +552,7 @@ describe('MessageService', () => {
         totalMessages: 100,
         userMessages: 60,
         assistantMessages: 40,
-        lastMessage: new Date('2023-01-01'),
+        lastMessage: new Date('2023-01-01')
       });
     });
   });
@@ -560,10 +560,10 @@ describe('MessageService', () => {
   describe('error handling and retry logic', () => {
     it('should retry on database connection errors', async () => {
       const connectionError = new Error('Connection failed');
-      
+
       SessionService.getSession.mockResolvedValue({
         id: 'session-123',
-        userId: 'user-123',
+        userId: 'user-123'
       });
 
       db.$transaction
@@ -576,12 +576,12 @@ describe('MessageService', () => {
                 id: 'message-123',
                 sessionId: 'session-123',
                 type: 'user',
-                content: 'Hello',
-              }),
+                content: 'Hello'
+              })
             },
             session: {
-              update: vi.fn().mockResolvedValue({}),
-            },
+              update: vi.fn().mockResolvedValue({})
+            }
           });
         });
 
@@ -598,9 +598,9 @@ describe('MessageService', () => {
     });
 
     it('should not retry validation errors', async () => {
-      await expect(
-        MessageService.addMessage('', 'user', 'Hello')
-      ).rejects.toThrow(MessageValidationError);
+      await expect(MessageService.addMessage('', 'user', 'Hello')).rejects.toThrow(
+        MessageValidationError
+      );
 
       expect(db.$transaction).not.toHaveBeenCalled();
     });

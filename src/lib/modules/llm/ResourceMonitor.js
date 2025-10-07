@@ -1,6 +1,6 @@
 /**
  * Resource Monitor for LLM Providers
- * 
+ *
  * This class monitors system resources to help determine when to switch providers.
  * It's primarily used to decide when to switch from local LLM to cloud LLM
  * based on resource constraints.
@@ -34,12 +34,12 @@ export class ResourceMonitor {
     if (this.isMonitoring) {
       return;
     }
-    
+
     this.isMonitoring = true;
     this.monitoringInterval = setInterval(() => {
       this.checkResources();
     }, this.checkInterval);
-    
+
     console.log('Resource monitoring started');
   }
 
@@ -50,7 +50,7 @@ export class ResourceMonitor {
     if (!this.isMonitoring) {
       return;
     }
-    
+
     clearInterval(this.monitoringInterval);
     this.isMonitoring = false;
     console.log('Resource monitoring stopped');
@@ -64,10 +64,10 @@ export class ResourceMonitor {
     try {
       const memoryUsage = await this.getMemoryUsage();
       const cpuUsage = await this.getCpuUsage();
-      
+
       this.lastMemoryUsage = memoryUsage;
       this.lastCpuUsage = cpuUsage;
-      
+
       // Notify listeners if thresholds are exceeded
       if (memoryUsage > this.memoryThreshold || cpuUsage > this.cpuThreshold) {
         this.notifyListeners({
@@ -92,7 +92,7 @@ export class ResourceMonitor {
     if (typeof performance !== 'undefined' && performance.memory) {
       return Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
     }
-    
+
     // For server-side or when performance.memory is not available,
     // we'll return a simulated value for demonstration
     // In a real implementation, this would use Node.js process.memoryUsage()
@@ -117,7 +117,7 @@ export class ResourceMonitor {
   async areResourcesConstrained() {
     const memoryUsage = await this.getMemoryUsage();
     const cpuUsage = await this.getCpuUsage();
-    
+
     return memoryUsage > this.memoryThreshold || cpuUsage > this.cpuThreshold;
   }
 
@@ -134,7 +134,7 @@ export class ResourceMonitor {
    * @param {Function} listener - Callback function to remove
    */
   removeListener(listener) {
-    this.listeners = this.listeners.filter(l => l !== listener);
+    this.listeners = this.listeners.filter((l) => l !== listener);
   }
 
   /**
@@ -143,7 +143,7 @@ export class ResourceMonitor {
    * @private
    */
   notifyListeners(data) {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(data);
       } catch (error) {

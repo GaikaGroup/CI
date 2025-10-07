@@ -13,7 +13,7 @@ export class VoiceInteractionLogger {
     this.maxLogSize = 1000;
     this.sessionId = null;
     this.sessionStartTime = null;
-    
+
     // Log categories
     this.logCategories = {
       VOICE_STUTTERING: 'voice_stuttering',
@@ -53,7 +53,7 @@ export class VoiceInteractionLogger {
   startSession(sessionInfo = {}) {
     this.sessionId = `voice_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     this.sessionStartTime = Date.now();
-    
+
     this.log(this.logCategories.USER_EXPERIENCE, 'session_started', {
       sessionId: this.sessionId,
       ...sessionInfo,
@@ -82,7 +82,7 @@ export class VoiceInteractionLogger {
     });
 
     console.log(`Voice logging session ended: ${this.sessionId}, duration: ${sessionDuration}ms`);
-    
+
     // Reset session
     this.sessionId = null;
     this.sessionStartTime = null;
@@ -328,13 +328,15 @@ export class VoiceInteractionLogger {
 
     // Keep only recent gaps (last 5 minutes)
     const fiveMinutesAgo = Date.now() - 300000;
-    this.stutteringDetection.audioGaps = this.stutteringDetection.audioGaps
-      .filter(gap => gap.timestamp > fiveMinutesAgo);
+    this.stutteringDetection.audioGaps = this.stutteringDetection.audioGaps.filter(
+      (gap) => gap.timestamp > fiveMinutesAgo
+    );
 
     // Detect patterns
     if (this.stutteringDetection.audioGaps.length > 5) {
-      const averageGap = this.stutteringDetection.audioGaps
-        .reduce((sum, gap) => sum + gap.gap, 0) / this.stutteringDetection.audioGaps.length;
+      const averageGap =
+        this.stutteringDetection.audioGaps.reduce((sum, gap) => sum + gap.gap, 0) /
+        this.stutteringDetection.audioGaps.length;
 
       if (averageGap > this.stutteringDetection.stutteringThreshold) {
         this.log(this.logCategories.VOICE_STUTTERING, 'stuttering_pattern_detected', {
@@ -358,8 +360,7 @@ export class VoiceInteractionLogger {
         this.performanceMetrics.totalInteractions++;
         const currentAvg = this.performanceMetrics.averageResponseTime;
         const count = this.performanceMetrics.totalInteractions;
-        this.performanceMetrics.averageResponseTime = 
-          ((currentAvg * (count - 1)) + value) / count;
+        this.performanceMetrics.averageResponseTime = (currentAvg * (count - 1) + value) / count;
         break;
 
       case 'synthesis_time':
@@ -377,8 +378,8 @@ export class VoiceInteractionLogger {
    * @returns {Object} Session summary
    */
   generateSessionSummary() {
-    const sessionLogs = this.logs.filter(log => log.sessionId === this.sessionId);
-    
+    const sessionLogs = this.logs.filter((log) => log.sessionId === this.sessionId);
+
     const summary = {
       totalEvents: sessionLogs.length,
       eventsByCategory: {},
@@ -391,10 +392,9 @@ export class VoiceInteractionLogger {
     };
 
     // Analyze session logs
-    sessionLogs.forEach(log => {
+    sessionLogs.forEach((log) => {
       // Count by category
-      summary.eventsByCategory[log.category] = 
-        (summary.eventsByCategory[log.category] || 0) + 1;
+      summary.eventsByCategory[log.category] = (summary.eventsByCategory[log.category] || 0) + 1;
 
       // Collect languages
       if (log.data.language) {
@@ -426,9 +426,7 @@ export class VoiceInteractionLogger {
    * @returns {Array} Filtered logs
    */
   getLogsByCategory(category, limit = 100) {
-    return this.logs
-      .filter(log => log.category === category)
-      .slice(-limit);
+    return this.logs.filter((log) => log.category === category).slice(-limit);
   }
 
   /**
@@ -438,9 +436,7 @@ export class VoiceInteractionLogger {
    * @returns {Array} Filtered logs
    */
   getLogsByTimeRange(startTime, endTime) {
-    return this.logs.filter(log => 
-      log.timestamp >= startTime && log.timestamp <= endTime
-    );
+    return this.logs.filter((log) => log.timestamp >= startTime && log.timestamp <= endTime);
   }
 
   /**
@@ -448,23 +444,21 @@ export class VoiceInteractionLogger {
    * @returns {Object} Performance analytics
    */
   getPerformanceAnalytics() {
-    const recentLogs = this.logs.filter(log => 
-      Date.now() - log.timestamp < 3600000 // Last hour
+    const recentLogs = this.logs.filter(
+      (log) => Date.now() - log.timestamp < 3600000 // Last hour
     );
 
     const analytics = {
       ...this.performanceMetrics,
       recentActivity: {
         totalEvents: recentLogs.length,
-        stutteringRate: recentLogs.filter(log => 
-          log.category === this.logCategories.VOICE_STUTTERING
+        stutteringRate: recentLogs.filter(
+          (log) => log.category === this.logCategories.VOICE_STUTTERING
         ).length,
-        interruptionRate: recentLogs.filter(log => 
-          log.category === this.logCategories.INTERRUPTION
+        interruptionRate: recentLogs.filter(
+          (log) => log.category === this.logCategories.INTERRUPTION
         ).length,
-        errorRate: recentLogs.filter(log => 
-          log.category === this.logCategories.ERROR
-        ).length
+        errorRate: recentLogs.filter((log) => log.category === this.logCategories.ERROR).length
       }
     };
 
@@ -477,26 +471,21 @@ export class VoiceInteractionLogger {
    * @returns {Object} Exported data
    */
   exportLogs(options = {}) {
-    const {
-      category = null,
-      startTime = null,
-      endTime = null,
-      format = 'json'
-    } = options;
+    const { category = null, startTime = null, endTime = null, format = 'json' } = options;
 
     let exportLogs = [...this.logs];
 
     // Apply filters
     if (category) {
-      exportLogs = exportLogs.filter(log => log.category === category);
+      exportLogs = exportLogs.filter((log) => log.category === category);
     }
 
     if (startTime) {
-      exportLogs = exportLogs.filter(log => log.timestamp >= startTime);
+      exportLogs = exportLogs.filter((log) => log.timestamp >= startTime);
     }
 
     if (endTime) {
-      exportLogs = exportLogs.filter(log => log.timestamp <= endTime);
+      exportLogs = exportLogs.filter((log) => log.timestamp <= endTime);
     }
 
     const exportData = {
@@ -521,7 +510,7 @@ export class VoiceInteractionLogger {
    */
   convertToCSV(exportData) {
     const headers = ['timestamp', 'category', 'event', 'sessionId', 'data'];
-    const rows = exportData.logs.map(log => [
+    const rows = exportData.logs.map((log) => [
       log.timestamp,
       log.category,
       log.event,
@@ -529,7 +518,7 @@ export class VoiceInteractionLogger {
       JSON.stringify(log.data)
     ]);
 
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+    return [headers, ...rows].map((row) => row.join(',')).join('\n');
   }
 
   /**

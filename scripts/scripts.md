@@ -13,6 +13,7 @@ node scripts/delete-all-sessions.js
 ```
 
 **What it does:**
+
 - Deletes all messages from the database
 - Deletes all sessions from the database
 - Provides a count of deleted records

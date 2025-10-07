@@ -1,5 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { MessageService, MessageError, MessageValidationError } from '$lib/modules/session/services/MessageService.js';
+import {
+  MessageService,
+  MessageError,
+  MessageValidationError
+} from '$lib/modules/session/services/MessageService.js';
 
 /**
  * Search messages by content
@@ -42,7 +46,7 @@ export async function GET({ url, locals }) {
       page,
       limit,
       sessionId,
-      type,
+      type
     };
 
     const result = await MessageService.searchMessages(userId, query.trim(), options);

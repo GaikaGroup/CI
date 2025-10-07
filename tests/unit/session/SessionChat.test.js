@@ -18,26 +18,26 @@ vi.mock('$lib/modules/session/stores/chatStore.js', () => ({
     initializeSession: vi.fn(),
     sendMessage: vi.fn(),
     clearSession: vi.fn(),
-    setTyping: vi.fn(),
+    setTyping: vi.fn()
   },
   messageStats: {
     subscribe: vi.fn((callback) => {
       callback({ total: 0, userMessages: 0, assistantMessages: 0, hasMessages: false });
       return () => {};
-    }),
+    })
   },
   isChatLoading: {
     subscribe: vi.fn((callback) => {
       callback(false);
       return () => {};
-    }),
+    })
   },
   chatError: {
     subscribe: vi.fn((callback) => {
       callback(null);
       return () => {};
-    }),
-  },
+    })
+  }
 }));
 
 vi.mock('$lib/modules/session/stores/sessionStore.js', () => ({
@@ -48,12 +48,12 @@ vi.mock('$lib/modules/session/stores/sessionStore.js', () => ({
           id: 'test-session-id',
           title: 'Test Session',
           mode: 'fun',
-          language: 'en',
-        },
+          language: 'en'
+        }
       });
       return () => {};
-    }),
-  },
+    })
+  }
 }));
 
 vi.mock('$lib/modules/theme/stores.js', () => ({
@@ -61,8 +61,8 @@ vi.mock('$lib/modules/theme/stores.js', () => ({
     subscribe: vi.fn((callback) => {
       callback(false);
       return () => {};
-    }),
-  },
+    })
+  }
 }));
 
 describe('SessionChat Component', () => {
@@ -80,7 +80,7 @@ describe('SessionChat Component', () => {
       error: null,
       mode: 'fun',
       language: 'en',
-      sessionId: 'test-session-id',
+      sessionId: 'test-session-id'
     };
 
     // Setup chatStore mock
@@ -94,7 +94,7 @@ describe('SessionChat Component', () => {
       id: 'msg-1',
       type: 'user',
       content: 'Test message',
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
   });
 
@@ -105,7 +105,7 @@ describe('SessionChat Component', () => {
   describe('Initialization', () => {
     it('should render the component', () => {
       const { container } = render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(container).toBeTruthy();
@@ -113,7 +113,7 @@ describe('SessionChat Component', () => {
 
     it('should initialize chat when sessionId is provided', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -122,7 +122,7 @@ describe('SessionChat Component', () => {
 
     it('should display session title in header', () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(screen.getByText('Test Session')).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe('SessionChat Component', () => {
 
     it('should display session mode badge', () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(screen.getByText('fun')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('SessionChat Component', () => {
   describe('Message Display', () => {
     it('should display empty state when no messages', () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(screen.getByText('No messages yet. Start the conversation!')).toBeInTheDocument();
@@ -152,12 +152,12 @@ describe('SessionChat Component', () => {
           id: 'msg-1',
           type: 'user',
           content: 'Hello, AI!',
-          createdAt: new Date().toISOString(),
-        },
+          createdAt: new Date().toISOString()
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -172,12 +172,12 @@ describe('SessionChat Component', () => {
           id: 'msg-1',
           type: 'assistant',
           content: 'Hello! How can I help you?',
-          createdAt: new Date().toISOString(),
-        },
+          createdAt: new Date().toISOString()
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -192,24 +192,24 @@ describe('SessionChat Component', () => {
           id: 'msg-1',
           type: 'user',
           content: 'First message',
-          createdAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
         },
         {
           id: 'msg-2',
           type: 'assistant',
           content: 'Second message',
-          createdAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
         },
         {
           id: 'msg-3',
           type: 'user',
           content: 'Third message',
-          createdAt: new Date().toISOString(),
-        },
+          createdAt: new Date().toISOString()
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -223,14 +223,14 @@ describe('SessionChat Component', () => {
         subscribe: vi.fn((callback) => {
           callback({ total: 5, userMessages: 3, assistantMessages: 2, hasMessages: true });
           return () => {};
-        }),
+        })
       };
 
       vi.mocked(await import('$lib/modules/session/stores/chatStore.js')).messageStats =
         mockMessageStats;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(screen.getByText('5 messages')).toBeInTheDocument();
@@ -240,7 +240,7 @@ describe('SessionChat Component', () => {
   describe('Message Input', () => {
     it('should render message input textarea', () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -249,7 +249,7 @@ describe('SessionChat Component', () => {
 
     it('should render send button', () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const sendButton = screen.getByRole('button', { name: '' });
@@ -258,7 +258,7 @@ describe('SessionChat Component', () => {
 
     it('should update textarea value on input', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -269,7 +269,7 @@ describe('SessionChat Component', () => {
 
     it('should send message on button click', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -284,7 +284,7 @@ describe('SessionChat Component', () => {
 
     it('should send message on Enter key', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -298,7 +298,7 @@ describe('SessionChat Component', () => {
 
     it('should not send message on Shift+Enter', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -311,7 +311,7 @@ describe('SessionChat Component', () => {
 
     it('should clear input after sending message', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -326,7 +326,7 @@ describe('SessionChat Component', () => {
 
     it('should not send empty messages', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -343,14 +343,14 @@ describe('SessionChat Component', () => {
         subscribe: vi.fn((callback) => {
           callback(true);
           return () => {};
-        }),
+        })
       };
 
       vi.mocked(await import('$lib/modules/session/stores/chatStore.js')).isChatLoading =
         mockLoadingState;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -364,7 +364,7 @@ describe('SessionChat Component', () => {
         subscribe: vi.fn((callback) => {
           callback(true);
           return () => {};
-        }),
+        })
       };
 
       mockChatState.messages = [];
@@ -373,7 +373,7 @@ describe('SessionChat Component', () => {
         mockLoadingState;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(screen.getByText('Loading messages...')).toBeInTheDocument();
@@ -386,12 +386,12 @@ describe('SessionChat Component', () => {
           id: 'msg-1',
           type: 'user',
           content: 'Hello',
-          createdAt: new Date().toISOString(),
-        },
+          createdAt: new Date().toISOString()
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -408,14 +408,14 @@ describe('SessionChat Component', () => {
         subscribe: vi.fn((callback) => {
           callback('Failed to load messages');
           return () => {};
-        }),
+        })
       };
 
       vi.mocked(await import('$lib/modules/session/stores/chatStore.js')).chatError =
         mockErrorState;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       expect(screen.getByText('Failed to load messages')).toBeInTheDocument();
@@ -426,14 +426,14 @@ describe('SessionChat Component', () => {
         subscribe: vi.fn((callback) => {
           callback('Failed to load messages');
           return () => {};
-        }),
+        })
       };
 
       vi.mocked(await import('$lib/modules/session/stores/chatStore.js')).chatError =
         mockErrorState;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const retryButton = screen.getByText('Try Again');
@@ -445,14 +445,14 @@ describe('SessionChat Component', () => {
         subscribe: vi.fn((callback) => {
           callback('Failed to load messages');
           return () => {};
-        }),
+        })
       };
 
       vi.mocked(await import('$lib/modules/session/stores/chatStore.js')).chatError =
         mockErrorState;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const retryButton = screen.getByText('Try Again');
@@ -472,13 +472,13 @@ describe('SessionChat Component', () => {
           content: 'Here is an audio response',
           createdAt: new Date().toISOString(),
           metadata: {
-            audioUrl: 'https://example.com/audio.mp3',
-          },
-        },
+            audioUrl: 'https://example.com/audio.mp3'
+          }
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -496,13 +496,13 @@ describe('SessionChat Component', () => {
           content: 'Check out this image',
           createdAt: new Date().toISOString(),
           metadata: {
-            imageUrl: 'https://example.com/image.jpg',
-          },
-        },
+            imageUrl: 'https://example.com/image.jpg'
+          }
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -516,7 +516,7 @@ describe('SessionChat Component', () => {
   describe('Cleanup', () => {
     it('should clear session on component destroy', async () => {
       const { unmount } = render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       unmount();
@@ -528,7 +528,7 @@ describe('SessionChat Component', () => {
   describe('Multiline Support', () => {
     it('should support multiline input', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -541,7 +541,7 @@ describe('SessionChat Component', () => {
 
     it('should preserve line breaks when sending', async () => {
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       const textarea = screen.getByPlaceholderText(/Type your message/);
@@ -563,20 +563,20 @@ describe('SessionChat Component', () => {
           id: 'msg-1',
           type: 'user',
           content: 'Previous message 1',
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
+          createdAt: new Date(Date.now() - 3600000).toISOString()
         },
         {
           id: 'msg-2',
           type: 'assistant',
           content: 'Previous response 1',
-          createdAt: new Date(Date.now() - 3500000).toISOString(),
-        },
+          createdAt: new Date(Date.now() - 3500000).toISOString()
+        }
       ];
 
       mockChatState.messages = existingMessages;
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();
@@ -587,7 +587,7 @@ describe('SessionChat Component', () => {
 
     it('should restore conversation when returning to session', async () => {
       const { unmount } = render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       // Simulate navigating away
@@ -599,12 +599,12 @@ describe('SessionChat Component', () => {
           id: 'msg-1',
           type: 'user',
           content: 'Restored message',
-          createdAt: new Date().toISOString(),
-        },
+          createdAt: new Date().toISOString()
+        }
       ];
 
       render(SessionChat, {
-        props: { sessionId: 'test-session-id' },
+        props: { sessionId: 'test-session-id' }
       });
 
       await tick();

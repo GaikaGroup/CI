@@ -14,7 +14,7 @@
   // Ensure user is authenticated before accessing sessions
   onMount(async () => {
     await checkAuth();
-    
+
     if (!$isAuthenticated) {
       // Redirect to login if not authenticated
       goto('/login?redirect=/sessions');
@@ -42,10 +42,10 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div class="flex items-center justify-center min-h-[400px]">
         <div class="text-center">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>
-          <p class="text-sm text-slate-600 dark:text-slate-300">
-            Loading sessions...
-          </p>
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"
+          ></div>
+          <p class="text-sm text-slate-600 dark:text-slate-300">Loading sessions...</p>
         </div>
       </div>
     </div>

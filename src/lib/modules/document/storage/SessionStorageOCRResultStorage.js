@@ -3,7 +3,7 @@ import { browser } from '$app/environment';
 
 /**
  * SessionStorage-based OCR Result Storage
- * 
+ *
  * This class implements the IOCRResultStorage interface and stores OCR results in sessionStorage.
  */
 export class SessionStorageOCRResultStorage extends IOCRResultStorage {
@@ -22,10 +22,15 @@ export class SessionStorageOCRResultStorage extends IOCRResultStorage {
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
         const existingResults = JSON.parse(sessionStorage.getItem(this.storageKey) || '{}');
-        console.log(`[SessionStorageOCRResultStorage] Loaded ${Object.keys(existingResults).length} OCR results from storage`);
+        console.log(
+          `[SessionStorageOCRResultStorage] Loaded ${Object.keys(existingResults).length} OCR results from storage`
+        );
       }
     } catch (storageError) {
-      console.warn('[SessionStorageOCRResultStorage] Could not load from sessionStorage:', storageError);
+      console.warn(
+        '[SessionStorageOCRResultStorage] Could not load from sessionStorage:',
+        storageError
+      );
     }
   }
 
@@ -44,9 +49,14 @@ export class SessionStorageOCRResultStorage extends IOCRResultStorage {
       const existingResults = JSON.parse(sessionStorage.getItem(this.storageKey) || '{}');
       existingResults[messageId] = result;
       sessionStorage.setItem(this.storageKey, JSON.stringify(existingResults));
-      console.log(`[SessionStorageOCRResultStorage] Stored OCR result in sessionStorage for message ${messageId}`);
+      console.log(
+        `[SessionStorageOCRResultStorage] Stored OCR result in sessionStorage for message ${messageId}`
+      );
     } catch (storageError) {
-      console.warn('[SessionStorageOCRResultStorage] Could not store in sessionStorage:', storageError);
+      console.warn(
+        '[SessionStorageOCRResultStorage] Could not store in sessionStorage:',
+        storageError
+      );
     }
   }
 
@@ -65,7 +75,10 @@ export class SessionStorageOCRResultStorage extends IOCRResultStorage {
       const existingResults = JSON.parse(sessionStorage.getItem(this.storageKey) || '{}');
       return existingResults[messageId] || null;
     } catch (storageError) {
-      console.warn('[SessionStorageOCRResultStorage] Could not read from sessionStorage:', storageError);
+      console.warn(
+        '[SessionStorageOCRResultStorage] Could not read from sessionStorage:',
+        storageError
+      );
       return null;
     }
   }
@@ -84,7 +97,10 @@ export class SessionStorageOCRResultStorage extends IOCRResultStorage {
       const existingResults = JSON.parse(sessionStorage.getItem(this.storageKey) || '{}');
       return Object.values(existingResults);
     } catch (storageError) {
-      console.warn('[SessionStorageOCRResultStorage] Could not read all results from sessionStorage:', storageError);
+      console.warn(
+        '[SessionStorageOCRResultStorage] Could not read all results from sessionStorage:',
+        storageError
+      );
       return [];
     }
   }
@@ -101,7 +117,10 @@ export class SessionStorageOCRResultStorage extends IOCRResultStorage {
 
       sessionStorage.removeItem(this.storageKey);
     } catch (storageError) {
-      console.warn('[SessionStorageOCRResultStorage] Could not clear sessionStorage:', storageError);
+      console.warn(
+        '[SessionStorageOCRResultStorage] Could not clear sessionStorage:',
+        storageError
+      );
     }
   }
 }

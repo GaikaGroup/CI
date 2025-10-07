@@ -91,7 +91,7 @@ export const sessionUtils = {
     if (currentState.sessionId === sessionId) {
       chatStore.clearSession();
     }
-    
+
     await sessionStore.deleteSession(sessionId);
   }
 };

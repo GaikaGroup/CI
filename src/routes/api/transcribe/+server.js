@@ -21,7 +21,7 @@ export async function POST({ request }) {
     const openAIFormData = new FormData();
     openAIFormData.append('file', audioBlob);
     openAIFormData.append('model', WHISPER_CONFIG.MODEL);
-    
+
     // Add language if specified (optional for Whisper)
     if (language && language !== 'en') {
       openAIFormData.append('language', language);
@@ -31,7 +31,7 @@ export async function POST({ request }) {
     const response = await fetch(WHISPER_CONFIG.API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${WHISPER_CONFIG.API_KEY}`
+        Authorization: `Bearer ${WHISPER_CONFIG.API_KEY}`
       },
       body: openAIFormData
     });
@@ -43,12 +43,13 @@ export async function POST({ request }) {
     }
 
     const data = await response.json();
-    
+
     // For development/testing, simulate a successful response if API key is not set
     if (WHISPER_CONFIG.API_KEY === 'your-api-key-here') {
       console.log('Using simulated Whisper response (no API key provided)');
-      return json({ 
-        transcription: "This is a simulated transcription. Please set a valid OpenAI API key to use the real Whisper API." 
+      return json({
+        transcription:
+          'This is a simulated transcription. Please set a valid OpenAI API key to use the real Whisper API.'
       });
     }
 

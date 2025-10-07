@@ -5,6 +5,7 @@ This directory contains diagnostic tests to identify issues with the Sessions pa
 ## Problem Description
 
 The Sessions page has two modes:
+
 - **Voice Mode**: Working correctly ✓
 - **Text Mode**: Not working correctly ❌
 
@@ -37,30 +38,35 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 ## What the Tests Check
 
 ### Component Integration
+
 - ✓ MessageInput component is imported and rendered
 - ✓ MessageList component is imported and rendered
 - ✓ VoiceChat component is hidden in text mode
 - ✓ Components are in correct conditional blocks
 
 ### Event Handling
+
 - ✓ handleSendMessage function exists
 - ✓ MessageInput on:send event is bound
 - ✓ handleSendMessage calls sendMessage service
 - ✓ Event handlers are properly attached
 
 ### Store Integration
+
 - ✓ messages store is imported and used
 - ✓ chatMode store controls mode switching
 - ✓ Messages are displayed from store
 - ✓ Store updates trigger UI updates
 
 ### API Integration
+
 - ✓ sendMessage service calls /api/chat
 - ✓ Messages are saved to /api/sessions/:id/messages
 - ✓ Messages are loaded when session is selected
 - ✓ API errors are handled gracefully
 
 ### Message Flow
+
 1. User types in MessageInput
 2. MessageInput dispatches 'send' event
 3. Sessions page handleSendMessage receives event
@@ -73,39 +79,49 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 ## Common Issues to Look For
 
 ### Issue 1: MessageInput Not Rendering
+
 **Symptom**: Input field not visible in text mode
 **Possible Causes**:
+
 - MessageInput not imported
 - MessageInput not in text mode conditional
 - CSS hiding the component
 
 ### Issue 2: Messages Not Sending
+
 **Symptom**: Clicking send or pressing Enter does nothing
 **Possible Causes**:
+
 - handleSendMessage not defined
 - on:send event not bound
 - sendMessage service not called
 - sendMessage not awaited
 
 ### Issue 3: Messages Not Displaying
+
 **Symptom**: Messages sent but not visible
 **Possible Causes**:
+
 - MessageList not rendering
 - messages store not connected
 - Store not updating
 - CSS hiding messages
 
 ### Issue 4: Messages Not Persisting
+
 **Symptom**: Messages disappear on page reload
 **Possible Causes**:
+
 - saveMessageToSession not called
 - API endpoint not working
 - Session ID not passed correctly
 - Messages not loaded on session select
 
 ### Issue 5: Store Synchronization
+
 **Symptom**: Store has messages but UI doesn't update
 **Possible Causes**:
+
 - Store not subscribed with $
 - Component not reactive
 - Store updates not triggering re-render
@@ -113,6 +129,7 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 ## Expected Test Output
 
 ### Successful Run
+
 ```
 ✓ MessageInput imported: true
 ✓ MessageList imported: true
@@ -128,6 +145,7 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 ```
 
 ### Failed Run (Example)
+
 ```
 ✓ MessageInput imported: true
 ✓ MessageList imported: true
@@ -143,6 +161,7 @@ npm test tests/e2e/sessionsPageTextMode.test.js
 Once you identify the issues, refer to the working voice mode implementation as a reference:
 
 1. **Check the conditional rendering**:
+
    ```svelte
    {#if $chatModeStore === 'text'}
      <MessageList />
@@ -153,6 +172,7 @@ Once you identify the issues, refer to the working voice mode implementation as 
    ```
 
 2. **Verify event handler**:
+
    ```javascript
    async function handleSendMessage(event) {
      const { content, images } = event.detail;
@@ -161,9 +181,10 @@ Once you identify the issues, refer to the working voice mode implementation as 
    ```
 
 3. **Check store integration**:
+
    ```javascript
    import { messages, chatMode } from '$modules/chat/stores';
-   
+
    $: currentMessages = $messages;
    ```
 
@@ -208,6 +229,7 @@ After fixing issues, manually test:
 ## Contact
 
 If you need help interpreting the test results or fixing issues, refer to:
+
 - `src/routes/sessions/+page.svelte` - Main sessions page
 - `src/lib/modules/chat/components/MessageInput.svelte` - Input component
 - `src/lib/modules/chat/components/MessageList.svelte` - List component

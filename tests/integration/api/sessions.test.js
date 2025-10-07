@@ -99,11 +99,10 @@ describe('Sessions API Integration Tests', () => {
     });
 
     it('should search sessions', async () => {
-      const result = await SessionService.searchSessions(
-        mockUser.id,
-        'Test',
-        { page: 1, limit: 10 }
-      );
+      const result = await SessionService.searchSessions(mockUser.id, 'Test', {
+        page: 1,
+        limit: 10
+      });
 
       expect(result).toBeDefined();
       expect(result.sessions).toBeInstanceOf(Array);
@@ -172,11 +171,10 @@ describe('Sessions API Integration Tests', () => {
         mockUser.id
       );
 
-      const result = await MessageService.searchMessages(
-        mockUser.id,
-        'Searchable',
-        { page: 1, limit: 10 }
-      );
+      const result = await MessageService.searchMessages(mockUser.id, 'Searchable', {
+        page: 1,
+        limit: 10
+      });
 
       expect(result).toBeDefined();
       expect(result.messages).toBeInstanceOf(Array);
@@ -203,7 +201,13 @@ describe('Sessions API Integration Tests', () => {
     it('should get message statistics', async () => {
       // Add test messages
       await MessageService.addMessage(testSessionId, 'user', 'User message', null, mockUser.id);
-      await MessageService.addMessage(testSessionId, 'assistant', 'Assistant message', null, mockUser.id);
+      await MessageService.addMessage(
+        testSessionId,
+        'assistant',
+        'Assistant message',
+        null,
+        mockUser.id
+      );
 
       const stats = await MessageService.getMessageStats(mockUser.id);
 

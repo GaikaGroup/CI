@@ -7,6 +7,7 @@
   import { Loader, CheckCircle, Server } from 'lucide-svelte';
   import { LLM_FEATURES } from '$lib/config/llm';
   import TypewriterMessage from './TypewriterMessage.svelte';
+  import MathMessage from './MathMessage.svelte';
 
   // No props needed anymore, using stores instead
 
@@ -23,12 +24,15 @@
   $: {
     console.log('=== MessageList Debug ===');
     console.log('Total messages:', $messages.length);
-    console.log('Messages:', $messages.map(m => ({
-      id: m.id,
-      type: m.type,
-      content: m.content.substring(0, 50) + '...',
-      shouldShow: shouldShowMessage(m)
-    })));
+    console.log(
+      'Messages:',
+      $messages.map((m) => ({
+        id: m.id,
+        type: m.type,
+        content: m.content.substring(0, 50) + '...',
+        shouldShow: shouldShowMessage(m)
+      }))
+    );
     console.log('Filtered messages:', $messages.filter(shouldShowMessage).length);
   }
 
@@ -135,7 +139,7 @@
   }
 </script>
 
-<div class="h-full overflow-y-auto px-6 py-4" bind:this={messagesContainer}>
+<div class="flex-1 overflow-y-auto px-6 py-4 min-h-0" bind:this={messagesContainer}>
   {#if $messages.length === 0}
     <div class="flex justify-center items-center h-full">
       <p class="text-stone-500 dark:text-gray-400 text-center">
@@ -158,7 +162,8 @@
             : 'justify-start'}"
       >
         <div
-          class="max-w-[70%] px-4 py-3 rounded-2xl shadow-sm {message.type === MESSAGE_TYPES.USER || message.type === 'user'
+          class="max-w-[70%] px-4 py-3 rounded-2xl shadow-sm {message.type === MESSAGE_TYPES.USER ||
+          message.type === 'user'
             ? 'bg-amber-600 text-white rounded-br-sm'
             : message.type === MESSAGE_TYPES.SYSTEM
               ? $darkMode
@@ -175,13 +180,17 @@
               {/each}
             </div>
           {/if}
-          <p class="text-sm leading-relaxed whitespace-pre-wrap">
-            <TypewriterMessage
-              text={message.content}
-              animate={shouldAnimate(message)}
-              on:complete={() => handleTypewriterComplete(message)}
-            />
-          </p>
+          <div class="text-sm leading-relaxed">
+            {#if shouldAnimate(message)}
+              <TypewriterMessage
+                text={message.content}
+                animate={true}
+                on:complete={() => handleTypewriterComplete(message)}
+              />
+            {:else}
+              <MathMessage content={message.content} className="whitespace-pre-wrap" />
+            {/if}
+          </div>
 
           {#if message.ocrText}
             <!-- OCR text rendering -->
@@ -213,7 +222,7 @@
 
           <div
             class="flex items-center justify-between text-xs mt-2 {message.type ===
-            MESSAGE_TYPES.USER || message.type === 'user'
+              MESSAGE_TYPES.USER || message.type === 'user'
               ? 'text-amber-200'
               : message.type === MESSAGE_TYPES.SYSTEM
                 ? $darkMode

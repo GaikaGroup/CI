@@ -5,6 +5,6 @@ export default defineConfig({
   plugins: [sveltekit()],
   server: {
     port: 3000,
-    open: true  // Automatically open the browser
+    open: true // Automatically open the browser
   }
 });

@@ -21,6 +21,7 @@ $: {
 ```
 
 **Features:**
+
 - Seamless switching between text and voice modes
 - Voice mode activates the existing voice services
 - CatAvatar displays in voice mode with lip-sync and emotions
@@ -40,6 +41,7 @@ The CatAvatar component is integrated into the voice mode interface:
 ```
 
 **Features:**
+
 - Displays in voice mode header
 - Reacts to speech with lip-sync animation
 - Shows emotions based on AI responses
@@ -60,6 +62,7 @@ Users can switch between Fun and Learn modes within a session:
 ```
 
 **Features:**
+
 - Mode changes persist to the database
 - Session metadata updates automatically
 - Chat store syncs with session mode
@@ -92,13 +95,13 @@ async function toggleRecording() {
     await startRecording();
   } else {
     const transcription = await stopRecording();
-    
+
     // Add to chat store
     await chatStore.sendMessage(transcription);
-    
+
     // Process with voice services
     const response = await sendTranscribedText(transcription);
-    
+
     // Add AI response
     await chatStore.addAssistantMessage(response);
   }
@@ -106,6 +109,7 @@ async function toggleRecording() {
 ```
 
 **Features:**
+
 - Transcribed text saved to session messages
 - AI responses saved to session messages
 - Waiting phrases play during processing
@@ -128,6 +132,7 @@ function handleImageUpload(event) {
 ```
 
 **Features:**
+
 - Image upload button in voice mode
 - Images attached to messages
 - Metadata stored in message records
@@ -158,27 +163,27 @@ SessionChat.svelte
 ### ChatStore
 
 ```javascript
-chatStore.initializeSession(sessionId)  // Load session messages
-chatStore.sendMessage(content, metadata) // Send user message
-chatStore.addAssistantMessage(content)   // Add AI response
-chatStore.setMode(mode)                  // Update mode
-chatStore.setLanguage(language)          // Update language
+chatStore.initializeSession(sessionId); // Load session messages
+chatStore.sendMessage(content, metadata); // Send user message
+chatStore.addAssistantMessage(content); // Add AI response
+chatStore.setMode(mode); // Update mode
+chatStore.setLanguage(language); // Update language
 ```
 
 ### SessionStore
 
 ```javascript
-sessionStore.updateSession(id, updates)  // Update session metadata
-sessionStore.currentSession              // Current session data
+sessionStore.updateSession(id, updates); // Update session metadata
+sessionStore.currentSession; // Current session data
 ```
 
 ### Voice Services
 
 ```javascript
-setVoiceModeActive(true/false)          // Activate/deactivate voice mode
-startRecording()                         // Start voice recording
-stopRecording()                          // Stop and transcribe
-sendTranscribedText(text)               // Process transcription
+setVoiceModeActive(true / false); // Activate/deactivate voice mode
+startRecording(); // Start voice recording
+stopRecording(); // Stop and transcribe
+sendTranscribedText(text); // Process transcription
 ```
 
 ## API Integration
@@ -209,26 +214,34 @@ PUT /api/sessions/:id
 ## Requirements Satisfied
 
 ### Requirement 4.4
+
 ✅ Mode switching (Fun/Learn) within chat interface
+
 - Dropdown selector in header
 - Persists to session data
 - Updates chat store
 
 ### Requirement 6.4
+
 ✅ Integration with existing voice functionality
+
 - Voice mode toggle
 - Voice recording and transcription
 - Waiting phrases during processing
 - Audio playback for responses
 
 ### Requirement 2.2
+
 ✅ Mode selection preserved in session
+
 - Mode stored in database
 - Synced with chat store
 - Used in AI interactions
 
 ### Requirement 2.3
+
 ✅ Language detection and preservation
+
 - Language stored in session
 - Used in API calls
 - Synced with i18n store
@@ -238,7 +251,7 @@ PUT /api/sessions/:id
 ```svelte
 <script>
   import SessionChat from '$lib/modules/session/components/SessionChat.svelte';
-  
+
   let sessionId = 'session-123';
 </script>
 
@@ -246,6 +259,7 @@ PUT /api/sessions/:id
 ```
 
 The component will:
+
 1. Load session data and messages
 2. Initialize voice services
 3. Display mode toggle (text/voice)
@@ -257,6 +271,7 @@ The component will:
 ## Testing
 
 Integration tests verify:
+
 - Mode switching (text ↔ voice)
 - Session mode switching (fun ↔ learn)
 - Voice recording and transcription

@@ -11,9 +11,7 @@
 
   // Filter users based on search query
   $: filteredUsers = searchQuery.trim()
-    ? users.filter(user => 
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? users.filter((user) => user.email.toLowerCase().includes(searchQuery.toLowerCase()))
     : users;
 
   // Format date for display
@@ -46,7 +44,9 @@
   </header>
 
   {#if error}
-    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/40 dark:text-red-200">
+    <div
+      class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/40 dark:text-red-200"
+    >
       {error}
     </div>
   {/if}
@@ -59,13 +59,17 @@
 
   <!-- Statistics Cards -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-white dark:bg-gray-800 border border-stone-200 dark:border-gray-700 rounded-xl shadow-sm p-6">
+    <div
+      class="bg-white dark:bg-gray-800 border border-stone-200 dark:border-gray-700 rounded-xl shadow-sm p-6"
+    >
       <p class="text-sm font-medium text-stone-500 dark:text-gray-400">Total Users</p>
       <p class="text-3xl font-bold text-stone-900 dark:text-white mt-2">
         {formatNumber(statistics.totalUsers)}
       </p>
     </div>
-    <div class="bg-white dark:bg-gray-800 border border-stone-200 dark:border-gray-700 rounded-xl shadow-sm p-6">
+    <div
+      class="bg-white dark:bg-gray-800 border border-stone-200 dark:border-gray-700 rounded-xl shadow-sm p-6"
+    >
       <p class="text-sm font-medium text-stone-500 dark:text-gray-400">Total Sessions</p>
       <p class="text-3xl font-bold text-stone-900 dark:text-white mt-2">
         {formatNumber(statistics.totalSessions)}
@@ -74,7 +78,9 @@
   </div>
 
   <!-- Users Table -->
-  <section class="bg-white dark:bg-gray-800 border border-stone-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+  <section
+    class="bg-white dark:bg-gray-800 border border-stone-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden"
+  >
     <div class="px-6 py-4 border-b border-stone-200 dark:border-gray-700">
       <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">User List</h2>
       <p class="text-sm text-stone-500 dark:text-gray-400 mt-1">
@@ -85,7 +91,9 @@
     <!-- Search Bar -->
     <div class="px-6 py-4 border-b border-stone-200 dark:border-gray-700">
       <div class="relative">
-        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-400 dark:text-gray-500" />
+        <Search
+          class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-400 dark:text-gray-500"
+        />
         <input
           type="text"
           bind:value={searchQuery}
@@ -135,16 +143,22 @@
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-stone-200 dark:divide-gray-700">
             {#each filteredUsers as user (user.userId)}
               <tr class="hover:bg-stone-50 dark:hover:bg-gray-700/50 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-800 dark:text-gray-100">
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-800 dark:text-gray-100"
+                >
                   {user.email}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600 dark:text-gray-300">
                   {formatDate(user.registrationDate)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300">
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300"
+                >
                   {formatNumber(user.sessionCount)}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300">
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-right text-stone-600 dark:text-gray-300"
+                >
                   {formatNumber(user.messageCount)}
                 </td>
               </tr>

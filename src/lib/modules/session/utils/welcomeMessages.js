@@ -9,27 +9,27 @@
 const WELCOME_MESSAGES = {
   fun: {
     en: "Hey there! 🎉 I'm your AI tutor and I'm super excited to chat with you! What would you like to explore today? We can talk about anything that interests you!",
-    ru: "Привет! 🎉 Я твой AI-репетитор и очень рад пообщаться с тобой! О чём бы ты хотел поговорить сегодня? Мы можем обсудить всё, что тебе интересно!",
-    es: "¡Hola! 🎉 Soy tu tutor de IA y estoy muy emocionado de charlar contigo! ¿Qué te gustaría explorar hoy? ¡Podemos hablar de cualquier cosa que te interese!",
+    ru: 'Привет! 🎉 Я твой AI-репетитор и очень рад пообщаться с тобой! О чём бы ты хотел поговорить сегодня? Мы можем обсудить всё, что тебе интересно!',
+    es: '¡Hola! 🎉 Soy tu tutor de IA y estoy muy emocionado de charlar contigo! ¿Qué te gustaría explorar hoy? ¡Podemos hablar de cualquier cosa que te interese!',
     fr: "Salut ! 🎉 Je suis ton tuteur IA et je suis super excité de discuter avec toi ! Qu'aimerais-tu explorer aujourd'hui ? On peut parler de tout ce qui t'intéresse !",
-    de: "Hallo! 🎉 Ich bin dein KI-Tutor und freue mich sehr, mit dir zu plaudern! Was möchtest du heute erkunden? Wir können über alles reden, was dich interessiert!",
-    it: "Ciao! 🎉 Sono il tuo tutor AI e sono super entusiasta di chattare con te! Cosa vorresti esplorare oggi? Possiamo parlare di qualsiasi cosa ti interessi!",
-    pt: "Olá! 🎉 Sou seu tutor de IA e estou super animado para conversar com você! O que você gostaria de explorar hoje? Podemos falar sobre qualquer coisa que te interesse!",
-    ja: "こんにちは！🎉 私はあなたのAIチューターで、あなたとチャットできることをとても楽しみにしています！今日は何を探求したいですか？興味のあることなら何でも話せます！",
-    ko: "안녕하세요! 🎉 저는 당신의 AI 튜터이고 당신과 채팅하게 되어 정말 기쁩니다! 오늘 무엇을 탐구하고 싶으신가요? 관심 있는 모든 것에 대해 이야기할 수 있습니다!",
-    zh: "你好！🎉 我是你的AI导师，很高兴能和你聊天！今天你想探索什么？我们可以谈论任何你感兴趣的事情！"
+    de: 'Hallo! 🎉 Ich bin dein KI-Tutor und freue mich sehr, mit dir zu plaudern! Was möchtest du heute erkunden? Wir können über alles reden, was dich interessiert!',
+    it: 'Ciao! 🎉 Sono il tuo tutor AI e sono super entusiasta di chattare con te! Cosa vorresti esplorare oggi? Possiamo parlare di qualsiasi cosa ti interessi!',
+    pt: 'Olá! 🎉 Sou seu tutor de IA e estou super animado para conversar com você! O que você gostaria de explorar hoje? Podemos falar sobre qualquer coisa que te interesse!',
+    ja: 'こんにちは！🎉 私はあなたのAIチューターで、あなたとチャットできることをとても楽しみにしています！今日は何を探求したいですか？興味のあることなら何でも話せます！',
+    ko: '안녕하세요! 🎉 저는 당신의 AI 튜터이고 당신과 채팅하게 되어 정말 기쁩니다! 오늘 무엇을 탐구하고 싶으신가요? 관심 있는 모든 것에 대해 이야기할 수 있습니다!',
+    zh: '你好！🎉 我是你的AI导师，很高兴能和你聊天！今天你想探索什么？我们可以谈论任何你感兴趣的事情！'
   },
   learn: {
     en: "Hello! 📚 I'm your AI tutor, ready to help you learn and grow. What subject or topic would you like to study today? I'm here to guide you through your learning journey!",
-    ru: "Здравствуйте! 📚 Я ваш AI-репетитор, готовый помочь вам учиться и развиваться. Какой предмет или тему вы хотели бы изучить сегодня? Я здесь, чтобы направлять вас в вашем учебном путешествии!",
-    es: "¡Hola! 📚 Soy tu tutor de IA, listo para ayudarte a aprender y crecer. ¿Qué materia o tema te gustaría estudiar hoy? ¡Estoy aquí para guiarte en tu viaje de aprendizaje!",
+    ru: 'Здравствуйте! 📚 Я ваш AI-репетитор, готовый помочь вам учиться и развиваться. Какой предмет или тему вы хотели бы изучить сегодня? Я здесь, чтобы направлять вас в вашем учебном путешествии!',
+    es: '¡Hola! 📚 Soy tu tutor de IA, listo para ayudarte a aprender y crecer. ¿Qué materia o tema te gustaría estudiar hoy? ¡Estoy aquí para guiarte en tu viaje de aprendizaje!',
     fr: "Bonjour ! 📚 Je suis ton tuteur IA, prêt à t'aider à apprendre et à grandir. Quelle matière ou quel sujet aimerais-tu étudier aujourd'hui ? Je suis là pour te guider dans ton parcours d'apprentissage !",
-    de: "Hallo! 📚 Ich bin dein KI-Tutor, bereit dir beim Lernen und Wachsen zu helfen. Welches Fach oder Thema möchtest du heute studieren? Ich bin hier, um dich auf deiner Lernreise zu begleiten!",
-    it: "Ciao! 📚 Sono il tuo tutor AI, pronto ad aiutarti a imparare e crescere. Quale materia o argomento vorresti studiare oggi? Sono qui per guidarti nel tuo percorso di apprendimento!",
-    pt: "Olá! 📚 Sou seu tutor de IA, pronto para ajudá-lo a aprender e crescer. Qual matéria ou tópico você gostaria de estudar hoje? Estou aqui para guiá-lo em sua jornada de aprendizado!",
-    ja: "こんにちは！📚 私はあなたのAIチューターで、あなたの学習と成長をサポートする準備ができています。今日はどの科目やトピックを勉強したいですか？あなたの学習の旅をガイドします！",
-    ko: "안녕하세요! 📚 저는 당신의 AI 튜터로, 당신이 배우고 성장하도록 도울 준비가 되어 있습니다. 오늘 어떤 과목이나 주제를 공부하고 싶으신가요? 당신의 학습 여정을 안내하겠습니다!",
-    zh: "你好！📚 我是你的AI导师，准备帮助你学习和成长。今天你想学习什么科目或主题？我在这里指导你的学习之旅！"
+    de: 'Hallo! 📚 Ich bin dein KI-Tutor, bereit dir beim Lernen und Wachsen zu helfen. Welches Fach oder Thema möchtest du heute studieren? Ich bin hier, um dich auf deiner Lernreise zu begleiten!',
+    it: 'Ciao! 📚 Sono il tuo tutor AI, pronto ad aiutarti a imparare e crescere. Quale materia o argomento vorresti studiare oggi? Sono qui per guidarti nel tuo percorso di apprendimento!',
+    pt: 'Olá! 📚 Sou seu tutor de IA, pronto para ajudá-lo a aprender e crescer. Qual matéria ou tópico você gostaria de estudar hoje? Estou aqui para guiá-lo em sua jornada de aprendizado!',
+    ja: 'こんにちは！📚 私はあなたのAIチューターで、あなたの学習と成長をサポートする準備ができています。今日はどの科目やトピックを勉強したいですか？あなたの学習の旅をガイドします！',
+    ko: '안녕하세요! 📚 저는 당신의 AI 튜터로, 당신이 배우고 성장하도록 도울 준비가 되어 있습니다. 오늘 어떤 과목이나 주제를 공부하고 싶으신가요? 당신의 학습 여정을 안내하겠습니다!',
+    zh: '你好！📚 我是你的AI导师，准备帮助你学习和成长。今天你想学习什么科目或主题？我在这里指导你的学习之旅！'
   }
 };
 
@@ -50,17 +50,17 @@ const DEFAULT_WELCOME = {
 export function generateWelcomeMessage(mode = 'fun', language = 'en') {
   // Validate mode
   const validMode = ['fun', 'learn'].includes(mode) ? mode : 'fun';
-  
+
   // Normalize language code (handle variants like 'en-US' -> 'en')
   const normalizedLanguage = language.toLowerCase().split('-')[0];
-  
+
   // Get welcome message for the mode and language
   const modeMessages = WELCOME_MESSAGES[validMode];
-  
+
   if (modeMessages && modeMessages[normalizedLanguage]) {
     return modeMessages[normalizedLanguage];
   }
-  
+
   // Fallback to default message for the mode
   return DEFAULT_WELCOME[validMode];
 }
@@ -74,7 +74,7 @@ export function generateWelcomeMessage(mode = 'fun', language = 'en') {
  */
 export function generateContinuationMessage(mode = 'fun', language = 'en', sessionTitle = '') {
   const normalizedLanguage = language.toLowerCase().split('-')[0];
-  
+
   const continuationMessages = {
     fun: {
       en: `Welcome back! 🎉 Let's continue our fun conversation${sessionTitle ? ` about "${sessionTitle}"` : ''}. What would you like to talk about?`,
@@ -101,16 +101,16 @@ export function generateContinuationMessage(mode = 'fun', language = 'en', sessi
       zh: `欢迎回来！📚 让我们继续你的学习之旅${sessionTitle ? `"${sessionTitle}"` : ''}。你想从哪里继续？`
     }
   };
-  
+
   const validMode = ['fun', 'learn'].includes(mode) ? mode : 'fun';
   const modeMessages = continuationMessages[validMode];
-  
+
   if (modeMessages && modeMessages[normalizedLanguage]) {
     return modeMessages[normalizedLanguage];
   }
-  
+
   // Fallback
-  return validMode === 'fun' 
+  return validMode === 'fun'
     ? `Welcome back! Let's continue our conversation. What would you like to talk about?`
     : `Welcome back! Let's continue your learning journey. Where would you like to pick up?`;
 }

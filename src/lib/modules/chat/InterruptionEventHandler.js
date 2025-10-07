@@ -13,19 +13,19 @@ export class InterruptionEventHandler {
     this.isProcessingEvent = false;
     this.eventHistory = [];
     this.maxHistorySize = 20;
-    
+
     // Event processing configuration
     this.processingConfig = {
-      minConfidence: 0.3,           // Minimum confidence to process interruption
-      maxProcessingTime: 5000,      // Maximum time to process an event (ms)
-      cooldownPeriod: 1000,         // Cooldown between interruptions (ms)
-      maxQueueSize: 5               // Maximum events in queue
+      minConfidence: 0.3, // Minimum confidence to process interruption
+      maxProcessingTime: 5000, // Maximum time to process an event (ms)
+      cooldownPeriod: 1000, // Cooldown between interruptions (ms)
+      maxQueueSize: 5 // Maximum events in queue
     };
 
     // Event handlers by type
     this.eventHandlers = new Map();
     this.globalHandlers = [];
-    
+
     // State tracking
     this.lastProcessedEvent = null;
     this.currentInterruption = null;
@@ -60,7 +60,6 @@ export class InterruptionEventHandler {
 
       // Process queue
       await this.processEventQueue();
-
     } catch (error) {
       console.error('Error handling interruption event:', error);
     }
@@ -83,7 +82,9 @@ export class InterruptionEventHandler {
 
     // Check confidence threshold
     if (event.confidence < this.processingConfig.minConfidence) {
-      console.log(`Event confidence too low: ${event.confidence} < ${this.processingConfig.minConfidence}`);
+      console.log(
+        `Event confidence too low: ${event.confidence} < ${this.processingConfig.minConfidence}`
+      );
       return false;
     }
 
@@ -108,7 +109,9 @@ export class InterruptionEventHandler {
     if (this.lastProcessedEvent) {
       const timeSinceLastEvent = now - this.lastProcessedEvent.timestamp;
       if (timeSinceLastEvent < this.processingConfig.cooldownPeriod) {
-        console.log(`Event in cooldown period: ${timeSinceLastEvent}ms < ${this.processingConfig.cooldownPeriod}ms`);
+        console.log(
+          `Event in cooldown period: ${timeSinceLastEvent}ms < ${this.processingConfig.cooldownPeriod}ms`
+        );
         return false;
       }
     }
@@ -174,7 +177,7 @@ export class InterruptionEventHandler {
    */
   async processEvent(event) {
     const startTime = Date.now();
-    
+
     try {
       console.log(`Processing interruption event: ${event.id}`);
 
@@ -195,10 +198,9 @@ export class InterruptionEventHandler {
       this.lastProcessedEvent = event;
 
       console.log(`Interruption event processed successfully: ${event.id}`);
-
     } catch (error) {
       console.error(`Error processing event ${event.id}:`, error);
-      
+
       // Add error to history
       this.addToHistory(event, { error: error.message }, Date.now() - startTime);
     } finally {
@@ -238,7 +240,6 @@ export class InterruptionEventHandler {
         conversationContext: conversationContext,
         timestamp: Date.now()
       };
-
     } catch (error) {
       console.error('Error building interruption context:', error);
       return {
@@ -259,15 +260,15 @@ export class InterruptionEventHandler {
     if (event.confidence > 0.8 && event.energy > 0.3) {
       return 'strong_interruption'; // User definitely wants to interrupt
     }
-    
+
     if (event.confidence > 0.6 && event.energy > 0.2) {
       return 'moderate_interruption'; // Likely interruption
     }
-    
+
     if (event.confidence > 0.4) {
       return 'weak_interruption'; // Possible interruption
     }
-    
+
     return 'unclear_interruption'; // Unclear intent
   }
 
@@ -326,16 +327,13 @@ export class InterruptionEventHandler {
           break;
 
         default:
-          response.actions = [
-            { type: 'monitor_for_further_interruption', timeout: 500 }
-          ];
+          response.actions = [{ type: 'monitor_for_further_interruption', timeout: 500 }];
       }
 
       return response;
-
     } catch (error) {
       console.error('Error creating interruption response:', error);
-      
+
       // Return minimal response
       return {
         type: 'error_response',
@@ -362,7 +360,6 @@ export class InterruptionEventHandler {
 
       // Notify global handlers
       await this.notifyGlobalHandlers(event, response);
-
     } catch (error) {
       console.error('Error executing interruption handling:', error);
       throw error;
@@ -412,7 +409,6 @@ export class InterruptionEventHandler {
         default:
           console.warn(`Unknown action type: ${action.type}`);
       }
-
     } catch (error) {
       console.error(`Error executing action ${action.type}:`, error);
     }
@@ -425,16 +421,19 @@ export class InterruptionEventHandler {
    */
   async stopCurrentSpeech(immediate = true) {
     console.log(`Stopping current speech (immediate: ${immediate})`);
-    
+
     // This would integrate with the voice services to stop current audio
     // For now, just update avatar state
-    await avatarStateManager.transitionToState({
-      currentState: 'listening',
-      speaking: false
-    }, {
-      priority: immediate ? 'immediate' : 'high',
-      duration: immediate ? 0 : 200
-    });
+    await avatarStateManager.transitionToState(
+      {
+        currentState: 'listening',
+        speaking: false
+      },
+      {
+        priority: immediate ? 'immediate' : 'high',
+        duration: immediate ? 0 : 200
+      }
+    );
   }
 
   /**
@@ -444,17 +443,23 @@ export class InterruptionEventHandler {
    */
   async pauseCurrentSpeech(duration) {
     console.log(`Pausing current speech for ${duration}ms`);
-    
+
     // Pause and then resume
-    await avatarStateManager.transitionToState({
-      currentState: 'listening'
-    }, { priority: 'high', duration: 100 });
+    await avatarStateManager.transitionToState(
+      {
+        currentState: 'listening'
+      },
+      { priority: 'high', duration: 100 }
+    );
 
     setTimeout(async () => {
-      await avatarStateManager.transitionToState({
-        currentState: 'speaking',
-        speaking: true
-      }, { priority: 'normal', duration: 100 });
+      await avatarStateManager.transitionToState(
+        {
+          currentState: 'speaking',
+          speaking: true
+        },
+        { priority: 'normal', duration: 100 }
+      );
     }, duration);
   }
 
@@ -466,13 +471,16 @@ export class InterruptionEventHandler {
    */
   async acknowledgeInterruption(language, priority) {
     console.log(`Acknowledging interruption in ${language} (priority: ${priority})`);
-    
+
     // This would generate and speak an acknowledgment phrase
     // For now, just update avatar state
-    await avatarStateManager.transitionToState({
-      currentState: 'thinking',
-      emotion: 'neutral'
-    }, { priority: priority === 'high' ? 'high' : 'normal', duration: 300 });
+    await avatarStateManager.transitionToState(
+      {
+        currentState: 'thinking',
+        emotion: 'neutral'
+      },
+      { priority: priority === 'high' ? 'high' : 'normal', duration: 300 }
+    );
   }
 
   /**
@@ -483,7 +491,7 @@ export class InterruptionEventHandler {
    */
   async offerContinuationChoice(language, priority) {
     console.log(`Offering continuation choice in ${language} (priority: ${priority})`);
-    
+
     // This would generate and speak a continuation choice phrase
     // Implementation would be added in the conversation flow manager
   }
@@ -495,7 +503,7 @@ export class InterruptionEventHandler {
    */
   async briefPause(duration) {
     console.log(`Brief pause for ${duration}ms`);
-    await new Promise(resolve => setTimeout(resolve, duration));
+    await new Promise((resolve) => setTimeout(resolve, duration));
   }
 
   /**
@@ -505,10 +513,10 @@ export class InterruptionEventHandler {
    */
   async continueIfNoFurtherInterruption(timeout) {
     console.log(`Waiting ${timeout}ms for further interruption before continuing`);
-    
+
     // Wait for timeout, then continue if no new interruption
-    await new Promise(resolve => setTimeout(resolve, timeout));
-    
+    await new Promise((resolve) => setTimeout(resolve, timeout));
+
     // Check if there were new interruptions
     if (this.eventQueue.length === 0) {
       console.log('No further interruption detected, continuing');
@@ -525,10 +533,10 @@ export class InterruptionEventHandler {
    */
   async monitorForFurtherInterruption(timeout) {
     console.log(`Monitoring for further interruption for ${timeout}ms`);
-    
+
     // This would set up enhanced monitoring
     // For now, just wait
-    await new Promise(resolve => setTimeout(resolve, timeout));
+    await new Promise((resolve) => setTimeout(resolve, timeout));
   }
 
   /**
@@ -632,7 +640,7 @@ export class InterruptionEventHandler {
     this.currentInterruption = null;
     this.interruptionContext = null;
     this.isProcessingEvent = false;
-    
+
     console.log('InterruptionEventHandler reset');
   }
 }
