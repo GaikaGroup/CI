@@ -3,7 +3,7 @@
  * Provides CRUD operations for sessions with error handling, retry logic, and pagination
  */
 
-import { db } from '../../../database/index.js';
+import { db, DatabaseNotReadyError } from '../../../database/index.js';
 import { dbConfig } from '../../../database/config.js';
 import { generateWelcomeMessage } from '../utils/welcomeMessages.js';
 
@@ -54,6 +54,16 @@ async function withRetry(operation, config = RETRY_CONFIG) {
     try {
       return await operation();
     } catch (error) {
+      if (error instanceof DatabaseNotReadyError ||
+          error?.code === 'DATABASE_NOT_READY' ||
+          error?.name === 'PrismaClientInitializationError') {
+        throw new SessionError(
+          'Database is not ready. Run "prisma generate" and ensure the Postgres instance is running.',
+          'DATABASE_NOT_READY',
+          { originalError: error }
+        );
+      }
+
       lastError = error;
       
       // Don't retry validation errors or not found errors
@@ -113,6 +123,35 @@ function validateSessionData(sessionData) {
   if (language && (typeof language !== 'string' || language.length > 10)) {
     throw new SessionValidationError('Language must be a valid language code (max 10 characters)', 'language');
   }
+}
+
+function isDatabaseNotReadyError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const seen = new Set();
+  let current = error;
+
+  while (current && !seen.has(current)) {
+    seen.add(current);
+
+    if (current instanceof DatabaseNotReadyError) {
+      return true;
+    }
+
+    if (current instanceof SessionError && current.code === 'DATABASE_NOT_READY') {
+      return true;
+    }
+
+    if (current?.code === 'DATABASE_NOT_READY' || current?.name === 'PrismaClientInitializationError') {
+      return true;
+    }
+
+    current = current.cause || current?.details?.originalError || null;
+  }
+
+  return false;
 }
 
 /**
@@ -180,6 +219,9 @@ export class SessionService {
         console.log(`Session created: ${result.id} for user: ${userId} with welcome message: ${createWelcomeMessage}`);
         return result;
       } catch (error) {
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
         throw new SessionError(
           `Failed to create session: ${error.message}`,
           'SESSION_CREATE_FAILED',
@@ -279,6 +321,9 @@ export class SessionService {
           },
         };
       } catch (error) {
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
         throw new SessionError(
           `Failed to get user sessions: ${error.message}`,
           'SESSION_FETCH_FAILED',
@@ -336,6 +381,9 @@ export class SessionService {
         return session;
       } catch (error) {
         if (error instanceof SessionNotFoundError) {
+          throw error;
+        }
+        if (isDatabaseNotReadyError(error)) {
           throw error;
         }
         throw new SessionError(
@@ -400,6 +448,9 @@ export class SessionService {
         if (error instanceof SessionNotFoundError) {
           throw error;
         }
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
         throw new SessionError(
           `Failed to update session: ${error.message}`,
           'SESSION_UPDATE_FAILED',
@@ -440,6 +491,9 @@ export class SessionService {
         return true;
       } catch (error) {
         if (error instanceof SessionNotFoundError) {
+          throw error;
+        }
+        if (isDatabaseNotReadyError(error)) {
           throw error;
         }
         throw new SessionError(
@@ -557,6 +611,9 @@ export class SessionService {
           query: searchTerm,
         };
       } catch (error) {
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
         throw new SessionError(
           `Failed to search sessions: ${error.message}`,
           'SESSION_SEARCH_FAILED',
@@ -603,6 +660,9 @@ export class SessionService {
           lastActivity: recentSession?.updatedAt || null,
         };
       } catch (error) {
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
         throw new SessionError(
           `Failed to get session statistics: ${error.message}`,
           'SESSION_STATS_FAILED',
@@ -635,6 +695,9 @@ export class SessionService {
         
         return messageCount;
       } catch (error) {
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
         throw new SessionError(
           `Failed to update message count: ${error.message}`,
           'MESSAGE_COUNT_UPDATE_FAILED',

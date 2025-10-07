@@ -27,6 +27,8 @@
   let filterDateFrom = '';
   let filterDateTo = '';
 
+  const DATABASE_NOT_READY_MESSAGE = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+
   // Reactive statements
   $: sessions = $sessionStore?.sessions || [];
   $: loading = $isSessionLoading || $sessionStore?.loading || false;
@@ -38,6 +40,9 @@
   $: filtersActive = $hasActiveFilters;
   $: filtersCount = $activeFiltersCount;
   $: currentFilters = $sessionStore.filters;
+  $: persistence = $sessionStore.persistence;
+  $: persistenceUnavailable = persistence?.available === false;
+  $: persistenceMessage = persistence?.message || DATABASE_NOT_READY_MESSAGE;
 
   // Language options
   const languageOptions = [
@@ -387,6 +392,15 @@
       </div>
     {/if}
   </div>
+
+  {#if persistenceUnavailable}
+    <div class="px-4">
+      <div class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 shadow-sm dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200" role="alert">
+        <p class="font-semibold">Session persistence unavailable</p>
+        <p class="mt-1 leading-snug">{persistenceMessage}</p>
+      </div>
+    </div>
+  {/if}
 
   <!-- Sessions list -->
   <div class="flex-1 overflow-y-auto">

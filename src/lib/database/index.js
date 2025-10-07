@@ -4,7 +4,14 @@
  */
 
 // Core database connection
-export { getPrismaClient, testConnection, disconnect, db } from './connection.js';
+export {
+  getPrismaClient,
+  testConnection,
+  disconnect,
+  db,
+  DatabaseNotReadyError,
+  getPrismaConstructor,
+} from './connection.js';
 
 // Configuration management
 export { dbConfig, validateConfig, getConnectionString } from './config.js';
@@ -18,13 +25,22 @@ export {
 } from './migrations.js';
 
 // Re-export Prisma client types for convenience
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { getPrismaConstructor } from './connection.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const require = createRequire(import.meta.url);
+let PrismaClientExport;
 
-const { PrismaClient } = require(join(process.cwd(), 'src/generated/prisma/index.js'));
-export { PrismaClient };
+try {
+  PrismaClientExport = getPrismaConstructor();
+} catch (error) {
+  if (error?.code === 'DATABASE_NOT_READY') {
+    PrismaClientExport = class PrismaClientUnavailable {
+      constructor() {
+        throw error;
+      }
+    };
+  } else {
+    throw error;
+  }
+}
+
+export { PrismaClientExport as PrismaClient };

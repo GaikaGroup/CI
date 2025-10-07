@@ -27,6 +27,11 @@ export async function GET({ params, url, locals }) {
   } catch (error) {
     console.error(`Error in GET /api/sessions/${params.id}:`, error);
 
+    if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
+      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      return json({ error: message, message, code: error.code }, { status: 503 });
+    }
+
     if (error instanceof SessionNotFoundError) {
       return json({ error: 'Session not found' }, { status: 404 });
     }
@@ -111,6 +116,11 @@ export async function PUT({ params, request, locals }) {
   } catch (error) {
     console.error(`Error in PUT /api/sessions/${params.id}:`, error);
 
+    if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
+      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      return json({ error: message, message, code: error.code }, { status: 503 });
+    }
+
     if (error instanceof SessionNotFoundError) {
       return json({ error: 'Session not found' }, { status: 404 });
     }
@@ -149,6 +159,11 @@ export async function DELETE({ params, locals }) {
     return json({ success: true, message: 'Session deleted successfully' });
   } catch (error) {
     console.error(`Error in DELETE /api/sessions/${params.id}:`, error);
+
+    if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
+      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      return json({ error: message, message, code: error.code }, { status: 503 });
+    }
 
     if (error instanceof SessionNotFoundError) {
       return json({ error: 'Session not found' }, { status: 404 });
