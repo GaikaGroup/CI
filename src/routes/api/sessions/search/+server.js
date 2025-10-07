@@ -62,6 +62,11 @@ export async function GET({ url, locals }) {
   } catch (error) {
     console.error('Error in GET /api/sessions/search:', error);
 
+    if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
+      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      return json({ error: message, message, code: error.code }, { status: 503 });
+    }
+
     if (error instanceof SessionValidationError) {
       return json({ error: error.message }, { status: 400 });
     }

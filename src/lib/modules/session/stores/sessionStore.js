@@ -8,6 +8,8 @@ import { writable, derived, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import { user, isAuthenticated } from '$lib/modules/auth/stores.js';
 
+const DATABASE_NOT_READY_FALLBACK_MESSAGE = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+
 /**
  * Session state interface
  */
@@ -16,6 +18,10 @@ const initialSessionState = {
   currentSession: null,
   loading: false,
   error: null,
+  persistence: {
+    available: true,
+    message: null
+  },
   searchQuery: '',
   selectedSessionId: null,
   pagination: {
@@ -44,7 +50,52 @@ function createSessionStore() {
 
   return {
     subscribe,
-    
+
+    async handleApiResponse(response, defaultErrorMessage) {
+      let data = null;
+
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        data = null;
+      }
+
+      if (response.status === 503) {
+        const message = data?.message || data?.error || DATABASE_NOT_READY_FALLBACK_MESSAGE;
+        this.setPersistenceUnavailable(message);
+        throw new Error(message);
+      }
+
+      if (!response.ok) {
+        const message = data?.error || defaultErrorMessage;
+        throw new Error(message);
+      }
+
+      this.clearPersistenceWarning();
+      return data;
+    },
+
+    setPersistenceUnavailable(message = DATABASE_NOT_READY_FALLBACK_MESSAGE) {
+      update(state => ({
+        ...state,
+        persistence: {
+          available: false,
+          message
+        }
+      }));
+      this.setError(message);
+    },
+
+    clearPersistenceWarning() {
+      update(state => ({
+        ...state,
+        persistence: {
+          available: true,
+          message: null
+        }
+      }));
+    },
+
     /**
      * Initialize the session store
      */
@@ -61,7 +112,10 @@ function createSessionStore() {
         await this.loadSessions();
       } catch (error) {
         console.error('[SessionStore] Failed to initialize:', error);
-        this.setError('Failed to load sessions');
+        const currentState = get({ subscribe });
+        if (currentState.persistence.available) {
+          this.setError('Failed to load sessions');
+        }
       }
     },
 
@@ -99,11 +153,7 @@ function createSessionStore() {
         });
 
         const response = await fetch(`/api/sessions?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error('Failed to load sessions');
-        }
-
-        const result = await response.json();
+        const result = await this.handleApiResponse(response, 'Failed to load sessions');
         
         update(state => ({
           ...state,
@@ -141,11 +191,7 @@ function createSessionStore() {
           body: JSON.stringify({ title, mode, language, preview })
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to create session');
-        }
-
-        const newSession = await response.json();
+        const newSession = await this.handleApiResponse(response, 'Failed to create session');
 
         // Add the new session to the beginning of the list
         update(state => ({
@@ -184,11 +230,7 @@ function createSessionStore() {
           body: JSON.stringify(updates)
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to update session');
-        }
-
-        const updatedSession = await response.json();
+        const updatedSession = await this.handleApiResponse(response, 'Failed to update session');
 
         update(state => ({
           ...state,
@@ -223,9 +265,7 @@ function createSessionStore() {
           method: 'DELETE'
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to delete session');
-        }
+        await this.handleApiResponse(response, 'Failed to delete session');
 
         update(state => ({
           ...state,
@@ -288,11 +328,7 @@ function createSessionStore() {
         });
 
         const response = await fetch(`/api/sessions?${params.toString()}`);
-        if (!response.ok) {
-          throw new Error('Failed to search sessions');
-        }
-
-        const result = await response.json();
+        const result = await this.handleApiResponse(response, 'Failed to search sessions');
         
         update(state => ({
           ...state,
@@ -323,11 +359,7 @@ function createSessionStore() {
 
       try {
         const response = await fetch(`/api/sessions/${sessionId}`);
-        if (!response.ok) {
-          throw new Error('Failed to load session');
-        }
-
-        const session = await response.json();
+        const session = await this.handleApiResponse(response, 'Failed to load session');
         
         update(state => ({
           ...state,

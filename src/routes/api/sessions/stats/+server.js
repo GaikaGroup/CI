@@ -47,6 +47,11 @@ export async function GET({ locals }) {
   } catch (error) {
     console.error('Error in GET /api/sessions/stats:', error);
 
+    if ((error instanceof SessionError || error instanceof MessageError) && error.code === 'DATABASE_NOT_READY') {
+      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      return json({ error: message, message, code: error.code }, { status: 503 });
+    }
+
     if (error instanceof SessionError || error instanceof MessageError) {
       return json({ error: 'Failed to retrieve statistics' }, { status: 500 });
     }

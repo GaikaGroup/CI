@@ -4,14 +4,42 @@
  */
 
 import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const require = createRequire(import.meta.url);
 
-const { PrismaClient } = require(join(process.cwd(), 'src/generated/prisma/index.js'));
+/**
+ * Custom error for signaling that the database client cannot be used yet
+ */
+export class DatabaseNotReadyError extends Error {
+  constructor(message, cause = undefined) {
+    super(message);
+    this.name = 'DatabaseNotReadyError';
+    this.code = 'DATABASE_NOT_READY';
+    this.cause = cause;
+  }
+}
+
+let prismaModule;
+
+function loadPrismaModule() {
+  if (prismaModule) {
+    return prismaModule;
+  }
+
+  try {
+    prismaModule = require(join(process.cwd(), 'src/generated/prisma/index.js'));
+    return prismaModule;
+  } catch (error) {
+    if (error?.code === 'MODULE_NOT_FOUND' || error?.message?.includes('src/generated/prisma/index.js')) {
+      throw new DatabaseNotReadyError(
+        'Prisma client has not been generated. Run "prisma generate" before starting the server.',
+        error
+      );
+    }
+    throw error;
+  }
+}
 
 // Check if we're in development mode (works both in SvelteKit and Node.js)
 const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production';
@@ -24,10 +52,12 @@ let prisma;
  * Uses singleton pattern to ensure single connection pool
  */
 function createPrismaClient() {
-  const client = new PrismaClient({
-    log: isDev ? ['query', 'info', 'warn', 'error'] : ['warn', 'error'],
-    errorFormat: 'pretty',
-  });
+  try {
+    const { PrismaClient } = loadPrismaModule();
+    const client = new PrismaClient({
+      log: isDev ? ['query', 'info', 'warn', 'error'] : ['warn', 'error'],
+      errorFormat: 'pretty',
+    });
 
   // Handle graceful shutdown
   if (typeof window === 'undefined') {
@@ -46,7 +76,21 @@ function createPrismaClient() {
     });
   }
 
-  return client;
+    return client;
+  } catch (error) {
+    if (error instanceof DatabaseNotReadyError) {
+      throw error;
+    }
+
+    if (error?.name === 'PrismaClientInitializationError') {
+      throw new DatabaseNotReadyError(
+        'Failed to initialize Prisma client. Ensure Postgres is running and Prisma has been generated.',
+        error
+      );
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -87,4 +131,18 @@ export async function disconnect() {
 }
 
 // Export the client instance for direct use
-export const db = getPrismaClient();
+export const db = new Proxy({}, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    const value = client[prop];
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
+  },
+});
+
+export function getPrismaConstructor() {
+  const { PrismaClient } = loadPrismaModule();
+  return PrismaClient;
+}
