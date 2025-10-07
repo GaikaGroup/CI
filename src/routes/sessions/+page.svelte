@@ -1,8 +1,5 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
-  import { browser } from '$app/environment';
   import { user, checkAuth } from '$modules/auth/stores';
   import { sessionStore } from '$modules/session/stores/sessionStore.js';
   import {
@@ -26,7 +23,6 @@
 
   // Subscribe to sessionStore
   $: sessions = $sessionStore.sessions;
-  $: selectedSession = $sessionStore.currentSession;
 
   function toggleChatMode(mode) {
     if (mode === 'voice') {
@@ -578,6 +574,7 @@
     flex-direction: column;
     height: 100%;
     position: relative;
+    min-height: 0;
   }
 
   .voice-chat-container {
@@ -593,6 +590,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 
   /* Input Area */
