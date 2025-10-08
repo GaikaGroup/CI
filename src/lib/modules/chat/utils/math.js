@@ -36,10 +36,18 @@ const ALPHANUMERIC_REGEX = /[\p{L}\p{N}]/u;
 function normalizeBasicTokens(text) {
   let normalized = text;
 
+const SIMPLE_FRACTION_REGEX =
+  /(^|[\s(])([a-zA-Z0-9^{}]+)\s*\/\s*([a-zA-Z0-9^{}]+)(?=$|[\s.,;:!?)])/g;
+
+function normalizeBasicTokens(text) {
+  let normalized = text;
+
+  // Integral symbols → LaTeX commands
   normalized = normalized.replace(/[∫∬∭⨌∮∯∰∱∲∳]/g, (symbol) =>
     integralSymbolMap[symbol] ? integralSymbolMap[symbol] : '\\int'
   );
 
+  // Roots
   normalized = normalized.replace(
     /√\s*\(?([^)]+)\)?/g,
     (_, radicand) => `\\sqrt{${radicand.trim()}}`
@@ -49,6 +57,7 @@ function normalizeBasicTokens(text) {
     (_, radicand) => `\\sqrt{${radicand.trim()}}`
   );
 
+  // Exponents
   normalized = normalized.replace(
     /([a-zA-Z0-9\\}])\^\(([^)]+)\)/g,
     (_, base, exponent) => `${base}^{${exponent}}`
@@ -66,6 +75,14 @@ function normalizeBasicTokens(text) {
     return `\\\\, d${variable}`;
   });
 
+  // Insert thin space before differentials (\, dX) if missing
+  normalized = normalized.replace(/d([a-zA-Z])\b/g, (match, variable, offset, str) => {
+    const prefix = str.slice(Math.max(0, offset - 3), offset);
+    if (prefix === '\\, ') return match;
+    return `\\\\, d${variable}`;
+  });
+
+  // Simple a/b → \frac{a}{b}
   normalized = normalized.replace(
     SIMPLE_FRACTION_REGEX,
     (match, prefix, numerator, denominator) => {
@@ -123,6 +140,7 @@ function wrapDisplayMath(text) {
     .join('\n');
 }
 
+/* ---------- helpers ---------- */
 function hasUnescapedDollar(sequence) {
   for (let i = 0; i < sequence.length; i += 1) {
     if (sequence[i] === '$' && (i === 0 || sequence[i - 1] !== '\\')) {
@@ -154,6 +172,7 @@ function isWithinInlineDelimiters(str, offset, length) {
   if (!inside) {
     return false;
   }
+  if (!inside) return false;
 
   const after = str.slice(offset + length);
   return hasUnescapedDollar(after);
@@ -189,10 +208,72 @@ function normalizeLegacyDelimiters(text) {
       return match;
     }
 
+  if (!text) return text;
+
+  let normalized = text;
+
+  // \[ ... ] → $$ ... $$
+  normalized = normalized.replace(/\\\[([\s\S]*?)\\\]/g, (match, content, offset, str) => {
+    if (offset > 0 && str[offset - 1] === '\\') return match;
+    const trimmed = content.trim();
+    if (!trimmed) return match;
+    return `$$${trimmed}$$`;
+  });
+
+  // \( ... ) → $ ... $
+  normalized = normalized.replace(/\\\(([\s\S]*?)\\\)/g, (match, content, offset, str) => {
+    if (offset > 0 && str[offset - 1] === '\\') return match;
+    const trimmed = content.trim();
+    if (!trimmed) return match;
     return `$${trimmed}$`;
   });
 
   return normalized;
+}
+/* -------------------------------------------- */
+
+function wrapDisplayMath(text) {
+  return text
+    .split('\n')
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return line;
+
+      // already contains inline or display delimiters → skip
+      if (/^\$\$.*\$\$/.test(trimmed) || /^\$[^$]*\$/.test(trimmed)) {
+        return line;
+      }
+
+      // if line already has any $ (possibly part of inline), do nothing
+      if (trimmed.includes('$')) {
+        const inlineFree = trimmed
+          .replace(/\$\$[\s\S]*?\$\$/g, '')
+          .replace(/\$[^$\n]*\$/g, '')
+          .trim();
+        if (inlineFree.length > 0) {
+          return line;
+        }
+      }
+
+      let candidate = trimmed;
+      for (const trigger of displayMathTriggers) {
+        if (trigger.test(candidate)) {
+          if (!candidate.startsWith('$$')) {
+            candidate = `$$${candidate}$$`;
+          }
+          break;
+        }
+      }
+
+      if (line === trimmed) return candidate;
+
+      const leadingIndex = line.indexOf(trimmed);
+      if (leadingIndex === -1) return candidate;
+
+      const leadingWhitespace = line.slice(0, leadingIndex);
+      return `${leadingWhitespace}${candidate}`;
+    })
+    .join('\n');
 }
 
 function wrapInlineMath(text) {
@@ -200,6 +281,12 @@ function wrapInlineMath(text) {
   return segments
     .map((segment) => {
       if (segment.startsWith('$$')) {
+      // keep $$...$$ display segments intact
+      if (segment.startsWith('$$')) return segment;
+
+      // NEW: if segment has an odd number of unescaped $, skip auto-wrapping entirely
+      // (prevents closing a currency $ with our inserted $)
+      if (countUnescapedDollars(segment) % 2 === 1) {
         return segment;
       }
 
@@ -229,11 +316,31 @@ function wrapInlineMath(text) {
             return match;
           }
 
+        processed = processed.replace(pattern, (...args) => {
+          const match = args[0];
+          const str = args.at(-1);
+          const offset = args.at(-2);
+
+          // already inside $...$ → leave as is
+          if (isWithinInlineDelimiters(str, offset, match.length)) {
+            return match;
+          }
+
+          // exactly surrounded by $...$ already
+          const before = str.slice(0, offset);
+          const after = str.slice(offset + match.length);
+          const alreadyWrapped = before.endsWith('$') && after.startsWith('$');
+          if (alreadyWrapped) {
+            return match;
+          }
+
+          // also avoid wrapping if the match itself contains any unescaped $
           if (countUnescapedDollars(match) > 0) {
             return match;
           }
 
           return `${AUTO_INLINE_OPEN}${match.trim()}${AUTO_INLINE_CLOSE}`;
+          return `$${match.trim()}$`;
         });
       });
 
@@ -337,6 +444,30 @@ function extractSegments(processed) {
 
   if (parts.length === 0) {
     return buffer ? [{ type: 'text', content: buffer }] : [];
+  const mathRegex = /\$\$([^$]+)\$\$|\$([^$\n]+)\$/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = mathRegex.exec(processed)) !== null) {
+    if (match.index > lastIndex) {
+      const textPart = processed.slice(lastIndex, match.index);
+      if (textPart) parts.push({ type: 'text', content: textPart });
+    }
+
+    const mathContent = match[1] !== undefined ? match[1] : match[2];
+    const display = Boolean(match[1]);
+    parts.push({ type: 'math', content: mathContent.trim(), display });
+
+    lastIndex = mathRegex.lastIndex;
+  }
+
+  if (lastIndex < processed.length) {
+    const tail = processed.slice(lastIndex);
+    if (tail) parts.push({ type: 'text', content: tail });
+  }
+
+  if (parts.length === 0) {
+    return [{ type: 'text', content: processed }];
   }
 
   return parts;
@@ -346,10 +477,12 @@ export function parseMathSegments(input) {
   if (!input) {
     return [];
   }
+  if (!input) return [];
 
   const normalized = normalizeBasicTokens(input);
   const withLegacyDelimiters = normalizeLegacyDelimiters(normalized);
   const withDisplay = wrapDisplayMath(withLegacyDelimiters);
   const withInline = wrapInlineMath(withDisplay);
+
   return extractSegments(withInline);
 }
