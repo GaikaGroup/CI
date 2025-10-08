@@ -71,6 +71,10 @@ describe('MathMessage', () => {
     expect(displayMatch).toContain('\\, dx');
   });
 
+  it('leaves auto-wrapping disabled when currency introduces an unmatched dollar', () => {
+    const content = 'Цена $5 и уравнение a=b';
+    const { container } = render(MathMessage, { props: { content } });
+
   it('preserves currency values without forcing adjacent equations into math mode', () => {
     const content = 'Цена $5 и уравнение a=b';
     const { container } = render(MathMessage, { props: { content } });
@@ -81,6 +85,21 @@ describe('MathMessage', () => {
     const text = container.textContent ?? '';
     expect(text).toContain('Цена $5');
     expect(text).toContain('a=b');
+  });
+
+  it('does not let currency consume inline math that already has delimiters', () => {
+    const content = 'Цена $5, а формула $a=b$ и все хорошо';
+    const { container } = render(MathMessage, { props: { content } });
+
+    const katexNodes = container.querySelectorAll('.katex');
+    expect(katexNodes.length).toBe(1);
+
+    const annotation = katexNodes[0]?.querySelector('annotation');
+    expect(annotation?.textContent).toContain('a=b');
+
+    const text = container.textContent ?? '';
+    expect(text).toContain('Цена $5, а формула ');
+    expect(text.endsWith('и все хорошо')).toBe(true);
   });
 
   it('still auto-wraps equations when currency appears after the math', () => {
