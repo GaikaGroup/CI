@@ -14,7 +14,7 @@ describe('MathMessage', () => {
     expect(katexNode).toBeTruthy();
     expect(container.querySelector('.katex-display')).toBeTruthy();
 
-    const annotation = katexNode.querySelector('annotation');
+    const annotation = katexNode!.querySelector('annotation');
     const annotationText = annotation?.textContent ?? '';
     expect(annotationText).toContain('\\int 2x');
     expect(annotationText).toContain('\\, dz');
