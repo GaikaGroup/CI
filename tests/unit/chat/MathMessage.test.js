@@ -70,4 +70,30 @@ describe('MathMessage', () => {
     expect(displayMatch).toBeTruthy();
     expect(displayMatch).toContain('\\, dx');
   });
+
+  it('preserves currency values without forcing adjacent equations into math mode', () => {
+    const content = 'Цена $5 и уравнение a=b';
+    const { container } = render(MathMessage, { props: { content } });
+
+    // With odd unescaped $, we should not auto-wrap "a=b"
+    expect(container.querySelector('.katex')).toBeNull();
+
+    const text = container.textContent ?? '';
+    expect(text).toContain('Цена $5');
+    expect(text).toContain('a=b');
+  });
+
+  it('still auto-wraps equations when currency appears after the math', () => {
+    const content = 'a=b и стоимость $5';
+    const { container } = render(MathMessage, { props: { content } });
+
+    const katexNode = container.querySelector('.katex');
+    expect(katexNode).toBeTruthy();
+
+    const annotation = katexNode?.querySelector('annotation');
+    expect(annotation?.textContent).toContain('a=b');
+
+    const text = container.textContent ?? '';
+    expect(text).toContain('стоимость $5');
+  });
 });

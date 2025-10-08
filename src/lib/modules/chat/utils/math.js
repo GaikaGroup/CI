@@ -75,7 +75,7 @@ function normalizeBasicTokens(text) {
   return normalized;
 }
 
-/* ---------- helpers from mak branch ---------- */
+/* ---------- helpers ---------- */
 function hasUnescapedDollar(sequence) {
   for (let i = 0; i < sequence.length; i += 1) {
     if (sequence[i] === '$' && (i === 0 || sequence[i - 1] !== '\\')) {
@@ -83,6 +83,16 @@ function hasUnescapedDollar(sequence) {
     }
   }
   return false;
+}
+
+function countUnescapedDollars(sequence) {
+  let count = 0;
+  for (let i = 0; i < sequence.length; i += 1) {
+    if (sequence[i] === '$' && (i === 0 || sequence[i - 1] !== '\\')) {
+      count += 1;
+    }
+  }
+  return count;
 }
 
 function isWithinInlineDelimiters(str, offset, length) {
@@ -173,7 +183,14 @@ function wrapInlineMath(text) {
   const segments = text.split(/(\$\$[^$]*\$\$)/g);
   return segments
     .map((segment) => {
+      // keep $$...$$ display segments intact
       if (segment.startsWith('$$')) return segment;
+
+      // NEW: if segment has an odd number of unescaped $, skip auto-wrapping entirely
+      // (prevents closing a currency $ with our inserted $)
+      if (countUnescapedDollars(segment) % 2 === 1) {
+        return segment;
+      }
 
       let processed = segment;
 
@@ -188,11 +205,16 @@ function wrapInlineMath(text) {
             return match;
           }
 
-          // basic guard for cases where the pattern is exactly surrounded by $...$
+          // exactly surrounded by $...$ already
           const before = str.slice(0, offset);
           const after = str.slice(offset + match.length);
           const alreadyWrapped = before.endsWith('$') && after.startsWith('$');
           if (alreadyWrapped) {
+            return match;
+          }
+
+          // also avoid wrapping if the match itself contains any unescaped $
+          if (countUnescapedDollars(match) > 0) {
             return match;
           }
 
