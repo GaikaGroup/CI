@@ -75,6 +75,7 @@ describe('MathMessage', () => {
     const content = 'Цена $5 и уравнение a=b';
     const { container } = render(MathMessage, { props: { content } });
 
+    // With odd unescaped $, we should not auto-wrap "a=b"
     expect(container.querySelector('.katex')).toBeNull();
 
     const text = container.textContent ?? '';
