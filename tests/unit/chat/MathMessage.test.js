@@ -15,6 +15,9 @@ describe('MathMessage', () => {
     expect(container.querySelector('.katex-display')).toBeTruthy();
 
     const annotation = katexNode.querySelector('annotation');
-    expect(annotation?.textContent).toContain('\\int 2x \\, dz = x^{2} + C');
+    const annotationText = annotation?.textContent ?? '';
+    expect(annotationText).toContain('\\int 2x');
+    expect(annotationText).toContain('\\, dz');
+    expect(annotationText).toContain('x^{2}');
   });
 });

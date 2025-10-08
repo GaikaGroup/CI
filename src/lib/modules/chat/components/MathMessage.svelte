@@ -41,7 +41,7 @@
         return line;
       }
 
-      const integralMatch = lineWithoutIndent.match(/^([∫∬∭⨌∮∯∰∱∲∳])\s*(.*)$/);
+      const integralMatch = lineWithoutIndent.match(/^([∫∬∭⨌∮∯∰∱∲∳])(.*)$/);
 
       if (!integralMatch) {
         return line;
@@ -59,10 +59,16 @@
 
       normalizedRest = normalizedRest.replace(
         /(?<!\\,)d([a-zA-Z])\b/g,
-        (_, variable) => String.raw`\, d${variable}`
+        (_, variable) => `\\, d${variable}`
       );
 
-      const integralExpression = `${latexIntegral} ${normalizedRest}`.trim();
+      const needsSpace =
+        normalizedRest.length > 0 &&
+        !normalizedRest.startsWith('\\') &&
+        !normalizedRest.startsWith('_') &&
+        !normalizedRest.startsWith('^');
+
+      const integralExpression = `${latexIntegral}${needsSpace ? ' ' : ''}${normalizedRest}`.trim();
       const latexLine = `${leadingWhitespace}$$${integralExpression}$$`;
 
       const placeholder = `__INTEGRAL_PLACEHOLDER_${index}__`;
@@ -95,7 +101,7 @@
     // Handle simple integrals: \int x^2 dx
     processedText = processedText.replace(
       /\\int\s+([^d=]+)\s*d([a-zA-Z])/g,
-      (_, integrand, variable) => String.raw`$\int ${integrand} \, d${variable}$`
+      (_, integrand, variable) => `$\\int ${integrand} \\, d${variable}$`
     );
 
     // Handle fractions: \frac{x^3}{3}
