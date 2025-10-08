@@ -10,6 +10,14 @@ describe('MathMessage', () => {
       }
     });
 
-    expect(container.querySelector('.katex')).toBeTruthy();
+    const katexNode = container.querySelector('.katex');
+    expect(katexNode).toBeTruthy();
+    expect(container.querySelector('.katex-display')).toBeTruthy();
+
+    const annotation = katexNode!.querySelector('annotation');
+    const annotationText = annotation?.textContent ?? '';
+    expect(annotationText).toContain('\\int 2x');
+    expect(annotationText).toContain('\\, dz');
+    expect(annotationText).toContain('x^{2}');
   });
 });

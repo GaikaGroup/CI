@@ -17,7 +17,73 @@
       return [{ type: 'text', content: text }];
     }
 
-    let processedText = text;
+    const integralSymbolMap = {
+      '∫': '\\int',
+      '∬': '\\iint',
+      '∭': '\\iiint',
+      '⨌': '\\iiiint',
+      '∮': '\\oint',
+      '∯': '\\oiint',
+      '∰': '\\oiiint',
+      '∱': '\\int',
+      '∲': '\\int',
+      '∳': '\\int'
+    };
+
+    const integralPlaceholders = new Map();
+
+    const linesWithoutIntegrals = text.split('\n').map((line, index) => {
+      const leadingWhitespaceMatch = line.match(/^\s*/);
+      const leadingWhitespace = leadingWhitespaceMatch ? leadingWhitespaceMatch[0] : '';
+      const lineWithoutIndent = line.slice(leadingWhitespace.length);
+
+      if (lineWithoutIndent.startsWith('$$')) {
+        return line;
+      }
+
+      const integralMatch = lineWithoutIndent.match(/^([∫∬∭⨌∮∯∰∱∲∳])(.*)$/);
+
+      if (!integralMatch) {
+        return line;
+      }
+
+      const [, integralSymbol, restOfLine] = integralMatch;
+      const latexIntegral = integralSymbolMap[integralSymbol] || '\\int';
+
+      let normalizedRest = restOfLine.trim();
+
+      normalizedRest = normalizedRest.replace(
+        /([a-zA-Z0-9\\}\]])\^\(([^)]+)\)/g,
+        (_, base, exponent) => `${base}^{${exponent}}`
+      );
+
+      normalizedRest = normalizedRest.replace(
+        /(?<!\\,)d([a-zA-Z])\b/g,
+        (_, variable) => `\\, d${variable}`
+      );
+
+      const needsSpace =
+        normalizedRest.length > 0 &&
+        !normalizedRest.startsWith('\\') &&
+        !normalizedRest.startsWith('_') &&
+        !normalizedRest.startsWith('^');
+
+      const integralExpression = `${latexIntegral}${needsSpace ? ' ' : ''}${normalizedRest}`.trim();
+      const latexLine = `${leadingWhitespace}$$${integralExpression}$$`;
+
+      const placeholder = `__INTEGRAL_PLACEHOLDER_${index}__`;
+      integralPlaceholders.set(placeholder, latexLine);
+
+      return placeholder;
+    });
+
+    let processedText = linesWithoutIntegrals.join('\n');
+
+    // Normalize exponent notation like x^(2) -> x^{2} globally (outside integral placeholders)
+    processedText = processedText.replace(
+      /([a-zA-Z0-9\\}\]])\^\(([^)]+)\)/g,
+      (_, base, exponent) => `${base}^{${exponent}}`
+    );
 
     const integralSymbolMap = {
       '∫': '\\int',
@@ -87,19 +153,31 @@
     );
 
     // Handle simple integrals: \int x^2 dx
-    processedText = processedText.replace(/\\int\s+([^d=]+)\s*d([a-zA-Z])/g, '$\\int $1 \\, d$2$');
+    processedText = processedText.replace(
+      /\\int\s+([^d=]+)\s*d([a-zA-Z])/g,
+      (_, integrand, variable) => `$\\int ${integrand} \\, d${variable}$`
+    );
 
     // Handle fractions: \frac{x^3}{3}
-    processedText = processedText.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$\\frac{$1}{$2}$');
+    processedText = processedText.replace(
+      /\\frac\{([^}]+)\}\{([^}]+)\}/g,
+      (_, numerator, denominator) => String.raw`$\frac{${numerator}}{${denominator}}$`
+    );
 
     // Handle simple fractions: x^3/3 -> \frac{x^3}{3}
-    processedText = processedText.replace(/([a-zA-Z]\^?\{?\d*\}?)\s*\/\s*(\d+)/g, '\\frac{$1}{$2}');
+    processedText = processedText.replace(
+      /([a-zA-Z]\^?\{?\d*\}?)\s*\/\s*(\d+)/g,
+      (_, numerator, denominator) => String.raw`\frac{${numerator}}{${denominator}}`
+    );
 
     // Handle powers: x^2 -> x^{2}
     processedText = processedText.replace(/([a-zA-Z])\^(\d+)/g, '$1^{$2}');
 
     // Handle square roots: sqrt(x) -> \sqrt{x}
-    processedText = processedText.replace(/\\sqrt\{([^}]+)\}/g, '$\\sqrt{$1}$');
+    processedText = processedText.replace(
+      /\\sqrt\{([^}]+)\}/g,
+      (_, value) => String.raw`$\sqrt{${value}}$`
+    );
 
     // Handle equations with equals (be more selective)
     processedText = processedText.replace(
@@ -113,6 +191,10 @@
         return `$${match.trim()}$`;
       }
     );
+
+    for (const [placeholder, latexLine] of integralPlaceholders.entries()) {
+      processedText = processedText.split(placeholder).join(latexLine);
+    }
 
     const parts = [];
     let currentPos = 0;
