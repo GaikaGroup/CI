@@ -335,7 +335,7 @@
       margin: 1.2em 0 !important;
       font-size: 0.95em !important;
     }
-    
+
     .message-content :global(.katex) {
       font-size: 1.1em !important;
     }

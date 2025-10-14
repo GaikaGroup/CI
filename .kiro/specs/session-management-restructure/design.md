@@ -15,14 +15,14 @@ graph TB
         Auth[Authentication]
         Router[SvelteKit Router]
     end
-    
+
     subgraph "API Layer"
         SessionAPI[Session API]
         CourseAPI[Course API]
         UserAPI[User API]
         EnrollmentAPI[Enrollment API]
     end
-    
+
     subgraph "Service Layer"
         SessionService[Session Service]
         CourseService[Course Service]
@@ -30,30 +30,30 @@ graph TB
         EnrollmentService[Enrollment Service]
         AssistantService[Assistant Service]
     end
-    
+
     subgraph "Data Layer"
         DB[(PostgreSQL)]
         Cache[Redis Cache]
     end
-    
+
     UI --> Router
     Router --> Auth
     Auth --> SessionAPI
     Auth --> CourseAPI
     Auth --> UserAPI
     Auth --> EnrollmentAPI
-    
+
     SessionAPI --> SessionService
     CourseAPI --> CourseService
     UserAPI --> UserService
     EnrollmentAPI --> EnrollmentService
-    
+
     SessionService --> DB
     CourseService --> DB
     UserService --> DB
     EnrollmentService --> DB
     AssistantService --> CourseService
-    
+
     SessionService --> Cache
     CourseService --> Cache
 ```
@@ -65,19 +65,19 @@ graph TD
     Start[User visits /] --> LoginCheck{Authenticated?}
     LoginCheck -->|No| LoginPage[/login]
     LoginCheck -->|Yes| SessionsPage[/sessions]
-    
+
     LoginPage --> AuthSuccess{Auth Success?}
     AuthSuccess -->|Yes| SessionsPage
     AuthSuccess -->|No| LoginPage
-    
+
     SessionsPage --> ModeCheck{Mode?}
     ModeCheck -->|FUN| FunSessions[Simple List View]
     ModeCheck -->|LEARN| LearnSessions[Course-Grouped View]
-    
+
     FunSessions --> SessionSelect[Select Session]
     LearnSessions --> CourseSelect[Select Course]
     CourseSelect --> SessionSelect
-    
+
     SessionSelect --> SessionView[/sessions/[uuid]]
 ```
 
@@ -86,6 +86,7 @@ graph TD
 ### 1. Database Schema Extensions
 
 #### Updated Session Model
+
 ```prisma
 model Session {
   id           String    @id @default(cuid())
@@ -99,12 +100,12 @@ model Session {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   messageCount Int       @default(0) @map("message_count")
-  
+
   // Relations
   messages     Message[]
   user         User      @relation(fields: [userId], references: [id])
   course       Course?   @relation(fields: [courseId], references: [id])
-  
+
   // Indexes
   @@index([userId, updatedAt(sort: Desc)], name: "idx_user_sessions")
   @@index([courseId, updatedAt(sort: Desc)], name: "idx_course_sessions")
@@ -115,6 +116,7 @@ model Session {
 ```
 
 #### New User Model
+
 ```prisma
 model User {
   id        String   @id @default(cuid())
@@ -123,12 +125,12 @@ model User {
   role      UserRole @default(USER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   sessions     Session[]
   createdCourses Course[] @relation("CourseCreator")
   enrollments  Enrollment[]
-  
+
   @@map("users")
 }
 
@@ -139,6 +141,7 @@ enum UserRole {
 ```
 
 #### New Course Model
+
 ```prisma
 model Course {
   id          String   @id @default(cuid())
@@ -152,13 +155,13 @@ model Course {
   skills      String[] // Array of skills
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   creator     User     @relation("CourseCreator", fields: [creatorId], references: [id])
   sessions    Session[]
   enrollments Enrollment[]
   assistants  Assistant[]
-  
+
   @@index([creatorId], name: "idx_course_creator")
   @@index([status, visibility], name: "idx_course_access")
   @@map("courses")
@@ -178,6 +181,7 @@ enum CourseVisibility {
 ```
 
 #### New Enrollment Model
+
 ```prisma
 model Enrollment {
   id        String   @id @default(cuid())
@@ -186,11 +190,11 @@ model Enrollment {
   status    EnrollmentStatus @default(ACTIVE)
   enrolledAt DateTime @default(now()) @map("enrolled_at")
   droppedAt  DateTime? @map("dropped_at")
-  
+
   // Relations
   user      User     @relation(fields: [userId], references: [id])
   course    Course   @relation(fields: [courseId], references: [id])
-  
+
   @@unique([userId, courseId])
   @@index([userId, status], name: "idx_user_enrollments")
   @@index([courseId, status], name: "idx_course_enrollments")
@@ -204,6 +208,7 @@ enum EnrollmentStatus {
 ```
 
 #### New Assistant Model
+
 ```prisma
 model Assistant {
   id           String   @id @default(cuid())
@@ -214,10 +219,10 @@ model Assistant {
   configuration Json    // LLM settings
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   course       Course   @relation(fields: [courseId], references: [id])
-  
+
   @@index([courseId], name: "idx_course_assistants")
   @@map("assistants")
 }
@@ -231,6 +236,7 @@ enum AssistantType {
 ### 2. API Endpoints
 
 #### Session Management API
+
 ```typescript
 // GET /api/sessions - List user sessions
 interface SessionListResponse {
@@ -267,6 +273,7 @@ interface UpdateSessionRequest {
 ```
 
 #### Course Management API
+
 ```typescript
 // GET /api/courses - List available courses
 interface CourseListResponse {
@@ -297,6 +304,7 @@ interface CourseResponse {
 ```
 
 #### Enrollment API
+
 ```typescript
 // POST /api/courses/[id]/enroll - Enroll in course
 // Returns 201 Created
@@ -318,6 +326,7 @@ interface EnrollmentListResponse {
 ### 3. Frontend Components
 
 #### Router Configuration
+
 ```typescript
 // src/routes/+layout.server.js
 export async function load({ locals, url }) {
@@ -325,12 +334,12 @@ export async function load({ locals, url }) {
   if (url.pathname === '/' && !locals.user) {
     throw redirect(302, '/login');
   }
-  
+
   // Redirect to sessions if authenticated and on root
   if (url.pathname === '/' && locals.user) {
     throw redirect(302, '/sessions');
   }
-  
+
   return {
     user: locals.user
   };
@@ -338,6 +347,7 @@ export async function load({ locals, url }) {
 ```
 
 #### Session List Component
+
 ```svelte
 <!-- src/routes/sessions/+page.svelte -->
 <script>
@@ -345,27 +355,27 @@ export async function load({ locals, url }) {
   import { mode } from '$lib/stores/mode.js';
   import SessionCard from '$lib/components/SessionCard.svelte';
   import CourseGroup from '$lib/components/CourseGroup.svelte';
-  
+
   export let data;
-  
+
   $: sessions = data.sessions;
   $: courses = data.courses;
   $: groupedSessions = groupSessionsByCourse(sessions, courses);
-  
+
   function groupSessionsByCourse(sessions, courses) {
     if ($mode === 'fun') {
       return { ungrouped: sessions };
     }
-    
+
     // Group by course for LEARN mode
     const grouped = {};
-    courses.forEach(course => {
+    courses.forEach((course) => {
       grouped[course.id] = {
         course,
-        sessions: sessions.filter(s => s.courseId === course.id)
+        sessions: sessions.filter((s) => s.courseId === course.id)
       };
     });
-    
+
     return grouped;
   }
 </script>
@@ -386,19 +396,20 @@ export async function load({ locals, url }) {
 ```
 
 #### Session Component with UUID routing
+
 ```svelte
 <!-- src/routes/sessions/[id]/+page.svelte -->
 <script>
   import { page } from '$app/stores';
   import ChatInterface from '$lib/components/ChatInterface.svelte';
   import { goto } from '$app/navigation';
-  
+
   export let data;
-  
+
   $: session = data.session;
   $: messages = data.messages;
   $: assistant = data.assistant;
-  
+
   // Handle session not found or access denied
   if (!session) {
     goto('/sessions');
@@ -411,6 +422,7 @@ export async function load({ locals, url }) {
 ### 4. Service Layer
 
 #### Session Service
+
 ```typescript
 // src/lib/services/SessionService.js
 export class SessionService {
@@ -422,16 +434,16 @@ export class SessionService {
         id: crypto.randomUUID()
       }
     });
-    
+
     return session;
   }
-  
+
   async getUserSessions(userId, includeHidden = false) {
     const where = { userId };
     if (!includeHidden) {
       where.isHidden = false;
     }
-    
+
     return await prisma.session.findMany({
       where,
       orderBy: { updatedAt: 'desc' },
@@ -440,31 +452,31 @@ export class SessionService {
       }
     });
   }
-  
+
   async softDeleteSession(sessionId, userId) {
     // Verify ownership
     const session = await prisma.session.findFirst({
       where: { id: sessionId, userId }
     });
-    
+
     if (!session) {
       throw new Error('Session not found or access denied');
     }
-    
+
     return await prisma.session.update({
       where: { id: sessionId },
       data: { isHidden: true }
     });
   }
-  
+
   async getSessionById(sessionId, userId, isAdmin = false) {
     const where = { id: sessionId };
-    
+
     if (!isAdmin) {
       where.userId = userId;
       where.isHidden = false;
     }
-    
+
     return await prisma.session.findFirst({
       where,
       include: {
@@ -481,6 +493,7 @@ export class SessionService {
 ```
 
 #### Course Service
+
 ```typescript
 // src/lib/services/CourseService.js
 export class CourseService {
@@ -493,7 +506,7 @@ export class CourseService {
       }
     });
   }
-  
+
   async getAvailableCourses(userId) {
     return await prisma.course.findMany({
       where: {
@@ -523,7 +536,7 @@ export class CourseService {
       }
     });
   }
-  
+
   async enrollUser(userId, courseId) {
     return await prisma.enrollment.upsert({
       where: {
@@ -540,7 +553,7 @@ export class CourseService {
       }
     });
   }
-  
+
   async dropUser(userId, courseId) {
     return await prisma.enrollment.update({
       where: {
@@ -558,6 +571,7 @@ export class CourseService {
 ## Data Models
 
 ### Session Data Flow
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -565,7 +579,7 @@ sequenceDiagram
     participant A as API
     participant S as SessionService
     participant D as Database
-    
+
     U->>F: Create new session
     F->>A: POST /api/sessions
     A->>S: createSession()
@@ -577,6 +591,7 @@ sequenceDiagram
 ```
 
 ### Course Enrollment Flow
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -584,7 +599,7 @@ sequenceDiagram
     participant A as API
     participant C as CourseService
     participant D as Database
-    
+
     U->>F: Enroll in course
     F->>A: POST /api/courses/[id]/enroll
     A->>C: enrollUser()
@@ -598,30 +613,32 @@ sequenceDiagram
 ## Error Handling
 
 ### Session Access Control
+
 ```typescript
 // Middleware for session access
 export async function validateSessionAccess(sessionId, userId, isAdmin = false) {
   const session = await prisma.session.findFirst({
     where: { id: sessionId }
   });
-  
+
   if (!session) {
     throw new Error('Session not found', { status: 404 });
   }
-  
+
   if (!isAdmin && session.userId !== userId) {
     throw new Error('Access denied', { status: 403 });
   }
-  
+
   if (!isAdmin && session.isHidden) {
     throw new Error('Session not available', { status: 410 });
   }
-  
+
   return session;
 }
 ```
 
 ### Course Access Control
+
 ```typescript
 // Check if user can access course
 export async function validateCourseAccess(courseId, userId) {
@@ -633,20 +650,20 @@ export async function validateCourseAccess(courseId, userId) {
       }
     }
   });
-  
+
   if (!course) {
     throw new Error('Course not found', { status: 404 });
   }
-  
-  const hasAccess = 
+
+  const hasAccess =
     course.visibility === 'published' ||
     course.creatorId === userId ||
     course.enrollments.length > 0;
-  
+
   if (!hasAccess) {
     throw new Error('Course access denied', { status: 403 });
   }
-  
+
   return course;
 }
 ```
@@ -654,24 +671,28 @@ export async function validateCourseAccess(courseId, userId) {
 ## Testing Strategy
 
 ### Unit Tests
+
 - Session service methods (create, list, soft delete, access control)
 - Course service methods (create, enroll, drop, access control)
 - API endpoint handlers
 - Frontend component logic
 
 ### Integration Tests
+
 - Complete user flows (login → sessions → chat)
 - Course enrollment/drop workflows
 - Session creation in different modes
 - Admin access to hidden sessions
 
 ### E2E Tests
+
 - User journey from login to chat
 - Session management across modes
 - Course discovery and enrollment
 - Soft delete functionality
 
 ### Migration Tests
+
 - Terminology migration (subject → course)
 - Database schema updates
 - Backward compatibility validation
@@ -679,18 +700,21 @@ export async function validateCourseAccess(courseId, userId) {
 ## Performance Considerations
 
 ### Database Optimization
+
 - Proper indexing on session queries (userId, courseId, isHidden)
 - Pagination for large session lists
 - Efficient course filtering queries
 - Connection pooling for high concurrency
 
 ### Caching Strategy
+
 - Redis cache for frequently accessed courses
 - Session metadata caching
 - User enrollment status caching
 - Cache invalidation on updates
 
 ### Frontend Optimization
+
 - Lazy loading of session messages
 - Virtual scrolling for large session lists
 - Optimistic updates for enrollment actions

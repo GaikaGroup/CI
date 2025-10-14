@@ -30,7 +30,7 @@ export class LoggingService {
   logSecurityIncident(incident, severity, context = {}) {
     const incidentId = this.generateIncidentId();
     const timestamp = new Date();
-    
+
     const securityIncident = {
       id: incidentId,
       timestamp,
@@ -43,22 +43,25 @@ export class LoggingService {
       context,
       escalated: false
     };
-    
+
     this.incidents.push(securityIncident);
-    
+
     // Track repeated attempts
     this.trackRepeatedAttempts(incident.userId, incident.sessionId, incident.incidentType);
-    
+
     // Check for escalation
     this.checkEscalation(securityIncident);
-    
+
     // Log to console for development (in production, this would go to proper logging system)
-    console.warn(`[SECURITY INCIDENT] ${incidentId}: ${incident.incidentType} by user ${incident.userId}`, {
-      severity,
-      message: incident.message.substring(0, 100) + '...',
-      context
-    });
-    
+    console.warn(
+      `[SECURITY INCIDENT] ${incidentId}: ${incident.incidentType} by user ${incident.userId}`,
+      {
+        severity,
+        message: incident.message.substring(0, 100) + '...',
+        context
+      }
+    );
+
     return incidentId;
   }
 
@@ -98,12 +101,12 @@ export class LoggingService {
     const sessionKey = `${sessionId}:${incidentType}`;
     const sessionCount = (this.sessionAttempts.get(sessionKey) || 0) + 1;
     this.sessionAttempts.set(sessionKey, sessionCount);
-    
+
     // Track by user
     const userKey = `${userId}:${incidentType}`;
     const userCount = (this.userAttempts.get(userKey) || 0) + 1;
     this.userAttempts.set(userKey, userCount);
-    
+
     // Log escalation if thresholds exceeded
     if (sessionCount >= this.escalationThresholds.repeated_attempts) {
       this.logEscalation(userId, sessionId, 'repeated_session_attempts', {
@@ -111,7 +114,7 @@ export class LoggingService {
         attemptCount: sessionCount
       });
     }
-    
+
     if (userCount >= this.escalationThresholds.repeated_attempts * 2) {
       this.logEscalation(userId, sessionId, 'repeated_user_attempts', {
         incidentType,
@@ -125,12 +128,12 @@ export class LoggingService {
    * @param {SecurityIncident} incident - Security incident
    */
   checkEscalation(incident) {
-    const shouldEscalate = 
+    const shouldEscalate =
       incident.severity === 'high' ||
       incident.incidentType === 'sophisticated_attack' ||
       incident.context.requiresReview ||
       this.isRepeatedViolator(incident.userId, incident.sessionId);
-    
+
     if (shouldEscalate && !incident.escalated) {
       this.escalateIncident(incident);
     }
@@ -143,17 +146,12 @@ export class LoggingService {
   escalateIncident(incident) {
     incident.escalated = true;
     incident.escalatedAt = new Date();
-    
-    this.logEscalation(
-      incident.userId,
-      incident.sessionId,
-      'incident_escalation',
-      {
-        originalIncidentId: incident.id,
-        incidentType: incident.incidentType,
-        severity: incident.severity
-      }
-    );
+
+    this.logEscalation(incident.userId, incident.sessionId, 'incident_escalation', {
+      originalIncidentId: incident.id,
+      incidentType: incident.incidentType,
+      severity: incident.severity
+    });
   }
 
   /**
@@ -165,13 +163,13 @@ export class LoggingService {
    */
   logEscalation(userId, sessionId, escalationType, context) {
     const escalationId = this.generateIncidentId();
-    
+
     console.error(`[ESCALATION] ${escalationId}: ${escalationType} for user ${userId}`, {
       sessionId,
       context,
       timestamp: new Date()
     });
-    
+
     // In production, this would trigger administrative alerts
     this.triggerAdministrativeAlert(escalationType, userId, sessionId, context);
   }
@@ -188,7 +186,7 @@ export class LoggingService {
     // - Send email alerts to administrators
     // - Create tickets in admin dashboard
     // - Trigger automated responses if needed
-    
+
     console.warn(`[ADMIN ALERT] ${escalationType} requires review`, {
       userId,
       sessionId,
@@ -217,10 +215,11 @@ export class LoggingService {
    */
   getRecentIncidents(userId, sessionId, timeWindowMs) {
     const cutoffTime = new Date(Date.now() - timeWindowMs);
-    
-    return this.incidents.filter(incident => 
-      (incident.userId === userId || incident.sessionId === sessionId) &&
-      incident.timestamp >= cutoffTime
+
+    return this.incidents.filter(
+      (incident) =>
+        (incident.userId === userId || incident.sessionId === sessionId) &&
+        incident.timestamp >= cutoffTime
     );
   }
 
@@ -232,7 +231,7 @@ export class LoggingService {
    */
   getIncidentsByType(incidentType, limit = 100) {
     return this.incidents
-      .filter(incident => incident.incidentType === incidentType)
+      .filter((incident) => incident.incidentType === incidentType)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit);
   }
@@ -245,7 +244,7 @@ export class LoggingService {
    */
   getIncidentsBySeverity(severity, limit = 100) {
     return this.incidents
-      .filter(incident => incident.severity === severity)
+      .filter((incident) => incident.severity === severity)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit);
   }
@@ -258,7 +257,7 @@ export class LoggingService {
    */
   getUserIncidents(userId, limit = 50) {
     return this.incidents
-      .filter(incident => incident.userId === userId)
+      .filter((incident) => incident.userId === userId)
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit);
   }
@@ -276,30 +275,30 @@ export class LoggingService {
       uniqueUsers: new Set(),
       uniqueSessions: new Set()
     };
-    
-    this.incidents.forEach(incident => {
+
+    this.incidents.forEach((incident) => {
       // Count by type
-      stats.incidentsByType[incident.incidentType] = 
+      stats.incidentsByType[incident.incidentType] =
         (stats.incidentsByType[incident.incidentType] || 0) + 1;
-      
+
       // Count by severity
-      stats.incidentsBySeverity[incident.severity] = 
+      stats.incidentsBySeverity[incident.severity] =
         (stats.incidentsBySeverity[incident.severity] || 0) + 1;
-      
+
       // Count escalated
       if (incident.escalated) {
         stats.escalatedIncidents++;
       }
-      
+
       // Track unique users and sessions
       stats.uniqueUsers.add(incident.userId);
       stats.uniqueSessions.add(incident.sessionId);
     });
-    
+
     // Convert sets to counts
     stats.uniqueUsers = stats.uniqueUsers.size;
     stats.uniqueSessions = stats.uniqueSessions.size;
-    
+
     return stats;
   }
 
@@ -318,12 +317,13 @@ export class LoggingService {
    * @param {number} maxAgeMs - Maximum age in milliseconds
    * @returns {number} - Number of incidents cleared
    */
-  clearOldIncidents(maxAgeMs = 30 * 24 * 60 * 60 * 1000) { // 30 days default
+  clearOldIncidents(maxAgeMs = 30 * 24 * 60 * 60 * 1000) {
+    // 30 days default
     const cutoffTime = new Date(Date.now() - maxAgeMs);
     const initialCount = this.incidents.length;
-    
-    this.incidents = this.incidents.filter(incident => incident.timestamp >= cutoffTime);
-    
+
+    this.incidents = this.incidents.filter((incident) => incident.timestamp >= cutoffTime);
+
     return initialCount - this.incidents.length;
   }
 
@@ -334,27 +334,27 @@ export class LoggingService {
    */
   exportIncidents(filters = {}) {
     let filtered = [...this.incidents];
-    
+
     if (filters.startDate) {
-      filtered = filtered.filter(incident => incident.timestamp >= filters.startDate);
+      filtered = filtered.filter((incident) => incident.timestamp >= filters.startDate);
     }
-    
+
     if (filters.endDate) {
-      filtered = filtered.filter(incident => incident.timestamp <= filters.endDate);
+      filtered = filtered.filter((incident) => incident.timestamp <= filters.endDate);
     }
-    
+
     if (filters.severity) {
-      filtered = filtered.filter(incident => incident.severity === filters.severity);
+      filtered = filtered.filter((incident) => incident.severity === filters.severity);
     }
-    
+
     if (filters.incidentType) {
-      filtered = filtered.filter(incident => incident.incidentType === filters.incidentType);
+      filtered = filtered.filter((incident) => incident.incidentType === filters.incidentType);
     }
-    
+
     if (filters.userId) {
-      filtered = filtered.filter(incident => incident.userId === filters.userId);
+      filtered = filtered.filter((incident) => incident.userId === filters.userId);
     }
-    
+
     return filtered.sort((a, b) => b.timestamp - a.timestamp);
   }
 }

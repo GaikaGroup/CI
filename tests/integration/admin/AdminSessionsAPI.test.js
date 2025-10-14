@@ -41,7 +41,7 @@ describe('Admin Sessions API', () => {
   describe('GET /api/admin/sessions', () => {
     it('should require authentication', async () => {
       const { GET } = await import('$routes/api/admin/sessions/+server.js');
-      
+
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions'),
         locals: {}
@@ -56,7 +56,7 @@ describe('Admin Sessions API', () => {
 
     it('should require admin role', async () => {
       const { GET } = await import('$routes/api/admin/sessions/+server.js');
-      
+
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions'),
         locals: {
@@ -94,7 +94,7 @@ describe('Admin Sessions API', () => {
       SessionService.getAllSessions.mockResolvedValue(mockSessions);
 
       const { GET } = await import('$routes/api/admin/sessions/+server.js');
-      
+
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions'),
         locals: {
@@ -131,7 +131,7 @@ describe('Admin Sessions API', () => {
       SessionService.searchSessions.mockResolvedValue(mockSearchResults);
 
       const { GET } = await import('$routes/api/admin/sessions/+server.js');
-      
+
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions?search=test&userId=user1'),
         locals: {
@@ -143,14 +143,18 @@ describe('Admin Sessions API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(SessionService.searchSessions).toHaveBeenCalledWith('user1', 'test', expect.any(Object));
+      expect(SessionService.searchSessions).toHaveBeenCalledWith(
+        'user1',
+        'test',
+        expect.any(Object)
+      );
     });
   });
 
   describe('POST /api/admin/sessions/[id]/restore', () => {
     it('should require authentication', async () => {
       const { POST } = await import('$routes/api/admin/sessions/[id]/restore/+server.js');
-      
+
       const mockRequest = {
         params: { id: 'session1' },
         locals: {}
@@ -165,7 +169,7 @@ describe('Admin Sessions API', () => {
 
     it('should require admin role', async () => {
       const { POST } = await import('$routes/api/admin/sessions/[id]/restore/+server.js');
-      
+
       const mockRequest = {
         params: { id: 'session1' },
         locals: {
@@ -192,7 +196,7 @@ describe('Admin Sessions API', () => {
       SessionService.restoreSession.mockResolvedValue(true);
 
       const { POST } = await import('$routes/api/admin/sessions/[id]/restore/+server.js');
-      
+
       const mockRequest = {
         params: { id: 'session1' },
         locals: {
@@ -214,7 +218,7 @@ describe('Admin Sessions API', () => {
       SessionService.getSessionById.mockResolvedValue(null);
 
       const { POST } = await import('$routes/api/admin/sessions/[id]/restore/+server.js');
-      
+
       const mockRequest = {
         params: { id: 'nonexistent' },
         locals: {
@@ -240,7 +244,7 @@ describe('Admin Sessions API', () => {
       SessionService.getSessionById.mockResolvedValue(mockSession);
 
       const { POST } = await import('$routes/api/admin/sessions/[id]/restore/+server.js');
-      
+
       const mockRequest = {
         params: { id: 'session1' },
         locals: {

@@ -60,7 +60,9 @@ If you have any further questions, feel free to share them for additional assist
   <!-- Проблемный текст -->
   <div class="mb-8">
     <h2 class="text-2xl font-semibold mb-4 text-red-600">❌ Проблемный текст (как в чате)</h2>
-    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+    <div
+      class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6"
+    >
       <SimpleMath content={problematicText} />
     </div>
   </div>
@@ -68,16 +70,22 @@ If you have any further questions, feel free to share them for additional assist
   <!-- Хорошо отформатированный текст -->
   <div class="mb-8">
     <h2 class="text-2xl font-semibold mb-4 text-green-600">✅ Правильно отформатированный текст</h2>
-    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+    <div
+      class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6"
+    >
       <SimpleMath content={wellFormattedText} />
     </div>
   </div>
 
   <!-- Информация о проблемах -->
-  <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+  <div
+    class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6"
+  >
     <h2 class="text-xl font-semibold mb-4">🔍 Проблемы, которые мы исправляем:</h2>
     <ul class="list-disc list-inside space-y-2 text-sm">
-      <li><strong>Слипшиеся слова:</strong> "Длярешенияданнойзадачи" → "Для решения данной задачи"</li>
+      <li>
+        <strong>Слипшиеся слова:</strong> "Длярешенияданнойзадачи" → "Для решения данной задачи"
+      </li>
       <li><strong>Неправильные переносы:</strong> Сохраняем структуру абзацев</li>
       <li><strong>Математические выражения:</strong> Правильно оборачиваем в LaTeX</li>
       <li><strong>Смешанные языки:</strong> Корректно обрабатываем русский и английский</li>

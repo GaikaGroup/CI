@@ -23,7 +23,7 @@ This feature addresses a critical navigation issue where users clicking "Continu
 #### Acceptance Criteria
 
 1. WHEN the app mode is set to 'catalogue' THEN session API calls SHALL use 'learn' as the mode parameter
-2. WHEN the app mode is 'fun' THEN session API calls SHALL use 'fun' as the mode parameter  
+2. WHEN the app mode is 'fun' THEN session API calls SHALL use 'fun' as the mode parameter
 3. WHEN the app mode is 'learn' THEN session API calls SHALL use 'learn' as the mode parameter
 4. IF an invalid mode parameter is passed to the sessions API THEN the system SHALL return a clear error message
 

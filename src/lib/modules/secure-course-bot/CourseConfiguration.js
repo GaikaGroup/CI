@@ -12,7 +12,13 @@ export class CourseConfiguration {
    * @param {string} syllabusContent - Course syllabus content
    * @param {string[]} learningObjectives - Course learning objectives
    */
-  constructor(courseName, courseTopics = [], instructorInfo = {}, syllabusContent = '', learningObjectives = []) {
+  constructor(
+    courseName,
+    courseTopics = [],
+    instructorInfo = {},
+    syllabusContent = '',
+    learningObjectives = []
+  ) {
     this.courseName = courseName;
     this.courseTopics = courseTopics;
     this.instructorInfo = {
@@ -24,7 +30,7 @@ export class CourseConfiguration {
     this.learningObjectives = learningObjectives;
     this.createdAt = new Date();
     this.updatedAt = new Date();
-    
+
     // Validate the configuration
     this.validate();
   }
@@ -82,38 +88,37 @@ export class CourseConfiguration {
   updateCourseContent(newContent) {
     // Create a backup of current state
     const backup = this.createBackup();
-    
+
     try {
-      
       // Update fields if provided
       if (newContent.courseName !== undefined) {
         this.courseName = newContent.courseName;
       }
-      
+
       if (newContent.courseTopics !== undefined) {
         this.courseTopics = [...newContent.courseTopics];
       }
-      
+
       if (newContent.instructorInfo !== undefined) {
         this.instructorInfo = {
           ...this.instructorInfo,
           ...newContent.instructorInfo
         };
       }
-      
+
       if (newContent.syllabusContent !== undefined) {
         this.syllabusContent = newContent.syllabusContent;
       }
-      
+
       if (newContent.learningObjectives !== undefined) {
         this.learningObjectives = [...newContent.learningObjectives];
       }
-      
+
       this.updatedAt = new Date();
-      
+
       // Validate the updated configuration
       this.validate();
-      
+
       return true;
     } catch (error) {
       // Restore from backup if validation fails
@@ -131,16 +136,16 @@ export class CourseConfiguration {
     if (!topic || typeof topic !== 'string') {
       throw new Error('Topic must be a non-empty string');
     }
-    
+
     const trimmedTopic = topic.trim();
     if (trimmedTopic.length === 0) {
       throw new Error('Topic cannot be empty');
     }
-    
+
     if (this.courseTopics.includes(trimmedTopic)) {
       return false; // Topic already exists
     }
-    
+
     this.courseTopics.push(trimmedTopic);
     this.updatedAt = new Date();
     return true;
@@ -156,7 +161,7 @@ export class CourseConfiguration {
     if (index === -1) {
       return false; // Topic not found
     }
-    
+
     this.courseTopics.splice(index, 1);
     this.updatedAt = new Date();
     return true;
@@ -171,12 +176,12 @@ export class CourseConfiguration {
     if (!newInstructorInfo || typeof newInstructorInfo !== 'object') {
       throw new Error('Instructor info must be an object');
     }
-    
+
     this.instructorInfo = {
       ...this.instructorInfo,
       ...newInstructorInfo
     };
-    
+
     this.updatedAt = new Date();
     return true;
   }
@@ -187,12 +192,16 @@ export class CourseConfiguration {
    */
   validate() {
     const errors = [];
-    
+
     // Validate course name
-    if (!this.courseName || typeof this.courseName !== 'string' || this.courseName.trim().length === 0) {
+    if (
+      !this.courseName ||
+      typeof this.courseName !== 'string' ||
+      this.courseName.trim().length === 0
+    ) {
       errors.push('Course name is required and must be a non-empty string');
     }
-    
+
     // Validate course topics
     if (!Array.isArray(this.courseTopics)) {
       errors.push('Course topics must be an array');
@@ -203,7 +212,7 @@ export class CourseConfiguration {
         }
       }
     }
-    
+
     // Validate instructor info
     if (!this.instructorInfo || typeof this.instructorInfo !== 'object') {
       errors.push('Instructor info must be an object');
@@ -218,23 +227,26 @@ export class CourseConfiguration {
         errors.push('Office hours must be a string');
       }
     }
-    
+
     // Validate syllabus content
     if (this.syllabusContent && typeof this.syllabusContent !== 'string') {
       errors.push('Syllabus content must be a string');
     }
-    
+
     // Validate learning objectives
     if (!Array.isArray(this.learningObjectives)) {
       errors.push('Learning objectives must be an array');
     } else {
       for (let i = 0; i < this.learningObjectives.length; i++) {
-        if (typeof this.learningObjectives[i] !== 'string' || this.learningObjectives[i].trim().length === 0) {
+        if (
+          typeof this.learningObjectives[i] !== 'string' ||
+          this.learningObjectives[i].trim().length === 0
+        ) {
           errors.push(`Learning objective at index ${i} must be a non-empty string`);
         }
       }
     }
-    
+
     if (errors.length > 0) {
       throw new Error(`Configuration validation failed: ${errors.join(', ')}`);
     }
@@ -297,14 +309,14 @@ export class CourseConfiguration {
       json.syllabusContent,
       json.learningObjectives
     );
-    
+
     if (json.createdAt) {
       config.createdAt = new Date(json.createdAt);
     }
     if (json.updatedAt) {
       config.updatedAt = new Date(json.updatedAt);
     }
-    
+
     return config;
   }
 

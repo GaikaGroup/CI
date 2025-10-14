@@ -16,7 +16,7 @@ export class SecureCourseBot {
     this.relevanceAnalyzer = new RelevanceAnalyzer();
     this.responseGenerator = new ResponseGenerator();
     this.loggingService = new LoggingService();
-    
+
     // Track session state for repeated attempt detection
     this.sessionState = new Map();
   }
@@ -38,7 +38,7 @@ export class SecureCourseBot {
 
       // Run the 6-step self-check mechanism
       const selfCheckResult = this.runSelfCheckMechanism(message, userId, sessionId);
-      
+
       if (!selfCheckResult.passed) {
         // Log the security violation
         if (selfCheckResult.shouldLog) {
@@ -54,7 +54,7 @@ export class SecureCourseBot {
             selfCheckResult.context
           );
         }
-        
+
         return {
           securityResult: selfCheckResult.securityResult,
           relevanceResult: null,
@@ -62,30 +62,29 @@ export class SecureCourseBot {
           shouldLog: selfCheckResult.shouldLog
         };
       }
-      
+
       // If all checks pass, generate appropriate response
       const response = this.responseGenerator.generateResponse(
         selfCheckResult.securityResult,
         selfCheckResult.relevanceResult,
         this.courseConfig
       );
-      
+
       // Track successful interaction
       this.trackInteraction(userId, sessionId, message, response, 'success');
-      
+
       return {
         securityResult: selfCheckResult.securityResult,
         relevanceResult: selfCheckResult.relevanceResult,
         response,
         shouldLog: false
       };
-      
     } catch (error) {
       // Handle unexpected errors securely
       console.error('SecureCourseBot processing error:', error);
-      
+
       const errorResponse = this.responseGenerator.getOffTopicResponse(this.courseConfig);
-      
+
       this.loggingService.logSecurityIncident(
         {
           userId,
@@ -97,7 +96,7 @@ export class SecureCourseBot {
         'high',
         { error: error.message }
       );
-      
+
       return {
         securityResult: { isValid: false, violationType: 'processing_error' },
         relevanceResult: null,
@@ -122,7 +121,10 @@ export class SecureCourseBot {
         passed: false,
         securityResult: manipulationCheck,
         relevanceResult: null,
-        response: this.responseGenerator.getSecurityResponse(manipulationCheck.violationType, this.courseConfig),
+        response: this.responseGenerator.getSecurityResponse(
+          manipulationCheck.violationType,
+          this.courseConfig
+        ),
         shouldLog: manipulationCheck.shouldLog,
         severity: manipulationCheck.severity,
         violationType: manipulationCheck.violationType,
@@ -132,7 +134,7 @@ export class SecureCourseBot {
 
     // Step 2: Relevance check - Is this directly related to [COURSE NAME] content?
     const relevanceCheck = this.relevanceAnalyzer.analyzeRelevance(message, this.courseConfig);
-    
+
     // Step 3: Integrity check - Would answering violate academic integrity?
     const integrityCheck = this.checkAcademicIntegrity(message);
     if (!integrityCheck.passed) {
@@ -165,16 +167,16 @@ export class SecureCourseBot {
 
     // Step 5: Purpose check - Does this help student learn THIS course?
     const purposeCheck = this.checkPurposeAlignment(message, relevanceCheck);
-    
+
     // Step 6: Final decision - If any check fails, politely refuse and redirect
     if (relevanceCheck.classification === 'IRRELEVANT' || !purposeCheck.passed) {
       // Check for repeated off-topic attempts
       const repeatedAttempts = this.checkRepeatedOffTopicAttempts(userId, sessionId);
-      
-      const response = repeatedAttempts 
+
+      const response = repeatedAttempts
         ? this.responseGenerator.getRepeatedOffTopicResponse(this.courseConfig)
         : this.responseGenerator.getOffTopicResponse(this.courseConfig);
-      
+
       return {
         passed: false,
         securityResult: { isValid: true },
@@ -183,10 +185,10 @@ export class SecureCourseBot {
         shouldLog: repeatedAttempts,
         severity: repeatedAttempts ? 'medium' : 'low',
         violationType: 'off_topic',
-        context: { 
-          step: 'purpose_check', 
+        context: {
+          step: 'purpose_check',
           repeatedAttempts,
-          classification: relevanceCheck.classification 
+          classification: relevanceCheck.classification
         }
       };
     }
@@ -282,9 +284,9 @@ export class SecureCourseBot {
     const sessionKey = `${sessionId}:off_topic`;
     const currentCount = this.sessionState.get(sessionKey) || 0;
     const newCount = currentCount + 1;
-    
+
     this.sessionState.set(sessionKey, newCount);
-    
+
     return newCount >= 3; // Threshold from requirements (2-3 attempts)
   }
 
@@ -309,7 +311,7 @@ export class SecureCourseBot {
     if (!(newConfig instanceof CourseConfiguration)) {
       throw new Error('Invalid course configuration');
     }
-    
+
     this.courseConfig = newConfig;
     console.log(`[CONFIG UPDATE] Course configuration updated: ${newConfig.getCourseName()}`);
   }
@@ -336,9 +338,7 @@ export class SecureCourseBot {
    * @returns {SecurityIncident[]} - Recent incidents
    */
   getRecentIncidents(limit = 50) {
-    return this.loggingService.incidents
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit);
+    return this.loggingService.incidents.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
   }
 
   /**
@@ -384,10 +384,13 @@ export class SecureCourseBot {
       // Split by numbered patterns
       const numberedParts = message.split(/(?=\d+[\)\.]\s*)/);
       if (numberedParts.length > 1) {
-        parts = numberedParts.slice(1).map(part => part.trim());
+        parts = numberedParts.slice(1).map((part) => part.trim());
       } else {
         // Split by question marks as fallback
-        parts = message.split('?').filter(part => part.trim().length > 0).map(part => part.trim() + '?');
+        parts = message
+          .split('?')
+          .filter((part) => part.trim().length > 0)
+          .map((part) => part.trim() + '?');
       }
     }
 
@@ -412,7 +415,7 @@ export class SecureCourseBot {
 
     for (let i = 0; i < multiPartResult.parts.length; i++) {
       const part = multiPartResult.parts[i];
-      
+
       // Run security checks on each part
       const securityResult = this.securityValidator.validateInput(part, this.courseConfig);
       if (!securityResult.isValid) {
@@ -426,7 +429,7 @@ export class SecureCourseBot {
 
       // Run relevance analysis on each part
       const relevanceResult = this.relevanceAnalyzer.analyzeRelevance(part, this.courseConfig);
-      
+
       if (relevanceResult.classification === 'RELEVANT') {
         relevantParts.push({
           number: i + 1,
@@ -444,8 +447,11 @@ export class SecureCourseBot {
     // If there are security violations, return security response for the first one
     if (securityViolations.length > 0) {
       const firstViolation = securityViolations[0];
-      const response = this.responseGenerator.getSecurityResponse(firstViolation.violation, this.courseConfig);
-      
+      const response = this.responseGenerator.getSecurityResponse(
+        firstViolation.violation,
+        this.courseConfig
+      );
+
       // Log the security incident
       this.loggingService.logSecurityIncident(
         {
@@ -469,10 +475,10 @@ export class SecureCourseBot {
 
     // Generate mixed question response
     let response = '';
-    
+
     if (relevantParts.length > 0) {
       response += "I'll address the course-related questions:\n\n";
-      
+
       for (const part of relevantParts) {
         if (part.topics && part.topics.length > 0) {
           response += `Question ${part.number}: This relates to ${part.topics.join(', ')}. I'm ready to help with this ${this.courseConfig.courseName} topic. Please provide more specific details about what you'd like to understand.\n\n`;
@@ -483,7 +489,7 @@ export class SecureCourseBot {
     }
 
     if (offTopicParts.length > 0) {
-      const offTopicNumbers = offTopicParts.map(p => p.number).join(', ');
+      const offTopicNumbers = offTopicParts.map((p) => p.number).join(', ');
       response += `Question${offTopicParts.length > 1 ? 's' : ''} ${offTopicNumbers} fall${offTopicParts.length === 1 ? 's' : ''} outside the scope of ${this.courseConfig.courseName}, so I've focused on the course-related content above.`;
     }
 
@@ -493,7 +499,13 @@ export class SecureCourseBot {
     }
 
     // Track successful interaction
-    this.trackInteraction(userId, sessionId, multiPartResult.originalMessage, response, 'multi_part_success');
+    this.trackInteraction(
+      userId,
+      sessionId,
+      multiPartResult.originalMessage,
+      response,
+      'multi_part_success'
+    );
 
     return {
       securityResult: { isValid: true },
@@ -510,12 +522,12 @@ export class SecureCourseBot {
   performMaintenance(options = {}) {
     const maxAge = options.maxIncidentAge || 30 * 24 * 60 * 60 * 1000; // 30 days
     const clearedIncidents = this.loggingService.clearOldIncidents(maxAge);
-    
+
     // Clear old session state
     this.sessionState.clear();
-    
+
     console.log(`[MAINTENANCE] Cleared ${clearedIncidents} old incidents and reset session state`);
-    
+
     return {
       clearedIncidents,
       sessionStateReset: true,

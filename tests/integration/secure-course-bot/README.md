@@ -5,20 +5,23 @@ This test suite provides comprehensive validation of the secure course bot's abi
 ## Test Coverage
 
 ### Prompt Injection Attempts (Requirement 1.1)
+
 - Direct instruction override attempts
-- Sophisticated bypass attempts  
+- Sophisticated bypass attempts
 - Advanced jailbreak patterns
 - Instruction revelation attempts
 - Case variations and creative formatting
 - Embedded manipulation in longer text
 
 ### Authority Impersonation Attempts (Requirement 1.2)
+
 - Direct authority claims (professor, instructor, admin)
 - Implied authority scenarios
 - Sophisticated authority claims with specific names
 - Case variations and embedded claims
 
 ### Roleplay and Hypothetical Scenario Attempts (Requirement 1.3)
+
 - Direct roleplay requests
 - Hypothetical scenarios
 - Game-based approaches
@@ -26,6 +29,7 @@ This test suite provides comprehensive validation of the secure course bot's abi
 - Embedded roleplay in legitimate questions
 
 ### Emotional Manipulation Attempts (Requirement 1.4)
+
 - Urgency and desperation tactics
 - Flattery and manipulation
 - Guilt and pressure techniques
@@ -33,12 +37,14 @@ This test suite provides comprehensive validation of the secure course bot's abi
 - Combined emotional appeals
 
 ### Chain-of-Thought Manipulation Attempts (Requirement 1.5)
+
 - Logical progression attempts
 - Complex reasoning chains
 - Incremental boundary pushing
 - Sophisticated logical manipulation
 
 ### Combined and Advanced Manipulation
+
 - Multiple manipulation types in single messages
 - Sophisticated multi-layered attempts
 - Edge cases and boundary testing
@@ -46,6 +52,7 @@ This test suite provides comprehensive validation of the secure course bot's abi
 ## Test Structure
 
 Each test category validates:
+
 1. **Detection Accuracy**: Ensures manipulation attempts are correctly identified
 2. **Response Generation**: Verifies appropriate security responses are generated
 3. **Template Consistency**: Confirms response templates maintain security boundaries
@@ -54,6 +61,7 @@ Each test category validates:
 ## Security Validation Results
 
 The test suite validates that the SecurityValidator correctly identifies manipulation attempts and returns:
+
 - `isValid: false` for all manipulation attempts
 - Appropriate `violationType` classification
 - Correct `severity` level (high/medium)
@@ -63,6 +71,7 @@ The test suite validates that the SecurityValidator correctly identifies manipul
 ## Response Template Validation
 
 Tests ensure all security responses:
+
 - Maintain polite but firm boundaries
 - Include course-specific information
 - Avoid apologetic language
@@ -72,6 +81,7 @@ Tests ensure all security responses:
 ## Usage
 
 Run the complete test suite:
+
 ```bash
 npm test -- tests/integration/secure-course-bot/ManipulationAttempts.test.js --run
 ```

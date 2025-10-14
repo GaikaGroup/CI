@@ -6,7 +6,7 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
       // This tests the logic in src/routes/+layout.server.js
       const mockLayoutLoad = ({ locals, url }) => {
         const user = locals.user;
-        
+
         if (url.pathname === '/') {
           if (!user) {
             throw { status: 302, location: '/login' };
@@ -14,20 +14,22 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
             throw { status: 302, location: '/sessions' };
           }
         }
-        
+
         return { user: user || null };
       };
 
       // Test unauthenticated user
       expect(() => {
-        mockLayoutLoad({ 
-          locals: { user: null }, 
-          url: { pathname: '/' } 
+        mockLayoutLoad({
+          locals: { user: null },
+          url: { pathname: '/' }
         });
-      }).toThrow(expect.objectContaining({
-        status: 302,
-        location: '/login'
-      }));
+      }).toThrow(
+        expect.objectContaining({
+          status: 302,
+          location: '/login'
+        })
+      );
     });
   });
 
@@ -37,7 +39,7 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
       // For now, we verify the pattern exists in the layout
       const mockLayoutLoad = ({ locals, url }) => {
         const user = locals.user;
-        
+
         // Root path handling
         if (url.pathname === '/') {
           if (!user) {
@@ -46,16 +48,16 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
             throw { status: 302, location: '/sessions' };
           }
         }
-        
+
         return { user: user || null };
       };
 
       // Verify that user data is properly passed to pages for protection
-      const result = mockLayoutLoad({ 
-        locals: { user: null }, 
-        url: { pathname: '/sessions' } 
+      const result = mockLayoutLoad({
+        locals: { user: null },
+        url: { pathname: '/sessions' }
       });
-      
+
       expect(result.user).toBe(null);
     });
   });
@@ -64,7 +66,7 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
     it('should redirect authenticated users from / to /sessions', () => {
       const mockLayoutLoad = ({ locals, url }) => {
         const user = locals.user;
-        
+
         if (url.pathname === '/') {
           if (!user) {
             throw { status: 302, location: '/login' };
@@ -72,20 +74,22 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
             throw { status: 302, location: '/sessions' };
           }
         }
-        
+
         return { user: user || null };
       };
 
       // Test authenticated user
       expect(() => {
-        mockLayoutLoad({ 
-          locals: { user: { id: '1', name: 'Test User' } }, 
-          url: { pathname: '/' } 
+        mockLayoutLoad({
+          locals: { user: { id: '1', name: 'Test User' } },
+          url: { pathname: '/' }
         });
-      }).toThrow(expect.objectContaining({
-        status: 302,
-        location: '/sessions'
-      }));
+      }).toThrow(
+        expect.objectContaining({
+          status: 302,
+          location: '/sessions'
+        })
+      );
     });
   });
 
@@ -103,9 +107,9 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
 
       const mockGoto = vi.fn();
       const authenticatedUser = { id: '1', name: 'Test User' };
-      
+
       const redirected = await mockLoginPageLogic(authenticatedUser, mockGoto);
-      
+
       expect(redirected).toBe(true);
       expect(mockGoto).toHaveBeenCalledWith('/sessions');
     });
@@ -123,9 +127,9 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
 
       const mockLogin = vi.fn().mockResolvedValue({ id: '1', name: 'Test User' });
       const mockGoto = vi.fn();
-      
+
       const success = await mockHandleSignIn('test@example.com', 'password', mockLogin, mockGoto);
-      
+
       expect(success).toBe(true);
       expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password');
       expect(mockGoto).toHaveBeenCalledWith('/sessions');
@@ -180,7 +184,7 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
       scenarios.forEach(({ description, user, path, expectedRedirect }) => {
         const mockLayoutLoad = ({ locals, url }) => {
           const currentUser = locals.user;
-          
+
           if (url.pathname === '/') {
             if (!currentUser) {
               throw { status: 302, location: '/login' };
@@ -188,17 +192,19 @@ describe('Login Redirect Flow - Task 2 Requirements', () => {
               throw { status: 302, location: '/sessions' };
             }
           }
-          
+
           return { user: currentUser || null };
         };
 
         if (expectedRedirect) {
           expect(() => {
             mockLayoutLoad({ locals: { user }, url: { pathname: path } });
-          }).toThrow(expect.objectContaining({
-            status: 302,
-            location: expectedRedirect
-          }));
+          }).toThrow(
+            expect.objectContaining({
+              status: 302,
+              location: expectedRedirect
+            })
+          );
         } else {
           const result = mockLayoutLoad({ locals: { user }, url: { pathname: path } });
           expect(result.user).toBe(user);

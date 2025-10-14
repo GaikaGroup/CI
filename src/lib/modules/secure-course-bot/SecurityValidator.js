@@ -59,13 +59,13 @@ export class SecurityValidator {
       /act\s+as\s+if/i,
       /be\s+a\s+(travel|history|science|math|biology|chemistry|physics)/i,
       /you\s+are\s+now\s+a/i,
-      
+
       // Game-based roleplay
       /let's\s+play\s+a\s+(fun\s+)?game/i,
       /in\s+this\s+game/i,
       /staying\s+in\s+character/i,
       /this\s+is\s+just\s+an\s+exercise/i,
-      
+
       // Hypothetical scenarios
       /what\s+if\s+you\s+were/i,
       /hypothetically/i,
@@ -75,13 +75,13 @@ export class SecurityValidator {
       /let's\s+do\s+a\s+thought\s+experiment/i,
       /imagine\s+we're\s+in\s+a\s+world/i,
       /in\s+a\s+roleplay\s+scenario/i,
-      
+
       // Character assignment
       /pretend\s+you're\s+(not\s+a\s+course\s+bot|my|a)/i,
       /imagine\s+you're\s+a/i,
       /act\s+as\s+if\s+you're\s+a/i,
       /you're\s+a\s+(travel\s+advisor|tutor|expert|teacher)/i,
-      
+
       // Scenario setup
       /in\s+this\s+scenario/i,
       /for\s+this\s+exercise/i,

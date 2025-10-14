@@ -11,34 +11,34 @@ export class RelevanceAnalyzer {
       /course\s+(content|material|concepts?|theories?|frameworks?)/i,
       /syllabus/i,
       /learning\s+objectives?/i,
-      
+
       // Assignments and coursework
       /(homework|assignment|problem\s+set|essay|project)/i,
       /assignment\s+instructions?/i,
       /due\s+date/i,
       /bibliography|citation/i,
-      
+
       // Exams and assessment
       /(exam|quiz|test)\s+(preparation|content|study)/i,
       /study\s+(guide|strategy|tips)/i,
       /grade|grading/i,
-      
+
       // Course logistics
       /course\s+(schedule|policies?|requirements?)/i,
       /office\s+hours/i,
       /lecture\s+(material|topics?|notes?)/i,
-      
+
       // Readings and materials
       /(textbook|reading|article|case\s+study)/i,
       /assigned\s+reading/i,
       /course\s+materials?/i,
-      
+
       // Course-specific study skills (CRITICAL FIX)
       /time\s+management\s+for\s+(this\s+)?course/i,
       /study\s+(methods?|techniques?)\s+for\s+(this\s+)?course/i,
       /how\s+to\s+succeed\s+in\s+(this\s+)?course/i,
       /course[- ]specific\s+study/i,
-      
+
       // Course-specific applications
       /real[- ]world\s+application/i,
       /career\s+connection/i,
@@ -50,31 +50,31 @@ export class RelevanceAnalyzer {
       // Other courses
       /other\s+courses?/i,
       /different\s+(class|course)/i,
-      
+
       // General life advice
       /life\s+advice/i,
       /personal\s+(problems?|issues?|relationships?)/i,
       /dating|romance/i,
-      
+
       // Technical support
       /technical\s+support/i,
       /computer\s+(problems?|issues?)/i,
       /software\s+(help|support)/i,
-      
+
       // Entertainment
       /(movie|music|game|tv\s+show)/i,
       /entertainment/i,
       /celebrity/i,
-      
+
       // Medical, legal, financial advice
       /(medical|health|legal|financial)\s+advice/i,
       /doctor|lawyer|investment/i,
-      
+
       // Current events (unless course-related)
       /news|politics|current\s+events/i,
       /weather/i,
       /sports/i,
-      
+
       // Assignment completion requests
       /write\s+(my|the)\s+(essay|paper|assignment)/i,
       /do\s+(my|the)\s+homework/i,
@@ -88,19 +88,19 @@ export class RelevanceAnalyzer {
       /study\s+(skills|methods|techniques)(?!\s+for\s+(this\s+)?course)/i,
       /time\s+management(?!\s+for\s+(this\s+)?course)/i,
       /note[- ]taking/i,
-      
+
       // Research methods if course involves research
       /research\s+(methods?|techniques?)/i,
-      
+
       // Academic writing for course assignments
       /academic\s+writing/i,
       /writing\s+(tips|help)/i,
-      
+
       // Group work for course projects
       /group\s+work/i,
       /team\s+project/i,
       /collaboration/i,
-      
+
       // General academic topics
       /all\s+my\s+courses/i,
       /semester\s+planning/i
@@ -116,7 +116,7 @@ export class RelevanceAnalyzer {
   analyzeRelevance(message, courseConfig) {
     // First check for explicit course topic matches
     const courseTopicsMatched = this.matchCourseTopics(message, courseConfig.courseTopics);
-    
+
     if (courseTopicsMatched.length > 0) {
       return {
         classification: 'RELEVANT',
@@ -128,10 +128,10 @@ export class RelevanceAnalyzer {
 
     // Check against pattern classifications
     const classification = this.classifyTopic(message, courseConfig.courseTopics);
-    
+
     // Apply the relevance test for final decision
     const relevanceTestResult = this.applyRelevanceTest(message, courseConfig.courseName);
-    
+
     return {
       classification: classification.classification,
       confidence: classification.confidence,
@@ -197,17 +197,19 @@ export class RelevanceAnalyzer {
   matchCourseTopics(message, courseTopics) {
     const matched = [];
     const messageLower = message.toLowerCase();
-    
+
     for (const topic of courseTopics) {
       const topicLower = topic.toLowerCase();
-      
+
       // Check for exact matches or partial matches
-      if (messageLower.includes(topicLower) || 
-          topicLower.includes(messageLower.replace(/[^\w\s]/g, '').trim())) {
+      if (
+        messageLower.includes(topicLower) ||
+        topicLower.includes(messageLower.replace(/[^\w\s]/g, '').trim())
+      ) {
         matched.push(topic);
       }
     }
-    
+
     return matched;
   }
 
@@ -220,20 +222,24 @@ export class RelevanceAnalyzer {
   applyRelevanceTest(message, courseName) {
     // This is the core test from the requirements
     const testQuestion = `Does answering this question help the student succeed specifically in ${courseName}?`;
-    
+
     // Simple heuristics for the test
     const courseNameInMessage = message.toLowerCase().includes(courseName.toLowerCase());
-    const academicKeywords = /(learn|understand|study|assignment|exam|grade|concept|theory)/i.test(message);
-    const specificToEducation = /(course|class|lecture|professor|instructor|syllabus)/i.test(message);
-    
+    const academicKeywords = /(learn|understand|study|assignment|exam|grade|concept|theory)/i.test(
+      message
+    );
+    const specificToEducation = /(course|class|lecture|professor|instructor|syllabus)/i.test(
+      message
+    );
+
     if (courseNameInMessage && academicKeywords) {
       return `YES - Question specifically mentions ${courseName} and academic content`;
     }
-    
+
     if (specificToEducation && academicKeywords) {
       return `MAYBE - Question is educational but may not be specific to ${courseName}`;
     }
-    
+
     return `NO - Question does not appear to help with ${courseName} success`;
   }
 
@@ -246,11 +252,11 @@ export class RelevanceAnalyzer {
   evaluateGrayArea(message, courseConfig) {
     // For gray areas, err on the side of caution (redirect)
     const relevanceTest = this.applyRelevanceTest(message, courseConfig.courseName);
-    
+
     if (relevanceTest.includes('YES')) {
       return 'RELEVANT';
     }
-    
+
     // Default to irrelevant for gray areas when uncertain
     return 'IRRELEVANT';
   }

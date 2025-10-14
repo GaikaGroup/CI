@@ -19,7 +19,7 @@ global.fetch = vi.fn();
 describe('Admin Session Management E2E', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful sessions API response
     global.fetch.mockResolvedValue({
       ok: true,
@@ -170,10 +170,9 @@ describe('Admin Session Management E2E', () => {
 
     // Wait for API call
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/admin/sessions/session2/restore',
-        { method: 'POST' }
-      );
+      expect(global.fetch).toHaveBeenCalledWith('/api/admin/sessions/session2/restore', {
+        method: 'POST'
+      });
     });
   });
 
@@ -204,7 +203,7 @@ describe('Admin Session Management E2E', () => {
     await waitFor(() => {
       const lastCall = global.fetch.mock.calls[global.fetch.mock.calls.length - 1];
       const url = new URL(lastCall[0], 'http://localhost');
-      
+
       expect(url.searchParams.get('search')).toBe('test query');
       expect(url.searchParams.get('mode')).toBe('fun');
       expect(url.searchParams.get('hiddenOnly')).toBe('true');

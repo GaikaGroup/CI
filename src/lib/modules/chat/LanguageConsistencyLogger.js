@@ -18,10 +18,10 @@ export class LanguageConsistencyLogger {
       languageDistribution: {},
       confidenceDistribution: {
         veryHigh: 0, // >= 0.9
-        high: 0,     // >= 0.7
-        medium: 0,   // >= 0.5
-        low: 0,      // >= 0.3
-        veryLow: 0   // < 0.3
+        high: 0, // >= 0.7
+        medium: 0, // >= 0.5
+        low: 0, // >= 0.3
+        veryLow: 0 // < 0.3
       },
       severityDistribution: {
         none: 0,
@@ -35,7 +35,7 @@ export class LanguageConsistencyLogger {
     this.config = {
       // Maximum number of logs to keep in memory
       maxLogEntries: 1000,
-      
+
       // Log levels
       logLevels: {
         DEBUG: 0,
@@ -43,19 +43,19 @@ export class LanguageConsistencyLogger {
         WARN: 2,
         ERROR: 3
       },
-      
+
       // Current log level
       currentLogLevel: 1, // INFO
-      
+
       // Enable detailed logging
       enableDetailedLogging: true,
-      
+
       // Enable metrics collection
       enableMetrics: true,
-      
+
       // Metrics aggregation interval (ms)
       metricsInterval: 60000, // 1 minute
-      
+
       // Auto-cleanup interval (ms)
       cleanupInterval: 300000 // 5 minutes
     };
@@ -80,7 +80,8 @@ export class LanguageConsistencyLogger {
         type: 'detection',
         language: detectionResult.language,
         confidence: detectionResult.confidence,
-        confidenceLevel: detectionResult.confidenceLevel || this.getConfidenceLevel(detectionResult.confidence),
+        confidenceLevel:
+          detectionResult.confidenceLevel || this.getConfidenceLevel(detectionResult.confidence),
         method: detectionResult.method,
         scores: detectionResult.scores || {},
         confidenceFactors: detectionResult.confidenceFactors || [],
@@ -102,12 +103,15 @@ export class LanguageConsistencyLogger {
       }
 
       // Log to console based on log level
-      this.logToConsole('INFO', `Language detected: ${detectionResult.language} (${detectionResult.confidence.toFixed(3)})`, {
-        sessionId,
-        method: detectionResult.method,
-        confidenceLevel: logEntry.confidenceLevel
-      });
-
+      this.logToConsole(
+        'INFO',
+        `Language detected: ${detectionResult.language} (${detectionResult.confidence.toFixed(3)})`,
+        {
+          sessionId,
+          method: detectionResult.method,
+          confidenceLevel: logEntry.confidenceLevel
+        }
+      );
     } catch (error) {
       console.error('Error logging detection result:', error);
     }
@@ -152,18 +156,25 @@ export class LanguageConsistencyLogger {
       }
 
       // Log to console based on severity
-      const logLevel = validationResult.isConsistent ? 'INFO' : 
-                      validationResult.severity === 'high' ? 'ERROR' :
-                      validationResult.severity === 'medium' ? 'WARN' : 'INFO';
+      const logLevel = validationResult.isConsistent
+        ? 'INFO'
+        : validationResult.severity === 'high'
+          ? 'ERROR'
+          : validationResult.severity === 'medium'
+            ? 'WARN'
+            : 'INFO';
 
-      this.logToConsole(logLevel, `Language validation: ${validationResult.isConsistent ? 'PASS' : 'FAIL'}`, {
-        sessionId,
-        expected: validationResult.expectedLanguage,
-        detected: validationResult.detectedLanguage,
-        severity: validationResult.severity,
-        recommendation: validationResult.recommendation
-      });
-
+      this.logToConsole(
+        logLevel,
+        `Language validation: ${validationResult.isConsistent ? 'PASS' : 'FAIL'}`,
+        {
+          sessionId,
+          expected: validationResult.expectedLanguage,
+          detected: validationResult.detectedLanguage,
+          severity: validationResult.severity,
+          recommendation: validationResult.recommendation
+        }
+      );
     } catch (error) {
       console.error('Error logging validation result:', error);
     }
@@ -214,7 +225,6 @@ export class LanguageConsistencyLogger {
         severity: details.severity,
         details: details.errorMessage || 'No details provided'
       });
-
     } catch (error) {
       console.error('Error logging consistency issue:', error);
     }
@@ -253,14 +263,16 @@ export class LanguageConsistencyLogger {
         });
       }
 
-      if (sessionStats.validation.successRate < 0.8 && sessionStats.validation.totalValidations >= 3) {
+      if (
+        sessionStats.validation.successRate < 0.8 &&
+        sessionStats.validation.totalValidations >= 3
+      ) {
         this.logToConsole('WARN', `Low validation success rate in session`, {
           sessionId,
           successRate: (sessionStats.validation.successRate * 100).toFixed(1) + '%',
           totalValidations: sessionStats.validation.totalValidations
         });
       }
-
     } catch (error) {
       console.error('Error logging session metrics:', error);
     }
@@ -274,7 +286,7 @@ export class LanguageConsistencyLogger {
   getDetectionStats(filters = {}) {
     try {
       const filteredLogs = this.filterLogs(this.detectionLogs, filters);
-      
+
       if (filteredLogs.length === 0) {
         return {
           totalDetections: 0,
@@ -292,16 +304,16 @@ export class LanguageConsistencyLogger {
       let minTimestamp = Infinity;
       let maxTimestamp = 0;
 
-      filteredLogs.forEach(log => {
+      filteredLogs.forEach((log) => {
         // Language distribution
         languageDistribution[log.language] = (languageDistribution[log.language] || 0) + 1;
-        
+
         // Method distribution
         methodDistribution[log.method] = (methodDistribution[log.method] || 0) + 1;
-        
+
         // Confidence tracking
         confidences.push(log.confidence);
-        
+
         // Time range
         minTimestamp = Math.min(minTimestamp, log.timestamp);
         maxTimestamp = Math.max(maxTimestamp, log.timestamp);
@@ -328,7 +340,6 @@ export class LanguageConsistencyLogger {
           duration: maxTimestamp - minTimestamp
         }
       };
-
     } catch (error) {
       console.error('Error getting detection stats:', error);
       return null;
@@ -343,7 +354,7 @@ export class LanguageConsistencyLogger {
   getValidationStats(filters = {}) {
     try {
       const filteredLogs = this.filterLogs(this.validationLogs, filters);
-      
+
       if (filteredLogs.length === 0) {
         return {
           totalValidations: 0,
@@ -361,27 +372,29 @@ export class LanguageConsistencyLogger {
       let minTimestamp = Infinity;
       let maxTimestamp = 0;
 
-      filteredLogs.forEach(log => {
+      filteredLogs.forEach((log) => {
         if (log.type === 'validation') {
           // Success rate
           if (log.isConsistent) {
             successfulValidations++;
           }
-          
+
           // Severity distribution
           severityDistribution[log.severity] = (severityDistribution[log.severity] || 0) + 1;
-          
+
           // Recommendation distribution
-          recommendationDistribution[log.recommendation] = (recommendationDistribution[log.recommendation] || 0) + 1;
-          
+          recommendationDistribution[log.recommendation] =
+            (recommendationDistribution[log.recommendation] || 0) + 1;
+
           // Time range
           minTimestamp = Math.min(minTimestamp, log.timestamp);
           maxTimestamp = Math.max(maxTimestamp, log.timestamp);
         }
       });
 
-      const validationLogs = filteredLogs.filter(log => log.type === 'validation');
-      const successRate = validationLogs.length > 0 ? successfulValidations / validationLogs.length : 0;
+      const validationLogs = filteredLogs.filter((log) => log.type === 'validation');
+      const successRate =
+        validationLogs.length > 0 ? successfulValidations / validationLogs.length : 0;
 
       return {
         totalValidations: validationLogs.length,
@@ -394,7 +407,6 @@ export class LanguageConsistencyLogger {
           duration: maxTimestamp - minTimestamp
         }
       };
-
     } catch (error) {
       console.error('Error getting validation stats:', error);
       return null;
@@ -427,7 +439,6 @@ export class LanguageConsistencyLogger {
         },
         timestamp: Date.now()
       };
-
     } catch (error) {
       console.error('Error getting language consistency metrics:', error);
       return null;
@@ -454,11 +465,11 @@ export class LanguageConsistencyLogger {
         };
       }
 
-      const stableSessions = filteredSessions.filter(s => s.isStable).length;
+      const stableSessions = filteredSessions.filter((s) => s.isStable).length;
       const languageDistribution = {};
       const totalInteractions = filteredSessions.reduce((sum, s) => sum + s.interactionCount, 0);
 
-      filteredSessions.forEach(session => {
+      filteredSessions.forEach((session) => {
         languageDistribution[session.language] = (languageDistribution[session.language] || 0) + 1;
       });
 
@@ -469,7 +480,6 @@ export class LanguageConsistencyLogger {
         languageDistribution,
         averageInteractionCount: totalInteractions / filteredSessions.length
       };
-
     } catch (error) {
       console.error('Error getting session stats:', error);
       return null;
@@ -506,7 +516,6 @@ export class LanguageConsistencyLogger {
       }
 
       return exportData;
-
     } catch (error) {
       console.error('Error exporting logs:', error);
       return null;
@@ -523,7 +532,7 @@ export class LanguageConsistencyLogger {
 
       if (type === 'detection' || !type) {
         if (olderThan) {
-          this.detectionLogs = this.detectionLogs.filter(log => log.timestamp > olderThan);
+          this.detectionLogs = this.detectionLogs.filter((log) => log.timestamp > olderThan);
         } else {
           this.detectionLogs = [];
         }
@@ -531,7 +540,7 @@ export class LanguageConsistencyLogger {
 
       if (type === 'validation' || !type) {
         if (olderThan) {
-          this.validationLogs = this.validationLogs.filter(log => log.timestamp > olderThan);
+          this.validationLogs = this.validationLogs.filter((log) => log.timestamp > olderThan);
         } else {
           this.validationLogs = [];
         }
@@ -542,8 +551,9 @@ export class LanguageConsistencyLogger {
         this.resetGlobalMetrics();
       }
 
-      console.log(`Cleared ${type || 'all'} logs${olderThan ? ` older than ${new Date(olderThan)}` : ''}`);
-
+      console.log(
+        `Cleared ${type || 'all'} logs${olderThan ? ` older than ${new Date(olderThan)}` : ''}`
+      );
     } catch (error) {
       console.error('Error clearing logs:', error);
     }
@@ -571,11 +581,12 @@ export class LanguageConsistencyLogger {
    */
   updateDetectionMetrics(logEntry) {
     this.globalMetrics.totalDetections++;
-    
+
     // Language distribution
     const lang = logEntry.language;
-    this.globalMetrics.languageDistribution[lang] = (this.globalMetrics.languageDistribution[lang] || 0) + 1;
-    
+    this.globalMetrics.languageDistribution[lang] =
+      (this.globalMetrics.languageDistribution[lang] || 0) + 1;
+
     // Confidence distribution
     const confidenceLevel = logEntry.confidenceLevel;
     if (this.globalMetrics.confidenceDistribution[confidenceLevel] !== undefined) {
@@ -590,11 +601,11 @@ export class LanguageConsistencyLogger {
   updateValidationMetrics(logEntry) {
     if (logEntry.type === 'validation') {
       this.globalMetrics.totalValidations++;
-      
+
       if (!logEntry.isConsistent) {
         this.globalMetrics.validationFailures++;
       }
-      
+
       // Severity distribution
       const severity = logEntry.severity;
       if (this.globalMetrics.severityDistribution[severity] !== undefined) {
@@ -610,7 +621,7 @@ export class LanguageConsistencyLogger {
   updateConsistencyIssueMetrics(logEntry) {
     // Consistency issues count as validation failures
     this.globalMetrics.validationFailures++;
-    
+
     const severity = logEntry.details.severity || 'medium';
     if (this.globalMetrics.severityDistribution[severity] !== undefined) {
       this.globalMetrics.severityDistribution[severity]++;
@@ -637,7 +648,7 @@ export class LanguageConsistencyLogger {
    * @returns {Array} Filtered logs
    */
   filterLogs(logs, filters) {
-    return logs.filter(log => {
+    return logs.filter((log) => {
       if (filters.sessionId && log.sessionId !== filters.sessionId) return false;
       if (filters.language && log.language !== filters.language) return false;
       if (filters.timeRange) {
@@ -657,7 +668,7 @@ export class LanguageConsistencyLogger {
    * @returns {Array} Filtered sessions
    */
   filterSessionMetrics(sessions, filters) {
-    return sessions.filter(session => {
+    return sessions.filter((session) => {
       if (filters.sessionId && session.sessionId !== filters.sessionId) return false;
       if (filters.language && session.language !== filters.language) return false;
       if (filters.timeRange) {
@@ -682,7 +693,7 @@ export class LanguageConsistencyLogger {
       veryLow: 0
     };
 
-    confidences.forEach(confidence => {
+    confidences.forEach((confidence) => {
       const level = this.getConfidenceLevel(confidence);
       distribution[level]++;
     });
@@ -700,9 +711,10 @@ export class LanguageConsistencyLogger {
       return null;
     }
 
-    return Object.entries(languageDistribution)
-      .reduce((max, [lang, count]) => count > max.count ? { language: lang, count } : max, { count: 0 })
-      .language;
+    return Object.entries(languageDistribution).reduce(
+      (max, [lang, count]) => (count > max.count ? { language: lang, count } : max),
+      { count: 0 }
+    ).language;
   }
 
   /**
@@ -735,22 +747,26 @@ export class LanguageConsistencyLogger {
     // This is a simplified CSV conversion
     // In a real implementation, you might want to use a proper CSV library
     const lines = [];
-    
+
     // Headers
     lines.push('timestamp,sessionId,type,language,confidence,isConsistent,severity');
-    
+
     // Detection logs
-    exportData.detectionLogs.forEach(log => {
-      lines.push(`${log.timestamp},${log.sessionId},${log.type},${log.language},${log.confidence},,`);
+    exportData.detectionLogs.forEach((log) => {
+      lines.push(
+        `${log.timestamp},${log.sessionId},${log.type},${log.language},${log.confidence},,`
+      );
     });
-    
+
     // Validation logs
-    exportData.validationLogs.forEach(log => {
+    exportData.validationLogs.forEach((log) => {
       if (log.type === 'validation') {
-        lines.push(`${log.timestamp},${log.sessionId},${log.type},${log.expectedLanguage},${log.confidence},${log.isConsistent},${log.severity}`);
+        lines.push(
+          `${log.timestamp},${log.sessionId},${log.type},${log.expectedLanguage},${log.confidence},${log.isConsistent},${log.severity}`
+        );
       }
     });
-    
+
     return lines.join('\n');
   }
 
@@ -788,11 +804,11 @@ export class LanguageConsistencyLogger {
    */
   logToConsole(level, message, data = {}) {
     const levelValue = this.config.logLevels[level] || 1;
-    
+
     if (levelValue >= this.config.currentLogLevel) {
       const timestamp = new Date().toISOString();
       const logMessage = `[${timestamp}] [${level}] [LanguageConsistency] ${message}`;
-      
+
       switch (level) {
         case 'ERROR':
           console.error(logMessage, data);
@@ -815,15 +831,15 @@ export class LanguageConsistencyLogger {
   startPeriodicCleanup() {
     setInterval(() => {
       try {
-        const cutoffTime = Date.now() - (24 * 60 * 60 * 1000); // 24 hours ago
-        
+        const cutoffTime = Date.now() - 24 * 60 * 60 * 1000; // 24 hours ago
+
         // Clean old logs
         const oldDetectionCount = this.detectionLogs.length;
         const oldValidationCount = this.validationLogs.length;
-        
-        this.detectionLogs = this.detectionLogs.filter(log => log.timestamp > cutoffTime);
-        this.validationLogs = this.validationLogs.filter(log => log.timestamp > cutoffTime);
-        
+
+        this.detectionLogs = this.detectionLogs.filter((log) => log.timestamp > cutoffTime);
+        this.validationLogs = this.validationLogs.filter((log) => log.timestamp > cutoffTime);
+
         // Clean old session metrics
         const oldSessionCount = this.sessionMetrics.size;
         for (const [sessionId, metrics] of this.sessionMetrics.entries()) {
@@ -831,11 +847,11 @@ export class LanguageConsistencyLogger {
             this.sessionMetrics.delete(sessionId);
           }
         }
-        
+
         const cleanedDetection = oldDetectionCount - this.detectionLogs.length;
         const cleanedValidation = oldValidationCount - this.validationLogs.length;
         const cleanedSessions = oldSessionCount - this.sessionMetrics.size;
-        
+
         if (cleanedDetection > 0 || cleanedValidation > 0 || cleanedSessions > 0) {
           this.logToConsole('INFO', 'Periodic cleanup completed', {
             cleanedDetectionLogs: cleanedDetection,
@@ -843,7 +859,6 @@ export class LanguageConsistencyLogger {
             cleanedSessions: cleanedSessions
           });
         }
-        
       } catch (error) {
         console.error('Error during periodic cleanup:', error);
       }

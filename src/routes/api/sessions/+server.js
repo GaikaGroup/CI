@@ -144,7 +144,10 @@ export async function POST({ request, locals }) {
     }
 
     // Validate courseId for LEARN mode
-    if (mode === 'learn' && (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)) {
+    if (
+      mode === 'learn' &&
+      (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)
+    ) {
       return json({ error: 'Course ID is required for LEARN mode sessions' }, { status: 400 });
     }
 

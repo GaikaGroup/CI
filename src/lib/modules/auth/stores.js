@@ -92,7 +92,7 @@ export function checkAuth() {
   return new Promise((resolve) => {
     if (typeof localStorage !== 'undefined') {
       const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-      
+
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);

@@ -1,5 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { SessionService, SessionError, SessionNotFoundError, SessionValidationError } from '$lib/modules/session/services/SessionService.js';
+import {
+  SessionService,
+  SessionError,
+  SessionNotFoundError,
+  SessionValidationError
+} from '$lib/modules/session/services/SessionService.js';
 import { isAdmin, requireAdmin } from '$lib/modules/auth/utils/adminUtils.js';
 
 /**
@@ -101,7 +106,8 @@ export async function GET({ url, locals }) {
     console.error('Error in GET /api/admin/sessions:', error);
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 

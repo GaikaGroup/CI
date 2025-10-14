@@ -1,5 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { SessionService, SessionError, SessionNotFoundError, SessionValidationError } from '$lib/modules/session/services/SessionService.js';
+import {
+  SessionService,
+  SessionError,
+  SessionNotFoundError,
+  SessionValidationError
+} from '$lib/modules/session/services/SessionService.js';
 import { isAdmin, requireAdmin } from '$lib/modules/auth/utils/adminUtils.js';
 
 /**
@@ -22,7 +27,7 @@ export async function POST({ params, locals }) {
 
     // Get the session first to find the owner
     const session = await SessionService.getSessionById(sessionId, true); // Admin can access any session
-    
+
     if (!session) {
       return json({ error: 'Session not found' }, { status: 404 });
     }
@@ -34,12 +39,11 @@ export async function POST({ params, locals }) {
     // Restore the session using the original owner's ID
     await SessionService.restoreSession(sessionId, session.userId);
 
-    return json({ 
-      success: true, 
+    return json({
+      success: true,
       message: 'Session restored successfully',
       sessionId: sessionId
     });
-
   } catch (error) {
     console.error('Error in POST /api/admin/sessions/[id]/restore:', error);
 
@@ -52,7 +56,8 @@ export async function POST({ params, locals }) {
     }
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
-      const message = 'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
+      const message =
+        'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
       return json({ error: message, message, code: error.code }, { status: 503 });
     }
 

@@ -50,28 +50,28 @@ describe('LEARN Mode Session Deletion Restriction', () => {
     it('should prevent deletion of LEARN mode sessions via API', async () => {
       // This would be a real API test in a full implementation
       // For now, we're documenting the expected behavior
-      
+
       const learnSessionId = 'learn-session-123';
       const userId = 'user-123';
-      
+
       // Expected: API should return validation error when trying to delete LEARN session
       // The SessionService.softDeleteSession should throw SessionValidationError
       // with message "Only FUN mode sessions can be deleted"
-      
+
       expect(true).toBe(true); // Placeholder assertion
     });
 
     it('should allow deletion of FUN mode sessions via API', async () => {
       // This would be a real API test in a full implementation
       // For now, we're documenting the expected behavior
-      
+
       const funSessionId = 'fun-session-123';
       const userId = 'user-123';
-      
+
       // Expected: API should successfully soft delete FUN session
       // The SessionService.softDeleteSession should return true
       // Session should be marked as isHidden: true in database
-      
+
       expect(true).toBe(true); // Placeholder assertion
     });
   });

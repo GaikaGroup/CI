@@ -3,7 +3,7 @@
 
 /* Ensure KaTeX styles are preserved */
 .katex {
-  font-family: KaTeX_Main, "Times New Roman", serif !important;
+  font-family: KaTeX_Main, 'Times New Roman', serif !important;
 }
 
 .katex .base {

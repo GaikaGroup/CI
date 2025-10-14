@@ -33,7 +33,7 @@ export class UserEnrollmentService {
    */
   initializeTestData() {
     if (!browser) return;
-    
+
     // Check if we already have test data
     if (this.enrollments.size > 0) return;
 
@@ -66,7 +66,7 @@ export class UserEnrollmentService {
     ];
 
     // Add test enrollments
-    testEnrollments.forEach(enrollment => {
+    testEnrollments.forEach((enrollment) => {
       const key = `${enrollment.userId}-${enrollment.courseId}`;
       this.enrollments.set(key, enrollment);
     });

@@ -16,12 +16,12 @@
 
 <div class="container mx-auto p-8 max-w-4xl">
   <h1 class="text-2xl font-bold mb-6">Финальный тест математики</h1>
-  
+
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border">
     <h2 class="text-lg font-semibold mb-4">Тест сообщения с математикой:</h2>
     <MathRenderer content={testMessage} />
   </div>
-  
+
   <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
     <h3 class="font-semibold mb-2">Что должно работать:</h3>
     <ul class="text-sm space-y-1">

@@ -47,6 +47,7 @@ The session store will be updated to use the mode mapping utility when making AP
 ### Course Learning Page Component
 
 A new course learning page that:
+
 - Loads course-specific data
 - Sets appropriate app mode
 - Initializes session with correct parameters
@@ -119,16 +120,19 @@ interface NavigationState {
 ## Implementation Approach
 
 ### Phase 1: Mode Mapping Fix
+
 - Create mode mapping utility
 - Update session store to use mapping
 - Test API calls with correct parameters
 
 ### Phase 2: Dynamic Course Routes
+
 - Create course-specific route handlers
 - Implement course validation and loading
 - Add error handling and redirects
 
 ### Phase 3: Navigation Enhancement
+
 - Update my-courses page navigation
 - Implement progress page routing
 - Add bookmark support and direct access

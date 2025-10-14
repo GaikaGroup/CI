@@ -24,8 +24,7 @@ function normaliseCourse(course) {
   }
 
   const settings = course.settings ?? null;
-  const practiceSource =
-    course.practice ?? course.practice_mode ?? settings?.practice_mode ?? null;
+  const practiceSource = course.practice ?? course.practice_mode ?? settings?.practice_mode ?? null;
   const examSource = course.exam ?? course.exam_mode ?? settings?.exam_mode ?? null;
 
   return {
@@ -68,7 +67,8 @@ export const DEFAULT_COURSES = normaliseCourses([
   {
     id: 'course-1',
     name: 'Introduction to Mathematics',
-    description: 'Learn the fundamentals of mathematics including algebra, geometry, and basic calculus.',
+    description:
+      'Learn the fundamentals of mathematics including algebra, geometry, and basic calculus.',
     language: 'English',
     level: 'Beginner',
     skills: ['Algebra', 'Geometry', 'Problem Solving'],
@@ -91,7 +91,8 @@ export const DEFAULT_COURSES = normaliseCourses([
   {
     id: 'course-2',
     name: 'English Literature',
-    description: 'Explore classic and modern English literature, analyzing themes, characters, and writing techniques.',
+    description:
+      'Explore classic and modern English literature, analyzing themes, characters, and writing techniques.',
     language: 'English',
     level: 'Intermediate',
     skills: ['Literary Analysis', 'Critical Thinking', 'Writing'],

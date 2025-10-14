@@ -5,6 +5,7 @@ This document describes the language consistency logging system implemented to m
 ## Overview
 
 The language consistency logging system provides comprehensive monitoring and analytics for:
+
 - Language detection accuracy and confidence scoring
 - Language validation results and consistency checking
 - Session-level language management and stability tracking
@@ -19,6 +20,7 @@ The main logging component that captures and analyzes language-related events.
 **Location**: `src/lib/modules/chat/LanguageConsistencyLogger.js`
 
 **Key Features**:
+
 - Detection result logging with confidence scoring
 - Validation result tracking and failure analysis
 - Session metrics collection and stability monitoring
@@ -33,6 +35,7 @@ Updated to integrate with the logging system for automatic detection tracking.
 **Location**: `src/lib/modules/chat/LanguageDetector.js`
 
 **New Features**:
+
 - Automatic logging of detection results when session ID provided
 - Enhanced `detectWithConfidence()` method with logging support
 - Validation logging in `validateLanguageConsistency()` method
@@ -44,6 +47,7 @@ Updated to log session-level language events and stability changes.
 **Location**: `src/lib/modules/chat/SessionLanguageManager.js`
 
 **New Features**:
+
 - Automatic session metrics logging when language becomes stable
 - Consistency issue logging for validation failures
 - Integration with the main logging system
@@ -51,9 +55,11 @@ Updated to log session-level language events and stability changes.
 ### 4. API Endpoints
 
 #### Metrics API
+
 **Endpoint**: `GET /api/language-consistency/metrics`
 
 **Query Parameters**:
+
 - `sessionId`: Filter by specific session
 - `language`: Filter by language (en, es, ru)
 - `timeRange`: Filter by time period (last24h, last7d, last30d)
@@ -61,9 +67,11 @@ Updated to log session-level language events and stability changes.
 **Response**: Comprehensive metrics including detection stats, validation stats, session stats, and summary information.
 
 #### Export API
+
 **Endpoint**: `GET /api/language-consistency/export`
 
 **Query Parameters**:
+
 - `format`: Export format (json, csv)
 - `includeContext`: Include detailed context information (true/false)
 - `sessionId`, `language`, `type`, `severity`, `timeRange`: Filtering options
@@ -71,9 +79,11 @@ Updated to log session-level language events and stability changes.
 **Response**: Exported log data in requested format.
 
 #### Clear Logs API
+
 **Endpoint**: `DELETE /api/language-consistency/metrics`
 
 **Query Parameters**:
+
 - `type`: Type of logs to clear (detection, validation)
 - `olderThan`: Clear logs older than specified time (last24h, last7d, timestamp)
 
@@ -84,6 +94,7 @@ Updated to log session-level language events and stability changes.
 A Svelte component providing a real-time dashboard for monitoring language consistency metrics.
 
 **Features**:
+
 - Real-time metrics display with auto-refresh
 - Filtering by time range and language
 - Export functionality (JSON/CSV)
@@ -102,25 +113,16 @@ import { sessionLanguageManager } from '$lib/modules/chat/SessionLanguageManager
 const sessionId = 'user-session-123';
 const userMessage = 'Hello, how are you?';
 
-const detection = languageDetector.detectWithConfidence(
-  userMessage, 
-  sessionId, 
-  {
-    hasImages: false,
-    provider: 'openai'
-  }
-);
+const detection = languageDetector.detectWithConfidence(userMessage, sessionId, {
+  hasImages: false,
+  provider: 'openai'
+});
 
 // Set session language (automatically logs when stable)
-sessionLanguageManager.setSessionLanguage(
-  sessionId,
-  detection.language,
-  detection.confidence,
-  {
-    method: detection.method,
-    userMessage: userMessage.substring(0, 100)
-  }
-);
+sessionLanguageManager.setSessionLanguage(sessionId, detection.language, detection.confidence, {
+  method: detection.method,
+  userMessage: userMessage.substring(0, 100)
+});
 
 // Validate response language
 const aiResponse = 'Hello! I am doing well, thank you for asking.';
@@ -161,7 +163,7 @@ languageConsistencyLogger.logConsistencyIssue(
 // Get comprehensive metrics
 const metrics = languageConsistencyLogger.getLanguageConsistencyMetrics({
   timeRange: {
-    start: Date.now() - (24 * 60 * 60 * 1000), // Last 24 hours
+    start: Date.now() - 24 * 60 * 60 * 1000, // Last 24 hours
     end: Date.now()
   }
 });
@@ -200,6 +202,7 @@ await fetch('/api/language-consistency/metrics?olderThan=last7d', {
 ```
 
 The dashboard provides:
+
 - Real-time metrics with auto-refresh every 30 seconds
 - Filtering by time range and language
 - Export functionality for logs
@@ -215,9 +218,9 @@ import { languageConsistencyLogger } from '$lib/modules/chat/LanguageConsistency
 
 // Update logger configuration
 languageConsistencyLogger.updateConfig({
-  maxLogEntries: 2000,        // Maximum logs to keep in memory
-  currentLogLevel: 1,         // Log level (0=DEBUG, 1=INFO, 2=WARN, 3=ERROR)
-  enableMetrics: true,        // Enable metrics collection
+  maxLogEntries: 2000, // Maximum logs to keep in memory
+  currentLogLevel: 1, // Log level (0=DEBUG, 1=INFO, 2=WARN, 3=ERROR)
+  enableMetrics: true, // Enable metrics collection
   enableDetailedLogging: true // Enable detailed context logging
 });
 ```
@@ -228,7 +231,7 @@ The logger automatically cleans up old logs every 5 minutes, removing entries ol
 
 ```javascript
 languageConsistencyLogger.updateConfig({
-  cleanupInterval: 300000,    // 5 minutes
+  cleanupInterval: 300000 // 5 minutes
   // Cleanup happens automatically based on log timestamps
 });
 ```
@@ -236,6 +239,7 @@ languageConsistencyLogger.updateConfig({
 ## Metrics and Statistics
 
 ### Detection Statistics
+
 - Total detections count
 - Language distribution
 - Confidence score distribution
@@ -243,6 +247,7 @@ languageConsistencyLogger.updateConfig({
 - Average confidence by language
 
 ### Validation Statistics
+
 - Total validations count
 - Success/failure rates
 - Severity distribution (none, low, medium, high)
@@ -250,6 +255,7 @@ languageConsistencyLogger.updateConfig({
 - Language consistency rates
 
 ### Session Statistics
+
 - Total active sessions
 - Language stability rates
 - Average interactions per session
@@ -257,6 +263,7 @@ languageConsistencyLogger.updateConfig({
 - Stability achievement metrics
 
 ### Global Metrics
+
 - Overall system performance
 - Trend analysis over time
 - Critical issue identification
@@ -316,6 +323,7 @@ The logging system is designed to integrate seamlessly with existing language co
 - **Error Handling**: Captures and categorizes language-related issues
 
 The system provides valuable insights for:
+
 - Identifying language switching issues
 - Monitoring detection accuracy
 - Tracking validation performance

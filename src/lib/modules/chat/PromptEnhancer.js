@@ -6,25 +6,31 @@
 // Language prompt templates for enforcement
 export const LANGUAGE_PROMPTS = {
   ru: {
-    enforcement: "КРИТИЧЕСКИ ВАЖНО: Отвечай ТОЛЬКО на русском языке. Никогда не используй китайский, английский или другие языки в своем ответе.",
-    validation: "Проверь, что весь твой ответ написан на русском языке перед отправкой.",
-    strong: "СТРОГО ОБЯЗАТЕЛЬНО: Весь твой ответ должен быть написан исключительно на русском языке. Запрещено использовать любые другие языки, включая китайский, английский, испанский или любые другие. Если ты не уверен в переводе какого-то термина, используй русские эквиваленты или объяснения.",
-    contextual: "Пользователь общается на русском языке. Поддерживай разговор на русском.",
-    reminder: "Помни: отвечай только на русском языке."
+    enforcement:
+      'КРИТИЧЕСКИ ВАЖНО: Отвечай ТОЛЬКО на русском языке. Никогда не используй китайский, английский или другие языки в своем ответе.',
+    validation: 'Проверь, что весь твой ответ написан на русском языке перед отправкой.',
+    strong:
+      'СТРОГО ОБЯЗАТЕЛЬНО: Весь твой ответ должен быть написан исключительно на русском языке. Запрещено использовать любые другие языки, включая китайский, английский, испанский или любые другие. Если ты не уверен в переводе какого-то термина, используй русские эквиваленты или объяснения.',
+    contextual: 'Пользователь общается на русском языке. Поддерживай разговор на русском.',
+    reminder: 'Помни: отвечай только на русском языке.'
   },
   en: {
-    enforcement: "CRITICAL: Respond ONLY in English. Never use Russian, Chinese, or other languages in your response.",
-    validation: "Verify that your entire response is in English before sending.",
-    strong: "STRICTLY REQUIRED: Your entire response must be written exclusively in English. You are forbidden from using any other languages including Russian, Chinese, Spanish, or any others. If you're unsure about translating a term, use English equivalents or explanations.",
-    contextual: "The user is communicating in English. Maintain the conversation in English.",
-    reminder: "Remember: respond only in English."
+    enforcement:
+      'CRITICAL: Respond ONLY in English. Never use Russian, Chinese, or other languages in your response.',
+    validation: 'Verify that your entire response is in English before sending.',
+    strong:
+      "STRICTLY REQUIRED: Your entire response must be written exclusively in English. You are forbidden from using any other languages including Russian, Chinese, Spanish, or any others. If you're unsure about translating a term, use English equivalents or explanations.",
+    contextual: 'The user is communicating in English. Maintain the conversation in English.',
+    reminder: 'Remember: respond only in English.'
   },
   es: {
-    enforcement: "CRÍTICO: Responde SOLO en español. Nunca uses ruso, chino u otros idiomas en tu respuesta.",
-    validation: "Verifica que toda tu respuesta esté en español antes de enviar.",
-    strong: "ESTRICTAMENTE REQUERIDO: Toda tu respuesta debe estar escrita exclusivamente en español. Está prohibido usar cualquier otro idioma, incluyendo ruso, chino, inglés o cualquier otro. Si no estás seguro de la traducción de algún término, usa equivalentes o explicaciones en español.",
-    contextual: "El usuario se está comunicando en español. Mantén la conversación en español.",
-    reminder: "Recuerda: responde solo en español."
+    enforcement:
+      'CRÍTICO: Responde SOLO en español. Nunca uses ruso, chino u otros idiomas en tu respuesta.',
+    validation: 'Verifica que toda tu respuesta esté en español antes de enviar.',
+    strong:
+      'ESTRICTAMENTE REQUERIDO: Toda tu respuesta debe estar escrita exclusivamente en español. Está prohibido usar cualquier otro idioma, incluyendo ruso, chino, inglés o cualquier otro. Si no estás seguro de la traducción de algún término, usa equivalentes o explicaciones en español.',
+    contextual: 'El usuario se está comunicando en español. Mantén la conversación en español.',
+    reminder: 'Recuerda: responde solo en español.'
   }
 };
 
@@ -32,19 +38,19 @@ export const LANGUAGE_PROMPTS = {
 export const LANGUAGE_VALIDATION_CONFIG = {
   // Minimum confidence threshold for language detection
   MIN_CONFIDENCE_THRESHOLD: 0.7,
-  
+
   // Enable automatic response regeneration
   ENABLE_AUTO_REGENERATION: true,
-  
+
   // Maximum regeneration attempts
   MAX_REGENERATION_ATTEMPTS: 2,
-  
+
   // Enable translation fallback
   ENABLE_TRANSLATION_FALLBACK: true,
-  
+
   // Languages to validate against
   SUPPORTED_LANGUAGES: ['en', 'es', 'ru'],
-  
+
   // Validation timeout in milliseconds
   VALIDATION_TIMEOUT: 5000
 };
@@ -53,7 +59,7 @@ export class PromptEnhancer {
   constructor() {
     this.supportedLanguages = LANGUAGE_VALIDATION_CONFIG.SUPPORTED_LANGUAGES;
     this.languagePrompts = LANGUAGE_PROMPTS;
-    
+
     console.log('PromptEnhancer initialized with languages:', this.supportedLanguages);
   }
 
@@ -80,11 +86,15 @@ export class PromptEnhancer {
       const { hasLanguageMixing = false, enhancementLevel } = options;
 
       // Select appropriate enforcement prompt based on context
-      const enforcementPrompt = this.selectPromptTemplate(targetLanguage, confidence, hasLanguageMixing);
-      
+      const enforcementPrompt = this.selectPromptTemplate(
+        targetLanguage,
+        confidence,
+        hasLanguageMixing
+      );
+
       // Determine enhancement strength based on confidence or override
       const finalEnhancementLevel = enhancementLevel || this.getEnhancementLevel(confidence);
-      
+
       let enhancedPrompt = originalPrompt;
 
       // Add enforcement based on confidence level and context
@@ -101,8 +111,10 @@ export class PromptEnhancer {
         enhancedPrompt = `${originalPrompt}\n\n${gentleReminder}`;
       }
 
-      console.log(`Enhanced prompt for ${targetLanguage} (confidence: ${confidence}, level: ${finalEnhancementLevel}, mixing: ${hasLanguageMixing})`);
-      
+      console.log(
+        `Enhanced prompt for ${targetLanguage} (confidence: ${confidence}, level: ${finalEnhancementLevel}, mixing: ${hasLanguageMixing})`
+      );
+
       return enhancedPrompt;
     } catch (error) {
       console.error('Error enhancing system prompt:', error);
@@ -124,7 +136,9 @@ export class PromptEnhancer {
 
     const template = this.languagePrompts[language][templateType];
     if (!template) {
-      console.warn(`No ${templateType} template available for language: ${language}, falling back to enforcement`);
+      console.warn(
+        `No ${templateType} template available for language: ${language}, falling back to enforcement`
+      );
       return this.languagePrompts[language].enforcement;
     }
 
@@ -180,10 +194,10 @@ export class PromptEnhancer {
       }
 
       const enhancedMessages = [...messages];
-      
+
       // Find the system message and enhance it
-      const systemMessageIndex = enhancedMessages.findIndex(msg => msg.role === 'system');
-      
+      const systemMessageIndex = enhancedMessages.findIndex((msg) => msg.role === 'system');
+
       if (systemMessageIndex !== -1) {
         // Enhance existing system message
         const systemMessage = enhancedMessages[systemMessageIndex];
@@ -204,8 +218,11 @@ export class PromptEnhancer {
       const lastUserMessageIndex = this.findLastUserMessageIndex(enhancedMessages);
       if (lastUserMessageIndex !== -1) {
         const lastUserMessage = enhancedMessages[lastUserMessageIndex];
-        const reminder = this.createContextualLanguageReminder(targetLanguage, lastUserMessage.content);
-        
+        const reminder = this.createContextualLanguageReminder(
+          targetLanguage,
+          lastUserMessage.content
+        );
+
         if (reminder) {
           enhancedMessages[lastUserMessageIndex] = {
             ...lastUserMessage,
@@ -214,8 +231,10 @@ export class PromptEnhancer {
         }
       }
 
-      console.log(`Added language constraints for ${targetLanguage} to ${enhancedMessages.length} messages`);
-      
+      console.log(
+        `Added language constraints for ${targetLanguage} to ${enhancedMessages.length} messages`
+      );
+
       return enhancedMessages;
     } catch (error) {
       console.error('Error adding language constraints:', error);
@@ -241,9 +260,9 @@ export class PromptEnhancer {
    */
   createGentleLanguageReminder(language) {
     const reminders = {
-      ru: "Пожалуйста, отвечай на русском языке.",
-      en: "Please respond in English.",
-      es: "Por favor, responde en español."
+      ru: 'Пожалуйста, отвечай на русском языке.',
+      en: 'Please respond in English.',
+      es: 'Por favor, responde en español.'
     };
 
     return reminders[language] || `Please respond in ${language}.`;
@@ -262,9 +281,9 @@ export class PromptEnhancer {
     }
 
     const contextualReminders = {
-      ru: "(Ответь на русском языке)",
-      en: "(Please respond in English)",
-      es: "(Responde en español)"
+      ru: '(Ответь на русском языке)',
+      en: '(Please respond in English)',
+      es: '(Responde en español)'
     };
 
     return contextualReminders[language] || null;

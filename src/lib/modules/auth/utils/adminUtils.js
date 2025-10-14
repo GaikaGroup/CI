@@ -47,7 +47,7 @@ export function canRestoreSessions(user) {
  */
 export function getAdminPermissions(user) {
   const admin = isAdmin(user);
-  
+
   return {
     isAdmin: admin,
     canViewHiddenSessions: admin,

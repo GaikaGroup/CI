@@ -14,33 +14,93 @@
     // Замены математических символов на LaTeX
     const symbolReplacements = {
       // Греческие буквы
-      'α': '\\alpha', 'β': '\\beta', 'γ': '\\gamma', 'δ': '\\delta', 'ε': '\\epsilon',
-      'ζ': '\\zeta', 'η': '\\eta', 'θ': '\\theta', 'ι': '\\iota', 'κ': '\\kappa',
-      'λ': '\\lambda', 'μ': '\\mu', 'ν': '\\nu', 'ξ': '\\xi', 'π': '\\pi',
-      'ρ': '\\rho', 'σ': '\\sigma', 'τ': '\\tau', 'υ': '\\upsilon', 'φ': '\\phi',
-      'χ': '\\chi', 'ψ': '\\psi', 'ω': '\\omega',
-      'Γ': '\\Gamma', 'Δ': '\\Delta', 'Θ': '\\Theta', 'Λ': '\\Lambda', 'Ξ': '\\Xi',
-      'Π': '\\Pi', 'Σ': '\\Sigma', 'Φ': '\\Phi', 'Ψ': '\\Psi', 'Ω': '\\Omega',
+      α: '\\alpha',
+      β: '\\beta',
+      γ: '\\gamma',
+      δ: '\\delta',
+      ε: '\\epsilon',
+      ζ: '\\zeta',
+      η: '\\eta',
+      θ: '\\theta',
+      ι: '\\iota',
+      κ: '\\kappa',
+      λ: '\\lambda',
+      μ: '\\mu',
+      ν: '\\nu',
+      ξ: '\\xi',
+      π: '\\pi',
+      ρ: '\\rho',
+      σ: '\\sigma',
+      τ: '\\tau',
+      υ: '\\upsilon',
+      φ: '\\phi',
+      χ: '\\chi',
+      ψ: '\\psi',
+      ω: '\\omega',
+      Γ: '\\Gamma',
+      Δ: '\\Delta',
+      Θ: '\\Theta',
+      Λ: '\\Lambda',
+      Ξ: '\\Xi',
+      Π: '\\Pi',
+      Σ: '\\Sigma',
+      Φ: '\\Phi',
+      Ψ: '\\Psi',
+      Ω: '\\Omega',
 
       // Математические операторы
-      '∞': '\\infty', '∂': '\\partial', '∇': '\\nabla',
-      '∑': '\\sum', '∏': '\\prod', '∫': '\\int', '∬': '\\iint', '∭': '\\iiint',
-      '∮': '\\oint', '∯': '\\oiint', '∰': '\\oiiint',
+      '∞': '\\infty',
+      '∂': '\\partial',
+      '∇': '\\nabla',
+      '∑': '\\sum',
+      '∏': '\\prod',
+      '∫': '\\int',
+      '∬': '\\iint',
+      '∭': '\\iiint',
+      '∮': '\\oint',
+      '∯': '\\oiint',
+      '∰': '\\oiiint',
 
       // Отношения и сравнения
-      '≤': '\\leq', '≥': '\\geq', '≠': '\\neq', '≈': '\\approx', '≡': '\\equiv',
-      '∈': '\\in', '∉': '\\notin', '⊂': '\\subset', '⊃': '\\supset', '⊆': '\\subseteq',
-      '⊇': '\\supseteq', '∪': '\\cup', '∩': '\\cap', '∅': '\\emptyset',
+      '≤': '\\leq',
+      '≥': '\\geq',
+      '≠': '\\neq',
+      '≈': '\\approx',
+      '≡': '\\equiv',
+      '∈': '\\in',
+      '∉': '\\notin',
+      '⊂': '\\subset',
+      '⊃': '\\supset',
+      '⊆': '\\subseteq',
+      '⊇': '\\supseteq',
+      '∪': '\\cup',
+      '∩': '\\cap',
+      '∅': '\\emptyset',
 
       // Стрелки
-      '→': '\\rightarrow', '←': '\\leftarrow', '↔': '\\leftrightarrow',
-      '⇒': '\\Rightarrow', '⇐': '\\Leftarrow', '⇔': '\\Leftrightarrow',
+      '→': '\\rightarrow',
+      '←': '\\leftarrow',
+      '↔': '\\leftrightarrow',
+      '⇒': '\\Rightarrow',
+      '⇐': '\\Leftarrow',
+      '⇔': '\\Leftrightarrow',
 
       // Другие символы
-      '±': '\\pm', '∓': '\\mp', '×': '\\times', '÷': '\\div', '√': '\\sqrt',
-      '∝': '\\propto', '∴': '\\therefore', '∵': '\\because', '∀': '\\forall',
-      '∃': '\\exists', '∄': '\\nexists', '⊥': '\\perp', '∥': '\\parallel',
-      '∠': '\\angle', '°': '^\\circ'
+      '±': '\\pm',
+      '∓': '\\mp',
+      '×': '\\times',
+      '÷': '\\div',
+      '√': '\\sqrt',
+      '∝': '\\propto',
+      '∴': '\\therefore',
+      '∵': '\\because',
+      '∀': '\\forall',
+      '∃': '\\exists',
+      '∄': '\\nexists',
+      '⊥': '\\perp',
+      '∥': '\\parallel',
+      '∠': '\\angle',
+      '°': '^\\circ'
     };
 
     // Применяем замены символов
@@ -78,10 +138,10 @@
 
     try {
       const katex = await import('katex');
-      
+
       // Предобрабатываем контент
       let html = preprocessMathContent(content);
-      
+
       // Display math \[ ... \]
       html = html.replace(/\\\[([^\]]+)\\\]/g, (match, mathContent) => {
         try {
@@ -91,11 +151,11 @@
             strict: false,
             trust: true,
             macros: {
-              "\\RR": "\\mathbb{R}",
-              "\\NN": "\\mathbb{N}",
-              "\\ZZ": "\\mathbb{Z}",
-              "\\QQ": "\\mathbb{Q}",
-              "\\CC": "\\mathbb{C}"
+              '\\RR': '\\mathbb{R}',
+              '\\NN': '\\mathbb{N}',
+              '\\ZZ': '\\mathbb{Z}',
+              '\\QQ': '\\mathbb{Q}',
+              '\\CC': '\\mathbb{C}'
             }
           })}</div>`;
         } catch (e) {
@@ -112,11 +172,11 @@
             strict: false,
             trust: true,
             macros: {
-              "\\RR": "\\mathbb{R}",
-              "\\NN": "\\mathbb{N}",
-              "\\ZZ": "\\mathbb{Z}",
-              "\\QQ": "\\mathbb{Q}",
-              "\\CC": "\\mathbb{C}"
+              '\\RR': '\\mathbb{R}',
+              '\\NN': '\\mathbb{N}',
+              '\\ZZ': '\\mathbb{Z}',
+              '\\QQ': '\\mathbb{Q}',
+              '\\CC': '\\mathbb{C}'
             }
           });
         } catch (e) {
@@ -133,11 +193,11 @@
             strict: false,
             trust: true,
             macros: {
-              "\\RR": "\\mathbb{R}",
-              "\\NN": "\\mathbb{N}",
-              "\\ZZ": "\\mathbb{Z}",
-              "\\QQ": "\\mathbb{Q}",
-              "\\CC": "\\mathbb{C}"
+              '\\RR': '\\mathbb{R}',
+              '\\NN': '\\mathbb{N}',
+              '\\ZZ': '\\mathbb{Z}',
+              '\\QQ': '\\mathbb{Q}',
+              '\\CC': '\\mathbb{C}'
             }
           })}</div>`;
         } catch (e) {
@@ -154,11 +214,11 @@
             strict: false,
             trust: true,
             macros: {
-              "\\RR": "\\mathbb{R}",
-              "\\NN": "\\mathbb{N}",
-              "\\ZZ": "\\mathbb{Z}",
-              "\\QQ": "\\mathbb{Q}",
-              "\\CC": "\\mathbb{C}"
+              '\\RR': '\\mathbb{R}',
+              '\\NN': '\\mathbb{N}',
+              '\\ZZ': '\\mathbb{Z}',
+              '\\QQ': '\\mathbb{Q}',
+              '\\CC': '\\mathbb{C}'
             }
           });
         } catch (e) {
@@ -168,21 +228,20 @@
 
       // Обработка жирного текста (markdown)
       html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      
+
       // Обработка курсива (markdown)
       html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-      
+
       // Улучшенная обработка переносов строк
       html = html.replace(/\n\n+/g, '</p><p>'); // Двойные переносы = абзацы
       html = html.replace(/\n/g, '<br>'); // Одинарные переносы = <br>
-      
+
       // Оборачиваем в параграфы если нужно
       if (html.includes('</p><p>')) {
         html = '<p>' + html + '</p>';
       }
 
       container.innerHTML = html;
-
     } catch (error) {
       console.warn('Math rendering failed:', error);
       // Улучшенный fallback
@@ -372,7 +431,7 @@
       padding: 0.8em 0.5em;
       margin: 1em 0;
     }
-    
+
     :global(.katex) {
       font-size: 1.05em;
     }

@@ -3,7 +3,7 @@ import { redirect } from '@sveltejs/kit';
 export async function load({ locals, url }) {
   // Get user from server-side authentication
   const user = locals.user;
-  
+
   // Handle root path redirect
   if (url.pathname === '/') {
     if (!user) {
@@ -14,7 +14,7 @@ export async function load({ locals, url }) {
       throw redirect(302, '/sessions');
     }
   }
-  
+
   // Pass user data to all pages
   return {
     user: user || null

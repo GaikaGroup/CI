@@ -9,6 +9,7 @@
 AI Tutor Platform is a modern, full-stack educational application built with SvelteKit that demonstrates how AI language models, speech processing, and computer vision can create engaging learning experiences. The platform features intelligent tutoring sessions with voice interaction, document understanding, mathematical formula rendering, and a sophisticated GraphRAG (Graph Retrieval-Augmented Generation) system for knowledge management.
 
 **Key Capabilities:**
+
 - 🤖 **Intelligent Tutoring**: Context-aware AI conversations with session management
 - 🎙️ **Voice Interaction**: Speech-to-text and text-to-speech with animated avatar
 - 📄 **Document Processing**: OCR for images/PDFs with GraphRAG knowledge integration
@@ -42,29 +43,34 @@ These features make the project a strong starting point for experimenting with A
 ### Technology Stack
 
 **Frontend:**
+
 - [SvelteKit](https://kit.svelte.dev/) - Full-stack web framework
 - [Vite](https://vitejs.dev/) - Build tool and development server
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [Lucide Svelte](https://lucide.dev/) - Icon library
 
 **Backend & Database:**
+
 - [Prisma](https://prisma.io/) - Database ORM and migrations
 - [PostgreSQL](https://postgresql.org/) - Primary database
 - Node.js - Server runtime
 
 **AI & ML:**
+
 - [OpenAI API](https://openai.com/api/) - GPT models, Whisper (STT), TTS
 - [Ollama](https://ollama.ai) - Local LLM support
 - [TensorFlow.js](https://tensorflow.org/js) - Face detection for avatar
 - [Tesseract.js](https://tesseract.projectnaptha.com/) - OCR processing
 
 **Testing & Quality:**
+
 - [Vitest](https://vitest.dev/) - Unit and integration testing
 - [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) - Component testing
 - [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/) - Code quality
 - [Husky](https://typicode.github.io/husky/) - Git hooks
 
 **Math & Documents:**
+
 - [KaTeX](https://katex.org/) - Mathematical formula rendering
 - [PDF.js](https://mozilla.github.io/pdf.js/) - PDF processing
 
@@ -117,17 +123,20 @@ OpenAI costs are calculated using the official [per-million token pricing](https
 The platform provides a sophisticated voice interaction system with several key components:
 
 **Speech Processing:**
+
 - Speech-to-text uses the OpenAI Whisper API for accurate transcription
 - Text-to-speech uses the OpenAI TTS API (or simulated responses in development)
 - Audio buffer management for smooth playback and interruption handling
 
 **Animated Cat Avatar:**
+
 - Real-time lip-sync synchronized with audio amplitude
 - Emotion detection and expression changes during conversations
 - Smooth animation transitions between waiting phrases and AI responses
 - Documented in `docs/cat-avatar-implementation.md`
 
 **Waiting Phrases System:**
+
 - Eliminates awkward silence during AI processing with friendly phrases
 - Multilingual support with automatic language detection
 - Configurable phrase variety to maintain natural conversation flow
@@ -135,6 +144,7 @@ The platform provides a sophisticated voice interaction system with several key 
 - Performance monitoring and graceful fallback handling
 
 **Voice UX Enhancements:**
+
 - Interruption detection and response generation
 - Conversation flow management with natural rhythm
 - Voice interaction logging and diagnostics
@@ -142,6 +152,7 @@ The platform provides a sophisticated voice interaction system with several key 
 - User preference panels for voice settings
 
 **Key Components:**
+
 - `WaitingPhrasesService`: Core phrase selection and playback logic
 - `VoiceServices`: Speech processing and audio management
 - `AvatarStateManager`: Avatar animation and emotion control
@@ -302,6 +313,7 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 ### Quick Start
 
 1. **Clone and install dependencies**
+
    ```bash
    git clone <repository-url>
    cd ai-tutor-platform
@@ -309,51 +321,56 @@ While the AI prepares a response, short phrases are displayed and synthesized se
    ```
 
 2. **Set up environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your OpenAI API key and other settings
    ```
 
 3. **Set up database** (if using PostgreSQL)
+
    ```bash
    npm run db:generate
    npm run db:migrate
    ```
 
 4. **Start development server**
+
    ```bash
    npm run dev
    ```
+
    Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 5. **Optional: Set up local LLM**
+
    ```bash
    # Install Ollama (macOS)
    brew install ollama
-   
+
    # Start Ollama service
    ollama serve
-   
+
    # Pull a model (in another terminal)
    ollama pull qwen2.5:1.5b
    ```
 
 ### Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run test` | Run auth tests |
-| `npm run test:run` | Run all tests |
-| `npm run test:coverage` | Run tests with coverage |
-| `npm run test:e2e` | Run end-to-end tests |
-| `npm run lint` | Lint selected files |
-| `npm run format` | Format code with Prettier |
-| `npm run db:migrate` | Run database migrations |
-| `npm run db:studio` | Open Prisma Studio |
-| `npm run db:reset` | Reset database |
+| Command                 | Description               |
+| ----------------------- | ------------------------- |
+| `npm run dev`           | Start development server  |
+| `npm run build`         | Build for production      |
+| `npm run preview`       | Preview production build  |
+| `npm run test`          | Run auth tests            |
+| `npm run test:run`      | Run all tests             |
+| `npm run test:coverage` | Run tests with coverage   |
+| `npm run test:e2e`      | Run end-to-end tests      |
+| `npm run lint`          | Lint selected files       |
+| `npm run format`        | Format code with Prettier |
+| `npm run db:migrate`    | Run database migrations   |
+| `npm run db:studio`     | Open Prisma Studio        |
+| `npm run db:reset`      | Reset database            |
 
 ### Installation Troubleshooting
 
@@ -436,11 +453,13 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 ### Usage Examples
 
 **Basic Tutoring:**
+
 - Open the app and type a question to start a conversation
 - Ask follow-up questions - the AI maintains context throughout the session
 - Switch between different subjects/courses for specialized tutoring
 
 **Voice Interaction:**
+
 - Click the microphone button to enable voice mode
 - Speak your question and listen to the tutor's spoken reply
 - Watch the animated cat avatar provide visual feedback during conversations
@@ -449,16 +468,19 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 - Use voice preferences panel to customize speech settings and avatar behavior
 
 **Document-Enhanced Learning:**
+
 - Upload images or PDFs via the paperclip icon
 - Ask questions about uploaded materials - the AI uses GraphRAG to provide contextual answers
 - Upload multiple related documents for comprehensive cross-material analysis
 
 **Mathematical Learning:**
+
 - Type mathematical expressions using standard notation (e.g., `x^2 + 2x + 1`)
 - Formulas are automatically rendered using KaTeX for proper mathematical display
 - Ask for step-by-step solutions to mathematical problems
 
 **Admin Features:**
+
 - Access `/admin` for user management and system analytics
 - Monitor API usage and costs in the finance dashboard
 - Manage course content and user enrollments
@@ -470,6 +492,7 @@ _To be documented in a future update._
 ### Deployment
 
 **Production Build:**
+
 ```bash
 # Install dependencies
 npm ci --production
@@ -489,12 +512,14 @@ npm start
 ```
 
 **Environment Setup:**
+
 - Set `NODE_ENV=production`
 - Configure `VITE_OPENAI_API_KEY` with your production API key
 - Set up PostgreSQL database and update connection string
 - Configure `VITE_DEFAULT_LLM_PROVIDER` based on your deployment needs
 
 **Docker Deployment:**
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -507,6 +532,7 @@ CMD ["npm", "start"]
 ```
 
 **Recommended Production Settings:**
+
 - Use PostgreSQL for persistent data storage
 - Set up proper logging and monitoring
 - Configure rate limiting for API endpoints
@@ -520,6 +546,7 @@ The platform includes comprehensive testing across multiple layers with special 
 #### Test Structure
 
 **Unit Tests** (`tests/unit/`)
+
 - Core service logic and utilities
 - Voice processing components
 - Waiting phrases configuration and selection
@@ -527,13 +554,15 @@ The platform includes comprehensive testing across multiple layers with special 
 - Session and message services
 
 **Integration Tests** (`tests/integration/`)
+
 - Cat avatar animation synchronization
-- Voice chat feature compatibility  
+- Voice chat feature compatibility
 - Multilingual i18n system integration
 - Error handling and graceful degradation
 - Performance impact assessment
 
 **End-to-End Tests** (`tests/e2e/`)
+
 - Complete voice interaction flows
 - User experience validation
 - Error scenarios and recovery
@@ -542,6 +571,7 @@ The platform includes comprehensive testing across multiple layers with special 
 #### Voice Feature Testing
 
 **Integration Test Coverage:**
+
 - **Cat Avatar Integration**: Animation sync, emotion handling, lip-sync during waiting phrases
 - **Voice Chat Features**: Complete voice flow, audio queue management, interruption handling
 - **Multilingual Integration**: UI translations, language consistency, translation fallback
@@ -549,18 +579,21 @@ The platform includes comprehensive testing across multiple layers with special 
 
 **Key Test Scenarios:**
 
-*Happy Path:*
+_Happy Path:_
+
 1. User recording → transcription → waiting phrase → AI response → synthesis → playback
 2. Multiple consecutive interactions with phrase variety
 3. Multilingual conversations with proper language detection
 
-*Error Handling:*
+_Error Handling:_
+
 1. Transcription service failures with graceful fallback
 2. Waiting phrase synthesis failures with continued AI response
 3. Network connectivity issues with appropriate user feedback
 4. AI response generation failures with proper error handling
 
-*Edge Cases:*
+_Edge Cases:_
+
 1. Very fast AI responses (shorter than waiting phrase duration)
 2. Very slow AI responses (multiple waiting phrases)
 3. User interruptions during waiting phrase playback
@@ -569,12 +602,14 @@ The platform includes comprehensive testing across multiple layers with special 
 #### Performance Benchmarks
 
 **Response Time Targets:**
+
 - Complete voice interaction: < 8 seconds
 - Waiting phrase selection: < 100ms
 - UI state transitions: < 200ms
 - Avatar animation updates: 60fps target
 
 **Memory Management:**
+
 - Phrase history limited to 5 items
 - Translation cache with reasonable limits
 - Proper cleanup of audio resources
@@ -583,11 +618,13 @@ The platform includes comprehensive testing across multiple layers with special 
 #### Accessibility Testing
 
 **Keyboard Navigation:**
+
 - All interactive elements focusable with proper tab order
 - Keyboard shortcuts functional for voice controls
 - Screen reader compatibility with ARIA labels
 
 **Visual & Audio Indicators:**
+
 - Clear visual feedback for all voice states
 - High contrast status indicators
 - Animation respects user motion preferences
@@ -621,12 +658,14 @@ npm run test:run -- --grep "avatar"
 #### Mock Strategy
 
 **Browser APIs:**
+
 - AudioContext and Web Audio API simulation
 - MediaRecorder and getUserMedia mocking
 - Audio playback and synthesis simulation
 - Image loading and manipulation for avatar
 
 **External Services:**
+
 - Transcription API response mocking
 - AI chat API response simulation
 - Text-to-speech synthesis mocking
@@ -657,21 +696,22 @@ See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 
 **Common Issues:**
 
-| Problem | Solution |
-|---------|----------|
-| App fails to start | Verify Node.js ≥18, run `npm install`, check `.env` file |
-| Database connection errors | Run `npm run db:migrate`, check PostgreSQL connection |
-| OCR results are poor | Ensure images are clear, under 10MB, good contrast |
-| No response from AI tutor | Check API keys, network connectivity, try switching providers |
-| Voice mode not working | Check microphone permissions, ensure HTTPS in production |
-| Waiting phrases not playing | Verify TTS service, check audio permissions, test phrase configuration |
-| Avatar not lip-syncing | Check TensorFlow.js loading, verify camera permissions for face detection |
-| Voice interruptions failing | Test audio buffer management, check interruption detection settings |
-| Multilingual voice issues | Verify language detection, check translation service availability |
-| Math formulas not rendering | Verify KaTeX is loaded, check console for JavaScript errors |
-| Local LLM not responding | Ensure Ollama is running, model is pulled, check API URL |
+| Problem                     | Solution                                                                  |
+| --------------------------- | ------------------------------------------------------------------------- |
+| App fails to start          | Verify Node.js ≥18, run `npm install`, check `.env` file                  |
+| Database connection errors  | Run `npm run db:migrate`, check PostgreSQL connection                     |
+| OCR results are poor        | Ensure images are clear, under 10MB, good contrast                        |
+| No response from AI tutor   | Check API keys, network connectivity, try switching providers             |
+| Voice mode not working      | Check microphone permissions, ensure HTTPS in production                  |
+| Waiting phrases not playing | Verify TTS service, check audio permissions, test phrase configuration    |
+| Avatar not lip-syncing      | Check TensorFlow.js loading, verify camera permissions for face detection |
+| Voice interruptions failing | Test audio buffer management, check interruption detection settings       |
+| Multilingual voice issues   | Verify language detection, check translation service availability         |
+| Math formulas not rendering | Verify KaTeX is loaded, check console for JavaScript errors               |
+| Local LLM not responding    | Ensure Ollama is running, model is pulled, check API URL                  |
 
 **Debug Mode:**
+
 ```bash
 # Enable detailed logging
 npm run dev
@@ -685,12 +725,14 @@ npm run test:e2e
 ```
 
 **Performance Issues:**
+
 - Monitor memory usage with local LLMs (8GB+ recommended)
 - Check network latency for OpenAI API calls
 - Optimize document upload sizes (< 10MB recommended)
 - Clear browser cache if UI becomes unresponsive
 
 **Voice Performance Debugging:**
+
 ```bash
 # Test voice components individually
 npm run test:run -- --grep "voice.*performance"
@@ -706,6 +748,7 @@ npm run test:run -- --grep "waiting.*phrase.*timing"
 ```
 
 **Voice-Specific Performance Targets:**
+
 - Voice interaction latency: < 8 seconds end-to-end
 - Waiting phrase selection: < 100ms
 - Avatar animation: 60fps with smooth lip-sync
@@ -760,6 +803,7 @@ The platform includes comprehensive testing specifically designed for voice inte
 #### Voice Test Coverage Areas
 
 **Integration Testing:**
+
 - ✅ Cat avatar animation system integration
 - ✅ Voice chat features compatibility
 - ✅ Multilingual i18n system integration
@@ -767,6 +811,7 @@ The platform includes comprehensive testing specifically designed for voice inte
 - ✅ Performance impact assessment
 
 **End-to-End Testing:**
+
 - ✅ Complete voice interaction flow validation
 - ✅ Error scenarios and recovery mechanisms
 - ✅ User experience improvements validation
@@ -774,6 +819,7 @@ The platform includes comprehensive testing specifically designed for voice inte
 - ✅ Accessibility compliance testing
 
 **Key Test Files:**
+
 - `tests/integration/chat/systemIntegration.test.js` - Core system integration
 - `tests/integration/chat/catAvatarIntegration.test.js` - Avatar functionality
 - `tests/integration/chat/multilingualIntegration.test.js` - Language support
@@ -783,12 +829,14 @@ The platform includes comprehensive testing specifically designed for voice inte
 #### Voice Performance Standards
 
 **Response Time Requirements:**
+
 - Complete voice interaction: < 8 seconds
 - Waiting phrase selection: < 100ms
 - UI state transitions: < 200ms
 - Avatar animation: 60fps target
 
 **Quality Metrics:**
+
 - Phrase history management (5 item limit)
 - Translation cache optimization
 - Audio resource cleanup
@@ -797,6 +845,7 @@ The platform includes comprehensive testing specifically designed for voice inte
 #### Future Voice Testing Enhancements
 
 **Planned Additions:**
+
 - Visual regression testing for avatar animations
 - Audio quality testing for synthesized phrases
 - Load testing with multiple concurrent voice users
@@ -836,6 +885,7 @@ The modular design allows for incremental upgrades from the current foundational
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 **Development Workflow:**
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes and add tests
@@ -845,6 +895,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 7. Open a Pull Request
 
 **Code Quality:**
+
 - Follow ESLint and Prettier configurations
 - Write tests for new features
 - Update documentation as needed
@@ -881,4 +932,4 @@ This project is licensed under the [MIT License](LICENSE) - see the LICENSE file
 
 **Happy Teaching! 🎓✨**
 
-*Built with ❤️ using SvelteKit and modern AI technologies*
+_Built with ❤️ using SvelteKit and modern AI technologies_

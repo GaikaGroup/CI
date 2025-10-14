@@ -41,7 +41,9 @@
 
   <!-- Имитация сообщения в чате -->
   <div class="flex mb-3 justify-start">
-    <div class="max-w-[70%] px-4 py-3 rounded-2xl shadow-sm bg-stone-100 text-stone-800 rounded-bl-sm">
+    <div
+      class="max-w-[70%] px-4 py-3 rounded-2xl shadow-sm bg-stone-100 text-stone-800 rounded-bl-sm"
+    >
       <div class="text-sm leading-relaxed">
         <MathRenderer content={testMessage} className="whitespace-pre-wrap" />
       </div>
@@ -52,7 +54,9 @@
   </div>
 
   <!-- Сравнение с beautiful-math-test стилем -->
-  <div class="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+  <div
+    class="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700"
+  >
     <h2 class="text-2xl font-semibold mb-6 text-blue-600 dark:text-blue-400">
       Для сравнения - стиль beautiful-math-test
     </h2>

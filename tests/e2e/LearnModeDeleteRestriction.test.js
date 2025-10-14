@@ -21,7 +21,7 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
       // In the actual sessions page, this condition determines button visibility:
       // {#if session.mode === 'fun'}
       const shouldShowDeleteButton = learnSession.mode === 'fun';
-      
+
       expect(shouldShowDeleteButton).toBe(false);
       expect(learnSession.mode).toBe('learn');
     });
@@ -40,7 +40,7 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
       // In the actual sessions page, this condition determines button visibility:
       // {#if session.mode === 'fun'}
       const shouldShowDeleteButton = funSession.mode === 'fun';
-      
+
       expect(shouldShowDeleteButton).toBe(true);
       expect(funSession.mode).toBe('fun');
     });
@@ -61,9 +61,9 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
       //   throw new SessionValidationError('Only FUN mode sessions can be deleted', 'mode');
       // }
       const canDelete = learnSession.mode === 'fun';
-      
+
       expect(canDelete).toBe(false);
-      
+
       if (!canDelete) {
         // This would throw SessionValidationError in the actual service
         const error = new Error('Only FUN mode sessions can be deleted');
@@ -82,7 +82,7 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
 
       // This simulates the check in SessionService.softDeleteSession:
       const canDelete = funSession.mode === 'fun';
-      
+
       expect(canDelete).toBe(true);
     });
   });
@@ -94,7 +94,7 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
           id: 'learn-session-1',
           title: 'Physics Course - Mechanics',
           mode: 'learn',
-          preview: 'Learning about Newton\'s laws',
+          preview: "Learning about Newton's laws",
           updatedAt: new Date().toISOString(),
           messageCount: 20
         },
@@ -118,17 +118,17 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
 
       // Verify all sessions are displayed
       expect(sessions).toHaveLength(3);
-      
+
       // Verify LEARN sessions are present and viewable
-      const learnSessions = sessions.filter(s => s.mode === 'learn');
+      const learnSessions = sessions.filter((s) => s.mode === 'learn');
       expect(learnSessions).toHaveLength(2);
-      
+
       // Verify only FUN sessions can be deleted
-      const deletableSessions = sessions.filter(s => s.mode === 'fun');
+      const deletableSessions = sessions.filter((s) => s.mode === 'fun');
       expect(deletableSessions).toHaveLength(1);
-      
+
       // Each session should be accessible for viewing
-      sessions.forEach(session => {
+      sessions.forEach((session) => {
         expect(session.id).toBeTruthy();
         expect(session.title).toBeTruthy();
         expect(['fun', 'learn']).toContain(session.mode);
@@ -139,22 +139,22 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
   describe('Frontend handleDeleteClick function behavior', () => {
     it('should return early for non-FUN sessions', () => {
       const learnSession = { mode: 'learn', id: 'test-123' };
-      
+
       // This simulates the check in handleDeleteClick:
       // if (session.mode !== 'fun') {
       //   return;
       // }
       const shouldProceed = learnSession.mode === 'fun';
-      
+
       expect(shouldProceed).toBe(false);
     });
 
     it('should proceed with deletion for FUN sessions', () => {
       const funSession = { mode: 'fun', id: 'test-456' };
-      
+
       // This simulates the check in handleDeleteClick:
       const shouldProceed = funSession.mode === 'fun';
-      
+
       expect(shouldProceed).toBe(true);
     });
   });
@@ -170,14 +170,14 @@ describe('LEARN Mode Session Deletion Restriction - E2E', () => {
       ];
 
       // Test filtering for deletable sessions (FUN only)
-      const deletableSessions = allSessions.filter(session => session.mode === 'fun');
+      const deletableSessions = allSessions.filter((session) => session.mode === 'fun');
       expect(deletableSessions).toHaveLength(2);
-      expect(deletableSessions.every(s => s.mode === 'fun')).toBe(true);
+      expect(deletableSessions.every((s) => s.mode === 'fun')).toBe(true);
 
       // Test that LEARN sessions are still present for viewing
-      const learnSessions = allSessions.filter(session => session.mode === 'learn');
+      const learnSessions = allSessions.filter((session) => session.mode === 'learn');
       expect(learnSessions).toHaveLength(2);
-      expect(learnSessions.every(s => s.mode === 'learn')).toBe(true);
+      expect(learnSessions.every((s) => s.mode === 'learn')).toBe(true);
     });
   });
 });

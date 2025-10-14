@@ -1,6 +1,6 @@
 /**
  * Manual Test Script for Course Navigation Fix
- * 
+ *
  * This script simulates the original error scenario where AdminLogin
  * clicks "Continue Learning" and validates that the fix works correctly.
  */
@@ -50,11 +50,11 @@ console.log('3. Testing API Parameter Construction:');
 function simulateSessionAPICall(appMode) {
   const apiMode = getApiModeFromAppMode(appMode);
   const params = new URLSearchParams();
-  
+
   if (apiMode) {
     params.append('mode', apiMode);
   }
-  
+
   return `/api/sessions?${params.toString()}`;
 }
 
@@ -79,7 +79,10 @@ console.log('   - Mapping correct:', correctApiMode === 'learn' ? '✅ PASS' : '
 // Simulate the session API call that would have failed before
 const sessionAPIUrl = simulateSessionAPICall(originalAppMode);
 console.log('   - Session API URL:', sessionAPIUrl);
-console.log('   - Contains mode=learn:', sessionAPIUrl.includes('mode=learn') ? '✅ PASS' : '❌ FAIL');
+console.log(
+  '   - Contains mode=learn:',
+  sessionAPIUrl.includes('mode=learn') ? '✅ PASS' : '❌ FAIL'
+);
 console.log('   ✅ Original error scenario resolved\n');
 
 // Test 5: Navigation Flow Validation
@@ -110,7 +113,10 @@ mockGoto(expectedPath);
 
 console.log('   - Expected navigation path:', expectedPath);
 console.log('   - Actual navigation calls:', mockNavigationCalls);
-console.log('   - Navigation correct:', mockNavigationCalls.includes(expectedPath) ? '✅ PASS' : '❌ FAIL');
+console.log(
+  '   - Navigation correct:',
+  mockNavigationCalls.includes(expectedPath) ? '✅ PASS' : '❌ FAIL'
+);
 
 // Restore original goto
 global.goto = originalGoto;
@@ -127,10 +133,10 @@ const errorScenarios = [
 
 errorScenarios.forEach((scenario, index) => {
   const validation = validateCourseAccess(scenario.course);
-  const hasExpectedError = scenario.expectedError ? 
-    !validation.valid && validation.errorType === scenario.expectedError :
-    validation.valid;
-  
+  const hasExpectedError = scenario.expectedError
+    ? !validation.valid && validation.errorType === scenario.expectedError
+    : validation.valid;
+
   console.log(`   - Error scenario ${index + 1}:`, hasExpectedError ? '✅ PASS' : '❌ FAIL');
 });
 
@@ -144,7 +150,7 @@ const backwardCompatibilityTests = [
   { mode: 'learn', expected: 'learn' }
 ];
 
-backwardCompatibilityTests.forEach(test => {
+backwardCompatibilityTests.forEach((test) => {
   const result = getApiModeFromAppMode(test.mode);
   const isCorrect = result === test.expected;
   console.log(`   - ${test.mode} mode compatibility:`, isCorrect ? '✅ PASS' : '❌ FAIL');

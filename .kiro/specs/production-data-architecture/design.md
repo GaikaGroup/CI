@@ -16,17 +16,17 @@ graph TB
     API --> Course[Course Service]
     API --> Material[Material Service]
     API --> Search[Search Service]
-    
+
     Course --> PG[(PostgreSQL)]
     Material --> PG
     Material --> S3[Object Storage]
     Material --> Vector[(Vector DB)]
     Search --> Vector
     Search --> Redis[(Redis Cache)]
-    
+
     PG --> Backup[Backup Service]
     S3 --> CDN[CDN]
-    
+
     Monitor[Monitoring] --> API
     Monitor --> PG
     Monitor --> Vector
@@ -65,7 +65,7 @@ CREATE TABLE courses (
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     INDEX idx_courses_creator (creator_id),
     INDEX idx_courses_status (status),
     INDEX idx_courses_visibility (visibility),
@@ -84,7 +84,7 @@ CREATE TABLE agents (
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     INDEX idx_agents_course (course_id),
     INDEX idx_agents_type (type)
 );
@@ -106,7 +106,7 @@ CREATE TABLE materials (
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     INDEX idx_materials_course (course_id),
     INDEX idx_materials_uploader (uploader_id),
     INDEX idx_materials_status (processing_status),
@@ -122,7 +122,7 @@ CREATE TABLE embeddings (
     vector_id VARCHAR(255) NOT NULL, -- ID в векторной БД
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     INDEX idx_embeddings_material (material_id),
     INDEX idx_embeddings_vector (vector_id)
 );
@@ -136,7 +136,7 @@ CREATE TABLE enrollments (
     progress JSONB DEFAULT '{}',
     enrolled_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     UNIQUE(user_id, course_id),
     INDEX idx_enrollments_user (user_id),
     INDEX idx_enrollments_course (course_id),
@@ -157,7 +157,7 @@ CREATE TABLE audit_log (
     new_values JSONB,
     user_id UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT NOW(),
-    
+
     INDEX idx_audit_table_record (table_name, record_id),
     INDEX idx_audit_user (user_id),
     INDEX idx_audit_created (created_at)
@@ -188,6 +188,7 @@ CREATE TABLE audit_log (
 ```
 
 **Политики доступа:**
+
 - Публичное чтение для опубликованных материалов
 - Приватный доступ для черновиков
 - Подписанные URL для временного доступа
@@ -206,7 +207,7 @@ CREATE TABLE audit_log (
     },
     "payload": {
         "material_id": "string",
-        "course_id": "string", 
+        "course_id": "string",
         "chunk_index": "integer",
         "text": "string",
         "metadata": "object"
@@ -215,6 +216,7 @@ CREATE TABLE audit_log (
 ```
 
 **Индексирование:**
+
 - Автоматическое создание embeddings при загрузке материалов
 - Chunking текста на фрагменты 500-1000 токенов
 - Batch обработка для производительности
@@ -229,7 +231,7 @@ CREATE TABLE audit_log (
 courses:{user_id} -> JSON курсов пользователя (TTL: 1h)
 course:{course_id} -> JSON данных курса (TTL: 30m)
 
-# Кэш материалов  
+# Кэш материалов
 materials:{course_id} -> JSON списка материалов (TTL: 15m)
 material:{material_id} -> JSON данных материала (TTL: 1h)
 
@@ -250,29 +252,29 @@ user:{user_id} -> JSON данных пользователя (TTL: 1h)
 ```typescript
 // Course Service
 interface CourseService {
-  createCourse(data: CourseData): Promise<Course>
-  updateCourse(id: string, data: Partial<CourseData>): Promise<Course>
-  deleteCourse(id: string): Promise<void>
-  getCourse(id: string): Promise<Course>
-  listCourses(filters: CourseFilters): Promise<Course[]>
-  searchCourses(query: string): Promise<Course[]>
+  createCourse(data: CourseData): Promise<Course>;
+  updateCourse(id: string, data: Partial<CourseData>): Promise<Course>;
+  deleteCourse(id: string): Promise<void>;
+  getCourse(id: string): Promise<Course>;
+  listCourses(filters: CourseFilters): Promise<Course[]>;
+  searchCourses(query: string): Promise<Course[]>;
 }
 
-// Material Service  
+// Material Service
 interface MaterialService {
-  uploadMaterial(file: File, courseId: string): Promise<Material>
-  processMaterial(materialId: string): Promise<void>
-  deleteMaterial(materialId: string): Promise<void>
-  getMaterial(id: string): Promise<Material>
-  listMaterials(courseId: string): Promise<Material[]>
+  uploadMaterial(file: File, courseId: string): Promise<Material>;
+  processMaterial(materialId: string): Promise<void>;
+  deleteMaterial(materialId: string): Promise<void>;
+  getMaterial(id: string): Promise<Material>;
+  listMaterials(courseId: string): Promise<Material[]>;
 }
 
 // Search Service
 interface SearchService {
-  semanticSearch(query: string, courseId?: string): Promise<SearchResult[]>
-  textSearch(query: string, filters: SearchFilters): Promise<SearchResult[]>
-  indexMaterial(materialId: string): Promise<void>
-  reindexCourse(courseId: string): Promise<void>
+  semanticSearch(query: string, courseId?: string): Promise<SearchResult[]>;
+  textSearch(query: string, filters: SearchFilters): Promise<SearchResult[]>;
+  indexMaterial(materialId: string): Promise<void>;
+  reindexCourse(courseId: string): Promise<void>;
 }
 ```
 
@@ -289,14 +291,14 @@ sequenceDiagram
     participant ProcessingQueue
     participant VectorDB
     participant DB
-    
+
     Client->>API: Upload file
     API->>MaterialService: Process upload
     MaterialService->>S3: Store original file
     MaterialService->>DB: Create material record
     MaterialService->>ProcessingQueue: Queue processing job
     MaterialService->>Client: Return material ID
-    
+
     ProcessingQueue->>ProcessingQueue: Extract text
     ProcessingQueue->>ProcessingQueue: Generate embeddings
     ProcessingQueue->>S3: Store processed files
@@ -319,11 +321,11 @@ sequenceDiagram
 ```typescript
 // JWT токены с ролями
 interface JWTPayload {
-  userId: string
-  email: string
-  role: 'admin' | 'user'
-  permissions: string[]
-  exp: number
+  userId: string;
+  email: string;
+  role: 'admin' | 'user';
+  permissions: string[];
+  exp: number;
 }
 
 // RBAC система
@@ -331,12 +333,12 @@ const permissions = {
   'course.create': ['admin', 'user'],
   'course.update.own': ['admin', 'user'],
   'course.update.any': ['admin'],
-  'course.delete.own': ['admin', 'user'], 
+  'course.delete.own': ['admin', 'user'],
   'course.delete.any': ['admin'],
   'material.upload': ['admin', 'user'],
   'material.delete.own': ['admin', 'user'],
   'material.delete.any': ['admin']
-}
+};
 ```
 
 ### Защита данных
@@ -355,27 +357,27 @@ const permissions = {
 ```typescript
 interface SystemMetrics {
   // Производительность
-  apiResponseTime: number        // P95 < 500ms
-  dbQueryTime: number           // P95 < 100ms
-  fileUploadTime: number        // P95 < 30s для 10MB
-  searchResponseTime: number    // P95 < 200ms
-  
+  apiResponseTime: number; // P95 < 500ms
+  dbQueryTime: number; // P95 < 100ms
+  fileUploadTime: number; // P95 < 30s для 10MB
+  searchResponseTime: number; // P95 < 200ms
+
   // Использование
-  activeUsers: number
-  coursesCreated: number
-  materialsUploaded: number
-  searchQueries: number
-  
+  activeUsers: number;
+  coursesCreated: number;
+  materialsUploaded: number;
+  searchQueries: number;
+
   // Ресурсы
-  cpuUsage: number             // < 70%
-  memoryUsage: number          // < 80%
-  diskUsage: number            // < 85%
-  networkIO: number
-  
+  cpuUsage: number; // < 70%
+  memoryUsage: number; // < 80%
+  diskUsage: number; // < 85%
+  networkIO: number;
+
   // Ошибки
-  errorRate: number            // < 1%
-  failedUploads: number
-  processingErrors: number
+  errorRate: number; // < 1%
+  failedUploads: number;
+  processingErrors: number;
 }
 ```
 
@@ -415,7 +417,7 @@ interface SystemMetrics {
 
 ### Стратегия бэкапов
 
-- **PostgreSQL:** 
+- **PostgreSQL:**
   - Ежедневные полные бэкапы
   - Непрерывная репликация WAL
   - Point-in-time recovery до 30 дней
@@ -452,10 +454,10 @@ interface SystemMetrics {
 
 ```typescript
 interface MigrationScript {
-  exportFromLocalStorage(): LocalStorageData
-  validateData(data: LocalStorageData): ValidationResult
-  transformToNewSchema(data: LocalStorageData): DatabaseData
-  importToDatabase(data: DatabaseData): Promise<void>
-  verifyMigration(): Promise<boolean>
+  exportFromLocalStorage(): LocalStorageData;
+  validateData(data: LocalStorageData): ValidationResult;
+  transformToNewSchema(data: LocalStorageData): DatabaseData;
+  importToDatabase(data: DatabaseData): Promise<void>;
+  verifyMigration(): Promise<boolean>;
 }
 ```

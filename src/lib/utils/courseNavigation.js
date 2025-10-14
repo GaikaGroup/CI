@@ -1,6 +1,6 @@
 /**
  * Course Navigation Utilities
- * 
+ *
  * Provides utilities for validating course access and handling navigation
  * with proper error handling and fallback redirects.
  */
@@ -27,12 +27,12 @@ export function validateCourseAccess(course) {
   // Check if course is active
   if (course.status !== 'active') {
     const statusMessages = {
-      'blocked': 'This course has been temporarily blocked',
-      'deleted': 'This course has been removed',
-      'draft': 'This course is still in development',
-      'archived': 'This course has been archived'
+      blocked: 'This course has been temporarily blocked',
+      deleted: 'This course has been removed',
+      draft: 'This course is still in development',
+      archived: 'This course has been archived'
     };
-    
+
     return {
       valid: false,
       error: statusMessages[course.status] || `This course is currently ${course.status}`,
@@ -67,7 +67,7 @@ export function validateCourseById(courseId) {
   }
 
   const courses = get(coursesStore);
-  
+
   if (!Array.isArray(courses)) {
     return {
       valid: false,
@@ -76,10 +76,10 @@ export function validateCourseById(courseId) {
     };
   }
 
-  const course = courses.find(c => c.id === courseId);
-  
+  const course = courses.find((c) => c.id === courseId);
+
   if (!course) {
-    const availableCourses = courses.filter(c => c.status === 'active').length;
+    const availableCourses = courses.filter((c) => c.status === 'active').length;
     return {
       valid: false,
       error: `Course not found. ${availableCourses > 0 ? `${availableCourses} courses available in catalogue.` : 'Check the course catalogue.'}`,
@@ -88,7 +88,7 @@ export function validateCourseById(courseId) {
   }
 
   const courseValidation = validateCourseAccess(course);
-  
+
   return {
     ...courseValidation,
     course: courseValidation.valid ? course : null
@@ -102,14 +102,10 @@ export function validateCourseById(courseId) {
  * @returns {Promise<boolean>} Success status
  */
 export async function navigateToCourse(courseOrId, options = {}) {
-  const { 
-    fallbackPath = '/my-courses',
-    showError = true,
-    errorHandler = null 
-  } = options;
+  const { fallbackPath = '/my-courses', showError = true, errorHandler = null } = options;
 
   let validation;
-  
+
   if (typeof courseOrId === 'string') {
     validation = validateCourseById(courseOrId);
   } else {
@@ -125,11 +121,11 @@ export async function navigateToCourse(courseOrId, options = {}) {
       // In a real app, you might show a toast notification here
       alert(`Cannot access course: ${validation.error}`);
     }
-    
+
     if (fallbackPath) {
       await goto(fallbackPath);
     }
-    
+
     return false;
   }
 
@@ -138,17 +134,17 @@ export async function navigateToCourse(courseOrId, options = {}) {
     return true;
   } catch (error) {
     console.error('Navigation error:', error);
-    
+
     if (showError && errorHandler) {
       errorHandler('Navigation failed', 'navigation_error');
     } else if (showError) {
       alert('Navigation failed. Please try again.');
     }
-    
+
     if (fallbackPath) {
       await goto(fallbackPath);
     }
-    
+
     return false;
   }
 }
@@ -160,14 +156,10 @@ export async function navigateToCourse(courseOrId, options = {}) {
  * @returns {Promise<boolean>} Success status
  */
 export async function navigateToCourseProgress(courseOrId, options = {}) {
-  const { 
-    fallbackPath = '/my-courses',
-    showError = true,
-    errorHandler = null 
-  } = options;
+  const { fallbackPath = '/my-courses', showError = true, errorHandler = null } = options;
 
   let validation;
-  
+
   if (typeof courseOrId === 'string') {
     validation = validateCourseById(courseOrId);
   } else {
@@ -182,11 +174,11 @@ export async function navigateToCourseProgress(courseOrId, options = {}) {
       console.error('Course navigation error:', validation.error);
       alert(`Cannot access course: ${validation.error}`);
     }
-    
+
     if (fallbackPath) {
       await goto(fallbackPath);
     }
-    
+
     return false;
   }
 
@@ -195,17 +187,17 @@ export async function navigateToCourseProgress(courseOrId, options = {}) {
     return true;
   } catch (error) {
     console.error('Navigation error:', error);
-    
+
     if (showError && errorHandler) {
       errorHandler('Navigation failed', 'navigation_error');
     } else if (showError) {
       alert('Navigation failed. Please try again.');
     }
-    
+
     if (fallbackPath) {
       await goto(fallbackPath);
     }
-    
+
     return false;
   }
 }
@@ -217,31 +209,31 @@ export async function navigateToCourseProgress(courseOrId, options = {}) {
  */
 export function getNavigationSuggestions(errorType) {
   const suggestions = {
-    'invalid_data': [
+    invalid_data: [
       { text: 'Go to My Courses', action: () => goto('/my-courses') },
       { text: 'Browse Catalogue', action: () => goto('/catalogue') }
     ],
-    'invalid_id': [
+    invalid_id: [
       { text: 'Go to My Courses', action: () => goto('/my-courses') },
       { text: 'Browse Catalogue', action: () => goto('/catalogue') }
     ],
-    'course_unavailable': [
+    course_unavailable: [
       { text: 'Browse Available Courses', action: () => goto('/catalogue') },
       { text: 'Go to My Courses', action: () => goto('/my-courses') }
     ],
-    'incomplete_data': [
+    incomplete_data: [
       { text: 'Contact Support', action: () => window.open('mailto:support@example.com') },
       { text: 'Go to My Courses', action: () => goto('/my-courses') }
     ],
-    'not_found': [
+    not_found: [
       { text: 'Browse Catalogue', action: () => goto('/catalogue') },
       { text: 'Go to My Courses', action: () => goto('/my-courses') }
     ],
-    'data_unavailable': [
+    data_unavailable: [
       { text: 'Refresh Page', action: () => window.location.reload() },
       { text: 'Go to Home', action: () => goto('/') }
     ],
-    'navigation_error': [
+    navigation_error: [
       { text: 'Try Again', action: () => window.location.reload() },
       { text: 'Go to My Courses', action: () => goto('/my-courses') }
     ]
@@ -258,7 +250,7 @@ export function getNavigationSuggestions(errorType) {
  */
 export function checkCourseAccess(courseId, user = null) {
   const validation = validateCourseById(courseId);
-  
+
   if (!validation.valid) {
     return validation;
   }
@@ -283,7 +275,7 @@ export function checkCourseAccess(courseId, user = null) {
  */
 export function getSafeCourseUrl(courseId, path = '') {
   const validation = validateCourseById(courseId);
-  
+
   if (!validation.valid) {
     return null;
   }

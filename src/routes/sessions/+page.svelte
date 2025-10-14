@@ -46,7 +46,7 @@
     const ungroupedSessions = [];
 
     // Initialize groups for all courses
-    courses.forEach(course => {
+    courses.forEach((course) => {
       grouped[course.id] = {
         course,
         sessions: []
@@ -54,7 +54,7 @@
     });
 
     // Distribute sessions into groups
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       if (session.courseId && grouped[session.courseId]) {
         grouped[session.courseId].sessions.push(session);
       } else {
@@ -78,8 +78,6 @@
     return grouped;
   }
 
-
-
   async function createNewSession() {
     if (isCreatingSession) return;
 
@@ -96,18 +94,18 @@
 
       // Create session based on current mode
       const session = await sessionStore.createSession(
-        title, 
-        currentMode, 
+        title,
+        currentMode,
         'en',
         null,
         currentMode === 'learn' ? getDefaultCourseId() : null
       );
-      
+
       // Navigate to the new session page
       goto(`/sessions/${session.id}`);
     } catch (error) {
       console.error('Failed to create session:', error);
-      
+
       // If authentication fails, redirect to login
       if (error.message.includes('Authentication required')) {
         goto('/login?redirect=/sessions');
@@ -132,19 +130,19 @@
   function handleDeleteClick(session, event) {
     // Prevent the session card click event
     event.stopPropagation();
-    
+
     // Only allow deletion for FUN mode sessions
     if (session.mode !== 'fun') {
       return;
     }
-    
+
     sessionToDelete = session;
     showDeleteDialog = true;
   }
 
   async function confirmDelete() {
     if (!sessionToDelete) return;
-    
+
     isDeletingSession = true;
     try {
       await sessionStore.deleteSession(sessionToDelete.id);
@@ -166,7 +164,7 @@
 
   onMount(async () => {
     await checkAuth();
-    
+
     // Initialize courses store
     coursesStore.initialise();
 
@@ -197,9 +195,11 @@
       <div class="page-header">
         <div>
           <h1>My Sessions</h1>
-          <p class="subtitle">Manage and continue your {currentMode === 'fun' ? 'chat' : 'learning'} conversations</p>
+          <p class="subtitle">
+            Manage and continue your {currentMode === 'fun' ? 'chat' : 'learning'} conversations
+          </p>
         </div>
-        
+
         <!-- Mode Toggle -->
         <div class="mode-toggle">
           <button
@@ -264,21 +264,22 @@
             {:else}
               {#each sessions as session (session.id)}
                 <div class="session-card-container">
-                  <button
-                    class="session-card"
-                    on:click={() => selectSession(session)}
-                  >
+                  <button class="session-card" on:click={() => selectSession(session)}>
                     <div class="session-card-header">
                       <div class="session-title">{session.title}</div>
-                      <div class="session-mode-badge" class:fun={session.mode === 'fun'} class:learn={session.mode === 'learn'}>
+                      <div
+                        class="session-mode-badge"
+                        class:fun={session.mode === 'fun'}
+                        class:learn={session.mode === 'learn'}
+                      >
                         {session.mode}
                       </div>
                     </div>
-                    
+
                     {#if session.preview}
                       <div class="session-preview">{session.preview}</div>
                     {/if}
-                    
+
                     <div class="session-meta">
                       <span class="session-date">
                         {new Date(session.updatedAt).toLocaleDateString('en-GB', {
@@ -294,7 +295,7 @@
                       <span class="session-messages">{session.messageCount || 0} messages</span>
                     </div>
                   </button>
-                  
+
                   <!-- Delete button for FUN mode sessions only -->
                   {#if session.mode === 'fun'}
                     <button
@@ -321,7 +322,8 @@
                   <p>Create a new session to start learning with your AI assistant!</p>
                   {#if courses.length === 0}
                     <p class="text-sm text-gray-500 mt-2">
-                      You'll need to create or enroll in courses first to organize your learning sessions.
+                      You'll need to create or enroll in courses first to organize your learning
+                      sessions.
                     </p>
                   {/if}
                   <button
@@ -337,8 +339,8 @@
             {:else}
               {#each Object.values(groupedSessions) as group (group.course.id)}
                 {#if group.sessions.length > 0}
-                  <CourseGroup 
-                    course={group.course} 
+                  <CourseGroup
+                    course={group.course}
                     sessions={group.sessions}
                     showCreateButton={group.course.id !== 'ungrouped'}
                   />
@@ -412,8 +414,12 @@
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Main Content */

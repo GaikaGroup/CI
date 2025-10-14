@@ -1,6 +1,6 @@
 /**
  * Course Navigation Fix - Complete Solution Validation Tests
- * 
+ *
  * This test suite validates the complete course navigation fix implementation
  * covering all requirements from the specification.
  */
@@ -9,8 +9,16 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { writable } from 'svelte/store';
 
 // Import utilities to test
-import { getApiModeFromAppMode, isValidApiMode, getSupportedAppModes } from '$lib/utils/modeMapping.js';
-import { validateCourseAccess, validateCourseById, navigateToCourse } from '$lib/utils/courseNavigation.js';
+import {
+  getApiModeFromAppMode,
+  isValidApiMode,
+  getSupportedAppModes
+} from '$lib/utils/modeMapping.js';
+import {
+  validateCourseAccess,
+  validateCourseById,
+  navigateToCourse
+} from '$lib/utils/courseNavigation.js';
 
 // Mock dependencies
 vi.mock('$app/navigation', () => ({
@@ -49,13 +57,13 @@ vi.mock('$lib/modules/session/stores/sessionStore.js', () => ({
 describe('Course Navigation Fix - Complete Solution Validation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Reset mock session store
     mockSessionStore.reset.mockClear();
     mockSessionStore.loadSessions.mockClear();
     mockSessionStore.createSession.mockClear();
     mockSessionStore.searchSessions.mockClear();
-    
+
     // Mock fetch for API calls
     global.fetch = vi.fn();
   });
@@ -147,7 +155,7 @@ describe('Course Navigation Fix - Complete Solution Validation', () => {
   describe('Requirement 1.3: Error Handling and Fallbacks', () => {
     it('should redirect to catalogue with error message for invalid course', async () => {
       const { goto } = await import('$app/navigation');
-      
+
       const result = await navigateToCourse('invalid-course-id', {
         fallbackPath: '/catalogue'
       });
@@ -293,7 +301,9 @@ describe('Course Navigation Fix - Complete Solution Validation', () => {
       expect(apiMode).toBe('learn');
 
       await mockSessionStore.searchSessions('test query', { mode: 'catalogue' });
-      expect(mockSessionStore.searchSessions).toHaveBeenCalledWith('test query', { mode: 'catalogue' });
+      expect(mockSessionStore.searchSessions).toHaveBeenCalledWith('test query', {
+        mode: 'catalogue'
+      });
     });
 
     it('should handle null mode gracefully', async () => {
@@ -372,7 +382,7 @@ describe('Course Navigation Fix - Complete Solution Validation', () => {
 
       // Test that existing fun mode still works
       const session = await mockSessionStore.createSession('Test Session', 'fun');
-      
+
       expect(mockSessionStore.createSession).toHaveBeenCalledWith('Test Session', 'fun');
       expect(session.mode).toBe('fun');
     });

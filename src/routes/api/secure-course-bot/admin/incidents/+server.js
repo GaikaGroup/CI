@@ -20,20 +20,20 @@ export async function GET({ url }) {
     if (!hasAdminAccess) {
       throw error(403, 'Administrative access required');
     }
-    
+
     // Parse query parameters
     const filters = parseIncidentFilters(url.searchParams);
     const pagination = parsePagination(url.searchParams);
-    
+
     // Filter incidents
     let filteredIncidents = filterIncidents(globalIncidents, filters);
-    
+
     // Apply pagination
     const total = filteredIncidents.length;
     const startIndex = (pagination.page - 1) * pagination.limit;
     const endIndex = startIndex + pagination.limit;
     const paginatedIncidents = filteredIncidents.slice(startIndex, endIndex);
-    
+
     return json({
       success: true,
       incidents: paginatedIncidents,
@@ -45,13 +45,15 @@ export async function GET({ url }) {
       },
       filters: filters
     });
-    
   } catch (err) {
     console.error('Incidents retrieval error:', err);
-    return json({
-      success: false,
-      error: err.message
-    }, { status: err.status || 500 });
+    return json(
+      {
+        success: false,
+        error: err.message
+      },
+      { status: err.status || 500 }
+    );
   }
 }
 
@@ -62,27 +64,29 @@ export async function GET({ url }) {
 export async function POST({ request }) {
   try {
     const body = await request.json();
-    
+
     // Verify administrative access
     const hasAdminAccess = await verifyAdminAccess(body.adminToken);
     if (!hasAdminAccess) {
       throw error(403, 'Administrative access required');
     }
-    
+
     // Calculate statistics
     const stats = calculateSecurityStats(globalIncidents, body.timeRange);
-    
+
     return json({
       success: true,
       stats
     });
-    
   } catch (err) {
     console.error('Stats calculation error:', err);
-    return json({
-      success: false,
-      error: err.message
-    }, { status: err.status || 500 });
+    return json(
+      {
+        success: false,
+        error: err.message
+      },
+      { status: err.status || 500 }
+    );
   }
 }
 
@@ -93,20 +97,20 @@ export async function POST({ request }) {
 export async function PUT({ request }) {
   try {
     const body = await request.json();
-    
+
     // Verify administrative access
     const hasAdminAccess = await verifyAdminAccess(body.adminToken);
     if (!hasAdminAccess) {
       throw error(403, 'Administrative access required');
     }
-    
+
     // Parse export filters
     const filters = body.filters || {};
     const format = body.format || 'json';
-    
+
     // Filter incidents for export
     const exportIncidents = filterIncidents(globalIncidents, filters);
-    
+
     // Format export data
     const exportData = {
       exportedAt: new Date().toISOString(),
@@ -114,7 +118,7 @@ export async function PUT({ request }) {
       totalIncidents: exportIncidents.length,
       incidents: exportIncidents
     };
-    
+
     if (format === 'csv') {
       // Convert to CSV format
       const csvData = convertToCSV(exportIncidents);
@@ -125,18 +129,20 @@ export async function PUT({ request }) {
         }
       });
     }
-    
+
     return json({
       success: true,
       exportData
     });
-    
   } catch (err) {
     console.error('Export error:', err);
-    return json({
-      success: false,
-      error: err.message
-    }, { status: err.status || 500 });
+    return json(
+      {
+        success: false,
+        error: err.message
+      },
+      { status: err.status || 500 }
+    );
   }
 }
 
@@ -147,35 +153,35 @@ export async function PUT({ request }) {
  */
 function parseIncidentFilters(searchParams) {
   const filters = {};
-  
+
   if (searchParams.get('severity')) {
     filters.severity = searchParams.get('severity');
   }
-  
+
   if (searchParams.get('incidentType')) {
     filters.incidentType = searchParams.get('incidentType');
   }
-  
+
   if (searchParams.get('userId')) {
     filters.userId = searchParams.get('userId');
   }
-  
+
   if (searchParams.get('courseId')) {
     filters.courseId = searchParams.get('courseId');
   }
-  
+
   if (searchParams.get('startDate')) {
     filters.startDate = new Date(searchParams.get('startDate'));
   }
-  
+
   if (searchParams.get('endDate')) {
     filters.endDate = new Date(searchParams.get('endDate'));
   }
-  
+
   if (searchParams.get('escalated')) {
     filters.escalated = searchParams.get('escalated') === 'true';
   }
-  
+
   return filters;
 }
 
@@ -187,7 +193,7 @@ function parseIncidentFilters(searchParams) {
 function parsePagination(searchParams) {
   const page = parseInt(searchParams.get('page')) || 1;
   const limit = Math.min(parseInt(searchParams.get('limit')) || 50, 1000); // Max 1000 per page
-  
+
   return { page, limit };
 }
 
@@ -198,35 +204,35 @@ function parsePagination(searchParams) {
  * @returns {Array} - Filtered incidents
  */
 function filterIncidents(incidents, filters) {
-  return incidents.filter(incident => {
+  return incidents.filter((incident) => {
     if (filters.severity && incident.severity !== filters.severity) {
       return false;
     }
-    
+
     if (filters.incidentType && incident.incidentType !== filters.incidentType) {
       return false;
     }
-    
+
     if (filters.userId && incident.userId !== filters.userId) {
       return false;
     }
-    
+
     if (filters.courseId && incident.context?.courseId !== filters.courseId) {
       return false;
     }
-    
+
     if (filters.startDate && incident.timestamp < filters.startDate) {
       return false;
     }
-    
+
     if (filters.endDate && incident.timestamp > filters.endDate) {
       return false;
     }
-    
+
     if (filters.escalated !== undefined && incident.escalated !== filters.escalated) {
       return false;
     }
-    
+
     return true;
   });
 }
@@ -239,13 +245,15 @@ function filterIncidents(incidents, filters) {
  */
 function calculateSecurityStats(incidents, timeRange = {}) {
   const now = new Date();
-  const startDate = timeRange.startDate ? new Date(timeRange.startDate) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+  const startDate = timeRange.startDate
+    ? new Date(timeRange.startDate)
+    : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
   const endDate = timeRange.endDate ? new Date(timeRange.endDate) : now;
-  
-  const filteredIncidents = incidents.filter(incident => 
-    incident.timestamp >= startDate && incident.timestamp <= endDate
+
+  const filteredIncidents = incidents.filter(
+    (incident) => incident.timestamp >= startDate && incident.timestamp <= endDate
   );
-  
+
   const stats = {
     timeRange: { startDate, endDate },
     totalIncidents: filteredIncidents.length,
@@ -257,43 +265,42 @@ function calculateSecurityStats(incidents, timeRange = {}) {
     topViolators: {},
     trendsOverTime: calculateTrends(filteredIncidents, startDate, endDate)
   };
-  
-  filteredIncidents.forEach(incident => {
+
+  filteredIncidents.forEach((incident) => {
     // Count by type
-    stats.incidentsByType[incident.incidentType] = 
+    stats.incidentsByType[incident.incidentType] =
       (stats.incidentsByType[incident.incidentType] || 0) + 1;
-    
+
     // Count by severity
-    stats.incidentsBySeverity[incident.severity] = 
+    stats.incidentsBySeverity[incident.severity] =
       (stats.incidentsBySeverity[incident.severity] || 0) + 1;
-    
+
     // Count escalated
     if (incident.escalated) {
       stats.escalatedIncidents++;
     }
-    
+
     // Track unique users and sessions
     stats.uniqueUsers.add(incident.userId);
     stats.uniqueSessions.add(incident.sessionId);
-    
+
     // Track top violators
-    stats.topViolators[incident.userId] = 
-      (stats.topViolators[incident.userId] || 0) + 1;
+    stats.topViolators[incident.userId] = (stats.topViolators[incident.userId] || 0) + 1;
   });
-  
+
   // Convert sets to counts
   stats.uniqueUsers = stats.uniqueUsers.size;
   stats.uniqueSessions = stats.uniqueSessions.size;
-  
+
   // Sort top violators
   stats.topViolators = Object.entries(stats.topViolators)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 10)
     .reduce((obj, [userId, count]) => {
       obj[userId] = count;
       return obj;
     }, {});
-  
+
   return stats;
 }
 
@@ -307,26 +314,26 @@ function calculateSecurityStats(incidents, timeRange = {}) {
 function calculateTrends(incidents, startDate, endDate) {
   const trends = [];
   const dayMs = 24 * 60 * 60 * 1000;
-  
+
   for (let date = new Date(startDate); date <= endDate; date.setTime(date.getTime() + dayMs)) {
     const dayStart = new Date(date);
     const dayEnd = new Date(date.getTime() + dayMs);
-    
-    const dayIncidents = incidents.filter(incident => 
-      incident.timestamp >= dayStart && incident.timestamp < dayEnd
+
+    const dayIncidents = incidents.filter(
+      (incident) => incident.timestamp >= dayStart && incident.timestamp < dayEnd
     );
-    
+
     trends.push({
       date: dayStart.toISOString().split('T')[0],
       count: dayIncidents.length,
       severity: {
-        high: dayIncidents.filter(i => i.severity === 'high').length,
-        medium: dayIncidents.filter(i => i.severity === 'medium').length,
-        low: dayIncidents.filter(i => i.severity === 'low').length
+        high: dayIncidents.filter((i) => i.severity === 'high').length,
+        medium: dayIncidents.filter((i) => i.severity === 'medium').length,
+        low: dayIncidents.filter((i) => i.severity === 'low').length
       }
     });
   }
-  
+
   return trends;
 }
 
@@ -336,8 +343,17 @@ function calculateTrends(incidents, startDate, endDate) {
  * @returns {string} - CSV data
  */
 function convertToCSV(incidents) {
-  const headers = ['ID', 'Timestamp', 'User ID', 'Session ID', 'Incident Type', 'Severity', 'Escalated', 'Message Preview'];
-  const rows = incidents.map(incident => [
+  const headers = [
+    'ID',
+    'Timestamp',
+    'User ID',
+    'Session ID',
+    'Incident Type',
+    'Severity',
+    'Escalated',
+    'Message Preview'
+  ];
+  const rows = incidents.map((incident) => [
     incident.id,
     incident.timestamp.toISOString(),
     incident.userId,
@@ -347,11 +363,11 @@ function convertToCSV(incidents) {
     incident.escalated ? 'Yes' : 'No',
     incident.message.substring(0, 100).replace(/"/g, '""') // Escape quotes and truncate
   ]);
-  
+
   const csvContent = [headers, ...rows]
-    .map(row => row.map(field => `"${field}"`).join(','))
+    .map((row) => row.map((field) => `"${field}"`).join(','))
     .join('\n');
-  
+
   return csvContent;
 }
 

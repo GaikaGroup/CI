@@ -1,11 +1,15 @@
 /**
  * Course Navigation Utilities Tests
- * 
+ *
  * Basic tests to verify course navigation validation works correctly
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { validateCourseAccess, validateCourseById, getSafeCourseUrl } from '$lib/utils/courseNavigation.js';
+import {
+  validateCourseAccess,
+  validateCourseById,
+  getSafeCourseUrl
+} from '$lib/utils/courseNavigation.js';
 
 describe('Course Navigation Utilities', () => {
   describe('validateCourseAccess', () => {

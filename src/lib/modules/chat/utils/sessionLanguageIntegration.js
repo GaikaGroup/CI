@@ -20,10 +20,13 @@ export async function initializeSessionLanguageState(sessionId, userId) {
   try {
     // Get session data from database
     const sessionData = await SessionService.getSession(sessionId, userId, false);
-    
+
     // Initialize language state
-    const languageState = await sessionLanguagePersistence.initializeSessionLanguage(sessionId, sessionData);
-    
+    const languageState = await sessionLanguagePersistence.initializeSessionLanguage(
+      sessionId,
+      sessionData
+    );
+
     return languageState;
   } catch (error) {
     console.error(`Failed to initialize language state for session ${sessionId}:`, error);
@@ -63,7 +66,10 @@ export async function updateSessionLanguageFromMessage(sessionId, userId, messag
 
     return updatedState;
   } catch (error) {
-    console.error(`Failed to update session language from message for session ${sessionId}:`, error);
+    console.error(
+      `Failed to update session language from message for session ${sessionId}:`,
+      error
+    );
     return null;
   }
 }
@@ -79,7 +85,7 @@ export function getSessionLanguageForChat(sessionId) {
   }
 
   const preferences = sessionLanguagePersistence.getSessionLanguagePreferences(sessionId);
-  
+
   if (!preferences) {
     return null;
   }
@@ -88,7 +94,8 @@ export function getSessionLanguageForChat(sessionId) {
     language: preferences.language,
     confidence: preferences.confidence,
     isStable: preferences.isStable,
-    enforcementInstructions: sessionLanguagePersistence.getLanguageEnforcementInstructions(sessionId),
+    enforcementInstructions:
+      sessionLanguagePersistence.getLanguageEnforcementInstructions(sessionId),
     shouldValidateResponse: preferences.preferences.enforceLanguageConsistency
   };
 }
@@ -105,7 +112,7 @@ export function enhanceSessionContextWithLanguage(originalContext, sessionId) {
   }
 
   const languageInfo = getSessionLanguageForChat(sessionId);
-  
+
   if (!languageInfo) {
     return originalContext;
   }
@@ -133,7 +140,7 @@ export function enhanceSystemMessagesWithLanguage(originalMessages, sessionId) {
   }
 
   const languageInfo = getSessionLanguageForChat(sessionId);
-  
+
   if (!languageInfo || !languageInfo.enforcementInstructions) {
     return originalMessages;
   }
@@ -160,7 +167,7 @@ export async function cleanupSessionLanguageState(sessionId) {
   try {
     // Get final statistics before cleanup
     const stats = sessionLanguagePersistence.getSessionLanguagePreferences(sessionId);
-    
+
     if (stats) {
       console.log(`Session ${sessionId} language stats:`, {
         language: stats.language,
@@ -189,7 +196,7 @@ export async function validateResponseLanguage(sessionId, responseContent) {
   }
 
   const languageInfo = getSessionLanguageForChat(sessionId);
-  
+
   if (!languageInfo || !languageInfo.shouldValidateResponse) {
     return { isValid: true, reason: 'Validation not required' };
   }
@@ -197,7 +204,7 @@ export async function validateResponseLanguage(sessionId, responseContent) {
   try {
     // Import language detector for validation
     const { languageDetector } = await import('../LanguageDetector.js');
-    
+
     // Validate response language
     const validationResult = languageDetector.validateLanguageConsistency(
       responseContent,
@@ -218,8 +225,8 @@ export async function validateResponseLanguage(sessionId, responseContent) {
     };
   } catch (error) {
     console.error(`Failed to validate response language for session ${sessionId}:`, error);
-    return { 
-      isValid: false, 
+    return {
+      isValid: false,
       error: error.message,
       reason: 'Validation failed due to error'
     };
@@ -249,11 +256,11 @@ export function getSessionLanguageStats(sessionId) {
 export async function createLanguageMiddleware(sessionId, userId, userMessage) {
   // Initialize or update language state
   let languageState = null;
-  
+
   try {
     // Try to update from message first
     languageState = await updateSessionLanguageFromMessage(sessionId, userId, userMessage);
-    
+
     // If no update occurred, ensure we have initialized state
     if (!languageState) {
       languageState = await initializeSessionLanguageState(sessionId, userId);

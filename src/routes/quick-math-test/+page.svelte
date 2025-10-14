@@ -16,11 +16,11 @@
 
 <div class="container mx-auto p-8 max-w-4xl">
   <h1 class="text-2xl font-bold mb-6">Быстрый тест математики</h1>
-  
+
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border">
     <SimpleMath content={testContent} />
   </div>
-  
+
   <div class="mt-6 text-sm text-gray-600 dark:text-gray-400">
     Если вы видите правильно отформатированный текст с математическими формулами - все работает!
   </div>

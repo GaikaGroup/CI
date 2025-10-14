@@ -136,7 +136,10 @@ function validateSessionData(sessionData) {
   }
 
   // Validate courseId for LEARN mode
-  if (mode === 'learn' && (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)) {
+  if (
+    mode === 'learn' &&
+    (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)
+  ) {
     throw new SessionValidationError('Course ID is required for LEARN mode sessions', 'courseId');
   }
 
@@ -310,7 +313,7 @@ export class SessionService {
     const where = { userId };
     if (mode) where.mode = mode;
     if (language) where.language = language;
-    
+
     // Hide soft-deleted sessions unless explicitly requested
     if (!includeHidden) {
       where.isHidden = false;
@@ -394,7 +397,7 @@ export class SessionService {
           id: sessionId,
           userId // Ensure user can only access their own sessions
         };
-        
+
         // Hide soft-deleted sessions unless explicitly requested
         if (!includeHidden) {
           where.isHidden = false;
@@ -812,7 +815,7 @@ export class SessionService {
     const where = {};
     if (mode) where.mode = mode;
     if (language) where.language = language;
-    
+
     // Handle hidden session filtering
     if (hiddenOnly) {
       where.isHidden = true;
@@ -899,7 +902,7 @@ export class SessionService {
     return withRetry(async () => {
       try {
         const where = { id: sessionId };
-        
+
         // Non-admin users can only access their own non-hidden sessions
         if (!isAdmin) {
           where.userId = userId;

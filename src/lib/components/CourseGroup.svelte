@@ -39,7 +39,9 @@
       <div class="course-details">
         <h3 class="course-name">{course.name}</h3>
         <div class="course-meta">
-          <span class="session-count">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</span>
+          <span class="session-count"
+            >{sessions.length} session{sessions.length !== 1 ? 's' : ''}</span
+          >
           {#if course.level}
             <span class="course-level">{course.level}</span>
           {/if}
@@ -49,7 +51,7 @@
         </div>
       </div>
     </div>
-    
+
     {#if showCreateButton}
       <button
         class="create-session-btn"
@@ -66,10 +68,7 @@
   {#if sessions.length > 0}
     <div class="sessions-list">
       {#each sessions as session (session.id)}
-        <button
-          class="session-item"
-          on:click={() => selectSession(session)}
-        >
+        <button class="session-item" on:click={() => selectSession(session)}>
           <div class="session-content">
             <div class="session-title">{session.title}</div>
             {#if session.preview}

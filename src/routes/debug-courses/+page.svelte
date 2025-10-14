@@ -16,7 +16,7 @@
 
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-2xl font-bold mb-6">Debug Information</h1>
-  
+
   <div class="space-y-6">
     <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border">
       <h2 class="text-lg font-semibold mb-2">User Information</h2>

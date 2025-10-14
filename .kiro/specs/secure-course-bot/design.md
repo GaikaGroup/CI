@@ -15,7 +15,7 @@ graph TD
     C --> D[Response Generator]
     D --> E[Logging Service]
     E --> F[User Response]
-    
+
     G[Course Configuration] --> C
     G --> D
     H[Instruction Set] --> B
@@ -39,20 +39,21 @@ graph TD
 **Purpose**: Primary defense against manipulation attempts
 
 **Interface**:
+
 ```javascript
 class SecurityValidator {
   validateInput(message, courseConfig) {
     // Returns validation result with security flags
   }
-  
+
   detectManipulation(message) {
     // Checks for prompt injection patterns
   }
-  
+
   checkAuthorityImpersonation(message) {
     // Validates authority claims
   }
-  
+
   identifyRoleplayAttempts(message) {
     // Detects roleplay/hypothetical scenarios
   }
@@ -60,6 +61,7 @@ class SecurityValidator {
 ```
 
 **Security Checks**:
+
 - Prompt injection pattern matching
 - Authority impersonation detection
 - Roleplay scenario identification
@@ -71,16 +73,17 @@ class SecurityValidator {
 **Purpose**: Determines course-specific content relevance
 
 **Interface**:
+
 ```javascript
 class RelevanceAnalyzer {
   analyzeRelevance(message, courseConfig) {
     // Returns relevance classification
   }
-  
+
   classifyTopic(message, courseTopics) {
     // RELEVANT, IRRELEVANT, or GRAY_AREA
   }
-  
+
   applyRelevanceTest(message, courseName) {
     // "Does this help student succeed in [COURSE]?"
   }
@@ -88,6 +91,7 @@ class RelevanceAnalyzer {
 ```
 
 **Classification Logic**:
+
 - RELEVANT: Course content, assignments, exams, policies, schedule
 - IRRELEVANT: Other courses, general advice, entertainment, personal issues
 - GRAY_AREA: Study skills, research methods (evaluated case-by-case)
@@ -97,20 +101,21 @@ class RelevanceAnalyzer {
 **Purpose**: Generates consistent, template-based responses
 
 **Interface**:
+
 ```javascript
 class ResponseGenerator {
   generateResponse(validationResult, relevanceResult, courseConfig) {
     // Returns appropriate response based on results
   }
-  
+
   getSecurityResponse(manipulationType) {
     // Returns specific security rejection message
   }
-  
+
   getOffTopicResponse(courseName, courseTopics) {
     // Returns polite redirection with course suggestions
   }
-  
+
   getAcademicIntegrityResponse() {
     // Returns integrity violation response
   }
@@ -118,6 +123,7 @@ class ResponseGenerator {
 ```
 
 **Response Templates**:
+
 - Security violation responses (exact text from instruction set)
 - Off-topic redirection responses
 - Academic integrity responses
@@ -128,20 +134,21 @@ class ResponseGenerator {
 **Purpose**: Manages course-specific settings and content
 
 **Interface**:
+
 ```javascript
 class CourseConfiguration {
   constructor(courseName, courseTopics, instructorInfo) {
     // Initialize course-specific parameters
   }
-  
+
   getCourseTopics() {
     // Returns array of relevant course topics
   }
-  
+
   getInstructorContact() {
     // Returns escalation contact information
   }
-  
+
   updateCourseContent(newContent) {
     // Updates course-specific content
   }
@@ -153,16 +160,17 @@ class CourseConfiguration {
 **Purpose**: Tracks security incidents and user interactions
 
 **Interface**:
+
 ```javascript
 class LoggingService {
   logSecurityIncident(incident, severity, context) {
     // Records security violations for review
   }
-  
+
   logAcademicIntegrityViolation(attempt, context) {
     // Records integrity violations
   }
-  
+
   trackRepeatedAttempts(userId, sessionId) {
     // Monitors escalating violation patterns
   }
@@ -172,6 +180,7 @@ class LoggingService {
 ## Data Models
 
 ### SecurityValidationResult
+
 ```javascript
 {
   isValid: boolean,
@@ -183,6 +192,7 @@ class LoggingService {
 ```
 
 ### RelevanceResult
+
 ```javascript
 {
   classification: string, // 'RELEVANT', 'IRRELEVANT', 'GRAY_AREA'
@@ -193,6 +203,7 @@ class LoggingService {
 ```
 
 ### CourseConfig
+
 ```javascript
 {
   courseName: string,
@@ -208,6 +219,7 @@ class LoggingService {
 ```
 
 ### SecurityIncident
+
 ```javascript
 {
   timestamp: datetime,
@@ -223,18 +235,21 @@ class LoggingService {
 ## Error Handling
 
 ### Security Violation Handling
+
 - Immediate rejection with predefined response
 - Incident logging with context
 - Session monitoring for repeated attempts
 - Escalation triggers for sophisticated attacks
 
 ### Invalid Input Handling
+
 - Graceful degradation for malformed inputs
 - Default to security-first approach
 - Clear error messages within course scope
 - Redirection to valid course topics
 
 ### Configuration Error Handling
+
 - Fallback to default security responses
 - Administrative alerts for configuration issues
 - Graceful handling of missing course data
@@ -243,6 +258,7 @@ class LoggingService {
 ## Testing Strategy
 
 ### Security Testing
+
 - Comprehensive prompt injection test suite
 - Authority impersonation scenarios
 - Roleplay and manipulation attempts
@@ -250,6 +266,7 @@ class LoggingService {
 - Social engineering simulations
 
 ### Functional Testing
+
 - Course relevance classification accuracy
 - Response template consistency
 - Configuration management
@@ -257,6 +274,7 @@ class LoggingService {
 - Escalation procedures
 
 ### Integration Testing
+
 - End-to-end conversation flows
 - Multi-turn manipulation attempts
 - Course configuration changes
@@ -264,6 +282,7 @@ class LoggingService {
 - Performance under attack scenarios
 
 ### Performance Testing
+
 - Response time under normal load
 - Security validation performance
 - Logging system capacity
@@ -273,6 +292,7 @@ class LoggingService {
 ## Security Considerations
 
 ### Defense in Depth
+
 - Multiple validation layers
 - Template-based responses prevent improvisation
 - Logging provides audit trail
@@ -280,6 +300,7 @@ class LoggingService {
 - Fail-secure defaults
 
 ### Attack Surface Minimization
+
 - Single input validation point
 - Predefined response templates
 - No dynamic instruction modification
@@ -287,6 +308,7 @@ class LoggingService {
 - Minimal user data storage
 
 ### Monitoring and Alerting
+
 - Real-time security incident detection
 - Automated escalation for repeated violations
 - Administrative dashboards for security review

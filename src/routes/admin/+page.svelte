@@ -16,7 +16,8 @@
   const adminFeatures = [
     {
       title: 'Session Management',
-      description: 'View and manage all user sessions, including hidden sessions. Restore deleted sessions.',
+      description:
+        'View and manage all user sessions, including hidden sessions. Restore deleted sessions.',
       href: '/admin/sessions',
       icon: '💬'
     },
@@ -144,7 +145,9 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4">Admin Features</h2>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {#each adminFeatures as feature}
-            <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+            <div
+              class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
+            >
               <div class="p-6">
                 <div class="flex items-center">
                   <div class="flex-shrink-0">
@@ -189,9 +192,7 @@
     <div class="max-w-md w-full bg-white shadow rounded-lg p-6">
       <div class="text-center">
         <h2 class="text-lg font-medium text-gray-900">Access Denied</h2>
-        <p class="mt-2 text-sm text-gray-600">
-          You need admin privileges to access this page.
-        </p>
+        <p class="mt-2 text-sm text-gray-600">You need admin privileges to access this page.</p>
         <div class="mt-4">
           <a
             href="/login"

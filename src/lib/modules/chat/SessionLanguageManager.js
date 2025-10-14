@@ -10,18 +10,18 @@ export class SessionLanguageManager {
     // In-memory storage for session language states
     // In a production environment, this could be backed by Redis or database
     this.sessionLanguages = new Map();
-    
+
     // Configuration
     this.config = {
       // Minimum confidence threshold for language detection
       minConfidenceThreshold: 0.7,
-      
+
       // Maximum age for session language data (in milliseconds)
       maxSessionAge: 24 * 60 * 60 * 1000, // 24 hours
-      
+
       // Number of confidence updates to track for stability calculation
       confidenceHistorySize: 10,
-      
+
       // Minimum number of interactions before language is considered stable
       minInteractionsForStability: 3
     };
@@ -75,7 +75,9 @@ export class SessionLanguageManager {
     // Store the updated state
     this.sessionLanguages.set(sessionId, sessionState);
 
-    console.log(`Session language set: ${sessionId} -> ${language} (confidence: ${confidence}, stable: ${sessionState.isStable})`);
+    console.log(
+      `Session language set: ${sessionId} -> ${language} (confidence: ${confidence}, stable: ${sessionState.isStable})`
+    );
 
     // Log session metrics if language becomes stable
     if (sessionState.isStable && (!existing || !existing.isStable)) {
@@ -103,7 +105,7 @@ export class SessionLanguageManager {
     }
 
     const sessionState = this.sessionLanguages.get(sessionId);
-    
+
     if (!sessionState) {
       return null;
     }
@@ -128,7 +130,7 @@ export class SessionLanguageManager {
    */
   updateLanguageConfidence(sessionId, newConfidence, detectionDetails = {}) {
     const existing = this.getSessionLanguage(sessionId);
-    
+
     if (!existing) {
       console.warn(`Cannot update confidence for non-existent session: ${sessionId}`);
       return null;
@@ -140,9 +142,9 @@ export class SessionLanguageManager {
 
     // Update confidence while keeping the same language
     return this.setSessionLanguage(
-      sessionId, 
-      existing.detectedLanguage, 
-      newConfidence, 
+      sessionId,
+      existing.detectedLanguage,
+      newConfidence,
       detectionDetails
     );
   }
@@ -154,7 +156,7 @@ export class SessionLanguageManager {
    */
   isLanguageStable(sessionId) {
     const sessionState = this.getSessionLanguage(sessionId);
-    
+
     if (!sessionState) {
       return false;
     }
@@ -177,14 +179,21 @@ export class SessionLanguageManager {
 
     // Check confidence consistency
     const recentConfidences = confidenceHistory.slice(-5); // Last 5 interactions
-    const avgConfidence = recentConfidences.reduce((sum, entry) => sum + entry.confidence, 0) / recentConfidences.length;
+    const avgConfidence =
+      recentConfidences.reduce((sum, entry) => sum + entry.confidence, 0) /
+      recentConfidences.length;
 
     // Language must be consistent across recent interactions
-    const languageConsistency = recentConfidences.every(entry => entry.language === detectedLanguage);
+    const languageConsistency = recentConfidences.every(
+      (entry) => entry.language === detectedLanguage
+    );
 
     // Confidence must be above threshold and consistent
-    const confidenceStability = avgConfidence >= this.config.minConfidenceThreshold &&
-      recentConfidences.every(entry => entry.confidence >= this.config.minConfidenceThreshold * 0.8);
+    const confidenceStability =
+      avgConfidence >= this.config.minConfidenceThreshold &&
+      recentConfidences.every(
+        (entry) => entry.confidence >= this.config.minConfidenceThreshold * 0.8
+      );
 
     return languageConsistency && confidenceStability;
   }
@@ -196,7 +205,7 @@ export class SessionLanguageManager {
    */
   addValidationResult(sessionId, validationResult) {
     const sessionState = this.getSessionLanguage(sessionId);
-    
+
     if (!sessionState) {
       console.warn(`Cannot add validation result for non-existent session: ${sessionId}`);
       return;
@@ -222,7 +231,9 @@ export class SessionLanguageManager {
     // Update the session state
     this.sessionLanguages.set(sessionId, sessionState);
 
-    console.log(`Validation result added for session ${sessionId}: ${validationResult.isValid ? 'valid' : 'invalid'}`);
+    console.log(
+      `Validation result added for session ${sessionId}: ${validationResult.isValid ? 'valid' : 'invalid'}`
+    );
 
     // Log consistency issue if validation failed
     if (!validationResult.isValid) {
@@ -253,7 +264,7 @@ export class SessionLanguageManager {
    */
   getSessionLanguageStats(sessionId) {
     const sessionState = this.getSessionLanguage(sessionId);
-    
+
     if (!sessionState) {
       return null;
     }
@@ -261,20 +272,21 @@ export class SessionLanguageManager {
     const { confidenceHistory, validationHistory } = sessionState;
 
     // Calculate confidence statistics
-    const confidences = confidenceHistory.map(entry => entry.confidence);
+    const confidences = confidenceHistory.map((entry) => entry.confidence);
     const avgConfidence = confidences.reduce((sum, conf) => sum + conf, 0) / confidences.length;
     const minConfidence = Math.min(...confidences);
     const maxConfidence = Math.max(...confidences);
 
     // Calculate validation statistics
     const totalValidations = validationHistory.length;
-    const validValidations = validationHistory.filter(v => v.isValid).length;
+    const validValidations = validationHistory.filter((v) => v.isValid).length;
     const validationSuccessRate = totalValidations > 0 ? validValidations / totalValidations : 0;
 
     // Calculate language consistency
-    const languages = confidenceHistory.map(entry => entry.language);
+    const languages = confidenceHistory.map((entry) => entry.language);
     const uniqueLanguages = [...new Set(languages)];
-    const languageConsistency = uniqueLanguages.length === 1 ? 1 : 1 - (uniqueLanguages.length - 1) * 0.2;
+    const languageConsistency =
+      uniqueLanguages.length === 1 ? 1 : 1 - (uniqueLanguages.length - 1) * 0.2;
 
     return {
       sessionId,
@@ -309,11 +321,11 @@ export class SessionLanguageManager {
   removeSession(sessionId) {
     const existed = this.sessionLanguages.has(sessionId);
     this.sessionLanguages.delete(sessionId);
-    
+
     if (existed) {
       console.log(`Session language data removed: ${sessionId}`);
     }
-    
+
     return existed;
   }
 
@@ -358,7 +370,7 @@ export class SessionLanguageManager {
 
     const sessions = Array.from(this.sessionLanguages.values());
     const totalSessions = sessions.length;
-    
+
     if (totalSessions === 0) {
       return {
         totalSessions: 0,
@@ -369,13 +381,13 @@ export class SessionLanguageManager {
       };
     }
 
-    const stableSessions = sessions.filter(s => s.isStable).length;
+    const stableSessions = sessions.filter((s) => s.isStable).length;
     const totalInteractions = sessions.reduce((sum, s) => sum + s.interactionCount, 0);
     const totalConfidence = sessions.reduce((sum, s) => sum + s.confidence, 0);
 
     // Language distribution
     const languageDistribution = {};
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       const lang = session.detectedLanguage;
       languageDistribution[lang] = (languageDistribution[lang] || 0) + 1;
     });

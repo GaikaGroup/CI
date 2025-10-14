@@ -54,6 +54,5 @@
  * @property {boolean} shouldLog - Whether to log this interaction
  */
 
-export {
-  // Export types for JSDoc usage
-};
+export // Export types for JSDoc usage
+ {};

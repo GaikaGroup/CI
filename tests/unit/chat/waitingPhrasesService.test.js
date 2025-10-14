@@ -211,11 +211,11 @@ describe('WaitingPhrasesService', () => {
       expect(result1).toBe('es');
 
       // Test fallback to English for invalid language
-      const result2 = service._detectTargetLanguage('invalid' as any);
+      const result2 = service._detectTargetLanguage('invalid');
       expect(result2).toBe('en');
 
       // Test null language
-      const result3 = service._detectTargetLanguage(null as any);
+      const result3 = service._detectTargetLanguage(null);
       expect(result3).toBe('en');
     });
 

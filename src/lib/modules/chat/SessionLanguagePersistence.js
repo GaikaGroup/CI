@@ -13,13 +13,13 @@ export class SessionLanguagePersistence {
     this.config = {
       // Key used to store language data in session metadata
       sessionMetadataKey: 'languageState',
-      
+
       // Whether to automatically detect and update language from user messages
       autoDetectFromMessages: true,
-      
+
       // Whether to persist language changes to session database
       persistToDatabase: true,
-      
+
       // Minimum confidence required to update session language
       minConfidenceForUpdate: 0.7
     };
@@ -41,7 +41,7 @@ export class SessionLanguagePersistence {
     try {
       // Check if language state exists in session metadata
       const existingLanguageState = this.extractLanguageStateFromSession(sessionData);
-      
+
       if (existingLanguageState) {
         // Restore language state from session metadata
         const restoredState = sessionLanguageManager.setSessionLanguage(
@@ -55,7 +55,9 @@ export class SessionLanguagePersistence {
           }
         );
 
-        console.log(`Language state restored for session ${sessionId}: ${existingLanguageState.detectedLanguage}`);
+        console.log(
+          `Language state restored for session ${sessionId}: ${existingLanguageState.detectedLanguage}`
+        );
         return restoredState;
       } else {
         // Initialize with session's default language
@@ -75,18 +77,13 @@ export class SessionLanguagePersistence {
       }
     } catch (error) {
       console.error(`Failed to initialize language state for session ${sessionId}:`, error);
-      
+
       // Fallback to default language
-      return sessionLanguageManager.setSessionLanguage(
-        sessionId,
-        'en',
-        0.5,
-        {
-          source: 'fallback',
-          error: error.message,
-          initializedAt: Date.now()
-        }
-      );
+      return sessionLanguageManager.setSessionLanguage(sessionId, 'en', 0.5, {
+        source: 'fallback',
+        error: error.message,
+        initializedAt: Date.now()
+      });
     }
   }
 
@@ -109,28 +106,26 @@ export class SessionLanguagePersistence {
     try {
       // Detect language from message content
       const detection = languageDetector.detectWithConfidence(messageContent);
-      
+
       if (!detection || detection.confidence < this.config.minConfidenceForUpdate) {
-        console.log(`Language detection confidence too low for session ${sessionId}: ${detection?.confidence || 0}`);
+        console.log(
+          `Language detection confidence too low for session ${sessionId}: ${detection?.confidence || 0}`
+        );
         return null;
       }
 
       // Get current session language state
       const currentState = sessionLanguageManager.getSessionLanguage(sessionId);
-      
+
       // Check if language has changed significantly
       if (currentState && currentState.detectedLanguage === detection.language) {
         // Same language, just update confidence
-        return sessionLanguageManager.updateLanguageConfidence(
-          sessionId,
-          detection.confidence,
-          {
-            source: 'message_analysis',
-            messageLength: messageContent.length,
-            detectionMethod: detection.method,
-            updatedAt: Date.now()
-          }
-        );
+        return sessionLanguageManager.updateLanguageConfidence(sessionId, detection.confidence, {
+          source: 'message_analysis',
+          messageLength: messageContent.length,
+          detectionMethod: detection.method,
+          updatedAt: Date.now()
+        });
       }
 
       // Language has changed or this is the first detection
@@ -147,11 +142,17 @@ export class SessionLanguagePersistence {
         }
       );
 
-      console.log(`Language updated for session ${sessionId}: ${currentState?.detectedLanguage || 'none'} -> ${detection.language}`);
+      console.log(
+        `Language updated for session ${sessionId}: ${currentState?.detectedLanguage || 'none'} -> ${detection.language}`
+      );
 
       // Persist to session metadata if enabled
       if (this.config.persistToDatabase && options.sessionUpdateCallback) {
-        await this.persistLanguageStateToSession(sessionId, updatedState, options.sessionUpdateCallback);
+        await this.persistLanguageStateToSession(
+          sessionId,
+          updatedState,
+          options.sessionUpdateCallback
+        );
       }
 
       return updatedState;
@@ -172,7 +173,7 @@ export class SessionLanguagePersistence {
     }
 
     const languageState = sessionLanguageManager.getSessionLanguage(sessionId);
-    
+
     if (!languageState) {
       return null;
     }
@@ -183,7 +184,7 @@ export class SessionLanguagePersistence {
       isStable: languageState.isStable,
       lastUpdated: languageState.lastUpdated,
       interactionCount: languageState.interactionCount,
-      
+
       // Additional preferences for chat API
       preferences: {
         enforceLanguageConsistency: languageState.isStable,
@@ -214,16 +215,20 @@ export class SessionLanguagePersistence {
         firstDetected: languageState.firstDetected,
         lastUpdated: languageState.lastUpdated,
         interactionCount: languageState.interactionCount,
-        
+
         // Keep only recent confidence history for persistence
         recentConfidenceHistory: languageState.confidenceHistory.slice(-5),
-        
+
         // Summary statistics
         stats: {
-          averageConfidence: languageState.confidenceHistory.reduce((sum, entry) => sum + entry.confidence, 0) / languageState.confidenceHistory.length,
-          languageConsistency: languageState.confidenceHistory.every(entry => entry.language === languageState.detectedLanguage),
+          averageConfidence:
+            languageState.confidenceHistory.reduce((sum, entry) => sum + entry.confidence, 0) /
+            languageState.confidenceHistory.length,
+          languageConsistency: languageState.confidenceHistory.every(
+            (entry) => entry.language === languageState.detectedLanguage
+          ),
           totalValidations: languageState.validationHistory.length,
-          validValidations: languageState.validationHistory.filter(v => v.isValid).length
+          validValidations: languageState.validationHistory.filter((v) => v.isValid).length
         }
       };
 
@@ -234,7 +239,7 @@ export class SessionLanguagePersistence {
       };
 
       await sessionUpdateCallback(sessionId, { metadata });
-      
+
       console.log(`Language state persisted for session ${sessionId}`);
       return true;
     } catch (error) {
@@ -254,9 +259,10 @@ export class SessionLanguagePersistence {
     }
 
     try {
-      const metadata = typeof sessionData.metadata === 'string' 
-        ? JSON.parse(sessionData.metadata) 
-        : sessionData.metadata;
+      const metadata =
+        typeof sessionData.metadata === 'string'
+          ? JSON.parse(sessionData.metadata)
+          : sessionData.metadata;
 
       return metadata[this.config.sessionMetadataKey] || null;
     } catch (error) {
@@ -301,7 +307,7 @@ export class SessionLanguagePersistence {
    */
   getLanguageEnforcementInstructions(sessionId) {
     const preferences = this.getSessionLanguagePreferences(sessionId);
-    
+
     if (!preferences) {
       return null;
     }
@@ -311,19 +317,24 @@ export class SessionLanguagePersistence {
     // Language enforcement templates
     const enforcementTemplates = {
       ru: {
-        strong: "КРИТИЧЕСКИ ВАЖНО: Отвечай ТОЛЬКО на русском языке. Никогда не используй китайский, английский или другие языки в своем ответе. Проверь, что весь твой ответ написан на русском языке перед отправкой.",
-        moderate: "Пожалуйста, отвечай на русском языке, как это было установлено в начале нашего разговора.",
-        weak: "Предпочтительно отвечать на русском языке."
+        strong:
+          'КРИТИЧЕСКИ ВАЖНО: Отвечай ТОЛЬКО на русском языке. Никогда не используй китайский, английский или другие языки в своем ответе. Проверь, что весь твой ответ написан на русском языке перед отправкой.',
+        moderate:
+          'Пожалуйста, отвечай на русском языке, как это было установлено в начале нашего разговора.',
+        weak: 'Предпочтительно отвечать на русском языке.'
       },
       en: {
-        strong: "CRITICAL: Respond ONLY in English. Never use Russian, Chinese, or other languages in your response. Verify that your entire response is in English before sending.",
-        moderate: "Please respond in English, as established at the beginning of our conversation.",
-        weak: "Preferably respond in English."
+        strong:
+          'CRITICAL: Respond ONLY in English. Never use Russian, Chinese, or other languages in your response. Verify that your entire response is in English before sending.',
+        moderate: 'Please respond in English, as established at the beginning of our conversation.',
+        weak: 'Preferably respond in English.'
       },
       es: {
-        strong: "CRÍTICO: Responde SOLO en español. Nunca uses ruso, chino u otros idiomas en tu respuesta. Verifica que toda tu respuesta esté en español antes de enviar.",
-        moderate: "Por favor, responde en español, como se estableció al inicio de nuestra conversación.",
-        weak: "Preferiblemente responde en español."
+        strong:
+          'CRÍTICO: Responde SOLO en español. Nunca uses ruso, chino u otros idiomas en tu respuesta. Verifica que toda tu respuesta esté en español antes de enviar.',
+        moderate:
+          'Por favor, responde en español, como se estableció al inicio de nuestra conversación.',
+        weak: 'Preferiblemente responde en español.'
       }
     };
 
@@ -364,7 +375,7 @@ export class SessionLanguagePersistence {
    */
   getStats() {
     const managerStats = sessionLanguageManager.getManagerStats();
-    
+
     return {
       ...managerStats,
       persistence: {

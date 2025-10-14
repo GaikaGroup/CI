@@ -62,7 +62,7 @@
       if (userId) params.append('userId', userId);
 
       const response = await fetch(`/api/admin/sessions?${params}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to load sessions: ${response.statusText}`);
       }
@@ -228,9 +228,7 @@
               bind:checked={filters.hiddenOnly}
               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
             />
-            <label for="hiddenOnly" class="ml-2 block text-sm text-gray-900">
-              Hidden Only
-            </label>
+            <label for="hiddenOnly" class="ml-2 block text-sm text-gray-900"> Hidden Only </label>
           </div>
         </div>
       </div>
@@ -264,7 +262,9 @@
     <div class="bg-white shadow overflow-hidden sm:rounded-md">
       {#if loading}
         <div class="p-6 text-center">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <div
+            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+          ></div>
           <p class="mt-2 text-sm text-gray-500">Loading sessions...</p>
         </div>
       {:else if sessions.length === 0}
@@ -279,17 +279,25 @@
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getSessionStatusBadge(session).class}">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getSessionStatusBadge(
+                          session
+                        ).class}"
+                      >
                         {getSessionStatusBadge(session).text}
                       </span>
                     </div>
                     <div class="flex-shrink-0">
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getModeBadge(session.mode).class}">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getModeBadge(
+                          session.mode
+                        ).class}"
+                      >
                         {getModeBadge(session.mode).text}
                       </span>
                     </div>
                   </div>
-                  
+
                   <div class="mt-2">
                     <p class="text-sm font-medium text-gray-900 truncate">
                       {session.title}
@@ -300,7 +308,7 @@
                       </p>
                     {/if}
                   </div>
-                  
+
                   <div class="mt-2 flex items-center text-sm text-gray-500 space-x-4">
                     <span>User: {session.userId}</span>
                     <span>Messages: {session.messageCount}</span>
@@ -308,7 +316,7 @@
                     <span>Updated: {formatDate(session.updatedAt)}</span>
                   </div>
                 </div>
-                
+
                 <div class="flex-shrink-0 flex space-x-2">
                   <a
                     href="/sessions/{session.id}"
@@ -316,7 +324,7 @@
                   >
                     View
                   </a>
-                  
+
                   {#if session.isHidden}
                     <button
                       type="button"
@@ -336,7 +344,9 @@
 
     <!-- Pagination -->
     {#if pagination.totalPages > 1}
-      <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div
+        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
+      >
         <div class="flex-1 flex justify-between sm:hidden">
           <button
             on:click={() => changePage(pagination.currentPage - 1)}
@@ -359,14 +369,19 @@
               Showing
               <span class="font-medium">{(pagination.currentPage - 1) * pagination.limit + 1}</span>
               to
-              <span class="font-medium">{Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)}</span>
+              <span class="font-medium"
+                >{Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)}</span
+              >
               of
               <span class="font-medium">{pagination.totalCount}</span>
               results
             </p>
           </div>
           <div>
-            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <nav
+              class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+              aria-label="Pagination"
+            >
               <button
                 on:click={() => changePage(pagination.currentPage - 1)}
                 disabled={pagination.currentPage === 1}
@@ -374,16 +389,19 @@
               >
                 Previous
               </button>
-              
+
               {#each Array(pagination.totalPages) as _, i}
                 <button
                   on:click={() => changePage(i + 1)}
-                  class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {pagination.currentPage === i + 1 ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}"
+                  class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {pagination.currentPage ===
+                  i + 1
+                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}"
                 >
                   {i + 1}
                 </button>
               {/each}
-              
+
               <button
                 on:click={() => changePage(pagination.currentPage + 1)}
                 disabled={pagination.currentPage === pagination.totalPages}

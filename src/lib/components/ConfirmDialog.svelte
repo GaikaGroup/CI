@@ -37,9 +37,18 @@
 
 {#if isOpen}
   <div class="dialog-backdrop" on:click={handleBackdropClick}>
-    <div class="dialog" role="dialog" aria-labelledby="dialog-title" aria-describedby="dialog-message">
+    <div
+      class="dialog"
+      role="dialog"
+      aria-labelledby="dialog-title"
+      aria-describedby="dialog-message"
+    >
       <div class="dialog-header">
-        <div class="dialog-icon" class:danger={type === 'danger'} class:warning={type === 'warning'}>
+        <div
+          class="dialog-icon"
+          class:danger={type === 'danger'}
+          class:warning={type === 'warning'}
+        >
           {#if type === 'danger' || type === 'warning'}
             <AlertTriangle class="h-6 w-6" />
           {/if}
@@ -49,20 +58,16 @@
           <X class="h-5 w-5" />
         </button>
       </div>
-      
+
       <div class="dialog-content">
         <p id="dialog-message" class="dialog-message">{message}</p>
       </div>
-      
+
       <div class="dialog-actions">
-        <button 
-          class="btn btn-secondary" 
-          on:click={handleCancel}
-          disabled={loading}
-        >
+        <button class="btn btn-secondary" on:click={handleCancel} disabled={loading}>
           {cancelText}
         </button>
-        <button 
+        <button
           class="btn"
           class:btn-danger={type === 'danger'}
           class:btn-warning={type === 'warning'}
@@ -98,7 +103,9 @@
   .dialog {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
     max-width: 400px;
     width: 100%;
     max-height: 90vh;
@@ -258,8 +265,12 @@
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Mobile responsiveness */

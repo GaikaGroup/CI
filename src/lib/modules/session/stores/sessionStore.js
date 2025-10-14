@@ -137,7 +137,7 @@ function createSessionStore() {
         const currentState = get({ subscribe });
         const requestedMode = options.mode !== undefined ? options.mode : currentState.filters.mode;
         const apiMode = requestedMode ? getApiModeFromAppMode(requestedMode) : null;
-        
+
         const loadOptions = {
           page: options.page || currentState.pagination.currentPage,
           limit: options.limit || currentState.pagination.limit,
@@ -191,7 +191,7 @@ function createSessionStore() {
       try {
         // Map the app mode to API mode for session creation
         const apiMode = getApiModeFromAppMode(mode);
-        
+
         const response = await fetch('/api/sessions', {
           method: 'POST',
           headers: {
@@ -269,7 +269,7 @@ function createSessionStore() {
       }
 
       try {
-        const url = hardDelete 
+        const url = hardDelete
           ? `/api/sessions/${sessionId}?hard=true`
           : `/api/sessions/${sessionId}`;
 
@@ -319,7 +319,7 @@ function createSessionStore() {
         const currentState = get({ subscribe });
         const requestedMode = options.mode !== undefined ? options.mode : currentState.filters.mode;
         const apiMode = requestedMode ? getApiModeFromAppMode(requestedMode) : null;
-        
+
         const searchOptions = {
           search: query,
           page: options.page || 1,

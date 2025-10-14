@@ -52,9 +52,7 @@ describe('Session Store Mode Mapping', () => {
       await sessionStore.loadSessions({ mode: 'catalogue' });
 
       // Verify fetch was called with mapped mode
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('mode=learn')
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('mode=learn'));
     });
 
     it('should map learn mode to learn for API calls', async () => {
@@ -76,9 +74,7 @@ describe('Session Store Mode Mapping', () => {
 
       await sessionStore.loadSessions({ mode: 'learn' });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('mode=learn')
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('mode=learn'));
     });
 
     it('should map fun mode to fun for API calls', async () => {
@@ -100,9 +96,7 @@ describe('Session Store Mode Mapping', () => {
 
       await sessionStore.loadSessions({ mode: 'fun' });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('mode=fun')
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('mode=fun'));
     });
 
     it('should not include mode parameter when mode is null', async () => {
@@ -149,12 +143,8 @@ describe('Session Store Mode Mapping', () => {
 
       await sessionStore.searchSessions('test query', { mode: 'catalogue' });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('mode=learn')
-      );
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('search=test+query')
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('mode=learn'));
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('search=test+query'));
     });
 
     it('should map fun mode to fun for search API calls', async () => {
@@ -176,9 +166,7 @@ describe('Session Store Mode Mapping', () => {
 
       await sessionStore.searchSessions('test query', { mode: 'fun' });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('mode=fun')
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('mode=fun'));
     });
   });
 

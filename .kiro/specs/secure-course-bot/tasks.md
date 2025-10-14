@@ -18,7 +18,7 @@
   - Implement chain-of-thought manipulation defense
   - _Requirements: 1.4, 1.5, 5.1, 5.2_
 
-- [ ]* 1.3 Write security validation unit tests
+- [ ]\* 1.3 Write security validation unit tests
   - Create test cases for prompt injection attempts
   - Write tests for authority impersonation scenarios
   - Add tests for roleplay detection
@@ -42,7 +42,7 @@
   - Implement err-on-side-of-caution logic
   - _Requirements: 2.3_
 
-- [ ]* 2.3 Write relevance analysis unit tests
+- [ ]\* 2.3 Write relevance analysis unit tests
   - Create test cases for topic classification
   - Write tests for edge case handling
   - Add tests for course-specific content matching
@@ -72,7 +72,7 @@
   - Add integrity violation logging triggers
   - _Requirements: 3.3_
 
-- [ ]* 3.4 Write response generation unit tests
+- [ ]\* 3.4 Write response generation unit tests
   - Create tests for all response template variations
   - Write tests for template parameter substitution
   - Add tests for response consistency
@@ -96,7 +96,7 @@
   - Create fallback mechanisms for missing data
   - _Requirements: 8.3, 8.4_
 
-- [ ]* 4.3 Write configuration management unit tests
+- [ ]\* 4.3 Write configuration management unit tests
   - Create tests for course configuration creation
   - Write tests for configuration validation
   - Add tests for parameter updates and fallbacks
@@ -120,7 +120,7 @@
   - Add administrative alert mechanisms
   - _Requirements: 7.1, 7.2_
 
-- [ ]* 5.3 Write logging system unit tests
+- [ ]\* 5.3 Write logging system unit tests
   - Create tests for incident logging functionality
   - Write tests for escalation trigger logic
   - Add tests for audit trail integrity
@@ -144,7 +144,7 @@
   - Implement fail-secure logic when any check fails
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
 
-- [ ]* 6.3 Write main pipeline unit tests
+- [ ]\* 6.3 Write main pipeline unit tests
   - Create tests for complete processing pipeline
   - Write tests for self-check mechanism execution
   - Add tests for fail-secure behavior
@@ -174,7 +174,7 @@
   - Create administrative dashboard for security monitoring
   - _Requirements: 7.4_
 
-- [ ]* 7.4 Write API integration tests
+- [ ]\* 7.4 Write API integration tests
   - Create end-to-end tests for chat interactions
   - Write tests for course configuration management
   - Add tests for administrative interfaces
@@ -198,7 +198,7 @@
   - Add tests for social engineering and technical jargon confusion
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ]* 8.3 Create performance and load testing
+- [ ]\* 8.3 Create performance and load testing
   - Write performance tests for security validation speed
   - Add load tests for concurrent manipulation attempts
   - Create stress tests for logging system capacity

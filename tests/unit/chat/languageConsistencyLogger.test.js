@@ -19,9 +19,7 @@ describe('LanguageConsistencyLogger', () => {
         confidenceLevel: 'high',
         method: 'text_analysis',
         scores: { en: 0.85, es: 0.1, ru: 0.05 },
-        confidenceFactors: [
-          { factor: 'english_keywords', weight: 0.7, confidence: 0.8 }
-        ]
+        confidenceFactors: [{ factor: 'english_keywords', weight: 0.7, confidence: 0.8 }]
       };
       const context = {
         messageLength: 50,
@@ -185,7 +183,11 @@ describe('LanguageConsistencyLogger', () => {
         {
           sessionId: 'session-2',
           detectionResult: { language: 'ru', confidence: 0.8, method: 'enhanced_russian_analysis' },
-          validationResult: { isConsistent: false, severity: 'medium', recommendation: 'review_and_correct' }
+          validationResult: {
+            isConsistent: false,
+            severity: 'medium',
+            recommendation: 'review_and_correct'
+          }
         },
         {
           sessionId: 'session-3',
@@ -202,7 +204,7 @@ describe('LanguageConsistencyLogger', () => {
 
     it('should calculate detection statistics correctly', () => {
       const stats = logger.getDetectionStats();
-      
+
       expect(stats.totalDetections).toBe(3);
       expect(stats.languageDistribution.en).toBe(1);
       expect(stats.languageDistribution.ru).toBe(1);
@@ -212,7 +214,7 @@ describe('LanguageConsistencyLogger', () => {
 
     it('should calculate validation statistics correctly', () => {
       const stats = logger.getValidationStats();
-      
+
       expect(stats.totalValidations).toBe(3);
       expect(stats.successRate).toBeCloseTo(0.667, 2);
       expect(stats.severityDistribution.none).toBe(2);
@@ -221,7 +223,7 @@ describe('LanguageConsistencyLogger', () => {
 
     it('should filter statistics by session ID', () => {
       const stats = logger.getDetectionStats({ sessionId: 'session-1' });
-      
+
       expect(stats.totalDetections).toBe(1);
       expect(stats.languageDistribution.en).toBe(1);
       expect(stats.languageDistribution.ru).toBeUndefined();
@@ -229,7 +231,7 @@ describe('LanguageConsistencyLogger', () => {
 
     it('should filter statistics by language', () => {
       const stats = logger.getDetectionStats({ language: 'ru' });
-      
+
       expect(stats.totalDetections).toBe(1);
       expect(stats.languageDistribution.ru).toBe(1);
       expect(stats.languageDistribution.en).toBeUndefined();
@@ -244,7 +246,7 @@ describe('LanguageConsistencyLogger', () => {
         confidence: 0.9,
         method: 'text_analysis'
       });
-      
+
       logger.logValidation('session-1', {
         isConsistent: true,
         expectedLanguage: 'en',
@@ -256,7 +258,7 @@ describe('LanguageConsistencyLogger', () => {
 
     it('should export logs correctly', () => {
       const exportData = logger.exportLogs({ format: 'json', includeContext: false });
-      
+
       expect(exportData).toBeDefined();
       expect(exportData.metadata.totalDetectionLogs).toBe(1);
       expect(exportData.metadata.totalValidationLogs).toBe(1);
@@ -267,16 +269,16 @@ describe('LanguageConsistencyLogger', () => {
     it('should clear logs correctly', () => {
       expect(logger.detectionLogs).toHaveLength(1);
       expect(logger.validationLogs).toHaveLength(1);
-      
+
       logger.clearLogs();
-      
+
       expect(logger.detectionLogs).toHaveLength(0);
       expect(logger.validationLogs).toHaveLength(0);
     });
 
     it('should clear logs by type', () => {
       logger.clearLogs({ type: 'detection' });
-      
+
       expect(logger.detectionLogs).toHaveLength(0);
       expect(logger.validationLogs).toHaveLength(1);
     });
@@ -297,7 +299,7 @@ describe('LanguageConsistencyLogger', () => {
 
     it('should provide logger statistics', () => {
       const stats = logger.getLoggerStats();
-      
+
       expect(stats).toHaveProperty('detectionLogsCount');
       expect(stats).toHaveProperty('validationLogsCount');
       expect(stats).toHaveProperty('sessionMetricsCount');
@@ -314,7 +316,7 @@ describe('LanguageConsistencyLogger', () => {
       });
 
       const metrics = logger.getLanguageConsistencyMetrics();
-      
+
       expect(metrics).toHaveProperty('detection');
       expect(metrics).toHaveProperty('validation');
       expect(metrics).toHaveProperty('sessions');

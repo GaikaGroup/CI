@@ -73,7 +73,7 @@ describe('Session Soft Delete Integration', () => {
       const sessions = await SessionService.getUserSessions(testUserId, { includeHidden: true });
       expect(sessions.sessions).toHaveLength(2);
 
-      const hiddenSession = sessions.sessions.find(s => s.id === funSession.id);
+      const hiddenSession = sessions.sessions.find((s) => s.id === funSession.id);
       expect(hiddenSession).toBeTruthy();
       expect(hiddenSession.isHidden).toBe(true);
     });
@@ -102,15 +102,15 @@ describe('Session Soft Delete Integration', () => {
 
   describe('Prevent Soft Delete of LEARN Sessions', () => {
     it('should not allow soft deletion of LEARN sessions', async () => {
-      await expect(
-        SessionService.softDeleteSession(learnSession.id, testUserId)
-      ).rejects.toThrow('Only FUN mode sessions can be deleted');
+      await expect(SessionService.softDeleteSession(learnSession.id, testUserId)).rejects.toThrow(
+        'Only FUN mode sessions can be deleted'
+      );
 
       // Verify LEARN session is still accessible
       const sessions = await SessionService.getUserSessions(testUserId);
       expect(sessions.sessions).toHaveLength(2);
-      
-      const learnSessionStillExists = sessions.sessions.find(s => s.id === learnSession.id);
+
+      const learnSessionStillExists = sessions.sessions.find((s) => s.id === learnSession.id);
       expect(learnSessionStillExists).toBeTruthy();
       expect(learnSessionStillExists.isHidden).toBe(false);
     });
@@ -132,37 +132,37 @@ describe('Session Soft Delete Integration', () => {
       // Verify it's visible again
       const sessionsAfterRestore = await SessionService.getUserSessions(testUserId);
       expect(sessionsAfterRestore.sessions).toHaveLength(2);
-      
-      const restoredSession = sessionsAfterRestore.sessions.find(s => s.id === funSession.id);
+
+      const restoredSession = sessionsAfterRestore.sessions.find((s) => s.id === funSession.id);
       expect(restoredSession).toBeTruthy();
       expect(restoredSession.isHidden).toBe(false);
     });
 
     it('should not restore a session that is not hidden', async () => {
-      await expect(
-        SessionService.restoreSession(funSession.id, testUserId)
-      ).rejects.toThrow('Session not found');
+      await expect(SessionService.restoreSession(funSession.id, testUserId)).rejects.toThrow(
+        'Session not found'
+      );
     });
   });
 
   describe('Authorization', () => {
-    it('should not allow soft deletion of another user\'s session', async () => {
+    it("should not allow soft deletion of another user's session", async () => {
       const otherUserId = 'other-user-id';
-      
-      await expect(
-        SessionService.softDeleteSession(funSession.id, otherUserId)
-      ).rejects.toThrow('Session not found');
+
+      await expect(SessionService.softDeleteSession(funSession.id, otherUserId)).rejects.toThrow(
+        'Session not found'
+      );
     });
 
-    it('should not allow restoration of another user\'s session', async () => {
+    it("should not allow restoration of another user's session", async () => {
       // Soft delete as the correct user
       await SessionService.softDeleteSession(funSession.id, testUserId);
-      
+
       const otherUserId = 'other-user-id';
-      
-      await expect(
-        SessionService.restoreSession(funSession.id, otherUserId)
-      ).rejects.toThrow('Session not found');
+
+      await expect(SessionService.restoreSession(funSession.id, otherUserId)).rejects.toThrow(
+        'Session not found'
+      );
     });
   });
 });

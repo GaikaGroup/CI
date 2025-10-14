@@ -3,26 +3,22 @@
   import { goto } from '$app/navigation';
   import { user, checkAuth, isAuthenticated } from '$lib/modules/auth/stores';
   import { sessionStore } from '$lib/modules/session/stores/sessionStore.js';
-  import {
-    chatMode as chatModeStore,
-    messages,
-    addMessage
-  } from '$lib/modules/chat/stores';
+  import { chatMode as chatModeStore, messages, addMessage } from '$lib/modules/chat/stores';
   import { MESSAGE_TYPES } from '$lib/shared/utils/constants';
   import { setVoiceModeActive } from '$lib/modules/chat/voiceServices';
   import MessageList from '$lib/modules/chat/components/MessageList.svelte';
   import MessageInput from '$lib/modules/chat/components/MessageInput.svelte';
   import VoiceChat from '$lib/modules/chat/components/VoiceChat.svelte';
   import { ArrowLeft, Settings } from 'lucide-svelte';
-  
+
   export let data;
-  
+
   let sessionId = data.sessionId;
   let currentSession = null;
   let loading = true;
   let error = null;
   let messageUnsubscribe;
-  
+
   function goBackToSessions() {
     goto('/sessions');
   }
@@ -78,7 +74,7 @@
 
       // Load session data from API with access control
       const response = await fetch(`/api/sessions/${sessionId}?includeMessages=true`);
-      
+
       if (!response.ok) {
         if (response.status === 401) {
           goto('/login?redirect=/sessions');
@@ -120,15 +116,14 @@
       } else {
         messages.set([]);
       }
-
     } catch (err) {
       console.error('Failed to load session:', err);
-      
+
       if (err.message && err.message.includes('Authentication required')) {
         goto('/login?redirect=/sessions');
         return;
       }
-      
+
       error = 'Failed to load session';
     } finally {
       loading = false;
@@ -169,10 +164,10 @@
       console.error('Failed to save message:', error);
     }
   }
-  
+
   onMount(async () => {
     await checkAuth();
-    
+
     if (!$user) {
       goto('/login?redirect=/sessions');
       return;
@@ -249,7 +244,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="header-right">
           <!-- Chat Mode Toggle -->
           <div class="mode-toggle">
@@ -268,7 +263,7 @@
               🎤 Voice
             </button>
           </div>
-          
+
           <button class="settings-btn" title="Session settings">
             <Settings class="h-4 w-4" />
           </button>
@@ -341,8 +336,12 @@
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Auth Loading State */

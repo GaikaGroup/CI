@@ -5,12 +5,12 @@ describe('E2E Login Redirect Navigation - Task 2 Verification', () => {
     it('should verify all task 2 requirements are implemented', () => {
       // This test verifies that the implementation meets all requirements
       // by checking the actual code structure and logic
-      
+
       const requirements = {
-        '2.1': 'Root route (/) redirects to /login for unauthenticated users',
-        '2.2': 'Unauthenticated users accessing protected pages redirect to login',
-        '3.1': 'Authenticated users redirect to /sessions after login',
-        '3.2': 'Login page redirects to /sessions after successful authentication'
+        2.1: 'Root route (/) redirects to /login for unauthenticated users',
+        2.2: 'Unauthenticated users accessing protected pages redirect to login',
+        3.1: 'Authenticated users redirect to /sessions after login',
+        3.2: 'Login page redirects to /sessions after successful authentication'
       };
 
       // Verify requirement 2.1 - Root route redirect logic exists
@@ -23,9 +23,9 @@ describe('E2E Login Redirect Navigation - Task 2 Verification', () => {
           }
         }
       `;
-      
-      expect(rootRedirectLogic).toContain('redirect(302, \'/login\')');
-      expect(rootRedirectLogic).toContain('redirect(302, \'/sessions\')');
+
+      expect(rootRedirectLogic).toContain("redirect(302, '/login')");
+      expect(rootRedirectLogic).toContain("redirect(302, '/sessions')");
 
       // Verify requirement 3.2 - Login page redirect logic exists
       const loginRedirectLogic = `
@@ -41,8 +41,8 @@ describe('E2E Login Redirect Navigation - Task 2 Verification', () => {
           }
         });
       `;
-      
-      expect(loginRedirectLogic).toContain('goto(\'/sessions\')');
+
+      expect(loginRedirectLogic).toContain("goto('/sessions')");
 
       // All requirements are verified as implemented
       Object.entries(requirements).forEach(([reqId, description]) => {
@@ -82,7 +82,7 @@ describe('E2E Login Redirect Navigation - Task 2 Verification', () => {
         }
       ];
 
-      scenarios.forEach(scenario => {
+      scenarios.forEach((scenario) => {
         expect(scenario.implemented).toBe(true);
         console.log(`✓ Scenario: ${scenario.name} - ${scenario.expectedAction}`);
       });
@@ -90,21 +90,17 @@ describe('E2E Login Redirect Navigation - Task 2 Verification', () => {
 
     it('should verify About and Contacts pages are removed', () => {
       // Task 1 verification - About and Contacts pages should not exist
-      const navigationLinks = [
-        'Catalogue',
-        'Sessions',
-        'My Courses'
-      ];
+      const navigationLinks = ['Catalogue', 'Sessions', 'My Courses'];
 
       const removedPages = ['About', 'Contacts'];
-      
+
       // Verify navigation only contains expected links
-      navigationLinks.forEach(link => {
+      navigationLinks.forEach((link) => {
         console.log(`✓ Navigation contains: ${link}`);
       });
 
       // Verify removed pages are not in navigation
-      removedPages.forEach(page => {
+      removedPages.forEach((page) => {
         console.log(`✓ Navigation does NOT contain: ${page} (removed)`);
       });
 
@@ -174,9 +170,9 @@ describe('E2E Login Redirect Navigation - Task 2 Verification', () => {
       console.log(`Title: ${taskDetails.taskTitle}`);
       console.log(`Status: ${taskDetails.status}`);
       console.log('\nSubtasks:');
-      taskDetails.subtasks.forEach(subtask => console.log(`  ${subtask}`));
+      taskDetails.subtasks.forEach((subtask) => console.log(`  ${subtask}`));
       console.log('\nRequirements:');
-      taskDetails.requirements.forEach(req => console.log(`  ${req}`));
+      taskDetails.requirements.forEach((req) => console.log(`  ${req}`));
       console.log('\n=== TASK 2 SUCCESSFULLY COMPLETED ===\n');
 
       expect(taskDetails.status).toBe('COMPLETED');

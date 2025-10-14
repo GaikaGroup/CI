@@ -116,19 +116,19 @@
   - Implement language-specific test scenarios
   - _Requirements: All requirements_
 
-- [ ]* 7.1 Add unit tests for core components
+- [ ]\* 7.1 Add unit tests for core components
   - Test LanguageDetector with various text samples and confidence scenarios
   - Test SessionLanguageManager state management and persistence
   - Test PromptEnhancer with different language combinations
   - _Requirements: 1.1, 1.2, 2.1, 2.2, 3.1, 3.2_
 
-- [ ]* 7.2 Add integration tests for language consistency flow
+- [ ]\* 7.2 Add integration tests for language consistency flow
   - Test end-to-end language consistency in chat conversations
   - Test language switching scenarios and recovery
   - Test validation failure handling and correction
   - _Requirements: 1.3, 1.4, 3.3, 3.4_
 
-- [ ]* 7.3 Add language-specific test scenarios
+- [ ]\* 7.3 Add language-specific test scenarios
   - Test Russian text detection and validation accuracy
   - Test Chinese text prevention (anti-pattern testing)
   - Test Spanish and English consistency scenarios

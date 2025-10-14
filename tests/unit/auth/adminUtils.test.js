@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  isAdmin, 
-  requireAdmin, 
-  canAccessHiddenSessions, 
+import {
+  isAdmin,
+  requireAdmin,
+  canAccessHiddenSessions,
   canRestoreSessions,
-  getAdminPermissions 
+  getAdminPermissions
 } from '$lib/modules/auth/utils/adminUtils.js';
 
 describe('Admin Utils', () => {
@@ -72,7 +72,7 @@ describe('Admin Utils', () => {
     it('should return all permissions for admin user', () => {
       const adminUser = { id: '1', role: 'admin' };
       const permissions = getAdminPermissions(adminUser);
-      
+
       expect(permissions).toEqual({
         isAdmin: true,
         canViewHiddenSessions: true,
@@ -86,7 +86,7 @@ describe('Admin Utils', () => {
     it('should return no permissions for non-admin user', () => {
       const regularUser = { id: '2', role: 'student' };
       const permissions = getAdminPermissions(regularUser);
-      
+
       expect(permissions).toEqual({
         isAdmin: false,
         canViewHiddenSessions: false,
@@ -99,7 +99,7 @@ describe('Admin Utils', () => {
 
     it('should return no permissions for null user', () => {
       const permissions = getAdminPermissions(null);
-      
+
       expect(permissions).toEqual({
         isAdmin: false,
         canViewHiddenSessions: false,

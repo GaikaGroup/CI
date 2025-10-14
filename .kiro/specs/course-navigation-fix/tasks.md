@@ -6,7 +6,7 @@
   - Include default fallback handling for unknown modes
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ]* 1.1 Write unit tests for mode mapping utility
+- [ ]\* 1.1 Write unit tests for mode mapping utility
   - Test all mode mapping combinations
   - Test edge cases and invalid inputs
   - Verify default fallback behavior
@@ -19,7 +19,7 @@
   - Ensure all session API calls use proper mode parameter
   - _Requirements: 1.2, 2.1, 2.2, 2.3_
 
-- [ ]* 2.1 Write unit tests for updated session store
+- [ ]\* 2.1 Write unit tests for updated session store
   - Test session loading with different app modes
   - Verify API calls use correct mode parameters
   - Test error handling for invalid modes
@@ -52,7 +52,7 @@
   - Add user-friendly error pages for invalid courses
   - _Requirements: 1.1, 1.3, 3.4_
 
-- [ ]* 4.1 Write integration tests for navigation flow
+- [ ]\* 4.1 Write integration tests for navigation flow
   - Test complete flow from my-courses to course learning
   - Test error handling for invalid course IDs
   - Test bookmark and direct URL access

@@ -12,7 +12,7 @@ describe('Root Route Redirect Logic', () => {
     const mockLoad = async ({ locals, url }) => {
       // Simulate unauthenticated user
       const user = null;
-      
+
       if (url.pathname === '/') {
         if (!user) {
           mockRedirect(302, '/login');
@@ -20,15 +20,15 @@ describe('Root Route Redirect Logic', () => {
           mockRedirect(302, '/sessions');
         }
       }
-      
+
       return { user: user || null };
     };
 
     // Test unauthenticated user redirect
     try {
-      await mockLoad({ 
-        locals: { user: null }, 
-        url: { pathname: '/' } 
+      await mockLoad({
+        locals: { user: null },
+        url: { pathname: '/' }
       });
     } catch (error) {
       expect(error.status).toBe(302);
@@ -41,7 +41,7 @@ describe('Root Route Redirect Logic', () => {
     const mockLoad = async ({ locals, url }) => {
       // Simulate authenticated user
       const user = { id: '1', name: 'Test User', email: 'test@example.com' };
-      
+
       if (url.pathname === '/') {
         if (!user) {
           mockRedirect(302, '/login');
@@ -49,15 +49,15 @@ describe('Root Route Redirect Logic', () => {
           mockRedirect(302, '/sessions');
         }
       }
-      
+
       return { user: user || null };
     };
 
     // Test authenticated user redirect
     try {
-      await mockLoad({ 
-        locals: { user: { id: '1', name: 'Test User' } }, 
-        url: { pathname: '/' } 
+      await mockLoad({
+        locals: { user: { id: '1', name: 'Test User' } },
+        url: { pathname: '/' }
       });
     } catch (error) {
       expect(error.status).toBe(302);
@@ -69,7 +69,7 @@ describe('Root Route Redirect Logic', () => {
     // Mock the layout server load function
     const mockLoad = async ({ locals, url }) => {
       const user = locals.user;
-      
+
       if (url.pathname === '/') {
         if (!user) {
           mockRedirect(302, '/login');
@@ -77,16 +77,16 @@ describe('Root Route Redirect Logic', () => {
           mockRedirect(302, '/sessions');
         }
       }
-      
+
       return { user: user || null };
     };
 
     // Test non-root path doesn't redirect
-    const result = await mockLoad({ 
-      locals: { user: null }, 
-      url: { pathname: '/login' } 
+    const result = await mockLoad({
+      locals: { user: null },
+      url: { pathname: '/login' }
     });
-    
+
     expect(result.user).toBe(null);
   });
 });

@@ -237,38 +237,29 @@ export async function POST({ request }) {
     // Detect language from user message content
     let detectedLanguage = language; // Use provided language as fallback
     let languageConfidence = 0.5;
-    
+
     if (content && content.trim().length > 0) {
       try {
-        const languageDetection = languageDetector.detectWithConfidence(
-          content, 
-          sessionId, 
-          {
-            hasImages: !!(images && images.length > 0),
-            provider: requestedProvider || 'default'
-          }
-        );
+        const languageDetection = languageDetector.detectWithConfidence(content, sessionId, {
+          hasImages: !!(images && images.length > 0),
+          provider: requestedProvider || 'default'
+        });
         detectedLanguage = languageDetection.language;
         languageConfidence = languageDetection.confidence;
-        
+
         console.log(`Language detected: ${detectedLanguage} (confidence: ${languageConfidence})`);
-        
+
         // Store language preference in session context
-        sessionLanguageManager.setSessionLanguage(
-          sessionId, 
-          detectedLanguage, 
-          languageConfidence,
-          {
-            method: languageDetection.method,
-            userMessage: content.substring(0, 100), // Store first 100 chars for context
-            timestamp: Date.now()
-          }
-        );
+        sessionLanguageManager.setSessionLanguage(sessionId, detectedLanguage, languageConfidence, {
+          method: languageDetection.method,
+          userMessage: content.substring(0, 100), // Store first 100 chars for context
+          timestamp: Date.now()
+        });
       } catch (error) {
         console.warn('Language detection failed, using fallback:', error);
         detectedLanguage = language || 'en';
         languageConfidence = 0.3;
-        
+
         // Log detection failure
         try {
           languageConsistencyLogger.logConsistencyIssue(
@@ -293,7 +284,9 @@ export async function POST({ request }) {
       if (sessionLanguage) {
         detectedLanguage = sessionLanguage.detectedLanguage;
         languageConfidence = sessionLanguage.confidence;
-        console.log(`Using session language: ${detectedLanguage} (confidence: ${languageConfidence})`);
+        console.log(
+          `Using session language: ${detectedLanguage} (confidence: ${languageConfidence})`
+        );
       }
     }
 
@@ -452,7 +445,8 @@ Your task:
 
     // Check if there were previous language inconsistencies for this session
     const sessionLanguageState = sessionLanguageManager.getSessionLanguage(sessionId);
-    const hasLanguageMixing = sessionLanguageState?.validationHistory?.some(v => !v.isValid) || false;
+    const hasLanguageMixing =
+      sessionLanguageState?.validationHistory?.some((v) => !v.isValid) || false;
 
     // Enhance system prompt with language constraints based on confidence and history
     const enhancedSystemPrompt = promptEnhancer.enhanceSystemPrompt(
@@ -562,8 +556,8 @@ Your task:
     // Validate response language consistency
     try {
       const validationResult = languageDetector.validateLanguageConsistency(
-        aiResponse, 
-        detectedLanguage, 
+        aiResponse,
+        detectedLanguage,
         sessionId,
         {
           provider: result.provider,
@@ -571,7 +565,7 @@ Your task:
           responseLength: aiResponse?.length || 0
         }
       );
-      
+
       // Log validation result for monitoring
       console.log(`Language validation: ${validationResult.isConsistent ? 'PASS' : 'FAIL'}`, {
         sessionId,
@@ -597,11 +591,13 @@ Your task:
         // For high severity issues, we could regenerate the response or return an error
         // For now, we'll log the issue and continue with the original response
         // In a future enhancement, we could implement automatic regeneration here
-        
+
         if (validationResult.recommendation === 'regenerate') {
           // Log that regeneration is recommended but not implemented yet
-          console.warn(`Response regeneration recommended but not implemented for session ${sessionId}`);
-          
+          console.warn(
+            `Response regeneration recommended but not implemented for session ${sessionId}`
+          );
+
           // Log the regeneration recommendation as a consistency issue
           try {
             languageConsistencyLogger.logConsistencyIssue(
@@ -633,10 +629,9 @@ Your task:
           detected: validationResult.detectedLanguage
         });
       }
-
     } catch (validationError) {
       console.error('Language validation failed:', validationError);
-      
+
       // Log validation failure as a consistency issue
       try {
         languageConsistencyLogger.logConsistencyIssue(
@@ -655,7 +650,7 @@ Your task:
       } catch (logError) {
         console.warn('Failed to log validation error:', logError);
       }
-      
+
       // Continue with original response if validation fails
     }
 

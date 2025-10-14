@@ -34,7 +34,7 @@
 
   const otherExamples = [
     {
-      title: "Квадратное уравнение",
+      title: 'Квадратное уравнение',
       content: `Решим уравнение ax^2 + bx + c = 0.
 
 Дискриминант: D = b^2 - 4ac
@@ -42,7 +42,7 @@
 Корни: \\[x_{1,2} = \\frac{-b \\pm \\sqrt{D}}{2a}\\]`
     },
     {
-      title: "Интегрирование по частям", 
+      title: 'Интегрирование по частям',
       content: `Формула интегрирования по частям:
 
 \\[\\int u \\, dv = uv - \\int v \\, du\\]
@@ -54,7 +54,7 @@
 \\[\\int x e^x dx = x e^x - \\int e^x dx = x e^x - e^x + C = e^x(x - 1) + C\\]`
     },
     {
-      title: "Предел последовательности",
+      title: 'Предел последовательности',
       content: `Найдем предел:
 
 \\[\\lim_{n \\to \\infty} \\frac{n^2 + 3n + 1}{2n^2 - n + 5}\\]
@@ -74,7 +74,9 @@
   <h1 class="text-3xl font-bold mb-8 text-center">Красивое отображение математики</h1>
 
   <!-- Основной пример -->
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8 border border-gray-200 dark:border-gray-700">
+  <div
+    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8 border border-gray-200 dark:border-gray-700"
+  >
     <h2 class="text-2xl font-semibold mb-6 text-blue-600 dark:text-blue-400">
       Пример задачи с инвариантом
     </h2>
@@ -86,7 +88,9 @@
   <!-- Другие примеры -->
   <div class="grid gap-6">
     {#each otherExamples as example}
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700"
+      >
         <h3 class="text-xl font-semibold mb-4 text-green-600 dark:text-green-400">
           {example.title}
         </h3>
@@ -98,11 +102,13 @@
   </div>
 
   <!-- Информация о улучшениях -->
-  <div class="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-8 border border-blue-200 dark:border-blue-800">
+  <div
+    class="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-8 border border-blue-200 dark:border-blue-800"
+  >
     <h2 class="text-2xl font-semibold mb-6 text-blue-800 dark:text-blue-200">
       ✨ Улучшения форматирования
     </h2>
-    
+
     <div class="grid md:grid-cols-2 gap-6">
       <div>
         <h3 class="font-semibold mb-3 text-blue-700 dark:text-blue-300">Визуальные улучшения:</h3>
@@ -114,9 +120,11 @@
           <li>• Поддержка темной темы</li>
         </ul>
       </div>
-      
+
       <div>
-        <h3 class="font-semibold mb-3 text-blue-700 dark:text-blue-300">Функциональные улучшения:</h3>
+        <h3 class="font-semibold mb-3 text-blue-700 dark:text-blue-300">
+          Функциональные улучшения:
+        </h3>
         <ul class="space-y-2 text-sm text-blue-600 dark:text-blue-400">
           <li>• Автоматическое определение математики</li>
           <li>• Улучшенная обработка дробей и степеней</li>
@@ -133,12 +141,14 @@
   .prose {
     line-height: 1.8;
   }
-  
-  .prose h1, .prose h2, .prose h3 {
+
+  .prose h1,
+  .prose h2,
+  .prose h3 {
     margin-top: 2em;
     margin-bottom: 1em;
   }
-  
+
   .prose p {
     margin-bottom: 1.5em;
   }

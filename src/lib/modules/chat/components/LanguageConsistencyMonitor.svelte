@@ -1,18 +1,18 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  
+
   // Component state
   let metrics = null;
   let loading = true;
   let error = null;
   let refreshInterval = null;
-  
+
   // Configuration
   let autoRefresh = true;
   let refreshRate = 30000; // 30 seconds
   let selectedTimeRange = 'last24h';
   let selectedLanguage = '';
-  
+
   // Available options
   const timeRangeOptions = [
     { value: '', label: 'All Time' },
@@ -20,7 +20,7 @@
     { value: 'last7d', label: 'Last 7 Days' },
     { value: 'last30d', label: 'Last 30 Days' }
   ];
-  
+
   const languageOptions = [
     { value: '', label: 'All Languages' },
     { value: 'en', label: 'English' },
@@ -35,20 +35,19 @@
     try {
       loading = true;
       error = null;
-      
+
       const params = new URLSearchParams();
       if (selectedTimeRange) params.set('timeRange', selectedTimeRange);
       if (selectedLanguage) params.set('language', selectedLanguage);
-      
+
       const response = await fetch(`/api/language-consistency/metrics?${params}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to fetch metrics');
       }
-      
+
       metrics = data;
-      
     } catch (err) {
       console.error('Error fetching language consistency metrics:', err);
       error = err.message;
@@ -66,14 +65,14 @@
       params.set('format', format);
       if (selectedTimeRange) params.set('timeRange', selectedTimeRange);
       if (selectedLanguage) params.set('language', selectedLanguage);
-      
+
       const response = await fetch(`/api/language-consistency/export?${params}`);
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to export logs');
       }
-      
+
       // Download the file
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -84,7 +83,6 @@
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
     } catch (err) {
       console.error('Error exporting logs:', err);
       alert(`Export failed: ${err.message}`);
@@ -98,24 +96,23 @@
     if (!confirm(`Are you sure you want to clear ${type || 'all'} logs?`)) {
       return;
     }
-    
+
     try {
       const params = new URLSearchParams();
       if (type) params.set('type', type);
-      
+
       const response = await fetch(`/api/language-consistency/metrics?${params}`, {
         method: 'DELETE'
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to clear logs');
       }
-      
+
       // Refresh metrics after clearing
       await fetchMetrics();
-      
     } catch (err) {
       console.error('Error clearing logs:', err);
       alert(`Clear failed: ${err.message}`);
@@ -129,7 +126,7 @@
     if (refreshInterval) {
       clearInterval(refreshInterval);
     }
-    
+
     if (autoRefresh) {
       refreshInterval = setInterval(fetchMetrics, refreshRate);
     }
@@ -171,12 +168,18 @@
    */
   function getConfidenceColor(level) {
     switch (level) {
-      case 'veryHigh': return 'text-green-600';
-      case 'high': return 'text-green-500';
-      case 'medium': return 'text-yellow-500';
-      case 'low': return 'text-orange-500';
-      case 'veryLow': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'veryHigh':
+        return 'text-green-600';
+      case 'high':
+        return 'text-green-500';
+      case 'medium':
+        return 'text-yellow-500';
+      case 'low':
+        return 'text-orange-500';
+      case 'veryLow':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
     }
   }
 
@@ -185,11 +188,16 @@
    */
   function getSeverityColor(severity) {
     switch (severity) {
-      case 'high': return 'text-red-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-orange-600';
-      case 'none': return 'text-green-600';
-      default: return 'text-gray-500';
+      case 'high':
+        return 'text-red-600';
+      case 'medium':
+        return 'text-yellow-600';
+      case 'low':
+        return 'text-orange-600';
+      case 'none':
+        return 'text-green-600';
+      default:
+        return 'text-gray-500';
     }
   }
 
@@ -214,7 +222,7 @@
 <div class="language-consistency-monitor p-6 bg-white rounded-lg shadow-lg">
   <div class="header mb-6">
     <h2 class="text-2xl font-bold text-gray-800 mb-4">Language Consistency Monitor</h2>
-    
+
     <!-- Controls -->
     <div class="controls flex flex-wrap gap-4 mb-4">
       <!-- Time Range Filter -->
@@ -222,9 +230,9 @@
         <label for="timeRange" class="block text-sm font-medium text-gray-700 mb-1">
           Time Range
         </label>
-        <select 
-          id="timeRange" 
-          bind:value={selectedTimeRange} 
+        <select
+          id="timeRange"
+          bind:value={selectedTimeRange}
           on:change={handleFilterChange}
           class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -233,15 +241,15 @@
           {/each}
         </select>
       </div>
-      
+
       <!-- Language Filter -->
       <div class="filter-group">
         <label for="language" class="block text-sm font-medium text-gray-700 mb-1">
           Language
         </label>
-        <select 
-          id="language" 
-          bind:value={selectedLanguage} 
+        <select
+          id="language"
+          bind:value={selectedLanguage}
           on:change={handleFilterChange}
           class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -250,45 +258,41 @@
           {/each}
         </select>
       </div>
-      
+
       <!-- Auto Refresh -->
       <div class="filter-group">
         <label class="flex items-center">
-          <input 
-            type="checkbox" 
-            bind:checked={autoRefresh}
-            class="mr-2"
-          />
+          <input type="checkbox" bind:checked={autoRefresh} class="mr-2" />
           <span class="text-sm font-medium text-gray-700">Auto Refresh (30s)</span>
         </label>
       </div>
     </div>
-    
+
     <!-- Action Buttons -->
     <div class="actions flex flex-wrap gap-2">
-      <button 
+      <button
         on:click={fetchMetrics}
         disabled={loading}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? 'Loading...' : 'Refresh'}
       </button>
-      
-      <button 
+
+      <button
         on:click={() => exportLogs('json')}
         class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
       >
         Export JSON
       </button>
-      
-      <button 
+
+      <button
         on:click={() => exportLogs('csv')}
         class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
       >
         Export CSV
       </button>
-      
-      <button 
+
+      <button
         on:click={() => clearLogs()}
         class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
       >
@@ -300,7 +304,8 @@
   <!-- Error Display -->
   {#if error}
     <div class="error mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-      <strong>Error:</strong> {error}
+      <strong>Error:</strong>
+      {error}
     </div>
   {/if}
 
@@ -315,22 +320,30 @@
     <div class="summary-cards grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="card bg-blue-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-blue-800">Total Sessions</h3>
-        <p class="text-2xl font-bold text-blue-600">{formatNumber(metrics.metrics.summary.totalSessions)}</p>
+        <p class="text-2xl font-bold text-blue-600">
+          {formatNumber(metrics.metrics.summary.totalSessions)}
+        </p>
       </div>
-      
+
       <div class="card bg-green-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-green-800">Validation Success Rate</h3>
-        <p class="text-2xl font-bold text-green-600">{formatPercentage(metrics.metrics.summary.overallValidationSuccessRate)}</p>
+        <p class="text-2xl font-bold text-green-600">
+          {formatPercentage(metrics.metrics.summary.overallValidationSuccessRate)}
+        </p>
       </div>
-      
+
       <div class="card bg-yellow-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-yellow-800">Avg Detection Confidence</h3>
-        <p class="text-2xl font-bold text-yellow-600">{(metrics.metrics.summary.averageDetectionConfidence * 100).toFixed(1)}%</p>
+        <p class="text-2xl font-bold text-yellow-600">
+          {(metrics.metrics.summary.averageDetectionConfidence * 100).toFixed(1)}%
+        </p>
       </div>
-      
+
       <div class="card bg-red-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-red-800">Critical Issues</h3>
-        <p class="text-2xl font-bold text-red-600">{formatNumber(metrics.metrics.summary.criticalIssuesCount)}</p>
+        <p class="text-2xl font-bold text-red-600">
+          {formatNumber(metrics.metrics.summary.criticalIssuesCount)}
+        </p>
       </div>
     </div>
 
@@ -338,7 +351,7 @@
     {#if metrics.metrics.detection}
       <div class="detection-stats mb-6">
         <h3 class="text-xl font-semibold text-gray-800 mb-3">Detection Statistics</h3>
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Language Distribution -->
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
@@ -356,7 +369,7 @@
               <p class="text-gray-500">No data available</p>
             {/if}
           </div>
-          
+
           <!-- Confidence Distribution -->
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
             <h4 class="font-semibold text-gray-700 mb-2">Confidence Distribution</h4>
@@ -381,7 +394,7 @@
     {#if metrics.metrics.validation}
       <div class="validation-stats mb-6">
         <h3 class="text-xl font-semibold text-gray-800 mb-3">Validation Statistics</h3>
-        
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Severity Distribution -->
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
@@ -399,7 +412,7 @@
               <p class="text-gray-500">No data available</p>
             {/if}
           </div>
-          
+
           <!-- Recommendation Distribution -->
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
             <h4 class="font-semibold text-gray-700 mb-2">Recommendation Distribution</h4>
@@ -424,21 +437,27 @@
     {#if metrics.loggerStats}
       <div class="logger-stats">
         <h3 class="text-xl font-semibold text-gray-800 mb-3">Logger Statistics</h3>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
             <h4 class="font-semibold text-gray-700 mb-2">Detection Logs</h4>
-            <p class="text-lg font-medium">{formatNumber(metrics.loggerStats.detectionLogsCount)}</p>
+            <p class="text-lg font-medium">
+              {formatNumber(metrics.loggerStats.detectionLogsCount)}
+            </p>
           </div>
-          
+
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
             <h4 class="font-semibold text-gray-700 mb-2">Validation Logs</h4>
-            <p class="text-lg font-medium">{formatNumber(metrics.loggerStats.validationLogsCount)}</p>
+            <p class="text-lg font-medium">
+              {formatNumber(metrics.loggerStats.validationLogsCount)}
+            </p>
           </div>
-          
+
           <div class="stat-card bg-gray-50 p-4 rounded-lg">
             <h4 class="font-semibold text-gray-700 mb-2">Session Metrics</h4>
-            <p class="text-lg font-medium">{formatNumber(metrics.loggerStats.sessionMetricsCount)}</p>
+            <p class="text-lg font-medium">
+              {formatNumber(metrics.loggerStats.sessionMetricsCount)}
+            </p>
           </div>
         </div>
       </div>
@@ -456,15 +475,15 @@
     max-width: 1200px;
     margin: 0 auto;
   }
-  
+
   .filter-group {
     min-width: 150px;
   }
-  
+
   .stat-card {
     transition: transform 0.2s ease-in-out;
   }
-  
+
   .stat-card:hover {
     transform: translateY(-2px);
   }

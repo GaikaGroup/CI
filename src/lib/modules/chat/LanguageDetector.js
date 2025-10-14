@@ -335,7 +335,7 @@ export class LanguageDetector {
     // Enhanced Russian detection with improved Cyrillic patterns
     const russianScore = this.detectRussianLanguage(text, confidenceFactors.ru);
     scores.ru = russianScore;
-    
+
     // If high confidence Russian detected, return early
     if (russianScore > 0.8) {
       return {
@@ -350,7 +350,9 @@ export class LanguageDetector {
 
     // Spanish detection - Spanish-specific characters and patterns
     const spanishKeywordMatches =
-      text.match(/\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están|y|o|pero|si|no|muy|más|todo|todos|hacer|tener|ser|estar)\b/gi) || [];
+      text.match(
+        /\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están|y|o|pero|si|no|muy|más|todo|todos|hacer|tener|ser|estar)\b/gi
+      ) || [];
     const hasSpanishAccents = /[ñáéíóúü¿¡]/i.test(text);
     const spanishAccentMatches = text.match(/[ñáéíóúü¿¡]/gi) || [];
 
@@ -376,8 +378,10 @@ export class LanguageDetector {
 
     // English detection - English-specific patterns
     const englishKeywordMatches =
-      text.match(/\b(the|and|or|but|if|not|very|more|all|some|make|have|be|is|are|was|were|will|would|could|should|this|that|these|those)\b/gi) || [];
-    
+      text.match(
+        /\b(the|and|or|but|if|not|very|more|all|some|make|have|be|is|are|was|were|will|would|could|should|this|that|these|those)\b/gi
+      ) || [];
+
     if (englishKeywordMatches.length > 0) {
       const keywordRatio = englishKeywordMatches.length / text.split(/\s+/).length;
       scores.en += Math.min(0.6, keywordRatio * 0.9);
@@ -406,7 +410,11 @@ export class LanguageDetector {
     ).language;
 
     // Calculate final confidence based on score distribution and factors
-    const finalConfidence = this.calculateTextConfidence(scores, bestLanguage, confidenceFactors[bestLanguage]);
+    const finalConfidence = this.calculateTextConfidence(
+      scores,
+      bestLanguage,
+      confidenceFactors[bestLanguage]
+    );
 
     return {
       language: bestLanguage,
@@ -434,13 +442,18 @@ export class LanguageDetector {
 
     // Base confidence from score dominance
     const dominance = bestScore / totalScore;
-    
+
     // Factor in the number and quality of confidence factors
     const factorBonus = factors.length > 0 ? Math.min(0.2, factors.length * 0.1) : 0;
-    
+
     // Text length factor - longer text generally means higher confidence
-    const lengthFactor = factors.length > 0 ? 
-      Math.min(0.1, factors.reduce((sum, f) => sum + (f.weight || 0), 0)) : 0;
+    const lengthFactor =
+      factors.length > 0
+        ? Math.min(
+            0.1,
+            factors.reduce((sum, f) => sum + (f.weight || 0), 0)
+          )
+        : 0;
 
     return Math.min(0.95, dominance * 0.7 + bestScore * 0.2 + factorBonus + lengthFactor);
   }
@@ -454,12 +467,12 @@ export class LanguageDetector {
    */
   detectWithConfidence(text, sessionId = null, context = {}) {
     const result = this.detectLanguageFromText(text);
-    
+
     // Add additional confidence metadata
     result.confidenceLevel = this.getConfidenceLevel(result.confidence);
     result.isReliable = result.confidence >= 0.7;
     result.needsValidation = result.confidence < 0.5;
-    
+
     // Log detection result if session ID provided
     if (sessionId) {
       try {
@@ -471,7 +484,7 @@ export class LanguageDetector {
         console.warn('Failed to log detection result:', error);
       }
     }
-    
+
     return result;
   }
 
@@ -498,10 +511,12 @@ export class LanguageDetector {
    */
   validateLanguageConsistency(text, expectedLanguage, sessionId = null, context = {}) {
     const detection = this.detectWithConfidence(text, sessionId, context);
-    
+
     const isConsistent = detection.language === expectedLanguage;
-    const confidenceGap = Math.abs(detection.confidence - (detection.scores[expectedLanguage] || 0));
-    
+    const confidenceGap = Math.abs(
+      detection.confidence - (detection.scores[expectedLanguage] || 0)
+    );
+
     const validationResult = {
       isConsistent,
       detectedLanguage: detection.language,
@@ -510,7 +525,11 @@ export class LanguageDetector {
       expectedLanguageScore: detection.scores[expectedLanguage] || 0,
       confidenceGap,
       severity: this.getInconsistencySeverity(isConsistent, confidenceGap, detection.confidence),
-      recommendation: this.getValidationRecommendation(isConsistent, confidenceGap, detection.confidence),
+      recommendation: this.getValidationRecommendation(
+        isConsistent,
+        confidenceGap,
+        detection.confidence
+      ),
       detectionDetails: detection
     };
 
@@ -525,7 +544,7 @@ export class LanguageDetector {
         console.warn('Failed to log validation result:', error);
       }
     }
-    
+
     return validationResult;
   }
 
@@ -538,7 +557,7 @@ export class LanguageDetector {
    */
   getInconsistencySeverity(isConsistent, confidenceGap, detectionConfidence) {
     if (isConsistent) return 'none';
-    
+
     if (detectionConfidence >= 0.8 && confidenceGap > 0.5) return 'high';
     if (detectionConfidence >= 0.6 && confidenceGap > 0.3) return 'medium';
     return 'low';
@@ -571,15 +590,15 @@ export class LanguageDetector {
     // Enhanced Cyrillic character detection with better patterns
     const cyrillicMatches = text.match(/[а-яё]/gi) || [];
     const extendedCyrillicMatches = text.match(/[а-яёъьэюийцукенгшщзхфывапролджячсмитбщ]/gi) || [];
-    
+
     if (cyrillicMatches.length > 0) {
       const cyrillicRatio = cyrillicMatches.length / text.replace(/\s+/g, '').length;
       const extendedRatio = extendedCyrillicMatches.length / text.replace(/\s+/g, '').length;
-      
+
       // Base Cyrillic score with improved calculation
       const cyrillicScore = Math.min(0.6, cyrillicRatio * 1.2);
       russianScore += cyrillicScore;
-      
+
       confidenceFactors.push({
         factor: 'cyrillic_characters',
         weight: cyrillicRatio,
@@ -602,28 +621,90 @@ export class LanguageDetector {
     // Russian-specific keyword patterns with improved coverage
     const russianKeywords = [
       // Common words
-      'это', 'что', 'как', 'где', 'когда', 'почему', 'который', 'которая', 'которое',
+      'это',
+      'что',
+      'как',
+      'где',
+      'когда',
+      'почему',
+      'который',
+      'которая',
+      'которое',
       // Pronouns
-      'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
+      'я',
+      'ты',
+      'он',
+      'она',
+      'оно',
+      'мы',
+      'вы',
+      'они',
       // Verbs
-      'быть', 'есть', 'был', 'была', 'было', 'были', 'буду', 'будешь', 'будет', 'будем', 'будете', 'будут',
-      'делать', 'сделать', 'говорить', 'сказать', 'знать', 'думать', 'хотеть', 'мочь', 'должен',
+      'быть',
+      'есть',
+      'был',
+      'была',
+      'было',
+      'были',
+      'буду',
+      'будешь',
+      'будет',
+      'будем',
+      'будете',
+      'будут',
+      'делать',
+      'сделать',
+      'говорить',
+      'сказать',
+      'знать',
+      'думать',
+      'хотеть',
+      'мочь',
+      'должен',
       // Prepositions and conjunctions
-      'в', 'на', 'с', 'по', 'для', 'от', 'до', 'за', 'под', 'над', 'между', 'через', 'без', 'при',
-      'и', 'или', 'но', 'а', 'да', 'если', 'чтобы', 'потому', 'поэтому',
+      'в',
+      'на',
+      'с',
+      'по',
+      'для',
+      'от',
+      'до',
+      'за',
+      'под',
+      'над',
+      'между',
+      'через',
+      'без',
+      'при',
+      'и',
+      'или',
+      'но',
+      'а',
+      'да',
+      'если',
+      'чтобы',
+      'потому',
+      'поэтому',
       // Common adjectives
-      'хороший', 'плохой', 'большой', 'маленький', 'новый', 'старый', 'красивый', 'умный'
+      'хороший',
+      'плохой',
+      'большой',
+      'маленький',
+      'новый',
+      'старый',
+      'красивый',
+      'умный'
     ];
 
     const keywordPattern = new RegExp(`\\b(${russianKeywords.join('|')})\\b`, 'gi');
     const keywordMatches = text.match(keywordPattern) || [];
-    
+
     if (keywordMatches.length > 0) {
       const wordCount = text.split(/\s+/).length;
       const keywordRatio = keywordMatches.length / wordCount;
       const keywordScore = Math.min(0.4, keywordRatio * 0.8);
       russianScore += keywordScore;
-      
+
       confidenceFactors.push({
         factor: 'russian_keywords',
         weight: keywordRatio,
@@ -667,17 +748,18 @@ export class LanguageDetector {
     const russianFrequentLetters = ['о', 'е', 'а', 'и', 'н', 'т', 'с', 'р', 'в', 'л'];
     const letterCounts = {};
     const textLower = text.toLowerCase();
-    
-    russianFrequentLetters.forEach(letter => {
+
+    russianFrequentLetters.forEach((letter) => {
       letterCounts[letter] = (textLower.match(new RegExp(letter, 'g')) || []).length;
     });
 
     const totalRussianLetters = Object.values(letterCounts).reduce((sum, count) => sum + count, 0);
     const textLetters = text.replace(/[^а-яё]/gi, '').length;
-    
+
     if (textLetters > 0) {
       const frequencyRatio = totalRussianLetters / textLetters;
-      if (frequencyRatio > 0.6) { // Russian texts typically have high frequency of these letters
+      if (frequencyRatio > 0.6) {
+        // Russian texts typically have high frequency of these letters
         const frequencyScore = Math.min(0.15, (frequencyRatio - 0.6) * 0.5);
         russianScore += frequencyScore;
         confidenceFactors.push({
