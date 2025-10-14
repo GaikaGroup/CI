@@ -224,7 +224,7 @@ describe('WaitingPhrasesService', () => {
       expect(service._isValidLanguageCode('es')).toBe(true);
       expect(service._isValidLanguageCode('ru')).toBe(true);
       expect(service._isValidLanguageCode('invalid')).toBe(false);
-      expect(service._isValidLanguageCode(null as any)).toBe(false);
+      expect(service._isValidLanguageCode(null)).toBe(false);
       expect(service._isValidLanguageCode('')).toBe(false);
     });
   });
