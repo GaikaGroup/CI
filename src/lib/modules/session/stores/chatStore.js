@@ -452,15 +452,4 @@ export const chatError = derived([chatStore], ([$chatStore]) => $chatStore.error
  */
 export const isTyping = derived([chatStore], ([$chatStore]) => $chatStore.isTyping);
 
-/**
- * Export all stores and utilities
- */
-export {
-  chatStore as default,
-  userMessages,
-  assistantMessages,
-  messageStats,
-  isChatLoading,
-  chatError,
-  isTyping
-};
+// All stores are already exported above with individual export statements

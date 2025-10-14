@@ -1,8 +1,8 @@
 /**
  * User Enrollment Service
  *
- * This service handles user enrollment in subjects, tracking enrollment status,
- * and managing the "My Subjects" functionality.
+ * This service handles user enrollment in courses, tracking enrollment status,
+ * and managing the "My Courses" functionality.
  */
 
 import { browser } from '$app/environment';

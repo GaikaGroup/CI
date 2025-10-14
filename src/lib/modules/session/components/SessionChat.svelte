@@ -18,7 +18,7 @@
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
   import CatAvatar from '$shared/components/CatAvatar.svelte';
-  import MathMessage from '$lib/modules/chat/components/MathMessage.svelte';
+  import MathRenderer from '$lib/components/MathRenderer.svelte';
   import {
     startRecording,
     stopRecording,
@@ -586,7 +586,7 @@
             </div>
 
             <div class="text-sm {$darkMode ? 'text-gray-300' : 'text-stone-700'} break-words">
-              <MathMessage content={message.content} className="whitespace-pre-wrap" />
+              <MathRenderer content={message.content} className="whitespace-pre-wrap" />
             </div>
 
             <!-- Multimedia Content -->

@@ -2,8 +2,6 @@
 export const translations = {
   en: {
     title: 'AI Tutor',
-    about: 'About',
-    contacts: 'Contacts',
     signIn: 'Sign In',
     textChat: 'Text Chat',
     voiceChat: 'Voice Chat',
@@ -20,13 +18,13 @@ export const translations = {
     funModeNote: 'You are in Fun mode.',
     learnModeDefaultNote: 'You are in Learn mode.',
     learnModePracticeNote:
-      "You are practicing {subject} in practice mode. Let's focus on guided improvements.",
+      "You are practicing {course} in practice mode. Let's focus on guided improvements.",
     learnModeExamNote:
-      'You are preparing for {subject} in exam mode. Expect stricter evaluation aligned with the official rubric.',
-    learnSelectSubjectHeading: 'Choose a subject to study',
-    learnSelectSubjectDescription:
-      'Pick a subject and mode to tailor feedback to your exam preparation goals.',
-    learnNoSubjects: 'No subjects available yet. Ask an admin to create one.',
+      'You are preparing for {course} in exam mode. Expect stricter evaluation aligned with the official rubric.',
+    learnSelectCourseHeading: 'Choose a course to study',
+    learnSelectCourseDescription:
+      'Pick a course and mode to tailor feedback to your exam preparation goals.',
+    learnNoCourses: 'No courses available yet. Ask an admin to create one.',
     learnFocusSkills: 'Focus skills',
     learnPracticeSummary: 'Practice mode snapshot',
     learnExamSummary: 'Exam mode snapshot',
@@ -34,8 +32,8 @@ export const translations = {
     learnExamMinWords: 'Exam target length: {words} words',
     learnStartPractice: 'Start Practice Mode',
     learnStartExam: 'Start Exam Mode',
-    learnCurrentSubject: 'Current subject',
-    learnChangeSubject: 'Change subject',
+    learnCurrentCourse: 'Current course',
+    learnChangeCourse: 'Change course',
     learnModePracticeLabel: 'Practice mode',
     learnModeExamLabel: 'Exam mode',
     learnModeActiveSummary: 'Mode focus',
@@ -47,8 +45,6 @@ export const translations = {
   },
   ru: {
     title: 'ИИ Преподаватель',
-    about: 'О нас',
-    contacts: 'Контакты',
     signIn: 'Войти',
     textChat: 'Текстовый чат',
     voiceChat: 'Голосовой чат',
@@ -65,13 +61,13 @@ export const translations = {
     funModeNote: 'Вы находитесь в режиме Fun.',
     learnModeDefaultNote: 'Вы находитесь в учебном режиме.',
     learnModePracticeNote:
-      'Вы практикуете {subject} в тренировочном режиме. Сосредоточимся на поддержке и подсказках.',
+      'Вы практикуете {course} в тренировочном режиме. Сосредоточимся на поддержке и подсказках.',
     learnModeExamNote:
-      'Вы готовитесь к экзамену {subject} в режиме экзамена. Ожидайте более строгие критерии и оценивание по рубрикам.',
-    learnSelectSubjectHeading: 'Выберите предмет',
-    learnSelectSubjectDescription:
-      'Выберите предмет и режим, чтобы адаптировать подсказки под подготовку к экзамену.',
-    learnNoSubjects: 'Список предметов пуст. Попросите администратора добавить их.',
+      'Вы готовитесь к экзамену {course} в режиме экзамена. Ожидайте более строгие критерии и оценивание по рубрикам.',
+    learnSelectCourseHeading: 'Выберите курс',
+    learnSelectCourseDescription:
+      'Выберите курс и режим, чтобы адаптировать подсказки под подготовку к экзамену.',
+    learnNoCourses: 'Список курсов пуст. Попросите администратора добавить их.',
     learnFocusSkills: 'Ключевые навыки',
     learnPracticeSummary: 'Кратко о тренировочном режиме',
     learnExamSummary: 'Кратко об экзаменационном режиме',
@@ -79,8 +75,8 @@ export const translations = {
     learnExamMinWords: 'Целевой объём на экзамене: {words} слов',
     learnStartPractice: 'Начать тренировку',
     learnStartExam: 'Начать экзамен',
-    learnCurrentSubject: 'Текущий предмет',
-    learnChangeSubject: 'Сменить предмет',
+    learnCurrentCourse: 'Текущий курс',
+    learnChangeCourse: 'Сменить курс',
     learnModePracticeLabel: 'Тренировочный режим',
     learnModeExamLabel: 'Экзаменационный режим',
     learnModeActiveSummary: 'Основной фокус',
@@ -92,8 +88,6 @@ export const translations = {
   },
   es: {
     title: 'Tutor IA',
-    about: 'Acerca de',
-    contacts: 'Contactos',
     signIn: 'Iniciar sesión',
     textChat: 'Chat de texto',
     voiceChat: 'Chat de voz',
@@ -110,13 +104,13 @@ export const translations = {
     funModeNote: 'Estás en modo Fun.',
     learnModeDefaultNote: 'Estás en modo de aprendizaje.',
     learnModePracticeNote:
-      'Estás practicando {subject} en modo práctica. Nos centraremos en mejoras guiadas y comentarios útiles.',
+      'Estás practicando {course} en modo práctica. Nos centraremos en mejoras guiadas y comentarios útiles.',
     learnModeExamNote:
-      'Te estás preparando para {subject} en modo examen. Espera una evaluación más estricta alineada con la rúbrica oficial.',
-    learnSelectSubjectHeading: 'Elige una materia',
-    learnSelectSubjectDescription:
-      'Selecciona una materia y un modo para adaptar la tutoría a tus objetivos de examen.',
-    learnNoSubjects: 'Todavía no hay materias disponibles. Pide a un administrador que cree una.',
+      'Te estás preparando para {course} en modo examen. Espera una evaluación más estricta alineada con la rúbrica oficial.',
+    learnSelectCourseHeading: 'Elige un curso',
+    learnSelectCourseDescription:
+      'Selecciona un curso y un modo para adaptar la tutoría a tus objetivos de examen.',
+    learnNoCourses: 'Todavía no hay cursos disponibles. Pide a un administrador que cree uno.',
     learnFocusSkills: 'Habilidades clave',
     learnPracticeSummary: 'Resumen del modo práctica',
     learnExamSummary: 'Resumen del modo examen',
@@ -124,8 +118,8 @@ export const translations = {
     learnExamMinWords: 'Objetivo del examen: {words} palabras',
     learnStartPractice: 'Comenzar modo práctica',
     learnStartExam: 'Comenzar modo examen',
-    learnCurrentSubject: 'Materia actual',
-    learnChangeSubject: 'Cambiar materia',
+    learnCurrentCourse: 'Curso actual',
+    learnChangeCourse: 'Cambiar curso',
     learnModePracticeLabel: 'Modo práctica',
     learnModeExamLabel: 'Modo examen',
     learnModeActiveSummary: 'Enfoque del modo',

@@ -89,16 +89,25 @@ export function logout() {
 
 // Check if user is already logged in from localStorage
 export function checkAuth() {
-  if (typeof localStorage !== 'undefined') {
-    const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        persistUserSession(userData);
-      } catch (e) {
-        console.error('Failed to parse stored user data', e);
-        logout();
+  return new Promise((resolve) => {
+    if (typeof localStorage !== 'undefined') {
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
+      
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          persistUserSession(userData);
+          resolve(userData);
+        } catch (e) {
+          console.error('Failed to parse stored user data', e);
+          logout();
+          resolve(null);
+        }
+      } else {
+        resolve(null);
       }
+    } else {
+      resolve(null);
     }
-  }
+  });
 }

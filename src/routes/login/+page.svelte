@@ -1,5 +1,6 @@
 <script>
-  import { login } from '$modules/auth/stores';
+  import { onMount } from 'svelte';
+  import { login, user, checkAuth } from '$modules/auth/stores';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { setMode } from '$lib/stores/mode';
@@ -7,9 +8,9 @@
   let password = '';
   let remember = false;
   let error = '';
-  let redirect = '/';
+  let redirect = '/sessions';
 
-  $: redirect = $page.url.searchParams.get('redirect') || '/';
+  $: redirect = $page.url.searchParams.get('redirect') || '/sessions';
 
   async function handleSignIn() {
     error = '';
@@ -25,6 +26,15 @@
       error = 'Invalid credentials';
     }
   }
+
+  // Check if user is already authenticated on mount
+  onMount(async () => {
+    await checkAuth();
+    if ($user) {
+      // User is already authenticated, redirect to sessions
+      goto('/sessions');
+    }
+  });
 </script>
 
 <div class="main-content">

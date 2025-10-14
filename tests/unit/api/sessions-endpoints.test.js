@@ -8,6 +8,7 @@ vi.mock('../../../src/lib/modules/session/services/SessionService.js', () => ({
     getSession: vi.fn(),
     updateSession: vi.fn(),
     deleteSession: vi.fn(),
+    softDeleteSession: vi.fn(),
     searchSessions: vi.fn(),
     getSessionStats: vi.fn()
   },
@@ -296,17 +297,35 @@ describe('Sessions API Endpoints', () => {
   });
 
   describe('DELETE /api/sessions/[id]', () => {
-    it('should delete a session successfully', async () => {
-      SessionService.deleteSession.mockResolvedValue(true);
+    it('should soft delete a session successfully', async () => {
+      SessionService.softDeleteSession.mockResolvedValue(true);
 
       const params = { id: 'session-123' };
+      const url = new URL('http://localhost/api/sessions/session-123');
       const locals = { user: mockUser };
 
-      const response = await deleteSessionHandler({ params, locals });
+      const response = await deleteSessionHandler({ params, url, locals });
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
+      expect(data.message).toBe('Session deleted successfully');
+      expect(SessionService.softDeleteSession).toHaveBeenCalledWith('session-123', mockUser.id);
+    });
+
+    it('should hard delete a session when hard=true', async () => {
+      SessionService.deleteSession.mockResolvedValue(true);
+
+      const params = { id: 'session-123' };
+      const url = new URL('http://localhost/api/sessions/session-123?hard=true');
+      const locals = { user: mockUser };
+
+      const response = await deleteSessionHandler({ params, url, locals });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.message).toBe('Session permanently deleted');
       expect(SessionService.deleteSession).toHaveBeenCalledWith('session-123', mockUser.id);
     });
   });

@@ -242,6 +242,58 @@ describe('SessionService', () => {
     });
   });
 
+  describe('softDeleteSession', () => {
+    it('should soft delete a FUN mode session', async () => {
+      const existingSession = {
+        id: 'session-123',
+        userId: 'user-123',
+        mode: 'fun',
+        isHidden: false
+      };
+
+      db.session.findFirst.mockResolvedValue(existingSession);
+      db.session.update.mockResolvedValue({ ...existingSession, isHidden: true });
+
+      const result = await SessionService.softDeleteSession('session-123', 'user-123');
+
+      expect(db.session.findFirst).toHaveBeenCalledWith({
+        where: { id: 'session-123', userId: 'user-123', isHidden: false }
+      });
+
+      expect(db.session.update).toHaveBeenCalledWith({
+        where: { id: 'session-123' },
+        data: { isHidden: true }
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('should throw validation error for LEARN mode session', async () => {
+      const existingSession = {
+        id: 'session-123',
+        userId: 'user-123',
+        mode: 'learn',
+        isHidden: false
+      };
+
+      db.session.findFirst.mockResolvedValue(existingSession);
+
+      await expect(SessionService.softDeleteSession('session-123', 'user-123')).rejects.toThrow(
+        SessionValidationError
+      );
+
+      expect(db.session.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw SessionNotFoundError for non-existent session', async () => {
+      db.session.findFirst.mockResolvedValue(null);
+
+      await expect(SessionService.softDeleteSession('non-existent', 'user-123')).rejects.toThrow(
+        SessionNotFoundError
+      );
+    });
+  });
+
   describe('deleteSession', () => {
     it('should delete a session', async () => {
       const existingSession = {

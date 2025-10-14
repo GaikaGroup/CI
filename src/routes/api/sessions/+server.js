@@ -109,7 +109,7 @@ export async function GET({ url, locals }) {
 /**
  * Create a new session
  * POST /api/sessions
- * Body: { title, mode?, language?, preview? }
+ * Body: { title, mode?, language?, preview?, courseId? }
  */
 export async function POST({ request, locals }) {
   try {
@@ -126,7 +126,7 @@ export async function POST({ request, locals }) {
       return json({ error: 'Session title is required' }, { status: 400 });
     }
 
-    const { title, mode = 'fun', language = 'en', preview = null } = body;
+    const { title, mode = 'fun', language = 'en', preview = null, courseId = null } = body;
 
     // Validate mode
     if (mode && !['fun', 'learn'].includes(mode)) {
@@ -143,12 +143,23 @@ export async function POST({ request, locals }) {
       return json({ error: 'Preview must be a string with max 1000 characters' }, { status: 400 });
     }
 
+    // Validate courseId for LEARN mode
+    if (mode === 'learn' && (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)) {
+      return json({ error: 'Course ID is required for LEARN mode sessions' }, { status: 400 });
+    }
+
+    // Validate courseId format if provided
+    if (courseId && (typeof courseId !== 'string' || courseId.trim().length === 0)) {
+      return json({ error: 'Course ID must be a valid string' }, { status: 400 });
+    }
+
     const session = await SessionService.createSession(
       userId,
       title.trim(),
       mode,
       language,
-      preview?.trim() || null
+      preview?.trim() || null,
+      courseId?.trim() || null
     );
 
     return json(session, { status: 201 });

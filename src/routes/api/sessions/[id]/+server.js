@@ -158,10 +158,12 @@ export async function PUT({ params, request, locals }) {
 }
 
 /**
- * Delete a session
+ * Delete a session (soft delete for regular users)
  * DELETE /api/sessions/[id]
+ * Query parameters:
+ * - hard: Set to 'true' for hard delete (admin only)
  */
-export async function DELETE({ params, locals }) {
+export async function DELETE({ params, url, locals }) {
   try {
     // Check authentication
     if (!locals.user || !locals.user.id) {
@@ -170,13 +172,21 @@ export async function DELETE({ params, locals }) {
 
     const userId = locals.user.id;
     const sessionId = params.id;
+    const hardDelete = url.searchParams.get('hard') === 'true';
 
     if (!sessionId) {
       return json({ error: 'Session ID is required' }, { status: 400 });
     }
 
-    await SessionService.deleteSession(sessionId, userId);
-    return json({ success: true, message: 'Session deleted successfully' });
+    if (hardDelete) {
+      // Hard delete - for admin use only (future implementation)
+      await SessionService.deleteSession(sessionId, userId);
+      return json({ success: true, message: 'Session permanently deleted' });
+    } else {
+      // Soft delete - default behavior for regular users
+      await SessionService.softDeleteSession(sessionId, userId);
+      return json({ success: true, message: 'Session deleted successfully' });
+    }
   } catch (error) {
     console.error(`Error in DELETE /api/sessions/${params.id}:`, error);
 

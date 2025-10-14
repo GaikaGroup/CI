@@ -16,14 +16,14 @@
   $: actionLabel = getActionLabel(action);
   $: actionDescription = getActionDescription(action);
   $: confirmationRequired = action === 'delete';
-  $: expectedConfirmation = confirmationRequired ? `DELETE ${selectedReports.length} SUBJECTS` : '';
+  $: expectedConfirmation = confirmationRequired ? `DELETE ${selectedReports.length} COURSES` : '';
   $: canProceed = !confirmationRequired || confirmationText === expectedConfirmation;
 
   const getActionLabel = (action) => {
     const labels = {
       reject: 'Reject Reports',
-      block: 'Block Subjects',
-      delete: 'Delete Subjects'
+      block: 'Block Courses',
+      delete: 'Delete Courses'
     };
     return labels[action] || 'Process Reports';
   };
@@ -31,11 +31,11 @@
   const getActionDescription = (action) => {
     const descriptions = {
       reject:
-        'Mark the selected reports as reviewed with no action taken. The subjects will remain active.',
+        'Mark the selected reports as reviewed with no action taken. The courses will remain active.',
       block:
-        'Block the reported subjects, making them unavailable to users while preserving the data.',
+        'Block the reported courses, making them unavailable to users while preserving the data.',
       delete:
-        'Permanently delete the reported subjects and all associated data. This action cannot be undone.'
+        'Permanently delete the reported courses and all associated data. This action cannot be undone.'
     };
     return descriptions[action] || 'Process the selected reports.';
   };
@@ -146,9 +146,9 @@
         </div>
       </div>
 
-      <!-- Affected Subjects -->
+      <!-- Affected Courses -->
       <div class="mb-6">
-        <h3 class="text-sm font-medium text-stone-900 dark:text-white mb-3">Affected Subjects</h3>
+        <h3 class="text-sm font-medium text-stone-900 dark:text-white mb-3">Affected Courses</h3>
         <div class="max-h-32 overflow-y-auto space-y-2">
           {#each selectedReports as report}
             <div
@@ -248,7 +248,7 @@
                 />
               </svg>
               <p class="text-sm text-amber-800 dark:text-amber-200">
-                Blocked subjects will be hidden from users but can be unblocked later by
+                Blocked courses will be hidden from users but can be unblocked later by
                 administrators.
               </p>
             </div>

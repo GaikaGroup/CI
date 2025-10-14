@@ -7,7 +7,7 @@
   import { Loader, CheckCircle, Server } from 'lucide-svelte';
   import { LLM_FEATURES } from '$lib/config/llm';
   import TypewriterMessage from './TypewriterMessage.svelte';
-  import MathMessage from './MathMessage.svelte';
+  import MathRenderer from '$lib/components/MathRenderer.svelte';
 
   // No props needed anymore, using stores instead
 
@@ -180,16 +180,8 @@
               {/each}
             </div>
           {/if}
-          <div class="text-sm leading-relaxed">
-            {#if shouldAnimate(message)}
-              <TypewriterMessage
-                text={message.content}
-                animate={true}
-                on:complete={() => handleTypewriterComplete(message)}
-              />
-            {:else}
-              <MathMessage content={message.content} className="whitespace-pre-wrap" />
-            {/if}
+          <div class="text-sm leading-relaxed message-content">
+            <MathRenderer content={message.content} className="whitespace-pre-wrap" />
           </div>
 
           {#if message.ocrText}
@@ -249,3 +241,107 @@
     {/each}
   {/if}
 </div>
+
+<style>
+  /* Улучшенные стили для математики в сообщениях чата */
+  .message-content :global(.math-display) {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 1.2em !important;
+    margin: 1.5em 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Темная тема для математики в чате */
+  :global(.dark) .message-content :global(.math-display) {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Увеличиваем размер математики в чате */
+  .message-content :global(.katex) {
+    font-size: 1.2em !important;
+  }
+
+  .message-content :global(.katex-display) {
+    font-size: 1.3em !important;
+  }
+
+  /* Улучшенные стили для дробей в чате */
+  .message-content :global(.katex .frac-line) {
+    border-bottom-width: 0.06em !important;
+  }
+
+  /* Улучшенные стили для больших операторов в чате */
+  .message-content :global(.katex .mop) {
+    font-size: 1.4em !important;
+  }
+
+  .message-content :global(.katex .mop.op-limits) {
+    font-size: 1.5em !important;
+  }
+
+  /* Лучшие отступы для математических элементов в чате */
+  .message-content :global(.katex .mbin) {
+    margin: 0 0.3em !important;
+  }
+
+  .message-content :global(.katex .mrel) {
+    margin: 0 0.35em !important;
+  }
+
+  /* Анимация появления математики в чате */
+  .message-content :global(.math-display) {
+    animation: fadeInMathChat 0.4s ease-out !important;
+  }
+
+  @keyframes fadeInMathChat {
+    from {
+      opacity: 0;
+      transform: translateY(15px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Улучшенная типографика для параграфов с математикой */
+  .message-content :global(p) {
+    margin: 1.5em 0 !important;
+    line-height: 1.8 !important;
+  }
+
+  .message-content :global(p:first-child) {
+    margin-top: 0 !important;
+  }
+
+  .message-content :global(p:last-child) {
+    margin-bottom: 0 !important;
+  }
+
+  /* Стили для жирного текста в математических сообщениях */
+  .message-content :global(strong) {
+    font-weight: 600;
+    color: inherit;
+  }
+
+  /* Адаптивность для мобильных устройств в чате */
+  @media (max-width: 768px) {
+    .message-content :global(.math-display) {
+      padding: 1em 0.8em !important;
+      margin: 1.2em 0 !important;
+      font-size: 0.95em !important;
+    }
+    
+    .message-content :global(.katex) {
+      font-size: 1.1em !important;
+    }
+
+    .message-content :global(.katex-display) {
+      font-size: 1.2em !important;
+    }
+  }
+</style>

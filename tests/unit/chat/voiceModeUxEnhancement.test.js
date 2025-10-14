@@ -107,8 +107,7 @@ describe('AudioBufferManager', () => {
     });
   });
 });
-descri;
-be('InterruptionDetector', () => {
+describe('InterruptionDetector', () => {
   let interruptionDetector;
   let mockMediaStream;
 

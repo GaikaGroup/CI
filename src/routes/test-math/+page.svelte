@@ -1,5 +1,5 @@
 <script>
-  import MathMessage from '$lib/modules/chat/components/MathMessage.svelte';
+  import SimpleMath from '$lib/components/SimpleMath.svelte';
   import { sampleMathResponse } from '$lib/modules/chat/test/mathTest.js';
 
   const testMessage = sampleMathResponse;
@@ -15,7 +15,7 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border">
     <h2 class="text-xl font-semibold mb-4">Test Response:</h2>
     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-      <MathMessage content={testMessage} className="text-gray-800 dark:text-gray-200" />
+      <SimpleMath content={testMessage} className="text-gray-800 dark:text-gray-200" />
     </div>
   </div>
 

@@ -14,10 +14,12 @@ datasource db {
 model Session {
   id           String    @id @default(cuid())
   userId       String    @map("user_id")
+  courseId     String?   @map("course_id") // Link to course in LEARN mode
   title        String    @db.VarChar(500)
   preview      String?   @db.Text
   language     String    @default("en") @db.VarChar(10)
   mode         String    @default("fun") @db.VarChar(20) // 'fun' or 'learn'
+  isHidden     Boolean   @default(false) @map("is_hidden") // For soft delete functionality
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   messageCount Int       @default(0) @map("message_count")
@@ -27,7 +29,9 @@ model Session {
   
   // Indexes
   @@index([userId, updatedAt(sort: Desc)], name: "idx_user_sessions")
+  @@index([courseId, updatedAt(sort: Desc)], name: "idx_course_sessions")
   @@index([title, preview], name: "idx_session_search")
+  @@index([isHidden], name: "idx_session_visibility")
   @@map("sessions")
 }
 

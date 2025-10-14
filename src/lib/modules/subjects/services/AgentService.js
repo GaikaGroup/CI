@@ -1,7 +1,7 @@
 /**
  * Agent Service
  *
- * This service handles CRUD operations for agents within subjects,
+ * This service handles CRUD operations for agents within courses,
  * including validation and orchestration requirement management.
  */
 
@@ -22,8 +22,8 @@ import { validateAgent } from '../types.js';
  * Agent Service class
  */
 export class AgentService {
-  constructor(subjectService) {
-    this.subjectService = subjectService;
+  constructor(courseService) {
+    this.courseService = courseService;
   }
 
   /**
@@ -34,13 +34,13 @@ export class AgentService {
    */
   async createAgent(agentData, subjectId) {
     try {
-      // Get the subject
-      const subjectResult = await this.subjectService.getSubject(subjectId);
-      if (!subjectResult.success) {
+      // Get the course
+      const courseResult = await this.courseService.getCourse(subjectId);
+      if (!courseResult.success) {
         throw new Error('Subject not found');
       }
 
-      const subject = subjectResult.subject;
+      const subject = courseResult.subject;
 
       // Create agent with subject ID
       const agent = createAgent({

@@ -48,18 +48,7 @@
             Sessions
           </a>
         {/if}
-        <a
-          href="/about"
-          class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
-        >
-          {getTranslation($selectedLanguage, 'about')}
-        </a>
-        <a
-          href="/contacts"
-          class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors"
-        >
-          {getTranslation($selectedLanguage, 'contacts')}
-        </a>
+
         {#if $user?.role === 'admin'}
           <ConsoleDropdown />
         {/if}
@@ -128,18 +117,7 @@
             Sessions
           </a>
         {/if}
-        <a
-          href="/about"
-          class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
-        >
-          {getTranslation($selectedLanguage, 'about')}
-        </a>
-        <a
-          href="/contacts"
-          class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700"
-        >
-          {getTranslation($selectedLanguage, 'contacts')}
-        </a>
+
         {#if $user?.role === 'admin'}
           <div class="px-3 py-2">
             <ConsoleDropdown />

@@ -2,6 +2,10 @@ import { json } from '@sveltejs/kit';
 import { container } from '$lib/shared/di/container';
 import { OPENAI_CONFIG } from '$lib/config/api';
 import { LLM_FEATURES } from '$lib/config/llm';
+import { languageDetector } from '$lib/modules/chat/LanguageDetector.js';
+import { sessionLanguageManager } from '$lib/modules/chat/SessionLanguageManager.js';
+import { promptEnhancer } from '$lib/modules/chat/PromptEnhancer.js';
+import { languageConsistencyLogger } from '$lib/modules/chat/LanguageConsistencyLogger.js';
 
 const INTERFACE_LANGUAGE_MAP = {
   en: 'english',
@@ -71,7 +75,7 @@ function formatModeDetails(mode, label) {
   return lines.length > 0 ? lines.join('\n') : null;
 }
 
-function formatSubjectSettings(settings, interfaceLanguageCode, activeMode) {
+function formatCourseSettings(settings, interfaceLanguageCode, activeMode) {
   if (!settings || typeof settings !== 'object') {
     return null;
   }
@@ -82,7 +86,7 @@ function formatSubjectSettings(settings, interfaceLanguageCode, activeMode) {
   if (settings.name || settings.level || settings.language) {
     const headerParts = [];
     if (settings.name) {
-      headerParts.push(`Subject: ${settings.name}`);
+      headerParts.push(`Course: ${settings.name}`);
     }
     if (settings.level) {
       headerParts.push(`Level: ${settings.level}`);
@@ -227,6 +231,72 @@ export async function POST({ request }) {
       examProfile: requestExamProfile
     } = requestBody;
 
+    // Extract session ID for language management
+    const sessionId = sessionContext?.sessionId || `temp_${Date.now()}`;
+
+    // Detect language from user message content
+    let detectedLanguage = language; // Use provided language as fallback
+    let languageConfidence = 0.5;
+    
+    if (content && content.trim().length > 0) {
+      try {
+        const languageDetection = languageDetector.detectWithConfidence(
+          content, 
+          sessionId, 
+          {
+            hasImages: !!(images && images.length > 0),
+            provider: requestedProvider || 'default'
+          }
+        );
+        detectedLanguage = languageDetection.language;
+        languageConfidence = languageDetection.confidence;
+        
+        console.log(`Language detected: ${detectedLanguage} (confidence: ${languageConfidence})`);
+        
+        // Store language preference in session context
+        sessionLanguageManager.setSessionLanguage(
+          sessionId, 
+          detectedLanguage, 
+          languageConfidence,
+          {
+            method: languageDetection.method,
+            userMessage: content.substring(0, 100), // Store first 100 chars for context
+            timestamp: Date.now()
+          }
+        );
+      } catch (error) {
+        console.warn('Language detection failed, using fallback:', error);
+        detectedLanguage = language || 'en';
+        languageConfidence = 0.3;
+        
+        // Log detection failure
+        try {
+          languageConsistencyLogger.logConsistencyIssue(
+            sessionId,
+            'detection_failure',
+            {
+              errorMessage: error.message,
+              severity: 'medium'
+            },
+            {
+              provider: requestedProvider || 'default',
+              messageLength: content?.length || 0
+            }
+          );
+        } catch (logError) {
+          console.warn('Failed to log detection failure:', logError);
+        }
+      }
+    } else {
+      // Try to get language from session if no content to analyze
+      const sessionLanguage = sessionLanguageManager.getSessionLanguage(sessionId);
+      if (sessionLanguage) {
+        detectedLanguage = sessionLanguage.detectedLanguage;
+        languageConfidence = sessionLanguage.confidence;
+        console.log(`Using session language: ${detectedLanguage} (confidence: ${languageConfidence})`);
+      }
+    }
+
     // Log session context if available
     if (sessionContext) {
       console.info('Session context received:', {
@@ -268,7 +338,7 @@ export async function POST({ request }) {
 
     const sessionExamProfile = sessionContext?.context?.examProfile;
     const activeExamProfile = requestExamProfile || sessionExamProfile || null;
-    const subjectSettings = activeExamProfile?.settings ?? null;
+    const courseSettings = activeExamProfile?.settings ?? null;
 
     const activeModeConfig =
       activeExamProfile && activeExamProfile.mode === 'exam'
@@ -307,7 +377,7 @@ export async function POST({ request }) {
 
     // Format according to the specified structure
     if (activeExamProfile) {
-      const subjectLine = `Exam subject: ${activeExamProfile.subjectName}`;
+      const courseLine = `Exam course: ${activeExamProfile.subjectName}`;
       const level = activeExamProfile.level ? ` (Level: ${activeExamProfile.level})` : '';
       const languageLine = activeExamProfile.language
         ? `Target language: ${activeExamProfile.language}.`
@@ -319,7 +389,7 @@ export async function POST({ request }) {
       const modeLine = `Mode: ${
         activeExamProfile.mode === 'exam' ? 'Exam simulation' : 'Practice coaching'
       }.`;
-      fullContent += `${subjectLine}${level ? level : ''}\n${modeLine}`;
+      fullContent += `${courseLine}${level ? level : ''}\n${modeLine}`;
       if (languageLine) fullContent += `\n${languageLine}`;
       if (skillsLine) fullContent += `\n${skillsLine}`;
       if (activeModeConfig?.summary) {
@@ -355,11 +425,8 @@ export async function POST({ request }) {
     // Check if a specific provider was requested
     const requestedProvider = requestBody.provider;
 
-    // Prepare the messages for the LLM
-    const messages = [
-      {
-        role: 'system',
-        content: `You are a helpful AI tutor. Respond in ${language || 'English'}.
+    // Create base system prompt
+    const baseSystemPrompt = `You are a helpful AI tutor. Respond in ${detectedLanguage === 'ru' ? 'Russian' : detectedLanguage === 'es' ? 'Spanish' : 'English'}.
 
 Use the prior conversation messages and any provided documents to maintain context.
 
@@ -381,7 +448,25 @@ Your task:
 6. If the text recognition was incomplete or unclear, ask the user if they would like to try uploading a clearer image or typing the text manually.
 7. Always be helpful and supportive, even if the text recognition was not perfect.
 8. IMPORTANT: If you see a note about "Image processing will be performed in the browser", this means the image is already uploaded and is being processed. Respond with: "I can see you've uploaded an image. I'll analyze the content once the image processing is complete. Please wait a moment."
-9. CRITICAL: If there are NO images attached to the message (i.e., no OCR Processing Note is present), do NOT mention image processing or image analysis in your response. Only mention images if they are actually present in the user's message.`
+9. CRITICAL: If there are NO images attached to the message (i.e., no OCR Processing Note is present), do NOT mention image processing or image analysis in your response. Only mention images if they are actually present in the user's message.`;
+
+    // Check if there were previous language inconsistencies for this session
+    const sessionLanguageState = sessionLanguageManager.getSessionLanguage(sessionId);
+    const hasLanguageMixing = sessionLanguageState?.validationHistory?.some(v => !v.isValid) || false;
+
+    // Enhance system prompt with language constraints based on confidence and history
+    const enhancedSystemPrompt = promptEnhancer.enhanceSystemPrompt(
+      baseSystemPrompt,
+      detectedLanguage,
+      languageConfidence,
+      { hasLanguageMixing }
+    );
+
+    // Prepare the messages for the LLM
+    const messages = [
+      {
+        role: 'system',
+        content: enhancedSystemPrompt
       }
     ];
 
@@ -394,8 +479,8 @@ Your task:
 
     if (activeExamProfile) {
       // Inject fully formatted universal exam settings (if provided)
-      const formattedSettings = formatSubjectSettings(
-        subjectSettings,
+      const formattedSettings = formatCourseSettings(
+        courseSettings,
         language,
         activeExamProfile.mode
       );
@@ -432,8 +517,11 @@ Your task:
     // Add the current user question
     messages.push({ role: 'user', content: fullContent });
 
+    // Apply language constraints to all messages
+    const enhancedMessages = promptEnhancer.addLanguageConstraints(messages, detectedLanguage);
+
     if (detailLevel === 'detailed') {
-      messages.unshift({
+      enhancedMessages.unshift({
         role: 'system',
         content:
           'The student requested a detailed explanation. Respond comprehensively with background, step-by-step reasoning, and relevant examples.'
@@ -441,7 +529,7 @@ Your task:
     }
 
     if (adjustedMinWords) {
-      messages.unshift({
+      enhancedMessages.unshift({
         role: 'system',
         content: `The student expects a detailed essay of at least ${adjustedMinWords} words. Do not stop early.`
       });
@@ -463,13 +551,113 @@ Your task:
     }
 
     // Generate completion using the provider manager
-    const result = await providerManager.generateChatCompletion(messages, options);
+    const result = await providerManager.generateChatCompletion(enhancedMessages, options);
 
     // Log which provider was used
     console.info(`Response generated using provider: ${result.provider}, model: ${result.model}`);
 
     // Extract the response content
-    const aiResponse = result.content;
+    let aiResponse = result.content;
+
+    // Validate response language consistency
+    try {
+      const validationResult = languageDetector.validateLanguageConsistency(
+        aiResponse, 
+        detectedLanguage, 
+        sessionId,
+        {
+          provider: result.provider,
+          model: result.model,
+          responseLength: aiResponse?.length || 0
+        }
+      );
+      
+      // Log validation result for monitoring
+      console.log(`Language validation: ${validationResult.isConsistent ? 'PASS' : 'FAIL'}`, {
+        sessionId,
+        expectedLanguage: detectedLanguage,
+        detectedLanguage: validationResult.detectedLanguage,
+        confidence: validationResult.confidence,
+        severity: validationResult.severity,
+        recommendation: validationResult.recommendation
+      });
+
+      // Add validation result to session history
+      sessionLanguageManager.addValidationResult(sessionId, validationResult);
+
+      // Handle validation failures
+      if (!validationResult.isConsistent && validationResult.severity === 'high') {
+        console.warn(`High severity language inconsistency detected in session ${sessionId}:`, {
+          expected: detectedLanguage,
+          detected: validationResult.detectedLanguage,
+          confidence: validationResult.confidence,
+          recommendation: validationResult.recommendation
+        });
+
+        // For high severity issues, we could regenerate the response or return an error
+        // For now, we'll log the issue and continue with the original response
+        // In a future enhancement, we could implement automatic regeneration here
+        
+        if (validationResult.recommendation === 'regenerate') {
+          // Log that regeneration is recommended but not implemented yet
+          console.warn(`Response regeneration recommended but not implemented for session ${sessionId}`);
+          
+          // Log the regeneration recommendation as a consistency issue
+          try {
+            languageConsistencyLogger.logConsistencyIssue(
+              sessionId,
+              'regeneration_recommended',
+              {
+                expectedLanguage: detectedLanguage,
+                detectedLanguage: validationResult.detectedLanguage,
+                confidence: validationResult.confidence,
+                severity: validationResult.severity,
+                recommendation: validationResult.recommendation
+              },
+              {
+                provider: result.provider,
+                model: result.model,
+                responseLength: aiResponse?.length || 0
+              }
+            );
+          } catch (logError) {
+            console.warn('Failed to log regeneration recommendation:', logError);
+          }
+        }
+      }
+
+      // For medium severity issues, just log for monitoring
+      if (!validationResult.isConsistent && validationResult.severity === 'medium') {
+        console.info(`Medium severity language inconsistency detected in session ${sessionId}`, {
+          expected: detectedLanguage,
+          detected: validationResult.detectedLanguage
+        });
+      }
+
+    } catch (validationError) {
+      console.error('Language validation failed:', validationError);
+      
+      // Log validation failure as a consistency issue
+      try {
+        languageConsistencyLogger.logConsistencyIssue(
+          sessionId,
+          'validation_error',
+          {
+            errorMessage: validationError.message,
+            severity: 'high'
+          },
+          {
+            provider: result.provider,
+            model: result.model,
+            responseLength: aiResponse?.length || 0
+          }
+        );
+      } catch (logError) {
+        console.warn('Failed to log validation error:', logError);
+      }
+      
+      // Continue with original response if validation fails
+    }
 
     // Include provider information in the response (if in development mode or provider switching is enabled)
     const includeProviderInfo = import.meta.env.DEV || LLM_FEATURES.ENABLE_PROVIDER_SWITCHING;

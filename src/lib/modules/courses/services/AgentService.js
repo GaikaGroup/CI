@@ -15,8 +15,8 @@ import {
   getAgentById,
   updateAgent,
   removeAgent
-} from '../agents.js';
-import { validateAgent } from '../types.js';
+} from '../../subjects/agents.js';
+import { validateAgent } from '../../subjects/types.js';
 
 /**
  * Agent Service class
@@ -62,9 +62,9 @@ export class AgentService {
       const hasOrchestration = hasOrchestrationAgent(updatedAgents) || course.orchestrationAgent;
 
       if (needsOrchestration && !hasOrchestration) {
-        // Auto-create orchestration agent
-        // const orchestrationInstructions = createOrchestrationInstructions(updatedAgents);
-        // This would be handled by the course service
+        throw new Error(
+          'Adding this agent requires an orchestration agent. Please create an orchestration agent first.'
+        );
       }
 
       // Update course with new agent
@@ -119,6 +119,7 @@ export class AgentService {
         throw new Error(`Agent configuration invalid: ${agentValidation.errors.join(', ')}`);
       }
 
+      // Get the updated agent for return
       const updatedAgent = updatedAgents.find((a) => a.id === agentId);
 
       // Update course
@@ -166,10 +167,21 @@ export class AgentService {
       // Remove agent from course's agents array
       const updatedAgents = removeAgent(course.agents, agentId);
 
+      // If we're removing the last course agent and there's an orchestration agent, remove it too
+      const courseAgents = updatedAgents.filter((a) => a.type === AGENT_TYPES.SUBJECT);
+      let orchestrationAgent = course.orchestrationAgent;
+
+      if (courseAgents.length <= 1 && orchestrationAgent) {
+        orchestrationAgent = null;
+      }
+
       // Update course
       const updateResult = await this.courseService.updateCourse(
         course.id,
-        { agents: updatedAgents },
+        {
+          agents: updatedAgents,
+          orchestrationAgent
+        },
         course.creatorId,
         course.creatorRole
       );
@@ -192,45 +204,20 @@ export class AgentService {
   }
 
   /**
-   * Get an agent by ID
-   * @param {string} agentId - Agent ID
-   * @returns {Promise<Object>} Agent data or error
+   * Validate agent configuration for a course
+   * @param {Object} agentData - Agent data to validate
+   * @returns {Object} Validation result
    */
-  async getAgent(agentId) {
-    try {
-      const courseResult = await this.findCourseByAgentId(agentId);
-      if (!courseResult.success) {
-        return {
-          success: false,
-          error: 'Agent not found',
-          agent: null
-        };
-      }
-
-      const { course } = courseResult;
-      const agent = getAgentById(course.agents, agentId);
-
-      return {
-        success: true,
-        agent,
-        course: course
-      };
-    } catch (error) {
-      console.error('Error getting agent:', error);
-      return {
-        success: false,
-        error: error.message,
-        agent: null
-      };
-    }
+  validateAgentConfiguration(agentData) {
+    return validateAgent(agentData);
   }
 
   /**
-   * List agents for a course
+   * Check orchestration requirement for a course
    * @param {string} courseId - Course ID
-   * @returns {Promise<Object>} List of agents
+   * @returns {Promise<Object>} Orchestration requirement result
    */
-  async listAgentsForCourse(courseId) {
+  async checkOrchestrationRequirement(courseId) {
     try {
       const courseResult = await this.courseService.getCourse(courseId);
       if (!courseResult.success) {
@@ -238,62 +225,17 @@ export class AgentService {
       }
 
       const course = courseResult.course;
+      const needsOrchestration = requiresOrchestrationAgent(course.agents);
+      const hasOrchestration = hasOrchestrationAgent(course.agents) || course.orchestrationAgent;
 
       return {
         success: true,
-        agents: course.agents || [],
-        orchestrationAgent: course.orchestrationAgent || null,
-        total: (course.agents || []).length + (course.orchestrationAgent ? 1 : 0)
+        needsOrchestration,
+        hasOrchestration,
+        isValid: !needsOrchestration || hasOrchestration
       };
     } catch (error) {
-      console.error('Error listing agents:', error);
-      return {
-        success: false,
-        error: error.message,
-        agents: [],
-        total: 0
-      };
-    }
-  }
-
-  /**
-   * Find course by agent ID
-   * @param {string} agentId - Agent ID
-   * @returns {Promise<Object>} Course containing the agent
-   */
-  async findCourseByAgentId(agentId) {
-    try {
-      const coursesResult = await this.courseService.listCourses();
-      if (!coursesResult.success) {
-        throw new Error('Failed to list courses');
-      }
-
-      for (const course of coursesResult.courses) {
-        const agent = getAgentById(course.agents || [], agentId);
-        if (agent) {
-          return {
-            success: true,
-            course,
-            agent
-          };
-        }
-
-        // Check orchestration agent
-        if (course.orchestrationAgent && course.orchestrationAgent.id === agentId) {
-          return {
-            success: true,
-            course,
-            agent: course.orchestrationAgent
-          };
-        }
-      }
-
-      return {
-        success: false,
-        error: 'Agent not found in any course'
-      };
-    } catch (error) {
-      console.error('Error finding course by agent ID:', error);
+      console.error('Error checking orchestration requirement:', error);
       return {
         success: false,
         error: error.message
@@ -302,11 +244,12 @@ export class AgentService {
   }
 
   /**
-   * Validate agent configuration for a course
+   * Create an orchestration agent for a course
    * @param {string} courseId - Course ID
-   * @returns {Promise<Object>} Validation result
+   * @param {Object} orchestrationData - Orchestration agent data
+   * @returns {Promise<Object>} Created orchestration agent or error
    */
-  async validateCourseAgentConfiguration(courseId) {
+  async createOrchestrationAgent(courseId, orchestrationData = {}) {
     try {
       const courseResult = await this.courseService.getCourse(courseId);
       if (!courseResult.success) {
@@ -314,55 +257,28 @@ export class AgentService {
       }
 
       const course = courseResult.course;
-      const validation = validateAgentConfiguration(course.agents, course.orchestrationAgent);
+      const courseAgents = course.agents.filter((agent) => agent.type === AGENT_TYPES.SUBJECT);
 
-      return {
-        success: true,
-        validation
-      };
-    } catch (error) {
-      console.error('Error validating agent configuration:', error);
-      return {
-        success: false,
-        error: error.message,
-        validation: { isValid: false, errors: [error.message] }
-      };
-    }
-  }
-
-  /**
-   * Create orchestration agent for a course
-   * @param {string} courseId - Course ID
-   * @returns {Promise<Object>} Creation result
-   */
-  async createOrchestrationAgent(courseId) {
-    try {
-      const courseResult = await this.courseService.getCourse(courseId);
-      if (!courseResult.success) {
-        throw new Error('Course not found');
-      }
-
-      const course = courseResult.course;
-
-      // Check if orchestration agent is needed
-      const needsOrchestration = requiresOrchestrationAgent(course.agents || []);
-      if (!needsOrchestration) {
-        return {
-          success: false,
-          error: 'Orchestration agent not needed for this course'
-        };
-      }
+      // Generate default instructions if not provided
+      const instructions =
+        orchestrationData.instructions || createOrchestrationInstructions(courseAgents);
 
       // Create orchestration agent
-      const instructions = createOrchestrationInstructions(course.agents || []);
       const orchestrationAgent = createAgent({
-        name: `${course.name} Orchestrator`,
+        name: orchestrationData.name || `${course.name} Orchestrator`,
         type: AGENT_TYPES.ORCHESTRATION,
         instructions,
-        courseId
+        courseId,
+        ...orchestrationData
       });
 
-      // Update course
+      // Validate orchestration agent
+      const validation = validateAgent(orchestrationAgent);
+      if (!validation.isValid) {
+        throw new Error(`Orchestration agent validation failed: ${validation.errors.join(', ')}`);
+      }
+
+      // Update course with orchestration agent
       const updateResult = await this.courseService.updateCourse(
         courseId,
         { orchestrationAgent },
@@ -385,6 +301,86 @@ export class AgentService {
         success: false,
         error: error.message,
         agent: null
+      };
+    }
+  }
+
+  /**
+   * Find course by agent ID
+   * @param {string} agentId - Agent ID
+   * @returns {Promise<Object>} Course and agent or error
+   */
+  async findCourseByAgentId(agentId) {
+    try {
+      const coursesResult = await this.courseService.listCourses();
+      if (!coursesResult.success) {
+        throw new Error('Failed to load courses');
+      }
+
+      for (const course of coursesResult.courses) {
+        const agent = getAgentById(course.agents, agentId);
+        if (agent) {
+          return {
+            success: true,
+            course,
+            agent
+          };
+        }
+
+        // Check orchestration agent
+        if (course.orchestrationAgent && course.orchestrationAgent.id === agentId) {
+          return {
+            success: true,
+            course,
+            agent: course.orchestrationAgent
+          };
+        }
+      }
+
+      return {
+        success: false,
+        error: 'Agent not found'
+      };
+    } catch (error) {
+      console.error('Error finding course by agent ID:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Get agents for a course
+   * @param {string} courseId - Course ID
+   * @returns {Promise<Object>} Agents list or error
+   */
+  async getAgentsForCourse(courseId) {
+    try {
+      const courseResult = await this.courseService.getCourse(courseId);
+      if (!courseResult.success) {
+        throw new Error('Course not found');
+      }
+
+      const course = courseResult.course;
+      const agents = [...course.agents];
+
+      if (course.orchestrationAgent) {
+        agents.push(course.orchestrationAgent);
+      }
+
+      return {
+        success: true,
+        agents,
+        courseAgents: course.agents.filter((a) => a.type === AGENT_TYPES.SUBJECT),
+        orchestrationAgent: course.orchestrationAgent
+      };
+    } catch (error) {
+      console.error('Error getting agents for course:', error);
+      return {
+        success: false,
+        error: error.message,
+        agents: []
       };
     }
   }

@@ -1,6 +1,21 @@
 /* KaTeX CSS for math rendering */
 @import 'katex/dist/katex.min.css';
 
+/* Ensure KaTeX styles are preserved */
+.katex {
+  font-family: KaTeX_Main, "Times New Roman", serif !important;
+}
+
+.katex .base {
+  display: inline-block !important;
+}
+
+.katex-display {
+  display: block !important;
+  margin: 1em 0 !important;
+  text-align: center !important;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

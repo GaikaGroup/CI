@@ -2,7 +2,7 @@
  * Report Management Module
  *
  * This module provides utilities for managing content moderation reports
- * for subjects, including validation and status management.
+ * for courses, including validation and status management.
  */
 
 // Report validation is handled by types.js when needed
@@ -45,7 +45,7 @@ export const REPORT_REASONS = {
 export function createReport(reportData) {
   return {
     id: reportData.id || generateReportId(),
-    subjectId: reportData.subjectId || '',
+    courseId: reportData.subjectId || reportData.courseId || '',
     reporterId: reportData.reporterId || '',
     reason: reportData.reason || '',
     details: reportData.details || '',
@@ -101,9 +101,9 @@ export function getReportsByStatus(reports, status) {
 }
 
 /**
- * Get reports for a specific subject
+ * Get reports for a specific course
  * @param {Object[]} reports - Array of reports
- * @param {string} subjectId - Subject ID to filter by
+ * @param {string} courseId - Course ID to filter by (also accepts subjectId for backward compatibility)
  * @returns {Object[]} Filtered reports
  */
 export function getReportsForSubject(reports, subjectId) {

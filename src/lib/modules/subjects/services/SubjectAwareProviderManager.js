@@ -117,8 +117,8 @@ export class SubjectAwareProviderManager extends ProviderManager {
   }
 
   /**
-   * Get non-OpenAI provider for subjects that opt out
-   * @param {Object} subjectLLMSettings - Subject LLM settings
+   * Get non-OpenAI provider for courses that opt out
+   * @param {Object} courseLLMSettings - Course LLM settings
    * @returns {string} - Non-OpenAI provider name
    */
   getNonOpenAIProvider(subjectLLMSettings) {

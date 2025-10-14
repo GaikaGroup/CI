@@ -7,6 +7,7 @@
 import { writable, derived, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import { user, isAuthenticated } from '$lib/modules/auth/stores.js';
+import { getApiModeFromAppMode } from '$lib/utils/modeMapping.js';
 
 const DATABASE_NOT_READY_FALLBACK_MESSAGE =
   'Session persistence is unavailable. Run "prisma generate" and ensure the Postgres instance is running.';
@@ -134,12 +135,15 @@ function createSessionStore() {
 
       try {
         const currentState = get({ subscribe });
+        const requestedMode = options.mode !== undefined ? options.mode : currentState.filters.mode;
+        const apiMode = requestedMode ? getApiModeFromAppMode(requestedMode) : null;
+        
         const loadOptions = {
           page: options.page || currentState.pagination.currentPage,
           limit: options.limit || currentState.pagination.limit,
           sortBy: options.sortBy || currentState.filters.sortBy,
           sortOrder: options.sortOrder || currentState.filters.sortOrder,
-          mode: options.mode !== undefined ? options.mode : currentState.filters.mode,
+          mode: apiMode,
           language:
             options.language !== undefined ? options.language : currentState.filters.language,
           dateFrom:
@@ -175,7 +179,7 @@ function createSessionStore() {
     /**
      * Create a new session
      */
-    async createSession(title, mode = 'fun', language = 'en', preview = null) {
+    async createSession(title, mode = 'fun', language = 'en', preview = null, courseId = null) {
       const currentUser = get(user);
       if (!currentUser) {
         throw new Error('User not authenticated');
@@ -185,12 +189,15 @@ function createSessionStore() {
       this.setError(null);
 
       try {
+        // Map the app mode to API mode for session creation
+        const apiMode = getApiModeFromAppMode(mode);
+        
         const response = await fetch('/api/sessions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ title, mode, language, preview })
+          body: JSON.stringify({ title, mode: apiMode, language, preview, courseId })
         });
 
         const newSession = await this.handleApiResponse(response, 'Failed to create session');
@@ -253,16 +260,20 @@ function createSessionStore() {
     },
 
     /**
-     * Delete a session
+     * Delete a session (soft delete by default)
      */
-    async deleteSession(sessionId) {
+    async deleteSession(sessionId, hardDelete = false) {
       const currentUser = get(user);
       if (!currentUser) {
         throw new Error('User not authenticated');
       }
 
       try {
-        const response = await fetch(`/api/sessions/${sessionId}`, {
+        const url = hardDelete 
+          ? `/api/sessions/${sessionId}?hard=true`
+          : `/api/sessions/${sessionId}`;
+
+        const response = await fetch(url, {
           method: 'DELETE'
         });
 
@@ -306,11 +317,14 @@ function createSessionStore() {
 
       try {
         const currentState = get({ subscribe });
+        const requestedMode = options.mode !== undefined ? options.mode : currentState.filters.mode;
+        const apiMode = requestedMode ? getApiModeFromAppMode(requestedMode) : null;
+        
         const searchOptions = {
           search: query,
           page: options.page || 1,
           limit: options.limit || currentState.pagination.limit,
-          mode: options.mode !== undefined ? options.mode : currentState.filters.mode,
+          mode: apiMode,
           language:
             options.language !== undefined ? options.language : currentState.filters.language,
           dateFrom:

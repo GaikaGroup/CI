@@ -110,7 +110,7 @@ async function withRetry(operation, config = RETRY_CONFIG) {
  * @throws {SessionValidationError} If validation fails
  */
 function validateSessionData(sessionData) {
-  const { title, mode, language, userId } = sessionData;
+  const { title, mode, language, userId, courseId } = sessionData;
 
   if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
     throw new SessionValidationError('User ID is required', 'userId');
@@ -133,6 +133,15 @@ function validateSessionData(sessionData) {
       'Language must be a valid language code (max 10 characters)',
       'language'
     );
+  }
+
+  // Validate courseId for LEARN mode
+  if (mode === 'learn' && (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)) {
+    throw new SessionValidationError('Course ID is required for LEARN mode sessions', 'courseId');
+  }
+
+  if (courseId && (typeof courseId !== 'string' || courseId.trim().length === 0)) {
+    throw new SessionValidationError('Course ID must be a valid string', 'courseId');
   }
 }
 
@@ -179,6 +188,7 @@ export class SessionService {
    * @param {string} mode - Session mode ('fun' or 'learn')
    * @param {string} language - Session language (default: 'en')
    * @param {string} preview - Optional session preview text
+   * @param {string} courseId - Course ID for LEARN mode sessions
    * @param {boolean} createWelcomeMessage - Whether to create a welcome message (default: true)
    * @returns {Promise<Object>} Created session object
    */
@@ -188,9 +198,10 @@ export class SessionService {
     mode = 'fun',
     language = 'en',
     preview = null,
+    courseId = null,
     createWelcomeMessage = true
   ) {
-    const sessionData = { userId, title, mode, language, preview };
+    const sessionData = { userId, title, mode, language, preview, courseId };
     validateSessionData(sessionData);
 
     return withRetry(async () => {
@@ -204,7 +215,8 @@ export class SessionService {
               title: title.trim(),
               mode,
               language,
-              preview: preview?.trim() || null
+              preview: preview?.trim() || null,
+              courseId: courseId?.trim() || null
             }
           });
 
@@ -266,6 +278,7 @@ export class SessionService {
    * @param {string} options.language - Filter by language
    * @param {string} options.dateFrom - Filter sessions from this date (ISO string)
    * @param {string} options.dateTo - Filter sessions to this date (ISO string)
+   * @param {boolean} options.includeHidden - Include hidden sessions (admin only)
    * @returns {Promise<Object>} Paginated sessions result
    */
   static async getUserSessions(userId, options = {}) {
@@ -281,7 +294,8 @@ export class SessionService {
       mode = null,
       language = null,
       dateFrom = null,
-      dateTo = null
+      dateTo = null,
+      includeHidden = false
     } = options;
 
     // Validate pagination parameters
@@ -296,6 +310,11 @@ export class SessionService {
     const where = { userId };
     if (mode) where.mode = mode;
     if (language) where.language = language;
+    
+    // Hide soft-deleted sessions unless explicitly requested
+    if (!includeHidden) {
+      where.isHidden = false;
+    }
 
     // Add date range filtering
     if (dateFrom || dateTo) {
@@ -361,20 +380,28 @@ export class SessionService {
    * @param {string} sessionId - Session ID
    * @param {string} userId - User ID (for authorization)
    * @param {boolean} includeMessages - Whether to include messages
+   * @param {boolean} includeHidden - Include hidden sessions (admin only)
    * @returns {Promise<Object>} Session object
    */
-  static async getSession(sessionId, userId, includeMessages = false) {
+  static async getSession(sessionId, userId, includeMessages = false, includeHidden = false) {
     if (!sessionId || !userId) {
       throw new SessionValidationError('Session ID and User ID are required');
     }
 
     return withRetry(async () => {
       try {
+        const where = {
+          id: sessionId,
+          userId // Ensure user can only access their own sessions
+        };
+        
+        // Hide soft-deleted sessions unless explicitly requested
+        if (!includeHidden) {
+          where.isHidden = false;
+        }
+
         const session = await db.session.findFirst({
-          where: {
-            id: sessionId,
-            userId // Ensure user can only access their own sessions
-          },
+          where,
           include: {
             messages: includeMessages
               ? {
@@ -485,7 +512,104 @@ export class SessionService {
   }
 
   /**
-   * Delete a session and all its messages
+   * Soft delete a session (hide it from user view)
+   * @param {string} sessionId - Session ID
+   * @param {string} userId - User ID (for authorization)
+   * @returns {Promise<boolean>} True if soft deleted successfully
+   */
+  static async softDeleteSession(sessionId, userId) {
+    if (!sessionId || !userId) {
+      throw new SessionValidationError('Session ID and User ID are required');
+    }
+
+    return withRetry(async () => {
+      try {
+        // First check if session exists and belongs to user
+        const existingSession = await db.session.findFirst({
+          where: { id: sessionId, userId, isHidden: false }
+        });
+
+        if (!existingSession) {
+          throw new SessionNotFoundError(sessionId);
+        }
+
+        // Check if session is in FUN mode (only FUN sessions can be soft deleted by users)
+        if (existingSession.mode !== 'fun') {
+          throw new SessionValidationError('Only FUN mode sessions can be deleted', 'mode');
+        }
+
+        // Soft delete by setting isHidden to true
+        await db.session.update({
+          where: { id: sessionId },
+          data: { isHidden: true }
+        });
+
+        console.log(`Session soft deleted: ${sessionId} by user: ${userId}`);
+        return true;
+      } catch (error) {
+        if (error instanceof SessionNotFoundError || error instanceof SessionValidationError) {
+          throw error;
+        }
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
+        throw new SessionError(
+          `Failed to soft delete session: ${error.message}`,
+          'SESSION_SOFT_DELETE_FAILED',
+          { sessionId, userId }
+        );
+      }
+    });
+  }
+
+  /**
+   * Restore a soft deleted session (admin only)
+   * @param {string} sessionId - Session ID
+   * @param {string} userId - User ID (for authorization)
+   * @returns {Promise<boolean>} True if restored successfully
+   */
+  static async restoreSession(sessionId, userId) {
+    if (!sessionId || !userId) {
+      throw new SessionValidationError('Session ID and User ID are required');
+    }
+
+    return withRetry(async () => {
+      try {
+        // First check if session exists and belongs to user
+        const existingSession = await db.session.findFirst({
+          where: { id: sessionId, userId, isHidden: true }
+        });
+
+        if (!existingSession) {
+          throw new SessionNotFoundError(sessionId);
+        }
+
+        // Restore by setting isHidden to false
+        await db.session.update({
+          where: { id: sessionId },
+          data: { isHidden: false }
+        });
+
+        console.log(`Session restored: ${sessionId} by user: ${userId}`);
+        return true;
+      } catch (error) {
+        if (error instanceof SessionNotFoundError) {
+          throw error;
+        }
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
+        throw new SessionError(
+          `Failed to restore session: ${error.message}`,
+          'SESSION_RESTORE_FAILED',
+          { sessionId, userId }
+        );
+      }
+    });
+  }
+
+  /**
+   * Hard delete a session and all its messages (admin only)
    * @param {string} sessionId - Session ID
    * @param {string} userId - User ID (for authorization)
    * @returns {Promise<boolean>} True if deleted successfully
@@ -511,7 +635,7 @@ export class SessionService {
           where: { id: sessionId }
         });
 
-        console.log(`Session deleted: ${sessionId} by user: ${userId}`);
+        console.log(`Session hard deleted: ${sessionId} by user: ${userId}`);
         return true;
       } catch (error) {
         if (error instanceof SessionNotFoundError) {
@@ -643,6 +767,188 @@ export class SessionService {
           'SESSION_SEARCH_FAILED',
           { userId, query, options }
         );
+      }
+    });
+  }
+
+  /**
+   * Get all sessions across all users (admin only)
+   * @param {Object} options - Pagination and filtering options
+   * @param {number} options.page - Page number (1-based)
+   * @param {number} options.limit - Number of sessions per page
+   * @param {string} options.sortBy - Sort field ('updatedAt', 'createdAt', 'title')
+   * @param {string} options.sortOrder - Sort order ('asc' or 'desc')
+   * @param {string} options.mode - Filter by mode ('fun' or 'learn')
+   * @param {string} options.language - Filter by language
+   * @param {string} options.dateFrom - Filter sessions from this date (ISO string)
+   * @param {string} options.dateTo - Filter sessions to this date (ISO string)
+   * @param {boolean} options.includeHidden - Include hidden sessions (default: true)
+   * @param {boolean} options.hiddenOnly - Show only hidden sessions (default: false)
+   * @returns {Promise<Object>} Paginated sessions result
+   */
+  static async getAllSessions(options = {}) {
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = 'updatedAt',
+      sortOrder = 'desc',
+      mode = null,
+      language = null,
+      dateFrom = null,
+      dateTo = null,
+      includeHidden = true,
+      hiddenOnly = false
+    } = options;
+
+    // Validate pagination parameters
+    if (page < 1 || limit < 1 || limit > 100) {
+      throw new SessionValidationError('Invalid pagination parameters', 'pagination');
+    }
+
+    const skip = (page - 1) * limit;
+    const orderBy = { [sortBy]: sortOrder };
+
+    // Build where clause with filters
+    const where = {};
+    if (mode) where.mode = mode;
+    if (language) where.language = language;
+    
+    // Handle hidden session filtering
+    if (hiddenOnly) {
+      where.isHidden = true;
+    } else if (!includeHidden) {
+      where.isHidden = false;
+    }
+
+    // Add date range filtering
+    if (dateFrom || dateTo) {
+      where.updatedAt = {};
+      if (dateFrom) where.updatedAt.gte = new Date(dateFrom);
+      if (dateTo) where.updatedAt.lte = new Date(dateTo);
+    }
+
+    return withRetry(async () => {
+      try {
+        const [sessions, totalCount] = await Promise.all([
+          db.session.findMany({
+            where,
+            orderBy,
+            skip,
+            take: limit,
+            include: {
+              _count: {
+                select: { messages: true }
+              }
+            }
+          }),
+          db.session.count({ where })
+        ]);
+
+        // Update messageCount for sessions where it might be out of sync
+        const sessionsWithCorrectCount = sessions.map((session) => ({
+          ...session,
+          messageCount: session._count.messages,
+          _count: undefined // Remove the _count field from response
+        }));
+
+        const totalPages = Math.ceil(totalCount / limit);
+        const hasNextPage = page < totalPages;
+        const hasPreviousPage = page > 1;
+
+        return {
+          sessions: sessionsWithCorrectCount,
+          pagination: {
+            currentPage: page,
+            totalPages,
+            totalCount,
+            limit,
+            hasNextPage,
+            hasPreviousPage
+          }
+        };
+      } catch (error) {
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
+        throw new SessionError(
+          `Failed to get all sessions: ${error.message}`,
+          'SESSION_FETCH_FAILED',
+          { options }
+        );
+      }
+    });
+  }
+
+  /**
+   * Get a specific session by ID (admin version - can access any session)
+   * @param {string} sessionId - Session ID
+   * @param {boolean} isAdmin - Whether the requester is admin
+   * @param {string} userId - User ID (for authorization if not admin)
+   * @param {boolean} includeMessages - Whether to include messages
+   * @returns {Promise<Object>} Session object
+   */
+  static async getSessionById(sessionId, isAdmin = false, userId = null, includeMessages = false) {
+    if (!sessionId) {
+      throw new SessionValidationError('Session ID is required');
+    }
+
+    if (!isAdmin && !userId) {
+      throw new SessionValidationError('User ID is required for non-admin access');
+    }
+
+    return withRetry(async () => {
+      try {
+        const where = { id: sessionId };
+        
+        // Non-admin users can only access their own non-hidden sessions
+        if (!isAdmin) {
+          where.userId = userId;
+          where.isHidden = false;
+        }
+
+        const session = await db.session.findFirst({
+          where,
+          include: {
+            messages: includeMessages
+              ? {
+                  orderBy: { createdAt: 'asc' }
+                }
+              : false,
+            _count: {
+              select: { messages: true }
+            }
+          }
+        });
+
+        if (!session) {
+          throw new SessionNotFoundError(sessionId);
+        }
+
+        // Update messageCount if it's out of sync
+        if (session.messageCount !== session._count.messages) {
+          await db.session.update({
+            where: { id: sessionId },
+            data: { messageCount: session._count.messages }
+          });
+          session.messageCount = session._count.messages;
+        }
+
+        // Remove _count from response
+        delete session._count;
+
+        return session;
+      } catch (error) {
+        if (error instanceof SessionNotFoundError) {
+          throw error;
+        }
+        if (isDatabaseNotReadyError(error)) {
+          throw error;
+        }
+        throw new SessionError(`Failed to get session: ${error.message}`, 'SESSION_FETCH_FAILED', {
+          sessionId,
+          userId,
+          isAdmin
+        });
       }
     });
   }

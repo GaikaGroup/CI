@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher, onDestroy } from 'svelte';
-  import MathMessage from './MathMessage.svelte';
+  import MathRenderer from '$lib/components/MathRenderer.svelte';
 
   export let text = '';
   export let animate = false;
@@ -69,4 +69,4 @@
   });
 </script>
 
-<MathMessage content={displayText} className="whitespace-pre-wrap leading-relaxed" />
+<MathRenderer content={displayText} className="whitespace-pre-wrap leading-relaxed" />

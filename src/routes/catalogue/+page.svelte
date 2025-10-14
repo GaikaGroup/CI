@@ -239,7 +239,7 @@
               <p
                 class="text-sm font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300"
               >
-                {getTranslation($selectedLanguage, 'learnCurrentSubject')}
+                {getTranslation($selectedLanguage, 'learnCurrentCourse')}
               </p>
               <h2 class="text-2xl font-semibold text-stone-900 dark:text-white">
                 {$examProfile.courseName}
@@ -266,7 +266,7 @@
           </div>
           <div class="flex items-start gap-3">
             <Button variant="secondary" on:click={handleChangeCourse}>
-              {getTranslation($selectedLanguage, 'learnChangeSubject')}
+              {getTranslation($selectedLanguage, 'learnChangeCourse')}
             </Button>
           </div>
         </div>

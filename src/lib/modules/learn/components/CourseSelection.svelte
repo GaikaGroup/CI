@@ -60,7 +60,7 @@
   });
 
   $: enrolledCourseIds = new Set(
-    ($activeEnrollments ?? []).map((enrollment) => enrollment.courseId)
+    ($activeEnrollments ?? []).map((enrollment) => enrollment.subjectId || enrollment.courseId)
   );
 
   const isCourseEnrolled = (course) => {

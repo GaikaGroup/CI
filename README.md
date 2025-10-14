@@ -1,8 +1,21 @@
 # AI Tutor Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-4.0+-orange)](https://kit.svelte.dev/)
+
 ## Overview
 
-AI Tutor Platform is a SvelteKit-based web application that demonstrates how modern language models, speech tools and computer vision can come together to build an engaging learning assistant. The project offers both text and voice chat modes, understands documents and images, and can run on either cloud models such as OpenAI or locally hosted models via [Ollama](https://github.com/ollama/ollama).
+AI Tutor Platform is a modern, full-stack educational application built with SvelteKit that demonstrates how AI language models, speech processing, and computer vision can create engaging learning experiences. The platform features intelligent tutoring sessions with voice interaction, document understanding, mathematical formula rendering, and a sophisticated GraphRAG (Graph Retrieval-Augmented Generation) system for knowledge management.
+
+**Key Capabilities:**
+- 🤖 **Intelligent Tutoring**: Context-aware AI conversations with session management
+- 🎙️ **Voice Interaction**: Speech-to-text and text-to-speech with animated avatar
+- 📄 **Document Processing**: OCR for images/PDFs with GraphRAG knowledge integration
+- 🧮 **Math Support**: Automatic LaTeX/KaTeX rendering for mathematical expressions
+- 🌍 **Multi-language**: Interface available in English, Russian, and Spanish
+- 🔧 **Flexible AI**: Supports both cloud (OpenAI) and local (Ollama) language models
+- 👥 **Admin Dashboard**: User management, usage analytics, and moderation tools
 
 This README is split into two parts:
 
@@ -28,11 +41,32 @@ These features make the project a strong starting point for experimenting with A
 
 ### Technology Stack
 
-- [SvelteKit](https://kit.svelte.dev/) for the web application framework
-- [Vite](https://vitejs.dev/) for development and building
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) for unit, integration and e2e tests
-- Optional local LLM support through [Ollama](https://ollama.ai)
+**Frontend:**
+- [SvelteKit](https://kit.svelte.dev/) - Full-stack web framework
+- [Vite](https://vitejs.dev/) - Build tool and development server
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Lucide Svelte](https://lucide.dev/) - Icon library
+
+**Backend & Database:**
+- [Prisma](https://prisma.io/) - Database ORM and migrations
+- [PostgreSQL](https://postgresql.org/) - Primary database
+- Node.js - Server runtime
+
+**AI & ML:**
+- [OpenAI API](https://openai.com/api/) - GPT models, Whisper (STT), TTS
+- [Ollama](https://ollama.ai) - Local LLM support
+- [TensorFlow.js](https://tensorflow.org/js) - Face detection for avatar
+- [Tesseract.js](https://tesseract.projectnaptha.com/) - OCR processing
+
+**Testing & Quality:**
+- [Vitest](https://vitest.dev/) - Unit and integration testing
+- [Testing Library](https://testing-library.com/docs/svelte-testing-library/intro) - Component testing
+- [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/) - Code quality
+- [Husky](https://typicode.github.io/husky/) - Git hooks
+
+**Math & Documents:**
+- [KaTeX](https://katex.org/) - Mathematical formula rendering
+- [PDF.js](https://mozilla.github.io/pdf.js/) - PDF processing
 
 ### Key Features and Architecture
 
@@ -78,9 +112,41 @@ Administrators can review per-model usage counts and estimated OpenAI spend on t
 
 OpenAI costs are calculated using the official [per-million token pricing](https://openai.com/api/pricing/) (e.g. \$0.50 per 1M prompt tokens and \$1.50 per 1M completion tokens for `gpt-3.5-turbo-0125`). Totals are tracked and displayed to eight decimal places so even micro-dollar spending is visible to administrators.
 
-#### Voice Mode
+#### Voice Mode & Waiting Phrases
 
-Speech-to-text uses the OpenAI Whisper API, while text-to-speech uses the OpenAI TTS API (or a simulated response in development). The animated cat avatar with lip-syncing and emotion detection is documented in `docs/cat-avatar-implementation.md`.
+The platform provides a sophisticated voice interaction system with several key components:
+
+**Speech Processing:**
+- Speech-to-text uses the OpenAI Whisper API for accurate transcription
+- Text-to-speech uses the OpenAI TTS API (or simulated responses in development)
+- Audio buffer management for smooth playback and interruption handling
+
+**Animated Cat Avatar:**
+- Real-time lip-sync synchronized with audio amplitude
+- Emotion detection and expression changes during conversations
+- Smooth animation transitions between waiting phrases and AI responses
+- Documented in `docs/cat-avatar-implementation.md`
+
+**Waiting Phrases System:**
+- Eliminates awkward silence during AI processing with friendly phrases
+- Multilingual support with automatic language detection
+- Configurable phrase variety to maintain natural conversation flow
+- Sentence-by-sentence synthesis for smooth user experience
+- Performance monitoring and graceful fallback handling
+
+**Voice UX Enhancements:**
+- Interruption detection and response generation
+- Conversation flow management with natural rhythm
+- Voice interaction logging and diagnostics
+- Performance metrics tracking and optimization
+- User preference panels for voice settings
+
+**Key Components:**
+- `WaitingPhrasesService`: Core phrase selection and playback logic
+- `VoiceServices`: Speech processing and audio management
+- `AvatarStateManager`: Avatar animation and emotion control
+- `ConversationFlowManager`: Natural conversation pacing
+- `VoiceErrorHandler`: Graceful error recovery and user feedback
 
 #### Document Processing & RAG (Retrieval-Augmented Generation)
 
@@ -126,26 +192,103 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 ### Project Structure
 
 ```
-├── docs/                  Additional documentation (cat avatar, waiting phrases…)
+├── .kiro/                     # Kiro AI assistant configuration and specs
+│   └── specs/                 # Feature specifications and requirements
+├── docs/                      # Additional documentation and guides
+├── prisma/                    # Database schema and migrations
+├── scripts/                   # Utility scripts for maintenance
 ├── src/
+│   ├── generated/             # Generated Prisma client files
 │   ├── lib/
-│   │   ├── config/        API and LLM configuration
-│   │   ├── modules/       Feature modules (auth, chat, document, llm, session…)
-│   │   │   ├── subjects/  Subject/course management with GraphRAG
-│   │   │   │   └── services/
-│   │   │   │       ├── GraphRAGService.js              # Core GraphRAG functionality
-│   │   │   │       ├── DocumentGraphRAGProcessor.js    # Document processing with RAG
-│   │   │   │       └── AgentContextManager.js          # Agent context with RAG integration
-│   │   │   ├── courses/   Course management (refactored from subjects)
-│   │   │   │   └── services/
-│   │   │   │       ├── GraphRAGService.js              # Course-specific GraphRAG
-│   │   │   │       └── DocumentGraphRAGProcessor.js    # Course document processing
-│   │   │   └── chat/      Chat interface and components
-│   │   ├── shared/        DI container, utilities and UI components
-│   │   └── stores/        Global Svelte stores
-│   ├── routes/            SvelteKit routes and API endpoints
-│   └── app.html/css       Application entry points
-└── tests/                 Unit, integration and e2e tests
+│   │   ├── components/        # Shared UI components (MathRenderer, etc.)
+│   │   ├── config/            # Configuration files and schemas
+│   │   ├── database/          # Database utilities and connection
+│   │   │   └── repositories/  # Data access layer
+│   │   ├── modules/           # Feature modules
+│   │   │   ├── admin/         # Admin dashboard functionality
+│   │   │   ├── analytics/     # Usage analytics and metrics
+│   │   │   ├── auth/          # Authentication system
+│   │   │   ├── chat/          # Chat interface and voice processing
+│   │   │   │   ├── components/    # Chat UI components
+│   │   │   │   └── examples/      # Usage examples
+│   │   │   ├── courses/       # Course management system
+│   │   │   │   ├── services/      # Course services with GraphRAG
+│   │   │   │   └── stores/        # Course state management
+│   │   │   ├── document/      # Document processing and OCR
+│   │   │   ├── i18n/          # Internationalization
+│   │   │   ├── learn/         # Learning interface components
+│   │   │   │   └── components/    # Learning UI components
+│   │   │   ├── llm/           # Language model providers
+│   │   │   ├── navigation/    # Navigation components
+│   │   │   ├── secure-course-bot/ # Security testing module
+│   │   │   ├── session/       # Session management and messaging
+│   │   │   │   ├── components/    # Session UI components
+│   │   │   │   ├── services/      # Session and message services
+│   │   │   │   └── stores/        # Session state management
+│   │   │   ├── subjects/      # Subject management with GraphRAG
+│   │   │   │   ├── components/    # Subject UI components
+│   │   │   │   ├── services/      # GraphRAG, moderation, agents
+│   │   │   │   ├── stores/        # Subject state management
+│   │   │   │   └── utils/         # Subject utilities
+│   │   │   └── theme/         # Theme and styling
+│   │   ├── shared/            # Shared utilities and components
+│   │   │   ├── components/    # Reusable UI components
+│   │   │   ├── di/            # Dependency injection
+│   │   │   └── utils/         # Utility functions
+│   │   ├── stores/            # Global Svelte stores
+│   │   └── utils/             # General utility functions
+│   ├── routes/                # SvelteKit routes and API endpoints
+│   │   ├── api/               # REST API endpoints
+│   │   │   ├── admin/         # Admin API endpoints
+│   │   │   ├── chat/          # Chat API endpoints
+│   │   │   ├── courses/       # Course API endpoints
+│   │   │   ├── messages/      # Message API endpoints
+│   │   │   ├── sessions/      # Session API endpoints
+│   │   │   └── [other APIs]   # Various API endpoints
+│   │   ├── admin/             # Admin dashboard pages
+│   │   ├── catalogue/         # Course catalogue pages
+│   │   ├── learn/             # Learning interface pages
+│   │   ├── my-courses/        # User course management
+│   │   ├── my-subjects/       # User subject management
+│   │   ├── sessions/          # Session management UI
+│   │   └── [test pages]/      # Various test and debug pages
+│   ├── app.css                # Global styles
+│   ├── app.html               # Application entry point
+│   └── hooks.server.js        # Server-side hooks
+├── static/                    # Static assets (images, models, icons)
+├── tests/                     # Comprehensive test suites
+│   ├── auth/                  # Authentication tests
+│   ├── diagnostics/           # Diagnostic and debugging tests
+│   ├── e2e/                   # End-to-end tests
+│   │   ├── admin/             # Admin functionality tests
+│   │   └── catalogue/         # Catalogue functionality tests
+│   ├── integration/           # Integration tests
+│   │   ├── admin/             # Admin integration tests
+│   │   ├── api/               # API integration tests
+│   │   ├── catalogue/         # Catalogue integration tests
+│   │   ├── chat/              # Chat and voice integration tests
+│   │   ├── document/          # Document processing tests
+│   │   ├── navigation/        # Navigation tests
+│   │   ├── routes/            # Route integration tests
+│   │   ├── secure-course-bot/ # Security validation tests
+│   │   └── session/           # Session integration tests
+│   ├── manual/                # Manual testing procedures
+│   ├── session/               # Session-specific tests
+│   ├── unit/                  # Unit tests
+│   │   ├── admin/             # Admin unit tests
+│   │   ├── api/               # API unit tests
+│   │   ├── auth/              # Authentication unit tests
+│   │   ├── chat/              # Chat and voice unit tests
+│   │   ├── courses/           # Course unit tests
+│   │   ├── document/          # Document processing unit tests
+│   │   ├── llm/               # LLM provider unit tests
+│   │   ├── navigation/        # Navigation unit tests
+│   │   ├── session/           # Session unit tests
+│   │   ├── subjects/          # Subject unit tests
+│   │   └── utils/             # Utility unit tests
+│   ├── OldREADME.md          # Legacy test documentation
+│   └── setup.js              # Test setup and configuration
+└── venv/                      # Python virtual environment (for scripts)
 ```
 
 ### Prerequisites / System Requirements
@@ -156,32 +299,61 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 - **Browsers**: recent Chrome, Firefox, Safari or Edge
 - **Audio hardware**: microphone and speakers for voice mode
 
-### Getting Started
+### Quick Start
 
-1. **Install dependencies**
-
+1. **Clone and install dependencies**
    ```bash
+   git clone <repository-url>
+   cd ai-tutor-platform
    npm install
    ```
 
-2. **Copy environment template**
-
+2. **Set up environment**
    ```bash
    cp .env.example .env
+   # Edit .env with your OpenAI API key and other settings
    ```
 
-3. **Start development server**
+3. **Set up database** (if using PostgreSQL)
+   ```bash
+   npm run db:generate
+   npm run db:migrate
+   ```
 
+4. **Start development server**
    ```bash
    npm run dev
    ```
+   Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-4. **Build for production preview**
-
+5. **Optional: Set up local LLM**
    ```bash
-   npm run build
-   npm run preview
+   # Install Ollama (macOS)
+   brew install ollama
+   
+   # Start Ollama service
+   ollama serve
+   
+   # Pull a model (in another terminal)
+   ollama pull qwen2.5:1.5b
    ```
+
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run test` | Run auth tests |
+| `npm run test:run` | Run all tests |
+| `npm run test:coverage` | Run tests with coverage |
+| `npm run test:e2e` | Run end-to-end tests |
+| `npm run lint` | Lint selected files |
+| `npm run format` | Format code with Prettier |
+| `npm run db:migrate` | Run database migrations |
+| `npm run db:studio` | Open Prisma Studio |
+| `npm run db:reset` | Reset database |
 
 ### Installation Troubleshooting
 
@@ -222,6 +394,9 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 | `VITE_OPENAI_TIMEOUT`              | Request timeout ms                  | `30000`                   | No       |
 | `VITE_WAITING_PHRASES_DEFAULT`     | ID of default waiting phrase        | `DefaultWaitingAnswer`    | No       |
 | `VITE_WAITING_PHRASES_DETAILED`    | ID for detailed waiting phrase      | `DetailedWaitingAnswer`   | No       |
+| `VITE_VOICE_INTERRUPTION_ENABLED`  | Enable voice interruption detection | `true`                    | No       |
+| `VITE_AVATAR_EMOTIONS_ENABLED`     | Enable avatar emotion detection     | `true`                    | No       |
+| `VITE_VOICE_DIAGNOSTICS_ENABLED`   | Enable voice performance monitoring | `false` (true in dev)     | No       |
 
 Example `.env`:
 
@@ -260,51 +435,209 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 
 ### Usage Examples
 
-- **Text chat** – open the app and type a question to start a conversation
-- **Voice chat** – click the microphone button, speak your question and listen to the tutor's spoken reply
-- **Document upload** – attach an image or PDF via the paperclip icon; recognized text is processed through GraphRAG and becomes part of the knowledge base
-- **Knowledge-enhanced responses** – ask questions about uploaded materials; the AI will retrieve relevant information from the knowledge graph to provide contextual answers
-- **Multi-document queries** – upload multiple related documents; the system will find connections between them and provide comprehensive answers drawing from all materials
+**Basic Tutoring:**
+- Open the app and type a question to start a conversation
+- Ask follow-up questions - the AI maintains context throughout the session
+- Switch between different subjects/courses for specialized tutoring
+
+**Voice Interaction:**
+- Click the microphone button to enable voice mode
+- Speak your question and listen to the tutor's spoken reply
+- Watch the animated cat avatar provide visual feedback during conversations
+- Experience natural conversation flow with waiting phrases during AI processing
+- Enjoy multilingual voice support with automatic language detection
+- Use voice preferences panel to customize speech settings and avatar behavior
+
+**Document-Enhanced Learning:**
+- Upload images or PDFs via the paperclip icon
+- Ask questions about uploaded materials - the AI uses GraphRAG to provide contextual answers
+- Upload multiple related documents for comprehensive cross-material analysis
+
+**Mathematical Learning:**
+- Type mathematical expressions using standard notation (e.g., `x^2 + 2x + 1`)
+- Formulas are automatically rendered using KaTeX for proper mathematical display
+- Ask for step-by-step solutions to mathematical problems
+
+**Admin Features:**
+- Access `/admin` for user management and system analytics
+- Monitor API usage and costs in the finance dashboard
+- Manage course content and user enrollments
 
 ### API Documentation
 
 _To be documented in a future update._
 
-### Deployment Guide
+### Deployment
 
-1. Ensure required environment variables are set as in `.env`
-2. Build the application
+**Production Build:**
+```bash
+# Install dependencies
+npm ci --production
 
-   ```bash
-   npm run build
-   ```
+# Set up environment variables
+cp .env.example .env.production
+# Configure production values in .env.production
 
-3. Run the production server (uses `adapter-auto`)
+# Run database migrations
+npm run db:migrate
 
-   ```bash
-   node build
-   ```
+# Build the application
+npm run build
 
-4. For previewing locally
+# Start production server
+npm start
+```
 
-   ```bash
-   npm run preview
-   ```
+**Environment Setup:**
+- Set `NODE_ENV=production`
+- Configure `VITE_OPENAI_API_KEY` with your production API key
+- Set up PostgreSQL database and update connection string
+- Configure `VITE_DEFAULT_LLM_PROVIDER` based on your deployment needs
+
+**Docker Deployment:**
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+**Recommended Production Settings:**
+- Use PostgreSQL for persistent data storage
+- Set up proper logging and monitoring
+- Configure rate limiting for API endpoints
+- Use HTTPS in production
+- Set up backup strategies for user data and sessions
 
 ### Testing & Quality
 
-- **Unit/Integration tests**
+The platform includes comprehensive testing across multiple layers with special focus on voice interaction features.
 
-  ```bash
-  npm test          # run auth tests
-  npm run test:run  # run entire test suite
-  ```
+#### Test Structure
 
-- **Lint selected files**
+**Unit Tests** (`tests/unit/`)
+- Core service logic and utilities
+- Voice processing components
+- Waiting phrases configuration and selection
+- Translation bridge functionality
+- Session and message services
 
-  ```bash
-  npm run lint
-  ```
+**Integration Tests** (`tests/integration/`)
+- Cat avatar animation synchronization
+- Voice chat feature compatibility  
+- Multilingual i18n system integration
+- Error handling and graceful degradation
+- Performance impact assessment
+
+**End-to-End Tests** (`tests/e2e/`)
+- Complete voice interaction flows
+- User experience validation
+- Error scenarios and recovery
+- Accessibility compliance testing
+
+#### Voice Feature Testing
+
+**Integration Test Coverage:**
+- **Cat Avatar Integration**: Animation sync, emotion handling, lip-sync during waiting phrases
+- **Voice Chat Features**: Complete voice flow, audio queue management, interruption handling
+- **Multilingual Integration**: UI translations, language consistency, translation fallback
+- **System Integration**: Component interaction, performance monitoring, resource cleanup
+
+**Key Test Scenarios:**
+
+*Happy Path:*
+1. User recording → transcription → waiting phrase → AI response → synthesis → playback
+2. Multiple consecutive interactions with phrase variety
+3. Multilingual conversations with proper language detection
+
+*Error Handling:*
+1. Transcription service failures with graceful fallback
+2. Waiting phrase synthesis failures with continued AI response
+3. Network connectivity issues with appropriate user feedback
+4. AI response generation failures with proper error handling
+
+*Edge Cases:*
+1. Very fast AI responses (shorter than waiting phrase duration)
+2. Very slow AI responses (multiple waiting phrases)
+3. User interruptions during waiting phrase playback
+4. Rapid consecutive interactions and language switching
+
+#### Performance Benchmarks
+
+**Response Time Targets:**
+- Complete voice interaction: < 8 seconds
+- Waiting phrase selection: < 100ms
+- UI state transitions: < 200ms
+- Avatar animation updates: 60fps target
+
+**Memory Management:**
+- Phrase history limited to 5 items
+- Translation cache with reasonable limits
+- Proper cleanup of audio resources
+- No memory leaks during extended use
+
+#### Accessibility Testing
+
+**Keyboard Navigation:**
+- All interactive elements focusable with proper tab order
+- Keyboard shortcuts functional for voice controls
+- Screen reader compatibility with ARIA labels
+
+**Visual & Audio Indicators:**
+- Clear visual feedback for all voice states
+- High contrast status indicators
+- Animation respects user motion preferences
+- Status updates announced appropriately for screen readers
+
+#### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests once (CI mode)
+npm run test:run
+
+# Run with coverage report
+npm run test:coverage
+
+# Run with UI interface
+npm run test:ui
+
+# Run specific test suites
+npm run test:integration    # Integration tests
+npm run test:e2e           # End-to-end tests
+
+# Voice-specific test patterns
+npm run test:run -- --grep "voice"
+npm run test:run -- --grep "waiting.*phrase"
+npm run test:run -- --grep "avatar"
+```
+
+#### Mock Strategy
+
+**Browser APIs:**
+- AudioContext and Web Audio API simulation
+- MediaRecorder and getUserMedia mocking
+- Audio playback and synthesis simulation
+- Image loading and manipulation for avatar
+
+**External Services:**
+- Transcription API response mocking
+- AI chat API response simulation
+- Text-to-speech synthesis mocking
+- Translation service fallbacks
+
+#### Code Quality
+
+```bash
+npm run lint      # ESLint validation
+npm run format    # Prettier formatting
+```
 
 ### Performance & Limitations
 
@@ -320,12 +653,64 @@ _Security best practices and threat models will be documented later._
 
 See [CHANGELOG.md](CHANGELOG.md) for full release notes.
 
-### FAQ / Troubleshooting
+### Troubleshooting
 
-- **App fails to start** – reinstall dependencies and verify Node version
-- **OCR results are poor** – ensure the image is clear and under 10 MB
-- **No response from tutor** – check network connectivity and API keys, or disable local provider to force OpenAI
-- **Debugging** – run `npm run dev` and inspect browser console or server output for logs
+**Common Issues:**
+
+| Problem | Solution |
+|---------|----------|
+| App fails to start | Verify Node.js ≥18, run `npm install`, check `.env` file |
+| Database connection errors | Run `npm run db:migrate`, check PostgreSQL connection |
+| OCR results are poor | Ensure images are clear, under 10MB, good contrast |
+| No response from AI tutor | Check API keys, network connectivity, try switching providers |
+| Voice mode not working | Check microphone permissions, ensure HTTPS in production |
+| Waiting phrases not playing | Verify TTS service, check audio permissions, test phrase configuration |
+| Avatar not lip-syncing | Check TensorFlow.js loading, verify camera permissions for face detection |
+| Voice interruptions failing | Test audio buffer management, check interruption detection settings |
+| Multilingual voice issues | Verify language detection, check translation service availability |
+| Math formulas not rendering | Verify KaTeX is loaded, check console for JavaScript errors |
+| Local LLM not responding | Ensure Ollama is running, model is pulled, check API URL |
+
+**Debug Mode:**
+```bash
+# Enable detailed logging
+npm run dev
+
+# Check database connection
+npm run db:test
+
+# Run specific test suites
+npm run test:integration
+npm run test:e2e
+```
+
+**Performance Issues:**
+- Monitor memory usage with local LLMs (8GB+ recommended)
+- Check network latency for OpenAI API calls
+- Optimize document upload sizes (< 10MB recommended)
+- Clear browser cache if UI becomes unresponsive
+
+**Voice Performance Debugging:**
+```bash
+# Test voice components individually
+npm run test:run -- --grep "voice.*performance"
+
+# Monitor audio buffer performance
+npm run test:run -- --grep "audio.*buffer"
+
+# Check avatar animation performance
+npm run test:run -- --grep "avatar.*performance"
+
+# Validate waiting phrases timing
+npm run test:run -- --grep "waiting.*phrase.*timing"
+```
+
+**Voice-Specific Performance Targets:**
+- Voice interaction latency: < 8 seconds end-to-end
+- Waiting phrase selection: < 100ms
+- Avatar animation: 60fps with smooth lip-sync
+- Audio buffer management: No dropouts or glitches
+- Memory usage: Proper cleanup after voice sessions
 
 ### Architecture Diagrams
 
@@ -368,6 +753,56 @@ Further design notes and troubleshooting guides live in the `docs/` folder:
 - `cat-avatar-implementation.md` – animated avatar and lip-sync feature
 - `waiting-phrases.md` and `waiting-phrases-troubleshooting.md` – configuration for the “waiting” messages
 
+### Voice Testing & Quality Assurance
+
+The platform includes comprehensive testing specifically designed for voice interaction features:
+
+#### Voice Test Coverage Areas
+
+**Integration Testing:**
+- ✅ Cat avatar animation system integration
+- ✅ Voice chat features compatibility
+- ✅ Multilingual i18n system integration
+- ✅ Error handling and graceful degradation
+- ✅ Performance impact assessment
+
+**End-to-End Testing:**
+- ✅ Complete voice interaction flow validation
+- ✅ Error scenarios and recovery mechanisms
+- ✅ User experience improvements validation
+- ✅ Timing and sequencing verification
+- ✅ Accessibility compliance testing
+
+**Key Test Files:**
+- `tests/integration/chat/systemIntegration.test.js` - Core system integration
+- `tests/integration/chat/catAvatarIntegration.test.js` - Avatar functionality
+- `tests/integration/chat/multilingualIntegration.test.js` - Language support
+- `tests/e2e/voiceChatFlow.test.js` - Complete voice workflows
+- `tests/e2e/userExperienceValidation.test.js` - UX validation
+
+#### Voice Performance Standards
+
+**Response Time Requirements:**
+- Complete voice interaction: < 8 seconds
+- Waiting phrase selection: < 100ms
+- UI state transitions: < 200ms
+- Avatar animation: 60fps target
+
+**Quality Metrics:**
+- Phrase history management (5 item limit)
+- Translation cache optimization
+- Audio resource cleanup
+- Memory leak prevention
+
+#### Future Voice Testing Enhancements
+
+**Planned Additions:**
+- Visual regression testing for avatar animations
+- Audio quality testing for synthesized phrases
+- Load testing with multiple concurrent voice users
+- Cross-browser voice compatibility testing
+- Mobile device voice interaction testing
+
 ### GraphRAG Implementation Details
 
 The platform's GraphRAG system is designed as a foundational implementation that can be extended with production-ready components:
@@ -396,12 +831,54 @@ The platform's GraphRAG system is designed as a foundational implementation that
 
 The modular design allows for incremental upgrades from the current foundational implementation to a production-scale GraphRAG system.
 
-### Contributing
+## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for coding guidelines and workflow.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-### License
+**Development Workflow:**
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run the test suite: `npm run test:run`
+5. Commit with conventional commits: `git commit -m "feat: add amazing feature"`
+6. Push to your branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
-This project is released under the [MIT License](LICENSE).
+**Code Quality:**
+- Follow ESLint and Prettier configurations
+- Write tests for new features
+- Update documentation as needed
+- Use conventional commit messages
 
-Happy teaching!
+## Roadmap
+
+- [ ] **Enhanced GraphRAG**: Vector embeddings and semantic search
+- [ ] **Real-time Collaboration**: Multi-user sessions and shared workspaces
+- [ ] **Advanced Analytics**: Learning progress tracking and insights
+- [ ] **Mobile App**: React Native or Flutter companion app
+- [ ] **Plugin System**: Extensible architecture for custom integrations
+- [ ] **Offline Mode**: Local-first capabilities with sync
+
+## Community & Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-repo/discussions)
+- **Documentation**: See `docs/` folder for detailed guides
+- **Examples**: Check `src/lib/modules/*/examples/` for usage examples
+
+## License
+
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [SvelteKit](https://kit.svelte.dev/) team for the excellent framework
+- [OpenAI](https://openai.com/) for powerful AI APIs
+- [Ollama](https://ollama.ai/) for local LLM capabilities
+- All contributors who help improve this project
+
+---
+
+**Happy Teaching! 🎓✨**
+
+*Built with ❤️ using SvelteKit and modern AI technologies*

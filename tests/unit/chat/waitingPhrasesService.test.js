@@ -99,9 +99,9 @@ vi.mock('../../../src/lib/modules/chat/translationBridge.js', () => ({
 }));
 
 describe('WaitingPhrasesService', () => {
-  let service: WaitingPhrasesService;
-  let mockConfig: any;
-  let mockConsole: any;
+  let service;
+  let mockConfig;
+  let mockConsole;
 
   beforeEach(() => {
     // Create fresh service instance for each test
@@ -195,11 +195,11 @@ describe('WaitingPhrasesService', () => {
 
     it('should handle null or undefined phrases', () => {
       expect(() => {
-        service._selectRandomPhrase(null as any, 'general');
+        service._selectRandomPhrase(null, 'general');
       }).toThrow('No phrases available for selection');
 
       expect(() => {
-        service._selectRandomPhrase(undefined as any, 'general');
+        service._selectRandomPhrase(undefined, 'general');
       }).toThrow('No phrases available for selection');
     });
   });

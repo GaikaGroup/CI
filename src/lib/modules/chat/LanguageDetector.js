@@ -5,6 +5,7 @@
 
 import { get } from 'svelte/store';
 import { selectedLanguage, languages } from '$modules/i18n/stores';
+import { languageConsistencyLogger } from './LanguageConsistencyLogger.js';
 
 export class LanguageDetector {
   constructor() {
@@ -313,9 +314,9 @@ export class LanguageDetector {
   }
 
   /**
-   * Detect language from text patterns (fallback method)
+   * Detect language from text patterns with enhanced confidence scoring
    * @param {string} text - Text to analyze
-   * @returns {Object} Detection result
+   * @returns {Object} Detection result with confidence scores
    */
   detectLanguageFromText(text) {
     if (!text || text.length < 3) {
@@ -323,36 +324,80 @@ export class LanguageDetector {
     }
 
     const scores = {};
+    const confidenceFactors = {};
 
     // Initialize scores
     this.supportedLanguages.forEach((lang) => {
       scores[lang] = 0;
+      confidenceFactors[lang] = [];
     });
 
-    // Russian detection - Cyrillic characters
-    if (/[а-яё]/i.test(text)) {
-      scores.ru = 0.9;
+    // Enhanced Russian detection with improved Cyrillic patterns
+    const russianScore = this.detectRussianLanguage(text, confidenceFactors.ru);
+    scores.ru = russianScore;
+    
+    // If high confidence Russian detected, return early
+    if (russianScore > 0.8) {
       return {
         language: 'ru',
-        confidence: 0.9,
+        confidence: russianScore,
         scores: scores,
-        method: 'text_analysis',
+        confidenceFactors: confidenceFactors.ru,
+        method: 'enhanced_russian_analysis',
         timestamp: Date.now()
       };
     }
 
     // Spanish detection - Spanish-specific characters and patterns
     const spanishKeywordMatches =
-      text.match(/\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están)\b/gi) || [];
+      text.match(/\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están|y|o|pero|si|no|muy|más|todo|todos|hacer|tener|ser|estar)\b/gi) || [];
     const hasSpanishAccents = /[ñáéíóúü¿¡]/i.test(text);
+    const spanishAccentMatches = text.match(/[ñáéíóúü¿¡]/gi) || [];
 
-    if (hasSpanishAccents || spanishKeywordMatches.length >= 2) {
-      scores.es = 0.8;
-      scores.en = 0.1;
-    } else {
-      // Default to English for Latin script while keeping a minor Spanish score for mixed inputs
-      scores.en = 0.7;
-      scores.es = spanishKeywordMatches.length === 1 ? 0.3 : 0.2;
+    if (hasSpanishAccents) {
+      const accentRatio = spanishAccentMatches.length / text.length;
+      scores.es += Math.min(0.4, accentRatio * 2);
+      confidenceFactors.es.push({
+        factor: 'spanish_accents',
+        weight: accentRatio,
+        confidence: scores.es
+      });
+    }
+
+    if (spanishKeywordMatches.length > 0) {
+      const keywordRatio = spanishKeywordMatches.length / text.split(/\s+/).length;
+      scores.es += Math.min(0.5, keywordRatio * 0.8);
+      confidenceFactors.es.push({
+        factor: 'spanish_keywords',
+        weight: keywordRatio,
+        confidence: keywordRatio * 0.8
+      });
+    }
+
+    // English detection - English-specific patterns
+    const englishKeywordMatches =
+      text.match(/\b(the|and|or|but|if|not|very|more|all|some|make|have|be|is|are|was|were|will|would|could|should|this|that|these|those)\b/gi) || [];
+    
+    if (englishKeywordMatches.length > 0) {
+      const keywordRatio = englishKeywordMatches.length / text.split(/\s+/).length;
+      scores.en += Math.min(0.6, keywordRatio * 0.9);
+      confidenceFactors.en.push({
+        factor: 'english_keywords',
+        weight: keywordRatio,
+        confidence: keywordRatio * 0.9
+      });
+    }
+
+    // Default scoring for Latin script
+    if (!/[а-яё]/i.test(text)) {
+      if (scores.es < 0.3 && scores.en < 0.3) {
+        scores.en = 0.5; // Default to English for unidentified Latin script
+        confidenceFactors.en.push({
+          factor: 'latin_script_default',
+          weight: 0.5,
+          confidence: 0.5
+        });
+      }
     }
 
     const bestLanguage = Object.entries(scores).reduce(
@@ -360,13 +405,304 @@ export class LanguageDetector {
       { language: 'en', score: 0 }
     ).language;
 
+    // Calculate final confidence based on score distribution and factors
+    const finalConfidence = this.calculateTextConfidence(scores, bestLanguage, confidenceFactors[bestLanguage]);
+
     return {
       language: bestLanguage,
-      confidence: scores[bestLanguage],
+      confidence: finalConfidence,
       scores: scores,
+      confidenceFactors: confidenceFactors[bestLanguage],
       method: 'text_analysis',
       timestamp: Date.now()
     };
+  }
+
+  /**
+   * Calculate confidence for text-based detection
+   * @param {Object} scores - Language scores
+   * @param {string} bestLanguage - Detected language
+   * @param {Array} factors - Confidence factors
+   * @returns {number} Final confidence score
+   */
+  calculateTextConfidence(scores, bestLanguage, factors = []) {
+    const bestScore = scores[bestLanguage] || 0;
+    const allScores = Object.values(scores);
+    const totalScore = allScores.reduce((sum, score) => sum + score, 0);
+
+    if (totalScore === 0) return 0.3; // Low confidence for no matches
+
+    // Base confidence from score dominance
+    const dominance = bestScore / totalScore;
+    
+    // Factor in the number and quality of confidence factors
+    const factorBonus = factors.length > 0 ? Math.min(0.2, factors.length * 0.1) : 0;
+    
+    // Text length factor - longer text generally means higher confidence
+    const lengthFactor = factors.length > 0 ? 
+      Math.min(0.1, factors.reduce((sum, f) => sum + (f.weight || 0), 0)) : 0;
+
+    return Math.min(0.95, dominance * 0.7 + bestScore * 0.2 + factorBonus + lengthFactor);
+  }
+
+  /**
+   * Enhanced detection method with confidence scoring
+   * @param {string} text - Text to analyze
+   * @param {string} sessionId - Optional session ID for logging
+   * @param {Object} context - Optional context for logging
+   * @returns {Object} Detection result with detailed confidence information
+   */
+  detectWithConfidence(text, sessionId = null, context = {}) {
+    const result = this.detectLanguageFromText(text);
+    
+    // Add additional confidence metadata
+    result.confidenceLevel = this.getConfidenceLevel(result.confidence);
+    result.isReliable = result.confidence >= 0.7;
+    result.needsValidation = result.confidence < 0.5;
+    
+    // Log detection result if session ID provided
+    if (sessionId) {
+      try {
+        languageConsistencyLogger.logDetection(sessionId, result, {
+          messageLength: text?.length || 0,
+          ...context
+        });
+      } catch (error) {
+        console.warn('Failed to log detection result:', error);
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * Get confidence level description
+   * @param {number} confidence - Confidence score (0-1)
+   * @returns {string} Confidence level
+   */
+  getConfidenceLevel(confidence) {
+    if (confidence >= 0.9) return 'very_high';
+    if (confidence >= 0.7) return 'high';
+    if (confidence >= 0.5) return 'medium';
+    if (confidence >= 0.3) return 'low';
+    return 'very_low';
+  }
+
+  /**
+   * Validate language consistency between expected and detected language
+   * @param {string} text - Text to validate
+   * @param {string} expectedLanguage - Expected language code
+   * @param {string} sessionId - Optional session ID for logging
+   * @param {Object} context - Optional context for logging
+   * @returns {Object} Validation result
+   */
+  validateLanguageConsistency(text, expectedLanguage, sessionId = null, context = {}) {
+    const detection = this.detectWithConfidence(text, sessionId, context);
+    
+    const isConsistent = detection.language === expectedLanguage;
+    const confidenceGap = Math.abs(detection.confidence - (detection.scores[expectedLanguage] || 0));
+    
+    const validationResult = {
+      isConsistent,
+      detectedLanguage: detection.language,
+      expectedLanguage,
+      confidence: detection.confidence,
+      expectedLanguageScore: detection.scores[expectedLanguage] || 0,
+      confidenceGap,
+      severity: this.getInconsistencySeverity(isConsistent, confidenceGap, detection.confidence),
+      recommendation: this.getValidationRecommendation(isConsistent, confidenceGap, detection.confidence),
+      detectionDetails: detection
+    };
+
+    // Log validation result if session ID provided
+    if (sessionId) {
+      try {
+        languageConsistencyLogger.logValidation(sessionId, validationResult, {
+          responseLength: text?.length || 0,
+          ...context
+        });
+      } catch (error) {
+        console.warn('Failed to log validation result:', error);
+      }
+    }
+    
+    return validationResult;
+  }
+
+  /**
+   * Get inconsistency severity level
+   * @param {boolean} isConsistent - Whether languages match
+   * @param {number} confidenceGap - Gap between detected and expected confidence
+   * @param {number} detectionConfidence - Detection confidence
+   * @returns {string} Severity level
+   */
+  getInconsistencySeverity(isConsistent, confidenceGap, detectionConfidence) {
+    if (isConsistent) return 'none';
+    
+    if (detectionConfidence >= 0.8 && confidenceGap > 0.5) return 'high';
+    if (detectionConfidence >= 0.6 && confidenceGap > 0.3) return 'medium';
+    return 'low';
+  }
+
+  /**
+   * Get validation recommendation
+   * @param {boolean} isConsistent - Whether languages match
+   * @param {number} confidenceGap - Gap between detected and expected confidence
+   * @param {number} detectionConfidence - Detection confidence
+   * @returns {string} Recommendation
+   */
+  getValidationRecommendation(isConsistent, confidenceGap, detectionConfidence) {
+    if (isConsistent && detectionConfidence >= 0.7) return 'accept';
+    if (isConsistent && detectionConfidence >= 0.5) return 'accept_with_monitoring';
+    if (!isConsistent && detectionConfidence >= 0.8) return 'regenerate';
+    if (!isConsistent && detectionConfidence >= 0.5) return 'review_and_correct';
+    return 'manual_review';
+  }
+
+  /**
+   * Enhanced Russian language detection with improved accuracy
+   * @param {string} text - Text to analyze
+   * @param {Array} confidenceFactors - Array to store confidence factors
+   * @returns {number} Russian language confidence score
+   */
+  detectRussianLanguage(text, confidenceFactors) {
+    let russianScore = 0;
+
+    // Enhanced Cyrillic character detection with better patterns
+    const cyrillicMatches = text.match(/[а-яё]/gi) || [];
+    const extendedCyrillicMatches = text.match(/[а-яёъьэюийцукенгшщзхфывапролджячсмитбщ]/gi) || [];
+    
+    if (cyrillicMatches.length > 0) {
+      const cyrillicRatio = cyrillicMatches.length / text.replace(/\s+/g, '').length;
+      const extendedRatio = extendedCyrillicMatches.length / text.replace(/\s+/g, '').length;
+      
+      // Base Cyrillic score with improved calculation
+      const cyrillicScore = Math.min(0.6, cyrillicRatio * 1.2);
+      russianScore += cyrillicScore;
+      
+      confidenceFactors.push({
+        factor: 'cyrillic_characters',
+        weight: cyrillicRatio,
+        confidence: cyrillicScore,
+        details: `${cyrillicMatches.length}/${text.length} characters`
+      });
+
+      // Bonus for extended Cyrillic coverage
+      if (extendedRatio > cyrillicRatio * 0.8) {
+        const extendedBonus = Math.min(0.15, extendedRatio * 0.3);
+        russianScore += extendedBonus;
+        confidenceFactors.push({
+          factor: 'extended_cyrillic',
+          weight: extendedRatio,
+          confidence: extendedBonus
+        });
+      }
+    }
+
+    // Russian-specific keyword patterns with improved coverage
+    const russianKeywords = [
+      // Common words
+      'это', 'что', 'как', 'где', 'когда', 'почему', 'который', 'которая', 'которое',
+      // Pronouns
+      'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
+      // Verbs
+      'быть', 'есть', 'был', 'была', 'было', 'были', 'буду', 'будешь', 'будет', 'будем', 'будете', 'будут',
+      'делать', 'сделать', 'говорить', 'сказать', 'знать', 'думать', 'хотеть', 'мочь', 'должен',
+      // Prepositions and conjunctions
+      'в', 'на', 'с', 'по', 'для', 'от', 'до', 'за', 'под', 'над', 'между', 'через', 'без', 'при',
+      'и', 'или', 'но', 'а', 'да', 'если', 'чтобы', 'потому', 'поэтому',
+      // Common adjectives
+      'хороший', 'плохой', 'большой', 'маленький', 'новый', 'старый', 'красивый', 'умный'
+    ];
+
+    const keywordPattern = new RegExp(`\\b(${russianKeywords.join('|')})\\b`, 'gi');
+    const keywordMatches = text.match(keywordPattern) || [];
+    
+    if (keywordMatches.length > 0) {
+      const wordCount = text.split(/\s+/).length;
+      const keywordRatio = keywordMatches.length / wordCount;
+      const keywordScore = Math.min(0.4, keywordRatio * 0.8);
+      russianScore += keywordScore;
+      
+      confidenceFactors.push({
+        factor: 'russian_keywords',
+        weight: keywordRatio,
+        confidence: keywordScore,
+        details: `${keywordMatches.length} keywords found: ${keywordMatches.slice(0, 5).join(', ')}${keywordMatches.length > 5 ? '...' : ''}`
+      });
+    }
+
+    // Russian-specific grammatical patterns
+    const grammaticalPatterns = [
+      // Typical Russian word endings
+      /[а-я]+(ся|сь)$/gi, // reflexive verbs
+      /[а-я]+(ть|ти)$/gi, // infinitive verbs
+      /[а-я]+(ый|ая|ое|ые)$/gi, // adjective endings
+      /[а-я]+(ов|ев|ей|ами|ах)$/gi, // plural/case endings
+      /[а-я]+(ность|ство|ение|ание)$/gi // abstract noun endings
+    ];
+
+    let grammaticalScore = 0;
+    const grammaticalMatches = [];
+
+    grammaticalPatterns.forEach((pattern, index) => {
+      const matches = text.match(pattern) || [];
+      if (matches.length > 0) {
+        grammaticalMatches.push(...matches);
+        grammaticalScore += Math.min(0.05, matches.length * 0.02);
+      }
+    });
+
+    if (grammaticalScore > 0) {
+      russianScore += grammaticalScore;
+      confidenceFactors.push({
+        factor: 'russian_grammar',
+        weight: grammaticalScore,
+        confidence: grammaticalScore,
+        details: `${grammaticalMatches.length} grammatical patterns`
+      });
+    }
+
+    // Russian letter frequency analysis
+    const russianFrequentLetters = ['о', 'е', 'а', 'и', 'н', 'т', 'с', 'р', 'в', 'л'];
+    const letterCounts = {};
+    const textLower = text.toLowerCase();
+    
+    russianFrequentLetters.forEach(letter => {
+      letterCounts[letter] = (textLower.match(new RegExp(letter, 'g')) || []).length;
+    });
+
+    const totalRussianLetters = Object.values(letterCounts).reduce((sum, count) => sum + count, 0);
+    const textLetters = text.replace(/[^а-яё]/gi, '').length;
+    
+    if (textLetters > 0) {
+      const frequencyRatio = totalRussianLetters / textLetters;
+      if (frequencyRatio > 0.6) { // Russian texts typically have high frequency of these letters
+        const frequencyScore = Math.min(0.15, (frequencyRatio - 0.6) * 0.5);
+        russianScore += frequencyScore;
+        confidenceFactors.push({
+          factor: 'letter_frequency',
+          weight: frequencyRatio,
+          confidence: frequencyScore,
+          details: `${(frequencyRatio * 100).toFixed(1)}% frequent letters`
+        });
+      }
+    }
+
+    // Penalty for mixed scripts (Cyrillic + Latin)
+    const latinLetters = text.match(/[a-z]/gi) || [];
+    if (cyrillicMatches.length > 0 && latinLetters.length > 0) {
+      const mixedScriptPenalty = Math.min(0.2, latinLetters.length / text.length);
+      russianScore = Math.max(0, russianScore - mixedScriptPenalty);
+      confidenceFactors.push({
+        factor: 'mixed_script_penalty',
+        weight: -mixedScriptPenalty,
+        confidence: -mixedScriptPenalty,
+        details: `${latinLetters.length} Latin characters detected`
+      });
+    }
+
+    return Math.min(0.95, russianScore);
   }
 
   /**

@@ -9,34 +9,15 @@ export const handle = async ({ event, resolve }) => {
 
   if (userCookie) {
     try {
-      event.locals.user = JSON.parse(userCookie);
+      // Decode the cookie value since it was encoded with encodeURIComponent
+      const decodedCookie = decodeURIComponent(userCookie);
+      event.locals.user = JSON.parse(decodedCookie);
     } catch (error) {
       console.error('Failed to parse user cookie', error);
       event.locals.user = undefined;
     }
   } else {
-    // Auto-login demo user for development when no user is authenticated
-    // This allows the chat functionality to work without manual login
-    if (process.env.NODE_ENV === 'development') {
-      const demoUser = {
-        id: '2',
-        name: 'Demo User',
-        email: 'User1Login',
-        role: 'student'
-      };
-
-      event.locals.user = demoUser;
-
-      // Set the cookie so the client knows about the user
-      const cookieValue = encodeURIComponent(JSON.stringify(demoUser));
-      event.cookies.set(STORAGE_KEYS.USER, cookieValue, {
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        sameSite: 'lax'
-      });
-    } else {
-      event.locals.user = undefined;
-    }
+    event.locals.user = undefined;
   }
 
   return resolve(event);

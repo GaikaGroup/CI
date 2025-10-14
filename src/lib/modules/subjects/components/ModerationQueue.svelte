@@ -100,7 +100,7 @@
     <div>
       <h2 class="text-2xl font-bold text-stone-900 dark:text-white">Moderation Queue</h2>
       <p class="text-sm text-stone-600 dark:text-gray-400 mt-1">
-        Review and manage reported subjects
+        Review and manage reported courses
       </p>
     </div>
 

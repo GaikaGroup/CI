@@ -34,6 +34,24 @@
       class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border dark:border-gray-700 border-stone-200"
     >
       <a
+        href="/admin"
+        on:click={closeDropdown}
+        class="block px-4 py-2 text-sm transition-colors {currentPath === '/admin'
+          ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-medium'
+          : 'text-stone-700 hover:bg-stone-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
+      >
+        Dashboard
+      </a>
+      <a
+        href="/admin/sessions"
+        on:click={closeDropdown}
+        class="block px-4 py-2 text-sm transition-colors {currentPath === '/admin/sessions'
+          ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-medium'
+          : 'text-stone-700 hover:bg-stone-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
+      >
+        Sessions
+      </a>
+      <a
         href="/admin/users"
         on:click={closeDropdown}
         class="block px-4 py-2 text-sm transition-colors {currentPath === '/admin/users'
