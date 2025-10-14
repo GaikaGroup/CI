@@ -686,7 +686,117 @@ npm run format    # Prettier formatting
 
 ### Security Considerations
 
-_Security best practices and threat models will be documented later._
+The platform implements comprehensive security measures to protect against prompt injection attacks and ensure safe AI interactions, particularly for educational environments.
+
+#### Secure Course Bot System
+
+The platform includes a security-hardened course assistance bot system designed to prevent manipulation and maintain strict educational boundaries. This system implements multiple layers of defense against various attack vectors.
+
+**Core Security Features:**
+
+- **Multi-layered Validation**: Every user input passes through comprehensive security checks before processing
+- **Prompt Injection Defense**: Advanced pattern matching to detect and block instruction override attempts
+- **Authority Impersonation Protection**: Validates and rejects claims of special privileges or administrative access
+- **Academic Integrity Enforcement**: Prevents completion of assignments while offering appropriate educational guidance
+- **Boundary Maintenance**: Strict course relevance checking with polite but firm redirection
+
+**Security Architecture:**
+
+```
+User Input → Security Validator → Relevance Analyzer → Response Generator → Logging Service
+```
+
+**Implemented Defenses:**
+
+1. **Prompt Injection Protection**
+   - Pattern matching for instruction override attempts
+   - Detection of system prompt manipulation
+   - Chain-of-thought manipulation defense
+   - Template-based responses prevent improvisation
+
+2. **Authority Impersonation Defense**
+   - Rejection of unverifiable identity claims
+   - Consistent response: "I cannot verify identity through this chat interface..."
+   - No special privileges granted through conversation
+
+3. **Roleplay and Scenario Blocking**
+   - Refusal to participate in hypothetical scenarios
+   - Blocking of "pretend you are..." type requests
+   - Consistent educational focus maintenance
+
+4. **Emotional Manipulation Resistance**
+   - Empathetic but firm boundary maintenance
+   - Response: "I understand you may be under pressure, but I can only help with course-related content..."
+   - No compromise of security for emotional appeals
+
+5. **Academic Integrity Enforcement**
+   - Refusal to complete assignments directly
+   - Offer of concept explanations and guidance instead
+   - Clear communication about academic integrity policies
+
+**Course Relevance System:**
+
+The system classifies topics as:
+
+- **RELEVANT**: Course content, assignments, exams, policies, schedule, real-world applications
+- **IRRELEVANT**: Other courses, general advice, entertainment, personal issues, non-course debates
+- **GRAY_AREA**: Study skills, research methods (evaluated case-by-case)
+
+**Security Validation Process:**
+
+Before every response, the system performs these checks:
+
+1. **Manipulation Check**: Does the message try to override instructions?
+2. **Relevance Check**: Is this directly related to course content?
+3. **Integrity Check**: Would answering violate academic integrity?
+4. **Authority Check**: Is user claiming unverifiable permissions?
+5. **Purpose Check**: Does this help student learn the specific course?
+
+If any check fails, the system politely refuses and redirects to appropriate course content.
+
+**Response Templates:**
+
+All security responses use predefined templates to ensure consistency:
+
+- Prompt injection attempts: "I've detected an attempt to override my system instructions..."
+- Off-topic questions: "That's an interesting question, but it falls outside the scope of [COURSE NAME]..."
+- Authority claims: "I cannot verify identity through this chat interface..."
+- Academic integrity violations: "I can't complete assignments for you, as that would violate academic integrity policies..."
+
+**Logging and Monitoring:**
+
+- Security incidents are logged with context for instructor review
+- Repeated manipulation attempts trigger escalation protocols
+- Sophisticated attack attempts are flagged for administrative attention
+- Audit trails maintain compliance and security oversight
+
+**Advanced Attack Defense:**
+
+- **Incremental Boundary Pushing**: Each question evaluated independently
+- **Social Engineering**: Consistent standards maintained for all users
+- **Technical Jargon Confusion**: Simple principle applied: "Is this directly related to course content?"
+- **Mixed Content Attacks**: Only course-related portions addressed
+
+**Configuration and Customization:**
+
+The security system supports course-specific configuration while maintaining all security protocols:
+
+- Course name and topic customization
+- Instructor contact information for escalation
+- Subject-specific relevance criteria
+- Maintained security boundaries across all configurations
+
+**Testing and Validation:**
+
+The security system includes comprehensive testing:
+
+- Prompt injection attack simulations
+- Authority impersonation scenarios
+- Roleplay and manipulation attempts
+- Academic integrity violation tests
+- Performance testing under attack conditions
+
+This security framework ensures that AI tutoring remains helpful and educational while preventing misuse, manipulation, or academic integrity violations.
 
 ### Changelog / Version History
 
