@@ -1,11 +1,7 @@
-import { LocalAuthService } from './services/LocalAuthService';
-import { container } from '$lib/shared/di/container';
+import { LocalAuthService } from './services/LocalAuthService.js';
 
 // Create an instance of the LocalAuthService
 const authService = new LocalAuthService();
-
-// Register the auth service in the DI container
-container.register('authService', authService);
 
 /**
  * Login user

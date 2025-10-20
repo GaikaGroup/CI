@@ -19,7 +19,7 @@
     ? { ...course }
     : createDefaultCourse({
         creatorId: $user?.id,
-        creatorRole: $user?.role || 'user'
+        creatorRole: $user?.type || 'user'
       });
 
   let validationErrors = [];

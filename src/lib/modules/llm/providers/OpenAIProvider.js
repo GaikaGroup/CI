@@ -61,11 +61,32 @@ export class OpenAIProvider extends ProviderInterface {
       const maxTokens = options.maxTokens || this.config.MAX_TOKENS;
       const temperature = options.temperature || this.config.TEMPERATURE;
 
+      // Determine if model uses new API (GPT-5, o1-preview, o1-mini)
+      const usesNewAPI = model.startsWith('gpt-5') || model.startsWith('o1-');
+      
+      // New models need more time for reasoning (2 minutes vs 30 seconds)
+      const timeout = usesNewAPI ? 120000 : this.config.TIMEOUT;
+
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
         controller.abort();
-      }, this.config.TIMEOUT);
+      }, timeout);
+      
+      // Build request body based on model type
+      const requestBody = {
+        model,
+        messages,
+        ...options.extraParams
+      };
+
+      // Add token limit parameter (new models use max_completion_tokens)
+      if (usesNewAPI) {
+        requestBody.max_completion_tokens = maxTokens;
+      } else {
+        requestBody.max_tokens = maxTokens;
+        requestBody.temperature = temperature;
+      }
 
       // Make the API request
       const response = await fetch(this.config.API_URL, {
@@ -74,13 +95,7 @@ export class OpenAIProvider extends ProviderInterface {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${this.config.API_KEY}`
         },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature,
-          max_tokens: maxTokens,
-          ...options.extraParams
-        }),
+        body: JSON.stringify(requestBody),
         signal: controller.signal
       });
 
@@ -96,7 +111,10 @@ export class OpenAIProvider extends ProviderInterface {
       return this.formatResponse(data);
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error(`OpenAI request timed out after ${this.config.TIMEOUT}ms`);
+        const model = options.model || this.config.MODEL;
+        const usesNewAPI = model.startsWith('gpt-5') || model.startsWith('o1-');
+        const timeout = usesNewAPI ? 120000 : this.config.TIMEOUT;
+        throw new Error(`OpenAI request timed out after ${timeout}ms`);
       }
       throw this.handleError(error);
     }
@@ -139,12 +157,22 @@ export class OpenAIProvider extends ProviderInterface {
       throw new Error('Invalid response format from OpenAI');
     }
 
+    const choice = rawResponse.choices[0];
+    const content = choice.message?.content || '';
+
+    // Log if content is empty for debugging
+    if (!content) {
+      console.warn('[OpenAIProvider] Empty content received from model:', rawResponse.model);
+      console.warn('[OpenAIProvider] Finish reason:', choice.finish_reason);
+      console.warn('[OpenAIProvider] Full response:', JSON.stringify(rawResponse, null, 2));
+    }
+
     return {
-      content: rawResponse.choices[0].message.content,
+      content,
       provider: this.name,
       model: rawResponse.model,
       usage: rawResponse.usage,
-      finishReason: rawResponse.choices[0].finish_reason,
+      finishReason: choice.finish_reason,
       raw: rawResponse // Include raw response for debugging
     };
   }

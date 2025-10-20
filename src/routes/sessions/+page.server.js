@@ -7,9 +7,8 @@ import { redirect } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ url, locals }) {
-  // Check if user is authenticated
-  // Note: This assumes auth is handled in hooks.server.js or similar
-  // The actual auth check implementation may vary based on the existing auth system
+  // User authentication is now handled in hooks.server.js
+  // If we reach this point, user is authenticated
 
   const sessionId = url.searchParams.get('session');
   const searchQuery = url.searchParams.get('search');

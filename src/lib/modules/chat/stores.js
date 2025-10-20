@@ -21,6 +21,12 @@ export const processingImagesMap = writable({});
 // OCR notes store (messageId -> string)
 export const ocrNotes = writable({});
 
+// OCR results store (messageId -> OCR data)
+export const ocrResults = writable({});
+
+// OCR processing state
+export const isOcrProcessing = writable(false);
+
 // Initialize chat with welcome message
 export function initializeChat(welcomeMessage) {
   const initialMessage = {
@@ -102,4 +108,27 @@ export function updateMessage(messageId, updates) {
 
     return updatedMsgs;
   });
+}
+
+// Set OCR results for a message
+export function setOcrResults(messageId, results) {
+  ocrResults.update((data) => {
+    return { ...data, [messageId]: results };
+  });
+}
+
+// Get OCR results for a message
+export function getOcrResults(messageId) {
+  let results = null;
+  ocrResults.subscribe((data) => {
+    results = data[messageId];
+  })();
+  return results;
+}
+
+// Clear OCR data
+export function clearOcrData() {
+  ocrResults.set({});
+  ocrNotes.set({});
+  isOcrProcessing.set(false);
 }

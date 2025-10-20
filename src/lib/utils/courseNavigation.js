@@ -7,7 +7,7 @@
 
 import { goto } from '$app/navigation';
 import { get } from 'svelte/store';
-import { coursesStore } from '$lib/stores/courses.js';
+import { coursesStore } from '$lib/stores/coursesDB.js';
 
 /**
  * Validate if a course is accessible
@@ -130,7 +130,8 @@ export async function navigateToCourse(courseOrId, options = {}) {
   }
 
   try {
-    await goto(`/learn/${validation.course.id}`);
+    const identifier = validation.course.slug || validation.course.id;
+    await goto(`/learn/${identifier}`);
     return true;
   } catch (error) {
     console.error('Navigation error:', error);
@@ -183,7 +184,8 @@ export async function navigateToCourseProgress(courseOrId, options = {}) {
   }
 
   try {
-    await goto(`/learn/${validation.course.id}/progress`);
+    const identifier = validation.course.slug || validation.course.id;
+    await goto(`/learn/${identifier}/progress`);
     return true;
   } catch (error) {
     console.error('Navigation error:', error);
@@ -280,6 +282,7 @@ export function getSafeCourseUrl(courseId, path = '') {
     return null;
   }
 
+  // courseId can be either ID or slug
   const basePath = `/learn/${courseId}`;
   return path ? `${basePath}/${path}` : basePath;
 }

@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { container } from '$lib/shared/di/container';
 import { OPENAI_CONFIG } from '$lib/config/api';
-import { LLM_FEATURES } from '$lib/config/llm';
+import { LLM_FEATURES, PROVIDER_CONFIG } from '$lib/config/llm';
 import { languageDetector } from '$lib/modules/chat/LanguageDetector.js';
 import { sessionLanguageManager } from '$lib/modules/chat/SessionLanguageManager.js';
 import { promptEnhancer } from '$lib/modules/chat/PromptEnhancer.js';
@@ -231,6 +231,9 @@ export async function POST({ request }) {
       examProfile: requestExamProfile
     } = requestBody;
 
+    // Check if a specific provider was requested (moved here to avoid reference error)
+    const requestedProvider = requestBody.provider;
+
     // Extract session ID for language management
     const sessionId = sessionContext?.sessionId || `temp_${Date.now()}`;
 
@@ -415,11 +418,56 @@ export async function POST({ request }) {
     // Get the LLM Provider Manager from the container
     const providerManager = container.resolve('llmProviderManager');
 
-    // Check if a specific provider was requested
-    const requestedProvider = requestBody.provider;
+    // SMART LOGIC: For very short messages, check previous user messages
+    // Short messages like "sí", "ok", "yes" are hard to detect reliably
+    const wordCount = content.trim().split(/\s+/).length;
+    
+    if (wordCount <= 2 && languageConfidence < 0.9 && sessionContext?.history) {
+      // Message is very short and confidence is not high - check history
+      const userMessages = sessionContext.history.filter(msg => msg.role === 'user');
+      
+      if (userMessages.length > 0) {
+        // Get the most recent user message (not the current one)
+        const previousUserMessage = userMessages[userMessages.length - 1];
+        const historyDetection = languageDetector.detectLanguageFromText(previousUserMessage.content);
+        
+        if (historyDetection.confidence > 0.7) {
+          console.log(`[Short Message] Overriding ${detectedLanguage} (${languageConfidence}) with history language ${historyDetection.language} (${historyDetection.confidence})`);
+          detectedLanguage = historyDetection.language;
+          languageConfidence = historyDetection.confidence;
+        }
+      }
+    }
+    
+    console.log(`[Final Language] Using: ${detectedLanguage} (confidence: ${languageConfidence}, words: ${wordCount})`)
 
-    // Create base system prompt
-    const baseSystemPrompt = `You are a helpful AI tutor. Respond in ${detectedLanguage === 'ru' ? 'Russian' : detectedLanguage === 'es' ? 'Spanish' : 'English'}.
+    // Create base system prompt with strong language enforcement
+    const languageNames = {
+      ru: 'Russian',
+      es: 'Spanish',
+      en: 'English',
+      fr: 'French',
+      de: 'German',
+      it: 'Italian',
+      pt: 'Portuguese'
+    };
+    
+    const targetLanguage = languageNames[detectedLanguage] || 'English';
+    
+    // ULTRA SIMPLE: Just tell the model to respond in the user's language
+    const languageInstructions = {
+      es: `Responde SOLO en español. El usuario escribe en español, tú respondes en español. Cada palabra debe ser en español.`,
+      ru: `Отвечай ТОЛЬКО на русском. Пользователь пишет на русском, ты отвечаешь на русском. Каждое слово должно быть на русском.`,
+      en: `Respond ONLY in English. The user writes in English, you respond in English. Every word must be in English.`,
+      fr: `Réponds UNIQUEMENT en français. L'utilisateur écrit en français, tu réponds en français. Chaque mot doit être en français.`,
+      de: `Antworte NUR auf Deutsch. Der Benutzer schreibt auf Deutsch, du antwortest auf Deutsch. Jedes Wort muss auf Deutsch sein.`,
+      it: `Rispondi SOLO in italiano. L'utente scrive in italiano, tu rispondi in italiano. Ogni parola deve essere in italiano.`,
+      pt: `Responda APENAS em português. O usuário escreve em português, você responde em português. Cada palavra deve ser em português.`
+    };
+
+    const baseSystemPrompt = `You are a helpful AI tutor.
+
+${languageInstructions[detectedLanguage] || `Respond in ${targetLanguage}. The user is writing in ${targetLanguage}, so you must respond in ${targetLanguage}.`}
 
 Use the prior conversation messages and any provided documents to maintain context.
 
@@ -449,11 +497,12 @@ Your task:
       sessionLanguageState?.validationHistory?.some((v) => !v.isValid) || false;
 
     // Enhance system prompt with language constraints based on confidence and history
+    // Always use 'ultra_strong' enforcement level to prevent language switching
     const enhancedSystemPrompt = promptEnhancer.enhanceSystemPrompt(
       baseSystemPrompt,
       detectedLanguage,
       languageConfidence,
-      { hasLanguageMixing }
+      { hasLanguageMixing, enhancementLevel: 'ultra_strong' }
     );
 
     // Prepare the messages for the LLM
@@ -508,11 +557,106 @@ Your task:
       }
     }
 
-    // Add the current user question
-    messages.push({ role: 'user', content: fullContent });
+    // Add language instruction directly in user message
+    const userLanguageInstruction = {
+      es: `[Responde en español]\n\n`,
+      ru: `[Отвечай на русском]\n\n`,
+      en: `[Respond in English]\n\n`,
+      fr: `[Réponds en français]\n\n`,
+      de: `[Antworte auf Deutsch]\n\n`,
+      it: `[Rispondi in italiano]\n\n`,
+      pt: `[Responda em português]\n\n`
+    };
 
-    // Apply language constraints to all messages
-    const enhancedMessages = promptEnhancer.addLanguageConstraints(messages, detectedLanguage);
+    const languageInstruction = userLanguageInstruction[detectedLanguage] || '';
+
+    // Add the current user question
+    // If images are provided, format message for vision models
+    if (images && images.length > 0) {
+      console.log('[Vision] Using vision model for image analysis');
+      const userMessage = {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: languageInstruction + fullContent
+          }
+        ]
+      };
+      
+      // Add each image to the message
+      for (const imageData of images) {
+        userMessage.content.push({
+          type: 'image_url',
+          image_url: {
+            url: imageData
+          }
+        });
+      }
+      
+      messages.push(userMessage);
+    } else {
+      // Text-only message - add language instruction to user message
+      messages.push({ role: 'user', content: languageInstruction + fullContent });
+    }
+
+    // Simple reminder in the target language
+    const simpleReminders = {
+      es: `Responde en español.`,
+      ru: `Отвечай на русском.`,
+      en: `Respond in English.`,
+      fr: `Réponds en français.`,
+      de: `Antworte auf Deutsch.`,
+      it: `Rispondi in italiano.`,
+      pt: `Responda em português.`
+    };
+    
+    messages.push({
+      role: 'system',
+      content: simpleReminders[detectedLanguage] || `Respond in ${targetLanguage}.`
+    });
+
+    // SIMPLIFIED: Don't use PromptEnhancer - keep it simple
+    const enhancedMessages = messages;
+
+    // Add agent-specific system prompt if available from course/session context
+    // This allows each course to define its own AI tutor personality and instructions
+    const agentInstructions = sessionContext?.context?.agentInstructions || 
+                              activeExamProfile?.agentInstructions ||
+                              null;
+    
+    // Add language instruction directly into the base prompt
+    const languagePrefix = {
+      es: `RESPONDE EN ESPAÑOL.\n\n`,
+      ru: `ОТВЕЧАЙ НА РУССКОМ.\n\n`,
+      en: `RESPOND IN ENGLISH.\n\n`,
+      fr: `RÉPONDS EN FRANÇAIS.\n\n`,
+      de: `ANTWORTE AUF DEUTSCH.\n\n`,
+      it: `RISPONDI IN ITALIANO.\n\n`,
+      pt: `RESPONDA EM PORTUGUÊS.\n\n`
+    };
+
+    if (agentInstructions) {
+      // Use course-specific agent instructions with language prefix
+      enhancedMessages.unshift({
+        role: 'system',
+        content: (languagePrefix[detectedLanguage] || `RESPOND IN ${targetLanguage.toUpperCase()}.\n\n`) + agentInstructions
+      });
+    } else {
+      // Fallback to default educational tutor prompt with language prefix
+      enhancedMessages.unshift({
+        role: 'system',
+        content: (languagePrefix[detectedLanguage] || `RESPOND IN ${targetLanguage.toUpperCase()}.\n\n`) + `You are a helpful AI tutor assistant.
+
+Your role is to:
+- Provide clear, accurate, and educational responses
+- Explain concepts in a way that's easy to understand
+- Be patient and supportive
+- Use examples when helpful
+
+Maintain a friendly and encouraging tone.`
+      });
+    }
 
     if (detailLevel === 'detailed') {
       enhancedMessages.unshift({
@@ -529,6 +673,22 @@ Your task:
       });
     }
 
+    // One final simple reminder
+    const finalReminders = {
+      es: `Tu respuesta: 100% español.`,
+      ru: `Твой ответ: 100% русский.`,
+      en: `Your response: 100% English.`,
+      fr: `Ta réponse: 100% français.`,
+      de: `Deine Antwort: 100% Deutsch.`,
+      it: `La tua risposta: 100% italiano.`,
+      pt: `Sua resposta: 100% português.`
+    };
+    
+    enhancedMessages.push({
+      role: 'system',
+      content: finalReminders[detectedLanguage] || `Your response: 100% ${targetLanguage}.`
+    });
+
     // Options for the LLM request
     const options = {
       temperature: OPENAI_CONFIG.TEMPERATURE,
@@ -544,11 +704,57 @@ Your task:
       console.info(`Using requested provider: ${requestedProvider}`);
     }
 
-    // Generate completion using the provider manager
-    const result = await providerManager.generateChatCompletion(enhancedMessages, options);
+    // If a specific model was requested, use it
+    if (requestBody.model) {
+      options.model = requestBody.model;
+      console.info(`Using requested model: ${requestBody.model}`);
+    }
+
+    // Special handling for Ollama - add extra language enforcement
+    // Small models like qwen2.5:1.5b need very explicit instructions
+    const isOllama = !requestedProvider || requestedProvider === 'ollama' || PROVIDER_CONFIG.DEFAULT_PROVIDER === 'ollama';
+    
+    if (isOllama) {
+      // For Ollama, add a very simple, direct instruction at the very end
+      const ollamaLanguageMap = {
+        es: 'español',
+        ru: 'русский',
+        en: 'English',
+        fr: 'français',
+        de: 'Deutsch',
+        it: 'italiano',
+        pt: 'português'
+      };
+      
+      const targetLangName = ollamaLanguageMap[detectedLanguage] || targetLanguage;
+      
+      // Add as the absolute last message before generation
+      enhancedMessages.push({
+        role: 'system',
+        content: `Language: ${targetLangName}`
+      });
+      
+      console.log(`[Ollama] Added extra language enforcement: ${targetLangName}`);
+    }
+
+    console.log(`[Language Enforcement] Generating response in ${targetLanguage} (${detectedLanguage}) with ${enhancedMessages.filter(m => m.role === 'system').length} system messages`);
+    
+    // Log first system message to verify language instruction is first
+    const firstSystemMsg = enhancedMessages.find(m => m.role === 'system');
+    if (firstSystemMsg) {
+      console.log(`[First System Message] ${firstSystemMsg.content.substring(0, 100)}...`);
+    }
+
+    // Generate completion using the provider manager with automatic enhancement
+    const result = await providerManager.generateChatCompletionWithEnhancement(enhancedMessages, options);
 
     // Log which provider was used
     console.info(`Response generated using provider: ${result.provider}, model: ${result.model}`);
+    
+    // Log math enhancement if applied
+    if (result.enhanced) {
+      console.info(`Math enhancement applied - Category: ${result.classification?.category}, Confidence: ${result.classification?.confidence}`);
+    }
 
     // Extract the response content
     let aiResponse = result.content;
@@ -670,6 +876,12 @@ Your task:
     });
   } catch (error) {
     console.error('Error in chat API:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      cause: error.cause
+    });
 
     // Provide more specific error messages based on the error type
     let errorMessage = 'Internal server error';
@@ -686,6 +898,15 @@ Your task:
     ) {
       errorMessage = 'Local LLM service is not available';
       statusCode = 503;
+    }
+
+    // In development, include error details
+    if (import.meta.env.DEV) {
+      return json({ 
+        error: errorMessage, 
+        details: error.message,
+        stack: error.stack 
+      }, { status: statusCode });
     }
 
     return json({ error: errorMessage }, { status: statusCode });

@@ -1,10 +1,10 @@
 <script>
   import { afterUpdate } from 'svelte';
-  import { messages, processingImagesMap, ocrNotes, updateMessage } from '../stores';
+  import { messages, processingImagesMap, ocrNotes, ocrResults, updateMessage } from '../stores';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { darkMode } from '$modules/theme/stores';
   import { MESSAGE_TYPES } from '$shared/utils/constants';
-  import { Loader, CheckCircle, Server } from 'lucide-svelte';
+  import { Loader, CheckCircle, Server, ScanLine } from 'lucide-svelte';
   import { LLM_FEATURES } from '$lib/config/llm';
   import TypewriterMessage from './TypewriterMessage.svelte';
   import MathRenderer from '$lib/components/MathRenderer.svelte';
@@ -174,9 +174,26 @@
                 : 'bg-stone-100 text-stone-800 rounded-bl-sm'}"
         >
           {#if message.images && message.images.length > 0}
-            <div class="mb-2 grid grid-cols-2 gap-2">
-              {#each message.images as img}
-                <img src={img} alt="Uploaded" class="w-full h-20 object-cover rounded-lg" />
+            <div class="mb-3 flex flex-col gap-2">
+              {#each message.images as img, index}
+                <div class="image-preview-container relative">
+                  <img 
+                    src={typeof img === 'string' ? img : img.url} 
+                    alt="Uploaded image {index + 1}" 
+                    class="message-image rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    on:click={() => window.open(typeof img === 'string' ? img : img.url, '_blank')}
+                    on:keydown={(e) => e.key === 'Enter' && window.open(typeof img === 'string' ? img : img.url, '_blank')}
+                    tabindex="0"
+                    role="button"
+                    aria-label="Open image {index + 1} in new tab"
+                  />
+                  {#if typeof img === 'object' && img.ocrData}
+                    <div class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg">
+                      <ScanLine class="w-3 h-3" />
+                      <span>OCR: {img.ocrData.count}</span>
+                    </div>
+                  {/if}
+                </div>
               {/each}
             </div>
           {/if}
@@ -184,32 +201,12 @@
             <MathRenderer content={message.content} className="whitespace-pre-wrap" />
           </div>
 
-          {#if message.ocrText}
-            <!-- OCR text rendering -->
-            <div class="mt-2 p-2 rounded-lg {$darkMode ? 'bg-gray-700' : 'bg-stone-100'} text-xs">
-              <strong>OCR Result:</strong>
-              {message.ocrText}
-            </div>
-          {:else if $ocrNotes[message.id] && message.type === MESSAGE_TYPES.USER}
-            <!-- OCR note rendering -->
-            <div class="mt-2 p-2 rounded-lg {$darkMode ? 'bg-gray-700' : 'bg-stone-100'} text-xs">
-              <strong>OCR Note:</strong>
-              {$ocrNotes[message.id]}
-            </div>
-          {:else if isProcessingMessage(message)}
+          {#if isProcessingMessage(message)}
             <!-- Processing indicator -->
             <div class="flex items-center mt-2 text-amber-500">
               <Loader class="w-4 h-4 mr-2 animate-spin" />
               <span class="text-xs">Processing image...</span>
             </div>
-          {:else if isProcessedMessage(message) && message.type === MESSAGE_TYPES.USER}
-            <!-- Processed indicator -->
-            <div class="flex items-center mt-2 text-green-500">
-              <CheckCircle class="w-4 h-4 mr-2" />
-              <span class="text-xs">Image processed</span>
-            </div>
-          {:else}
-            <!-- No OCR content -->
           {/if}
 
           <div
@@ -243,6 +240,36 @@
 </div>
 
 <style>
+  /* Стили для превью изображений */
+  .image-preview-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .message-image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.dark) .message-image {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .message-image:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .message-image:focus {
+    outline: 2px solid #ff9800;
+    outline-offset: 2px;
+  }
+
   /* Улучшенные стили для математики в сообщениях чата */
   .message-content :global(.math-display) {
     background: rgba(255, 255, 255, 0.9) !important;

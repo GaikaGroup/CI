@@ -6,7 +6,7 @@
 export const OPENAI_CONFIG = {
   API_KEY: import.meta.env.VITE_OPENAI_API_KEY || 'your-api-key-here', // Use environment variable
   API_URL: 'https://api.openai.com/v1/chat/completions',
-  MODEL: import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo',
+  MODEL: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4-turbo', // Changed to gpt-4-turbo which supports vision
   MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_MAX_TOKENS || '500', 10),
   DETAILED_MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_DETAILED_MAX_TOKENS || '4000', 10),
   TEMPERATURE: parseFloat(import.meta.env.VITE_OPENAI_TEMPERATURE || '0.7'),

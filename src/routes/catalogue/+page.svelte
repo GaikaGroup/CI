@@ -9,11 +9,11 @@
   import CourseSelection from '$modules/learn/components/CourseSelection.svelte';
   import Button from '$shared/components/Button.svelte';
   import { setMode } from '$lib/stores/mode';
-  import { coursesStore } from '$lib/stores/courses';
+  import { coursesStore } from '$lib/stores/coursesDB';
   import { user } from '$modules/auth/stores';
   import { examProfile, initialiseExamProfile, clearExamProfile } from '$lib/stores/examProfile';
   import { resetLearningSession, startLearningSession } from '$modules/learn/utils/session.js';
-  import { slugify } from '$lib/utils/slugify.js';
+  import { getCourseUrl } from '$lib/utils/courseUrl.js';
 
   const buildCatalogueUrl = (course, action) => {
     if (!course) {
@@ -71,8 +71,8 @@
       return;
     }
 
-    startLearningSession(course, mode);
-    syncCatalogueUrl(course, 'open');
+    // Navigate directly to the learn page
+    goto(getCourseUrl(course));
   };
 
   const handleJoinCourse = async (event) => {
@@ -100,16 +100,16 @@
 
     // Import enrollment store dynamically to avoid circular dependencies
     try {
-      const { enrollmentStore } = await import('$modules/courses/stores/enrollmentStore.js');
+      const { enrollmentStore } = await import('$lib/stores/enrollmentDB.js');
       console.log('Enrollment store imported successfully');
 
-      const result = await enrollmentStore.enrollInCourse($user.id, course.id);
+      const result = await enrollmentStore.enrollInCourse(course.id);
       console.log('Enrollment result:', result);
 
       if (result.success) {
-        console.log('Successfully enrolled, starting learning session');
-        startLearningSession(course, 'practice');
-        syncCatalogueUrl(course, 'open');
+        console.log('Successfully enrolled, navigating to learn page');
+        // Navigate directly to the learn page instead of staying in catalogue
+        goto(getCourseUrl(course));
       } else {
         console.error('Failed to join course:', result.error);
         alert(`Failed to join course: ${result.error}`);
@@ -126,17 +126,22 @@
       return;
     }
 
-    startLearningSession(course, 'practice');
-    syncCatalogueUrl(course, 'open');
+    // Navigate directly to the learn page instead of staying in catalogue
+    goto(getCourseUrl(course));
   };
 
   const handleEditCourse = (event) => {
     const { course } = event.detail;
-    if (!course) {
+    console.log('Edit course event:', course);
+    
+    if (!course || !course.id) {
+      console.error('Cannot edit course: missing course or course ID', course);
       return;
     }
 
-    const slug = slugify(course.name, course.id);
+    console.log('Course name:', course.name);
+    const slug = course.name ? slugify(course.name, course.id) : course.id;
+    console.log('Generated slug:', slug);
     goto(`/catalogue/edit?id=${course.id}&course=${slug}&action=edit`);
   };
 
@@ -151,7 +156,7 @@
 
   onMount(() => {
     checkAuth();
-    coursesStore.initialise();
+    coursesStore.initialize();
     initialiseExamProfile();
     setMode('catalogue');
   });

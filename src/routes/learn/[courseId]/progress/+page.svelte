@@ -6,7 +6,7 @@
   import {
     activeEnrollments,
     enrollmentStats
-  } from '$lib/modules/courses/stores/enrollmentStore.js';
+  } from '$lib/stores/enrollmentDB.js';
   import { validateCourseAccess } from '$lib/utils/courseNavigation.js';
   import {
     ArrowLeft,
@@ -116,7 +116,8 @@
   });
 
   function handleBackToCourse() {
-    goto(`/learn/${data.course.id}`);
+    const identifier = data.course.slug || data.course.id;
+    goto(`/learn/${identifier}`);
   }
 
   function handleBackToCourses() {
@@ -124,7 +125,8 @@
   }
 
   function handleContinueLearning() {
-    goto(`/learn/${data.course.id}`);
+    const identifier = data.course.slug || data.course.id;
+    goto(`/learn/${identifier}`);
   }
 </script>
 

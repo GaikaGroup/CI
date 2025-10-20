@@ -1,5 +1,7 @@
 <script>
   import { goto } from '$app/navigation';
+  import { register } from '$lib/modules/auth/services.js';
+  
   let firstName = '';
   let lastName = '';
   let email = '';
@@ -7,23 +9,44 @@
   let confirmPassword = '';
   let terms = false;
   let error = '';
+  let isLoading = false;
 
-  function handleSignUp() {
+  async function handleSignUp() {
     error = '';
+    isLoading = true;
+
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       error = 'Please fill in all fields';
+      isLoading = false;
       return;
     }
     if (password !== confirmPassword) {
       error = 'Passwords do not match';
+      isLoading = false;
       return;
     }
     if (!terms) {
       error = 'Please agree to the Terms of Service and Privacy Policy';
+      isLoading = false;
       return;
     }
-    alert('Account created successfully! (This is a demo)');
-    goto('/login');
+
+    try {
+      const result = await register({
+        firstName,
+        lastName,
+        email,
+        password
+      });
+
+      if (result) {
+        goto('/login');
+      }
+    } catch (err) {
+      error = err.message || 'Registration failed. Please try again.';
+    } finally {
+      isLoading = false;
+    }
   }
 </script>
 
@@ -140,7 +163,9 @@
       <div class="error-message">{error}</div>
     {/if}
 
-    <button class="signup-button" on:click={handleSignUp}>Create Account</button>
+    <button class="signup-button" on:click={handleSignUp} disabled={isLoading}>
+      {isLoading ? 'Creating Account...' : 'Create Account'}
+    </button>
 
     <div class="divider">
       <span>or sign up with</span>

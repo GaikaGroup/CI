@@ -648,9 +648,10 @@ async function transcribeAudio(audioBlob) {
 /**
  * Send transcribed text to chat API and get response
  * @param {string} transcription - Transcribed text
+ * @param {string} sessionId - Current session ID (optional)
  * @returns {Promise<string>} - AI response
  */
-export async function sendTranscribedText(transcription) {
+export async function sendTranscribedText(transcription, sessionId = null) {
   try {
     // Ensure voice mode is active (should already be active when this is called)
     if (!get(isVoiceModeActive)) {
@@ -669,6 +670,33 @@ export async function sendTranscribedText(transcription) {
 
     // Add the transcription as a user message with images
     addMessage(MESSAGE_TYPES.USER, transcription, images, messageId);
+
+    // Update session title if this is the first user message and we have a session ID
+    if (sessionId && transcription && transcription.trim().length > 0) {
+      try {
+        // Check if session title needs updating (starts with "New Session")
+        const sessionResponse = await fetch(`/api/sessions/${sessionId}`);
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json();
+          if (sessionData.title && sessionData.title.startsWith('New Session')) {
+            console.log('Updating session title from voice message:', transcription.substring(0, 50));
+            
+            // Update session title with the transcribed text
+            await fetch(`/api/sessions/${sessionId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: transcription.substring(0, 50) + (transcription.length > 50 ? '...' : ''),
+                preview: transcription.substring(0, 200)
+              })
+            });
+          }
+        }
+      } catch (titleUpdateError) {
+        // Don't let title update errors interrupt the main flow
+        console.warn('Failed to update session title from voice message:', titleUpdateError);
+      }
+    }
 
     // Trigger waiting phrase immediately after user message
     console.log('Triggering waiting phrase for user message...');

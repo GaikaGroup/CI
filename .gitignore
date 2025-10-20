@@ -41,3 +41,8 @@ pnpm-debug.log*
 .tmp
 .temp
 /src/generated/prisma
+
+# Database backups (contain sensitive data)
+/backups
+*.sql
+*.sql.gz

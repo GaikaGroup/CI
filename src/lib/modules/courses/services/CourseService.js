@@ -9,7 +9,7 @@
 import { validateCourse, createDefaultCourse } from '../types.js';
 import { AGENT_TYPES, validateAgentConfiguration } from '../agents.js';
 import { userEnrollmentService } from './UserEnrollmentService.js';
-import { enrollmentStore } from '../stores/enrollmentStore.js';
+import { enrollmentStore } from '$lib/stores/enrollmentDB.js';
 
 /**
  * Course status enumeration
@@ -278,21 +278,27 @@ export class CourseService {
    */
   async getCourse(courseId) {
     try {
-      // This would typically query a database, but we'll use the store for now
-      const courses = await this.listCourses();
-      const course = courses.courses.find((s) => s.id === courseId);
+      // Load course directly from API/database
+      const response = await fetch(`/api/courses/${courseId}`, {
+        credentials: 'include'
+      });
 
-      if (!course) {
-        return {
-          success: false,
-          error: 'Course not found',
-          course: null
-        };
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            success: false,
+            error: 'Course not found',
+            course: null
+          };
+        }
+        throw new Error(`Failed to load course: ${response.statusText}`);
       }
+
+      const data = await response.json();
 
       return {
         success: true,
-        course
+        course: this.normalizeCourseData(data.course)
       };
     } catch (error) {
       console.error('Error getting course:', error);

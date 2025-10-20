@@ -7,6 +7,7 @@
   import { getApiModeFromAppMode } from '$lib/utils/modeMapping.js';
   import { validateCourseAccess } from '$lib/utils/courseNavigation.js';
   import EnhancedChatInterface from '$lib/modules/chat/components/EnhancedChatInterface.svelte';
+  import CourseLandingPage from './components/CourseLandingPage.svelte';
   import { BookOpen, ArrowLeft, Info, Clock, Award } from 'lucide-svelte';
 
   /** @type {import('./$types').PageData} */
@@ -15,6 +16,8 @@
   let loading = true;
   let error = null;
   let courseContext = null;
+  let enrolled = false;
+  let showLandingPage = true;
 
   // Set app mode to 'learn' for course learning context
   $: if (data?.course) {
@@ -71,7 +74,17 @@
   }
 
   function handleViewProgress() {
-    goto(`/learn/${data.course.id}/progress`);
+    const identifier = data.course.slug || data.course.id;
+    goto(`/learn/${identifier}/progress`);
+  }
+
+  function handleEnroll() {
+    enrolled = true;
+    showLandingPage = false;
+  }
+
+  function handleStartLearning() {
+    showLandingPage = false;
   }
 </script>
 
@@ -117,81 +130,93 @@
     </div>
   </div>
 {:else if data?.course}
-  <div class="min-h-screen bg-stone-50 dark:bg-gray-900">
-    <!-- Course Header -->
-    <div class="bg-white dark:bg-gray-800 border-b border-stone-200 dark:border-gray-700">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <button
-              on:click={handleBackToCourses}
-              class="flex items-center gap-2 text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white transition-colors"
-            >
-              <ArrowLeft class="w-4 h-4" />
-              <span class="hidden sm:inline">My Courses</span>
-            </button>
-            <div class="h-6 w-px bg-stone-300 dark:bg-gray-600"></div>
-            <div>
-              <h1 class="text-xl font-semibold text-stone-900 dark:text-white">
-                {data.course.name}
-              </h1>
-              <div class="flex items-center gap-2 text-sm text-stone-600 dark:text-gray-400">
-                <BookOpen class="w-4 h-4" />
-                <span>{data.course.language}</span>
-                {#if data.course.level}
-                  <span>•</span>
-                  <span>{data.course.level}</span>
-                {/if}
+  {#if showLandingPage && !enrolled}
+    <!-- Show Landing Page for non-enrolled users -->
+    <CourseLandingPage
+      course={data.course}
+      {enrolled}
+      studentCount={data.studentCount || 0}
+      onEnroll={handleEnroll}
+      onStartLearning={handleStartLearning}
+    />
+  {:else}
+    <!-- Show Chat Interface for enrolled users -->
+    <div class="min-h-screen bg-stone-50 dark:bg-gray-900">
+      <!-- Course Header -->
+      <div class="bg-white dark:bg-gray-800 border-b border-stone-200 dark:border-gray-700">
+        <div class="container mx-auto px-4 py-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <button
+                on:click={handleBackToCourses}
+                class="flex items-center gap-2 text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white transition-colors"
+              >
+                <ArrowLeft class="w-4 h-4" />
+                <span class="hidden sm:inline">My Courses</span>
+              </button>
+              <div class="h-6 w-px bg-stone-300 dark:bg-gray-600"></div>
+              <div>
+                <h1 class="text-xl font-semibold text-stone-900 dark:text-white">
+                  {data.course.name}
+                </h1>
+                <div class="flex items-center gap-2 text-sm text-stone-600 dark:text-gray-400">
+                  <BookOpen class="w-4 h-4" />
+                  <span>{data.course.language}</span>
+                  {#if data.course.level}
+                    <span>•</span>
+                    <span>{data.course.level}</span>
+                  {/if}
+                </div>
               </div>
             </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              on:click={handleViewProgress}
-              class="flex items-center gap-2 px-3 py-2 text-sm bg-stone-100 hover:bg-stone-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-stone-700 dark:text-gray-300 rounded-lg transition-colors"
-            >
-              <Award class="w-4 h-4" />
-              <span class="hidden sm:inline">Progress</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Course Info Panel (Collapsible) -->
-    <div class="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
-      <div class="container mx-auto px-4 py-3">
-        <div class="flex items-start gap-3">
-          <Info class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <p class="text-sm text-amber-800 dark:text-amber-200 mb-1">
-              {data.course.description}
-            </p>
-            {#if data.course.skills && data.course.skills.length > 0}
-              <div class="flex flex-wrap gap-1">
-                {#each data.course.skills as skill}
-                  <span
-                    class="inline-flex items-center px-2 py-1 text-xs bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 rounded"
-                  >
-                    {skill}
-                  </span>
-                {/each}
-              </div>
-            {/if}
+            <div class="flex items-center gap-2">
+              <button
+                on:click={handleViewProgress}
+                class="flex items-center gap-2 px-3 py-2 text-sm bg-stone-100 hover:bg-stone-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-stone-700 dark:text-gray-300 rounded-lg transition-colors"
+              >
+                <Award class="w-4 h-4" />
+                <span class="hidden sm:inline">Progress</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Chat Interface -->
-    <div class="flex-1">
-      {#if courseContext}
-        <EnhancedChatInterface {courseContext} sessionMode={apiMode} />
-      {:else}
-        <div class="flex items-center justify-center h-96">
-          <p class="text-stone-600 dark:text-gray-400">Initializing course interface...</p>
+      <!-- Course Info Panel (Collapsible) -->
+      <div class="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800">
+        <div class="container mx-auto px-4 py-3">
+          <div class="flex items-start gap-3">
+            <Info class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-amber-800 dark:text-amber-200 mb-1">
+                {data.course.description}
+              </p>
+              {#if data.course.skills && data.course.skills.length > 0}
+                <div class="flex flex-wrap gap-1">
+                  {#each data.course.skills as skill}
+                    <span
+                      class="inline-flex items-center px-2 py-1 text-xs bg-amber-100 dark:bg-amber-800 text-amber-700 dark:text-amber-200 rounded"
+                    >
+                      {skill}
+                    </span>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </div>
         </div>
-      {/if}
+      </div>
+
+      <!-- Chat Interface -->
+      <div class="flex-1">
+        {#if courseContext}
+          <EnhancedChatInterface {courseContext} sessionMode={apiMode} />
+        {:else}
+          <div class="flex items-center justify-center h-96">
+            <p class="text-stone-600 dark:text-gray-400">Initializing course interface...</p>
+          </div>
+        {/if}
+      </div>
     </div>
-  </div>
+  {/if}
 {/if}

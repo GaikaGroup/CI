@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import { Camera, Send } from 'lucide-svelte';
-  import { inputMessage, selectedImages, processingImagesMap } from '../stores';
+  import { inputMessage, selectedImages, processingImagesMap, isOcrProcessing, setOcrResults } from '../stores';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
   import Button from '$shared/components/Button.svelte';
@@ -22,6 +22,17 @@
   const dispatch = createEventDispatcher();
   let fileInput;
 
+  function handleImageUpload(event) {
+    const files = Array.from(event.target.files);
+    const fileObjects = files.map((file) => ({
+      url: URL.createObjectURL(file),
+      type: file.type,
+      name: file.name
+    }));
+    $selectedImages = [...$selectedImages, ...fileObjects];
+    fileInput.value = null; // Reset file input
+  }
+
   function handleSend() {
     if (!isDisabled && ($inputMessage.trim() || $selectedImages.length > 0)) {
       dispatch('send', {
@@ -38,17 +49,6 @@
       event.preventDefault();
       handleSend();
     }
-  }
-
-  function handleImageUpload(event) {
-    const files = Array.from(event.target.files);
-    const fileObjects = files.map((file) => ({
-      url: URL.createObjectURL(file),
-      type: file.type,
-      name: file.name
-    }));
-    $selectedImages = [...$selectedImages, ...fileObjects];
-    fileInput.value = null; // Reset file input
   }
 
   function removeImage(index) {
@@ -120,6 +120,7 @@
         : ''}"
       aria-label="Upload image"
       disabled={isDisabled}
+      title="Загрузить изображение"
     >
       <Camera class="w-5 h-5" />
     </button>

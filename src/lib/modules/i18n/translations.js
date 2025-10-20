@@ -1,7 +1,7 @@
 // Translations for the application
 export const translations = {
   en: {
-    title: 'AI Tutor',
+    title: 'mAItutors',
     signIn: 'Sign In',
     textChat: 'Text Chat',
     voiceChat: 'Voice Chat',
@@ -44,7 +44,7 @@ export const translations = {
     learnNavigationCodesHeading: 'Universal navigation codes'
   },
   ru: {
-    title: 'ИИ Преподаватель',
+    title: 'mAItutors',
     signIn: 'Войти',
     textChat: 'Текстовый чат',
     voiceChat: 'Голосовой чат',
@@ -87,7 +87,7 @@ export const translations = {
     learnNavigationCodesHeading: 'Универсальные коды навигации'
   },
   es: {
-    title: 'Tutor IA',
+    title: 'mAItutors',
     signIn: 'Iniciar sesión',
     textChat: 'Chat de texto',
     voiceChat: 'Chat de voz',

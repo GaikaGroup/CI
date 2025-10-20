@@ -1,8 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { activeEnrollments, enrollmentStats } from '$modules/courses/stores/enrollmentStore.js';
-  import { coursesStore } from '$lib/stores/courses';
+  import { activeEnrollments, enrollmentStats } from '$lib/stores/enrollmentDB.js';
+  import { coursesStore } from '$lib/stores/coursesDB';
   import { user, checkAuth } from '$modules/auth/stores';
   import { navigateToCourse, navigateToCourseProgress } from '$lib/utils/courseNavigation.js';
   import { BookOpen, TrendingUp, Calendar, Award, Clock } from 'lucide-svelte';
@@ -58,7 +58,7 @@
       goto('/login?redirect=/my-courses');
       return;
     }
-    coursesStore.initialise();
+    coursesStore.initialize();
   });
 </script>
 
@@ -75,7 +75,16 @@
 {:else}
   <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-stone-900 dark:text-white mb-2">My Courses</h1>
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="text-3xl font-bold text-stone-900 dark:text-white">My Courses</h1>
+        <a
+          href="/catalogue/edit?new=true"
+          class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
+        >
+          <BookOpen class="w-4 h-4 mr-2" />
+          Create Course
+        </a>
+      </div>
       <p class="text-stone-600 dark:text-gray-400">
         Track your progress and continue learning with your enrolled courses
       </p>

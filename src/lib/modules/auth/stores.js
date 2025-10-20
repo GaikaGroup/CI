@@ -27,49 +27,50 @@ function normalizeUserData(userData) {
 function persistUserSession(userData) {
   const normalizedUser = normalizeUserData(userData);
 
-  user.set(normalizedUser);
-  isAuthenticated.set(true);
+  try {
+    user.set(normalizedUser);
+    isAuthenticated.set(true);
 
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(normalizedUser));
-  }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(normalizedUser));
+    }
 
-  if (typeof document !== 'undefined') {
-    const cookieValue = encodeURIComponent(JSON.stringify(normalizedUser));
-    document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    if (typeof document !== 'undefined') {
+      const cookieValue = encodeURIComponent(JSON.stringify(normalizedUser));
+      document.cookie = `${STORAGE_KEYS.USER}=${cookieValue}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+    }
+  } catch (error) {
+    console.error('Error persisting user session:', error);
   }
 }
 
-// Mock login function (for demonstration)
-export function login(email, password) {
-  return new Promise((resolve, reject) => {
-    // Simulate API call
-    setTimeout(() => {
-      if (email === 'AdminLogin' && password === 'AdminPswd') {
-        const userData = {
-          id: '1',
-          name: 'Admin User',
-          email: 'AdminLogin',
-          role: 'admin'
-        };
+// Real login function using API
+export async function login(email, password) {
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-        persistUserSession(userData);
-        resolve(userData);
-      } else if (email === 'User1Login' && password === 'User1Pswd') {
-        const userData = {
-          id: '2',
-          name: 'Demo User',
-          email: 'User1Login',
-          role: 'student'
-        };
+    const data = await response.json();
 
-        persistUserSession(userData);
-        resolve(userData);
-      } else {
-        reject(new Error('Invalid credentials'));
-      }
-    }, 500);
-  });
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+
+    if (data.success && data.user) {
+      persistUserSession(data.user);
+      return data.user;
+    } else {
+      throw new Error('Invalid response from server');
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
 }
 
 // Logout function
@@ -85,6 +86,11 @@ export function logout() {
   if (typeof document !== 'undefined') {
     document.cookie = `${STORAGE_KEYS.USER}=; path=/; max-age=0; SameSite=Lax`;
   }
+
+  // Redirect to login page after logout
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
 }
 
 // Check if user is already logged in from localStorage
@@ -96,10 +102,21 @@ export function checkAuth() {
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
+          
+          // Clear old data with 'role' field - force re-login
+          if (userData.role) {
+            console.log('[Auth] Found old data with role field, clearing localStorage');
+            localStorage.removeItem(STORAGE_KEYS.USER);
+            resolve(null);
+            return;
+          }
+          
           persistUserSession(userData);
           resolve(userData);
         } catch (e) {
           console.error('Failed to parse stored user data', e);
+          // Clear invalid data and logout
+          localStorage.removeItem(STORAGE_KEYS.USER);
           logout();
           resolve(null);
         }

@@ -113,13 +113,21 @@ export async function GET({ url, locals }) {
  */
 export async function POST({ request, locals }) {
   try {
+    console.log('[POST /api/sessions] Request received');
+    console.log('[POST /api/sessions] locals.user:', locals.user);
+    
     // Check authentication
     if (!locals.user || !locals.user.id) {
+      console.log('[POST /api/sessions] Authentication failed - no user in locals');
       return json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const userId = locals.user.id;
+    console.log('[POST /api/sessions] User ID:', userId);
+    console.log('[POST /api/sessions] User type:', locals.user.type);
+    
     const body = await request.json();
+    console.log('[POST /api/sessions] Request body:', body);
 
     // Validate required fields
     if (!body.title || typeof body.title !== 'string' || body.title.trim().length === 0) {
@@ -148,7 +156,10 @@ export async function POST({ request, locals }) {
       mode === 'learn' &&
       (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)
     ) {
-      return json({ error: 'Course ID is required for LEARN mode sessions' }, { status: 400 });
+      console.log('[POST /api/sessions] Validation failed: Course ID required for LEARN mode');
+      return json({ 
+        error: 'Course ID is required for LEARN mode sessions. Please enroll in a course first or switch to FUN mode.' 
+      }, { status: 400 });
     }
 
     // Validate courseId format if provided
@@ -156,18 +167,46 @@ export async function POST({ request, locals }) {
       return json({ error: 'Course ID must be a valid string' }, { status: 400 });
     }
 
-    const session = await SessionService.createSession(
+    console.log('[POST /api/sessions] Creating session with params:', {
       userId,
-      title.trim(),
+      title: title.trim(),
       mode,
       language,
-      preview?.trim() || null,
-      courseId?.trim() || null
-    );
+      preview: preview?.trim() || null,
+      courseId: courseId?.trim() || null
+    });
+    
+    try {
+      const session = await SessionService.createSession(
+        userId,
+        title.trim(),
+        mode,
+        language,
+        preview?.trim() || null,
+        courseId?.trim() || null
+      );
+      
+      console.log('[POST /api/sessions] Session created successfully:', session.id);
+      return json(session, { status: 201 });
+    } catch (createError) {
+      console.error('[POST /api/sessions] SessionService.createSession failed:', createError);
+      console.error('[POST /api/sessions] Error details:', {
+        name: createError.name,
+        message: createError.message,
+        code: createError.code,
+        stack: createError.stack
+      });
+      throw createError;
+    }
 
-    return json(session, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/sessions:', error);
+    console.error('[POST /api/sessions] Error:', error);
+    console.error('[POST /api/sessions] Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
 
     if (error instanceof SessionError && error.code === 'DATABASE_NOT_READY') {
       const message =

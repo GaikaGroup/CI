@@ -9,6 +9,8 @@ import { OllamaProvider } from './providers/OllamaProvider';
 import { LLM_FEATURES, PROVIDER_CONFIG } from '$lib/config/llm';
 import { calculateOpenAICost } from '$lib/config/pricing';
 import { usageTracker } from '$modules/analytics/UsageTracker';
+import { MathQueryClassifier } from './classifiers/MathQueryClassifier';
+import { RequestEnhancer } from './enhancers/RequestEnhancer';
 
 /**
  * Provider Manager class
@@ -22,6 +24,10 @@ export class ProviderManager {
     this.defaultProvider = PROVIDER_CONFIG.DEFAULT_PROVIDER;
     this.fallbackEnabled = LLM_FEATURES.ENABLE_FALLBACK;
     this.fallbackTimeout = PROVIDER_CONFIG.FALLBACK_TIMEOUT;
+
+    // Initialize math enhancement components
+    this.mathClassifier = new MathQueryClassifier();
+    this.requestEnhancer = new RequestEnhancer();
 
     // Initialize providers
     this._initializeProviders();
@@ -106,12 +112,41 @@ export class ProviderManager {
   }
 
   /**
+   * Check if messages contain images
+   */
+  hasImages(messages) {
+    console.log('[ProviderManager] Checking for images in messages:', messages.length);
+    const result = messages.some(m => {
+      console.log('[ProviderManager] Message content type:', typeof m.content, Array.isArray(m.content));
+      if (Array.isArray(m.content)) {
+        const hasImageUrl = m.content.some(c => {
+          console.log('[ProviderManager] Content part type:', c.type);
+          return c.type === 'image_url';
+        });
+        return hasImageUrl;
+      }
+      return false;
+    });
+    console.log('[ProviderManager] hasImages result:', result);
+    return result;
+  }
+
+  /**
    * Generate a chat completion using the best available provider
    * @param {Array} messages - Array of message objects with role and content
    * @param {Object} options - Additional options for the request
    * @returns {Promise<Object>} - The generated completion
    */
   async generateChatCompletion(messages, options = {}) {
+    // Check if messages contain images and add flag to options
+    const hasImages = this.hasImages(messages);
+    if (hasImages) {
+      options.hasImages = true;
+      console.log('[ProviderManager] Detected images in messages, will use vision model');
+    } else {
+      console.log('[ProviderManager] No images detected in messages');
+    }
+    
     const providerName = options.provider || (await this.getBestProvider());
     const provider = this.getProvider(providerName);
 
@@ -243,5 +278,160 @@ export class ProviderManager {
     }
     this.defaultProvider = providerName;
     console.log(`Default LLM provider set to: ${providerName}`);
+  }
+
+  /**
+   * Generate a chat completion with automatic enhancement for mathematical queries
+   * @param {Array} messages - Array of message objects with role and content
+   * @param {Object} options - Additional options for the request
+   * @returns {Promise<Object>} - The generated completion with classification metadata
+   */
+  async generateChatCompletionWithEnhancement(messages, options = {}) {
+    // Extract the last user message for classification
+    const lastUserMessage = this._extractLastUserMessage(messages);
+    
+    if (!lastUserMessage) {
+      // No user message to classify, use standard generation
+      return this.generateChatCompletion(messages, options);
+    }
+
+    // Extract context for better classification
+    const context = messages
+      .filter(m => m.role === 'user')
+      .slice(-3)
+      .map(m => this._extractMessageText(m));
+
+    // Classify the query
+    const classification = this.mathClassifier.classify(lastUserMessage, context);
+
+    // Log classification for monitoring
+    console.log('[ProviderManager] Query classification:', {
+      isMath: classification.isMath,
+      confidence: classification.confidence,
+      category: classification.category
+    });
+
+    // Alert on low confidence classifications (Requirement 6.6)
+    if (classification.isMath && classification.confidence < 0.6) {
+      console.warn('[ProviderManager] Low confidence math classification detected:', {
+        confidence: classification.confidence,
+        category: classification.category,
+        message: 'Classification may be inaccurate - consider manual review'
+      });
+    }
+
+    // Enhance options if it's a math query
+    let enhancedOptions = options;
+    if (classification.isMath) {
+      // Detect language from options or default to 'ru'
+      const language = options.language || 'ru';
+      enhancedOptions = this.requestEnhancer.enhance(options, classification, language);
+      
+      console.log('[ProviderManager] Enhanced options for math query:', {
+        originalMaxTokens: options.maxTokens,
+        enhancedMaxTokens: enhancedOptions.maxTokens,
+        category: classification.category
+      });
+
+      // If system prompt was added, prepend it to messages
+      if (enhancedOptions.systemPrompt && !this._hasSystemMessage(messages)) {
+        messages = [
+          { role: 'system', content: enhancedOptions.systemPrompt },
+          ...messages
+        ];
+      } else if (enhancedOptions.systemPrompt && this._hasSystemMessage(messages)) {
+        // Append to existing system message
+        messages = messages.map((msg, idx) => {
+          if (idx === 0 && msg.role === 'system') {
+            return {
+              ...msg,
+              content: `${msg.content}\n\n${enhancedOptions.systemPrompt}`
+            };
+          }
+          return msg;
+        });
+      }
+    }
+
+    // Generate completion with enhanced options
+    // Track response time for math queries (Requirement 6.1)
+    const startTime = classification.isMath ? Date.now() : null;
+    const result = await this.generateChatCompletion(messages, enhancedOptions);
+    const responseTime = startTime ? Date.now() - startTime : null;
+
+    // Record math query metrics if it's a math query
+    if (classification.isMath) {
+      // Extract token usage from result
+      const tokens = result.usage || result.raw?.usage || {};
+      
+      // Calculate cost if available
+      const cost = result.cost || 0;
+      
+      // Record the math query
+      usageTracker.recordMathQuery(classification, tokens, cost);
+      
+      console.log('[ProviderManager] Math query recorded:', {
+        category: classification.category,
+        confidence: classification.confidence,
+        tokens: tokens.total || tokens.total_tokens || 0,
+        cost,
+        responseTime: responseTime ? `${responseTime}ms` : 'N/A'
+      });
+
+      // Alert on slow responses (Requirement 6.6)
+      if (responseTime && responseTime > 30000) {
+        console.warn('[ProviderManager] Slow math query response detected:', {
+          responseTime: `${responseTime}ms`,
+          category: classification.category,
+          model: result.model,
+          message: 'Response time exceeded 30 seconds - consider optimization'
+        });
+      }
+    }
+
+    // Add classification metadata to result
+    return {
+      ...result,
+      classification,
+      enhanced: classification.isMath
+    };
+  }
+
+  /**
+   * Extract the last user message text
+   * @private
+   */
+  _extractLastUserMessage(messages) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        return this._extractMessageText(messages[i]);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Extract text from a message (handles both string and array content)
+   * @private
+   */
+  _extractMessageText(message) {
+    if (typeof message.content === 'string') {
+      return message.content;
+    }
+    if (Array.isArray(message.content)) {
+      return message.content
+        .filter(part => part.type === 'text')
+        .map(part => part.text)
+        .join(' ');
+    }
+    return '';
+  }
+
+  /**
+   * Check if messages already have a system message
+   * @private
+   */
+  _hasSystemMessage(messages) {
+    return messages.length > 0 && messages[0].role === 'system';
   }
 }

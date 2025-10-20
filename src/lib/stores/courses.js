@@ -63,79 +63,7 @@ function normaliseCourses(courses) {
   return courses.map((course) => normaliseCourse(course));
 }
 
-export const DEFAULT_COURSES = normaliseCourses([
-  {
-    id: 'course-1',
-    name: 'Introduction to Mathematics',
-    description:
-      'Learn the fundamentals of mathematics including algebra, geometry, and basic calculus.',
-    language: 'English',
-    level: 'Beginner',
-    skills: ['Algebra', 'Geometry', 'Problem Solving'],
-    creatorRole: 'admin',
-    status: 'active',
-    visibility: 'published',
-    practice: {
-      summary: 'Practice basic mathematical concepts with guided support',
-      instructions: 'Work through problems step by step with hints and explanations',
-      followUp: 'Review your solutions and try similar problems',
-      minWords: 50
-    },
-    exam: {
-      summary: 'Test your mathematical knowledge under exam conditions',
-      instructions: 'Solve problems independently without hints',
-      followUp: 'Analyze your performance and identify areas for improvement',
-      minWords: 100
-    }
-  },
-  {
-    id: 'course-2',
-    name: 'English Literature',
-    description:
-      'Explore classic and modern English literature, analyzing themes, characters, and writing techniques.',
-    language: 'English',
-    level: 'Intermediate',
-    skills: ['Literary Analysis', 'Critical Thinking', 'Writing'],
-    creatorRole: 'admin',
-    status: 'active',
-    visibility: 'published',
-    practice: {
-      summary: 'Analyze literary works with guided discussion',
-      instructions: 'Read passages and discuss themes, characters, and literary devices',
-      followUp: 'Write short analytical responses about the texts',
-      minWords: 100
-    },
-    exam: {
-      summary: 'Demonstrate literary analysis skills in exam format',
-      instructions: 'Analyze texts independently and write comprehensive essays',
-      followUp: 'Review feedback and improve analytical writing',
-      minWords: 200
-    }
-  },
-  {
-    id: 'course-3',
-    name: 'Русский язык',
-    description: 'Изучение русского языка: грамматика, лексика, развитие речи и письма.',
-    language: 'Russian',
-    level: 'Intermediate',
-    skills: ['Грамматика', 'Лексика', 'Письмо', 'Речь'],
-    creatorRole: 'admin',
-    status: 'active',
-    visibility: 'published',
-    practice: {
-      summary: 'Практика русского языка с поддержкой преподавателя',
-      instructions: 'Выполняйте упражнения по грамматике и развитию речи',
-      followUp: 'Проверьте свои ответы и повторите сложные темы',
-      minWords: 75
-    },
-    exam: {
-      summary: 'Экзамен по русскому языку',
-      instructions: 'Выполните задания самостоятельно, демонстрируя знание языка',
-      followUp: 'Проанализируйте результаты и определите области для улучшения',
-      minWords: 150
-    }
-  }
-]);
+export const DEFAULT_COURSES = [];
 
 const STORAGE_KEY = 'learnModeCourses';
 
@@ -339,6 +267,46 @@ function createCoursesStore() {
         };
       })();
       return stats;
+    },
+
+    /**
+     * Get user's role in a specific course
+     * @param {string} userId - User ID
+     * @param {string} courseId - Course ID
+     * @returns {string} 'author' | 'student' | 'both' | 'none'
+     */
+    getUserRoleInCourse(userId, courseId) {
+      let role = 'none';
+      subscribe((courses) => {
+        const course = courses.find(c => c.id === courseId);
+        if (course && course.creatorId === userId) {
+          role = 'author';
+        }
+      })();
+      return role;
+    },
+
+    /**
+     * Check if user can enroll in their own course
+     * @param {string} userId - User ID
+     * @param {string} courseId - Course ID
+     * @returns {boolean}
+     */
+    canUserEnrollInOwnCourse(userId, courseId) {
+      return this.getUserRoleInCourse(userId, courseId) === 'author';
+    },
+
+    /**
+     * Get courses authored by user
+     * @param {string} userId - User ID
+     * @returns {Array} Authored courses
+     */
+    getAuthoredCourses(userId) {
+      let authoredCourses = [];
+      subscribe((courses) => {
+        authoredCourses = courses.filter(course => course.creatorId === userId);
+      })();
+      return authoredCourses;
     }
   };
 }

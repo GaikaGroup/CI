@@ -43,7 +43,33 @@
       const messageId = Date.now();
       const imageUrls = images && images.length > 0 ? images.map((img) => img.url || img) : [];
 
-      addMessage(MESSAGE_TYPES.USER, content, images, messageId);
+      // Convert blob URLs to base64 for storage
+      let base64Images = [];
+      if (imageUrls.length > 0) {
+        const imageDataPromises = imageUrls.map(async (imageUrl) => {
+          try {
+            const response = await fetch(imageUrl);
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(blob);
+            });
+          } catch (error) {
+            console.error('Error converting image to base64:', error);
+            return null;
+          }
+        });
+        
+        const results = await Promise.all(imageDataPromises);
+        base64Images = results.filter(img => img !== null);
+      }
+
+      // Add message with base64 images
+      addMessage(MESSAGE_TYPES.USER, content, base64Images, messageId);
 
       // Import the sendMessage function dynamically
       const { sendMessage } = await import('$lib/modules/chat/services');
@@ -108,6 +134,7 @@
           minute: '2-digit'
         }),
         metadata: msg.metadata || {},
+        images: msg.metadata?.images || [],
         saved: true
       }));
 
@@ -138,13 +165,19 @@
     if (message.type === 'system' || message.saved) return;
 
     try {
+      // Prepare metadata with images if present
+      const metadata = { ...(message.metadata || {}) };
+      if (message.images && message.images.length > 0) {
+        metadata.images = message.images;
+      }
+
       const response = await fetch(`/api/sessions/${sessionId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: message.type === 'tutor' ? 'assistant' : message.type,
           content: message.content,
-          metadata: message.metadata || {}
+          metadata
         })
       });
 
@@ -274,7 +307,7 @@
       <main class="chat-container">
         {#if $chatModeStore === 'voice'}
           <div class="voice-chat-container">
-            <VoiceChat />
+            <VoiceChat {sessionId} />
           </div>
         {:else}
           <!-- Messages Area -->

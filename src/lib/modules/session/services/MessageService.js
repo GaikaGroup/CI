@@ -214,15 +214,36 @@ export class MessageService {
             }
           });
 
-          // Update session's updatedAt timestamp and message count
+          // Prepare session update data
+          const sessionUpdateData = {
+            updatedAt: new Date(),
+            messageCount: {
+              increment: 1
+            }
+          };
+
+          // If this is a user message, detect language and update session language
+          if (type === 'user') {
+            try {
+              // Import LanguageDetector dynamically to avoid circular dependencies
+              const { languageDetector } = await import('../../chat/LanguageDetector.js');
+              const detectionResult = languageDetector.detectLanguageFromText(content.trim());
+              
+              // Only update session language if detection confidence is high enough
+              if (detectionResult && detectionResult.confidence > 0.6) {
+                sessionUpdateData.language = detectionResult.language;
+                console.log(`Updated session ${sessionId} language to: ${detectionResult.language} (confidence: ${detectionResult.confidence})`);
+              }
+            } catch (error) {
+              console.warn('Failed to detect language for session update:', error);
+              // Continue without language update if detection fails
+            }
+          }
+
+          // Update session's updatedAt timestamp, message count, and potentially language
           await tx.session.update({
             where: { id: sessionId },
-            data: {
-              updatedAt: new Date(),
-              messageCount: {
-                increment: 1
-              }
-            }
+            data: sessionUpdateData
           });
 
           return message;

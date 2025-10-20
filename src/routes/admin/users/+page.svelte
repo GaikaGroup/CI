@@ -1,5 +1,7 @@
 <script>
+  import { onMount } from 'svelte';
   import { Search } from 'lucide-svelte';
+  import { checkAuth } from '$modules/auth/stores';
 
   export let data;
 
@@ -11,7 +13,10 @@
 
   // Filter users based on search query
   $: filteredUsers = searchQuery.trim()
-    ? users.filter((user) => user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? users.filter((user) => 
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
     : users;
 
   // Format date for display
@@ -23,6 +28,11 @@
       day: 'numeric'
     });
   }
+
+  // Initialize auth on mount
+  onMount(async () => {
+    await checkAuth();
+  });
 
   // Format number with commas
   function formatNumber(num) {
@@ -97,7 +107,7 @@
         <input
           type="text"
           bind:value={searchQuery}
-          placeholder="Search by email..."
+          placeholder="Search by name or email..."
           class="w-full pl-10 pr-4 py-2 border border-stone-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:focus:ring-amber-400"
         />
       </div>
@@ -118,7 +128,13 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-gray-400"
               >
-                Email
+                User
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-gray-400"
+              >
+                Type & Roles
               </th>
               <th
                 scope="col"
@@ -143,10 +159,43 @@
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-stone-200 dark:divide-gray-700">
             {#each filteredUsers as user (user.userId)}
               <tr class="hover:bg-stone-50 dark:hover:bg-gray-700/50 transition-colors">
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-sm font-medium text-stone-800 dark:text-gray-100"
-                >
-                  {user.email}
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <div class="text-sm font-medium text-stone-800 dark:text-gray-100">
+                      {user.name || user.email}
+                    </div>
+                    <div class="text-xs text-stone-500 dark:text-gray-400">
+                      {user.email}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col gap-1">
+                    <!-- User Type Badge -->
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {user.type === 'admin'
+                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-200'}"
+                    >
+                      {user.type === 'admin' ? 'Admin' : 'Regular'}
+                    </span>
+                    <!-- User Roles -->
+                    {#if user.roles && user.roles.length > 0}
+                      <div class="flex gap-1 flex-wrap">
+                        {#each user.roles as role}
+                          <span
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {role === 'Student'
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200'
+                              : role === 'Tutor'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200'
+                              : 'bg-stone-100 text-stone-700 dark:bg-stone-900/40 dark:text-stone-200'}"
+                          >
+                            {role}
+                          </span>
+                        {/each}
+                      </div>
+                    {/if}
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-stone-600 dark:text-gray-300">
                   {formatDate(user.registrationDate)}

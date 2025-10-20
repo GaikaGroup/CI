@@ -1,4 +1,7 @@
 <script>
+  import { onMount } from 'svelte';
+  import { checkAuth } from '$modules/auth/stores';
+  
   export let data;
 
   const models = data?.costs?.models ?? [];
@@ -12,6 +15,11 @@
     totalTokens: 0,
     totalCost: 0
   };
+
+  // Initialize auth on mount
+  onMount(async () => {
+    await checkAuth();
+  });
 
   const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',

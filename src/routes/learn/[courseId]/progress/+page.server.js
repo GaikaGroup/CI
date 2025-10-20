@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { coursesStore } from '$lib/stores/courses.js';
+import { coursesStore } from '$lib/stores/coursesDB.js';
 import { get } from 'svelte/store';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -16,7 +16,7 @@ export async function load({ params, url }) {
 
   try {
     // Initialize courses store to ensure data is loaded
-    coursesStore.initialise();
+    coursesStore.initialize();
 
     // Get current courses from store
     const courses = get(coursesStore);

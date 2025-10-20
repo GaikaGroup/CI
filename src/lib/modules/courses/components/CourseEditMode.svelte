@@ -324,7 +324,7 @@
       const courseData = {
         ...formData,
         creatorId: $user.id,
-        creatorRole: $user.role,
+        creatorRole: $user.type,
         status: 'active',
         agents: [...agents],
         orchestrationAgent: finalOrchestrationAgent,

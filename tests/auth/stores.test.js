@@ -14,7 +14,7 @@ describe('auth stores', () => {
       id: '1',
       name: 'Admin User',
       email: 'AdminLogin',
-      role: 'admin'
+      type: 'admin'
     });
   });
 });

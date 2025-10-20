@@ -75,17 +75,66 @@ export class OllamaProvider extends ProviderInterface {
   }
 
   /**
+   * Check if messages contain images
+   */
+  hasImages(messages) {
+    return messages.some(m => {
+      if (Array.isArray(m.content)) {
+        return m.content.some(c => c.type === 'image_url');
+      }
+      return false;
+    });
+  }
+
+  /**
    * Generate a chat completion (NON-streaming path).
    * Streams should be implemented in a separate method using NDJSON parsing.
    */
   async generateChatCompletion(messages, options = {}) {
     try {
-      const model = await this.resolveModel(options.model);
+      // Check if we need vision model (from options or by checking messages)
+      const needsVision = options.hasImages || this.hasImages(messages);
+      
+      if (needsVision) {
+        console.log('[Ollama] Using vision model:', this.config.VISION_MODEL);
+      }
+      
+      const modelToUse = needsVision ? this.config.VISION_MODEL : options.model;
+      
+      const model = await this.resolveModel(modelToUse);
       const maxTokens = Number(options.maxTokens ?? this.config.MAX_TOKENS);
       const temperature = Number(options.temperature ?? this.config.TEMPERATURE);
 
       // Convert messages to Ollama format
-      const ollamaMessages = messages.map((m) => ({ role: m.role, content: String(m.content) }));
+      const ollamaMessages = messages.map((m) => {
+        // Handle vision format (array content with text and images)
+        if (Array.isArray(m.content)) {
+          // Extract text and images
+          const textParts = m.content.filter(c => c.type === 'text').map(c => c.text);
+          const imageParts = m.content.filter(c => c.type === 'image_url');
+          
+          // For Ollama, combine text and add images separately
+          // Remove data:image/...;base64, prefix if present
+          const images = imageParts.map(img => {
+            const url = img.image_url.url;
+            // Remove data URL prefix to get pure base64
+            if (url.startsWith('data:')) {
+              const base64Index = url.indexOf('base64,');
+              return base64Index !== -1 ? url.substring(base64Index + 7) : url;
+            }
+            return url;
+          });
+          
+          return {
+            role: m.role,
+            content: textParts.join('\n'),
+            images: images
+          };
+        }
+        
+        // Regular text message
+        return { role: m.role, content: String(m.content) };
+      });
 
       // Timeout guard
       const controller = new AbortController();

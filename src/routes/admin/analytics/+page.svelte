@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
   import { get } from 'svelte/store';
+  import { checkAuth } from '$modules/auth/stores';
   import { voiceAnalyticsStore } from '$modules/admin/voice-analytics/voiceAnalyticsStore.js';
   import HealthStatusPanel from '$modules/admin/voice-analytics/components/HealthStatusPanel.svelte';
   import PerformanceAnalyticsPanel from '$modules/admin/voice-analytics/components/PerformanceAnalyticsPanel.svelte';
@@ -185,7 +186,8 @@
     }
   };
 
-  onMount(() => {
+  onMount(async () => {
+    await checkAuth();
     voiceAnalyticsStore.init();
 
     return () => {

@@ -52,7 +52,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -81,7 +81,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -125,7 +125,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -161,7 +161,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -186,7 +186,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'user1', email: 'user@test.com', role: 'student' }
+        user: { id: 'user1', email: 'user@test.com', type: 'regular' }
       };
 
       const mockCookies = {
@@ -239,7 +239,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -275,7 +275,7 @@ describe('Users Page Integration Tests', () => {
       const { GET } = await import('../../../src/routes/api/admin/users/+server.js');
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {

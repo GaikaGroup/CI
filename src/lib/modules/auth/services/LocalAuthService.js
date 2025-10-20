@@ -1,7 +1,7 @@
-import { STORAGE_KEYS } from '$shared/utils/constants';
-import { user, isAuthenticated } from '../stores';
-import { setLoading, setError, setNotification } from '$lib/stores/app';
-import { IAuthService } from '../interfaces/IAuthService';
+import { STORAGE_KEYS } from '$lib/shared/utils/constants.js';
+import { user, isAuthenticated } from '../stores.js';
+import { setLoading, setError, setNotification } from '$lib/stores/app.js';
+import { IAuthService } from '../interfaces/IAuthService.js';
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
@@ -22,35 +22,13 @@ export class LocalAuthService extends IAuthService {
     try {
       setLoading(true);
 
-      // In a real implementation, this would be an API call
-      // const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({ email, password })
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error('Invalid credentials');
-      // }
-
-      // const data = await response.json();
-      // user.set(data.user);
-      // isAuthenticated.set(true);
-      // localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.token);
-      // localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
-
-      // Simulate API call for demonstration
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Simulate login for demo users
+      // Check for demo users first
       if (email === 'AdminLogin' && password === 'AdminPswd') {
         const userData = {
           id: '1',
           name: 'Admin User',
           email: 'AdminLogin',
-          role: 'admin'
+          type: 'admin'
         };
 
         user.set(userData);
@@ -72,7 +50,7 @@ export class LocalAuthService extends IAuthService {
           id: '2',
           name: 'Demo User',
           email: 'User1Login',
-          role: 'student'
+          type: 'regular'
         };
 
         user.set(userData);
@@ -89,9 +67,33 @@ export class LocalAuthService extends IAuthService {
 
         setNotification('Logged in successfully', 'success');
         return userData;
-      } else {
-        throw new Error('Invalid credentials');
       }
+
+      // Try real user authentication
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid credentials');
+      }
+
+      // Set user data in stores
+      user.set(data.user);
+      isAuthenticated.set(true);
+
+      // Store in localStorage for persistence
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.token);
+
+      setNotification('Logged in successfully', 'success');
+      return data.user;
     } catch (error) {
       console.error('Login error:', error);
       setError(error.message || 'Failed to login. Please try again.');
@@ -110,34 +112,22 @@ export class LocalAuthService extends IAuthService {
     try {
       setLoading(true);
 
-      // In a real implementation, this would be an API call
-      // const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify(userData)
-      // });
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
 
-      // if (!response.ok) {
-      //   throw new Error('Registration failed');
-      // }
+      const data = await response.json();
 
-      // const data = await response.json();
-      // setNotification('Registration successful. Please log in.', 'success');
-      // return data.user;
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
 
-      // Simulate API call for demonstration
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Simulate successful registration
       setNotification('Registration successful. Please log in.', 'success');
-      return {
-        id: '3',
-        name: userData.name,
-        email: userData.email,
-        role: 'student'
-      };
+      return data.user;
     } catch (error) {
       console.error('Registration error:', error);
       setError(error.message || 'Failed to register. Please try again.');
@@ -155,15 +145,13 @@ export class LocalAuthService extends IAuthService {
     try {
       setLoading(true);
 
-      // In a real implementation, this would be an API call
-      // const response = await fetch(API_ENDPOINTS.AUTH.LOGOUT, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`
-      //   }
-      // });
+      // Call logout API
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
 
-      // Clear user data regardless of API response
+      // Clear user data
       user.set(null);
       isAuthenticated.set(false);
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
@@ -172,9 +160,6 @@ export class LocalAuthService extends IAuthService {
       if (typeof document !== 'undefined') {
         document.cookie = `${STORAGE_KEYS.USER}=; path=/; max-age=0; SameSite=Lax`;
       }
-
-      // Simulate API call for demonstration
-      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setNotification('Logged out successfully', 'info');
       return true;

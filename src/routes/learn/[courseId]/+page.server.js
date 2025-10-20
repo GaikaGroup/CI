@@ -1,45 +1,39 @@
 import { error } from '@sveltejs/kit';
-import { coursesStore } from '$lib/stores/courses.js';
-import { get } from 'svelte/store';
+import CourseService from '$lib/services/CourseService.js';
+import { getPrismaClient } from '$lib/database/connection.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ params, url }) {
-  const { courseId } = params;
+export async function load({ params, locals }) {
+  const { courseId } = params; // Can be either ID or slug
 
-  // Validate courseId format
+  // Validate courseId/slug format
   if (!courseId || typeof courseId !== 'string' || courseId.trim() === '') {
     throw error(400, {
-      message: 'Invalid course ID',
-      details: 'The course ID is missing or invalid. Please check the URL and try again.'
+      message: 'Invalid course identifier',
+      details: 'The course identifier is missing or invalid. Please check the URL and try again.'
+    });
+  }
+
+  // Check authentication
+  if (!locals.user) {
+    throw error(401, {
+      message: 'Authentication required',
+      details: 'Please log in to access this course.'
     });
   }
 
   try {
-    // Initialize courses store to ensure data is loaded
-    coursesStore.initialise();
+    // Load course from database via API service (supports both ID and slug)
+    const result = await CourseService.getCourseById(courseId, false);
 
-    // Get current courses from store
-    const courses = get(coursesStore);
-
-    // Validate that courses were loaded
-    if (!Array.isArray(courses)) {
-      throw error(500, {
-        message: 'Course data unavailable',
-        details: 'Unable to load course information. Please try again later.'
-      });
-    }
-
-    // Find the requested course
-    const course = courses.find((c) => c.id === courseId);
-
-    if (!course) {
-      // Provide helpful error message with suggestions
-      const availableCourses = courses.filter((c) => c.status === 'active').length;
+    if (!result.success) {
       throw error(404, {
         message: 'Course not found',
-        details: `The course "${courseId}" does not exist or has been removed. ${availableCourses > 0 ? `There are ${availableCourses} active courses available in the catalogue.` : 'Please check the course catalogue for available courses.'}`
+        details: result.error || 'The requested course does not exist or has been removed.'
       });
     }
+
+    const course = result.course;
 
     // Check if course is active and accessible
     if (course.status !== 'active') {
@@ -66,9 +60,25 @@ export async function load({ params, url }) {
       });
     }
 
+    // Get student count for the course
+    let studentCount = 0;
+    try {
+      const prisma = getPrismaClient();
+      studentCount = await prisma.enrollment.count({
+        where: {
+          courseId: courseId,
+          status: 'active'
+        }
+      });
+    } catch (countError) {
+      console.error('Error counting enrollments:', countError);
+      // Continue without student count if query fails
+    }
+
     return {
       course: {
         id: course.id,
+        slug: course.slug,
         name: course.name,
         description: course.description,
         language: course.language,
@@ -76,8 +86,13 @@ export async function load({ params, url }) {
         skills: course.skills,
         practice: course.practice,
         exam: course.exam,
+        agents: course.agents,
+        orchestrationAgent: course.orchestrationAgent,
+        materials: course.materials,
+        llmSettings: course.llmSettings,
         status: course.status
-      }
+      },
+      studentCount
     };
   } catch (err) {
     // If it's already a SvelteKit error, re-throw it

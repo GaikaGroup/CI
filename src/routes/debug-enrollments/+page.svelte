@@ -1,83 +1,133 @@
 <script>
   import { onMount } from 'svelte';
-  import {
-    enrollmentStore,
-    activeEnrollments,
-    enrollmentStats
-  } from '$modules/courses/stores/enrollmentStore.js';
-  import { coursesStore } from '$lib/stores/courses';
-  import { user } from '$modules/auth/stores';
-  import { userEnrollmentService } from '$modules/courses/services/UserEnrollmentService.js';
+  import { user, checkAuth } from '$modules/auth/stores';
+  import { activeEnrollments, enrollmentStats } from '$lib/stores/enrollmentDB.js';
 
-  let debugInfo = {};
-
-  onMount(() => {
-    // Create some test enrollments if user exists
-    if ($user) {
-      console.log('Creating test enrollments for user:', $user.id);
-
-      // Enroll in DELE B1
-      const result1 = userEnrollmentService.enrollUser($user.id, 'dele-b1');
-      console.log('DELE B1 enrollment result:', result1);
-
-      // Enroll in DELE B2
-      const result2 = userEnrollmentService.enrollUser($user.id, 'dele-b2');
-      console.log('DELE B2 enrollment result:', result2);
-
-      // Update progress for testing
-      userEnrollmentService.updateProgress($user.id, 'dele-b1', {
-        lessonsCompleted: 5,
-        assessmentsTaken: 2
-      });
-
-      userEnrollmentService.updateProgress($user.id, 'dele-b2', {
-        lessonsCompleted: 3,
-        assessmentsTaken: 1
-      });
-
-      // Refresh the enrollment store
-      enrollmentStore.refresh($user.id);
-    }
+  onMount(async () => {
+    await checkAuth();
   });
 
-  $: debugInfo = {
-    user: $user,
-    enrollmentStore: $enrollmentStore,
-    activeEnrollments: $activeEnrollments,
-    enrollmentStats: $enrollmentStats,
-    coursesStore: $coursesStore,
-    userEnrollments: $user ? userEnrollmentService.getUserEnrollments($user.id) : [],
-    userStats: $user ? userEnrollmentService.getUserStats($user.id) : null
-  };
+  let enrollmentData = [];
+  let localStorageData = {};
 
-  function clearEnrollments() {
-    userEnrollmentService.clearAllEnrollments();
-    if ($user) {
-      enrollmentStore.refresh($user.id);
-    }
+  function loadDebugData() {
+    // Load localStorage data
+    localStorageData = {};
+    const keys = ['userEnrollments', 'enrollmentStore', 'courseEnrollments', 'subjectEnrollments'];
+    
+    keys.forEach(key => {
+      const value = localStorage.getItem(key);
+      if (value) {
+        try {
+          localStorageData[key] = JSON.parse(value);
+        } catch (e) {
+          localStorageData[key] = value;
+        }
+      }
+    });
+
+    // Check all localStorage keys for enrollment-related data
+    Object.keys(localStorage).forEach(key => {
+      if (key.toLowerCase().includes('enrollment') || 
+          key.toLowerCase().includes('course') ||
+          key.toLowerCase().includes('subject')) {
+        if (!keys.includes(key)) {
+          const value = localStorage.getItem(key);
+          try {
+            localStorageData[key] = JSON.parse(value);
+          } catch (e) {
+            localStorageData[key] = value;
+          }
+        }
+      }
+    });
+  }
+
+  function clearEnrollmentData() {
+    const keys = Object.keys(localStorageData);
+    keys.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    localStorageData = {};
+    alert('Enrollment data cleared! Please refresh the page.');
+  }
+
+  onMount(() => {
+    loadDebugData();
+  });
+
+  $: if ($activeEnrollments) {
+    enrollmentData = $activeEnrollments;
   }
 </script>
 
 <svelte:head>
-  <title>Debug Enrollments</title>
+  <title>Debug Enrollments - AI Tutor</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-2xl font-bold mb-4">Debug Enrollments</h1>
+<div class="min-h-screen bg-stone-50 dark:bg-gray-900 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-stone-900 dark:text-white mb-8">Debug Enrollments</h1>
+    
+    {#if $user}
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Current User</h2>
+        <pre class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto">{JSON.stringify($user, null, 2)}</pre>
+      </div>
 
-  <div class="mb-4">
-    <button
-      on:click={clearEnrollments}
-      class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-    >
-      Clear All Enrollments
-    </button>
-  </div>
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Active Enrollments ({enrollmentData.length})</h2>
+        {#if enrollmentData.length > 0}
+          <pre class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto">{JSON.stringify(enrollmentData, null, 2)}</pre>
+        {:else}
+          <p class="text-gray-600 dark:text-gray-400">No active enrollments found</p>
+        {/if}
+      </div>
 
-  <div class="space-y-4">
-    <div class="bg-gray-100 p-4 rounded">
-      <h2 class="font-bold mb-2">Debug Information:</h2>
-      <pre class="text-sm overflow-auto">{JSON.stringify(debugInfo, null, 2)}</pre>
-    </div>
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Enrollment Stats</h2>
+        {#if $enrollmentStats}
+          <pre class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto">{JSON.stringify($enrollmentStats, null, 2)}</pre>
+        {:else}
+          <p class="text-gray-600 dark:text-gray-400">No enrollment stats found</p>
+        {/if}
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold">LocalStorage Data</h2>
+          <div class="space-x-2">
+            <button 
+              on:click={loadDebugData}
+              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Refresh
+            </button>
+            <button 
+              on:click={clearEnrollmentData}
+              class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Clear All
+            </button>
+          </div>
+        </div>
+        
+        {#if Object.keys(localStorageData).length > 0}
+          {#each Object.entries(localStorageData) as [key, value]}
+            <div class="mb-4">
+              <h3 class="font-medium text-lg mb-2">{key}</h3>
+              <pre class="bg-gray-100 dark:bg-gray-700 p-4 rounded text-sm overflow-auto">{JSON.stringify(value, null, 2)}</pre>
+            </div>
+          {/each}
+        {:else}
+          <p class="text-gray-600 dark:text-gray-400">No enrollment-related data found in localStorage</p>
+        {/if}
+      </div>
+    {:else}
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+        <p class="text-gray-600 dark:text-gray-400">Please log in to view enrollment debug information.</p>
+      </div>
+    {/if}
   </div>
 </div>

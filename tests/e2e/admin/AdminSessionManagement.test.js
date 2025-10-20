@@ -7,7 +7,7 @@ import AdminSessionManager from '$lib/modules/admin/components/AdminSessionManag
 vi.mock('$lib/modules/auth/stores.js', () => ({
   user: {
     subscribe: vi.fn((callback) => {
-      callback({ id: '1', role: 'admin', name: 'Admin User' });
+      callback({ id: '1', type: 'admin', name: 'Admin User' });
       return () => {};
     })
   }

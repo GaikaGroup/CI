@@ -1,12 +1,13 @@
 <script>
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { user } from '$lib/modules/auth/stores.js';
+  import { user, checkAuth } from '$lib/modules/auth/stores.js';
   import { isAdmin } from '$lib/modules/auth/utils/adminUtils.js';
   import AdminSessionManager from '$lib/modules/admin/components/AdminSessionManager.svelte';
 
   // Check admin access on mount
-  onMount(() => {
+  onMount(async () => {
+    await checkAuth();
     if (!$user || !isAdmin($user)) {
       goto('/login');
     }

@@ -1,16 +1,28 @@
 export default {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    'body-max-line-length': [2, 'always', 72],
-    'subject-case': [2, 'never', ['sentence-case', 'start-case', 'pascal-case', 'upper-case']],
-    'subject-empty': [2, 'never'],
-    'subject-full-stop': [2, 'never', '.'],
-    'type-case': [2, 'always', 'lower-case'],
-    'type-empty': [2, 'never'],
     'type-enum': [
       2,
       'always',
-      ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style', 'test']
-    ]
+      [
+        'feat',     // New feature
+        'fix',      // Bug fix
+        'docs',     // Documentation changes
+        'style',    // Code style changes (formatting, etc.)
+        'refactor', // Code refactoring
+        'test',     // Adding or updating tests
+        'chore',    // Maintenance tasks
+        'perf',     // Performance improvements
+        'ci',       // CI/CD changes
+        'build',    // Build system changes
+        'revert'    // Revert previous commit
+      ]
+    ],
+    'type-case': [2, 'always', 'lower-case'],
+    'type-empty': [2, 'never'],
+    'subject-empty': [2, 'never'],
+    'subject-case': [2, 'never', ['upper-case']],
+    'subject-full-stop': [2, 'never', '.'],
+    'header-max-length': [2, 'always', 100]
   }
 };

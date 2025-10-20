@@ -323,6 +323,23 @@ export class LanguageDetector {
       return this.getFallbackLanguage();
     }
 
+    // CRITICAL: If text contains Spanish-specific characters, it's 100% Spanish
+    // Spanish-specific: ¿ ¡ ñ á é í ó ú ü
+    if (/[¿¡ñáéíóúü]/i.test(text)) {
+      return {
+        language: 'es',
+        confidence: 0.99,
+        scores: { es: 0.99, en: 0, ru: 0 },
+        confidenceFactors: [{
+          factor: 'spanish_specific_characters',
+          weight: 1.0,
+          confidence: 0.99
+        }],
+        method: 'spanish_character_detection',
+        timestamp: Date.now()
+      };
+    }
+
     const scores = {};
     const confidenceFactors = {};
 
@@ -349,31 +366,50 @@ export class LanguageDetector {
     }
 
     // Spanish detection - Spanish-specific characters and patterns
-    const spanishKeywordMatches =
-      text.match(
-        /\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están|y|o|pero|si|no|muy|más|todo|todos|hacer|tener|ser|estar)\b/gi
-      ) || [];
+    // CRITICAL: Check for Spanish-specific characters FIRST (¿ ¡ ñ á é í ó ú ü)
     const hasSpanishAccents = /[ñáéíóúü¿¡]/i.test(text);
     const spanishAccentMatches = text.match(/[ñáéíóúü¿¡]/gi) || [];
 
-    if (hasSpanishAccents) {
-      const accentRatio = spanishAccentMatches.length / text.length;
-      scores.es += Math.min(0.4, accentRatio * 2);
-      confidenceFactors.es.push({
-        factor: 'spanish_accents',
-        weight: accentRatio,
-        confidence: scores.es
-      });
-    }
+    const spanishKeywordMatches =
+      text.match(
+        /\b(el|la|los|las|un|una|de|del|en|con|por|para|que|es|son|está|están|y|o|pero|si|no|muy|más|todo|todos|hacer|tener|ser|estar|vale|dame|mas|información|sobre|este|tema)\b/gi
+      ) || [];
 
-    if (spanishKeywordMatches.length > 0) {
-      const keywordRatio = spanishKeywordMatches.length / text.split(/\s+/).length;
-      scores.es += Math.min(0.5, keywordRatio * 0.8);
-      confidenceFactors.es.push({
-        factor: 'spanish_keywords',
-        weight: keywordRatio,
-        confidence: keywordRatio * 0.8
-      });
+    // If text has Spanish-specific characters OR Spanish keywords, it's Spanish
+    if (hasSpanishAccents || spanishKeywordMatches.length > 0) {
+      let spanishConfidence = 0;
+      
+      if (hasSpanishAccents) {
+        const accentRatio = spanishAccentMatches.length / text.length;
+        spanishConfidence += Math.min(0.7, accentRatio * 5);
+        confidenceFactors.es.push({
+          factor: 'spanish_specific_chars',
+          weight: accentRatio,
+          confidence: spanishConfidence
+        });
+      }
+      
+      if (spanishKeywordMatches.length > 0) {
+        const keywordRatio = spanishKeywordMatches.length / text.split(/\s+/).length;
+        spanishConfidence += Math.min(0.5, keywordRatio * 0.8);
+        confidenceFactors.es.push({
+          factor: 'spanish_keywords',
+          weight: keywordRatio,
+          confidence: keywordRatio * 0.8
+        });
+      }
+      
+      // If we have strong Spanish indicators, return immediately
+      if (spanishConfidence > 0.5 || hasSpanishAccents) {
+        return {
+          language: 'es',
+          confidence: Math.min(0.95, spanishConfidence + 0.3),
+          scores: { es: spanishConfidence, en: 0, ru: 0 },
+          confidenceFactors: confidenceFactors.es,
+          method: 'spanish_detection',
+          timestamp: Date.now()
+        };
+      }
     }
 
     // English detection - English-specific patterns

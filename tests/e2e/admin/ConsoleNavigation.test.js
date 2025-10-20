@@ -66,7 +66,7 @@ describe('Console Navigation E2E Tests', () => {
 
   describe('Console Visibility', () => {
     it('should show Console dropdown for admin users', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText } = render(Navigation);
 
@@ -74,7 +74,7 @@ describe('Console Navigation E2E Tests', () => {
     });
 
     it('should not show Console dropdown for non-admin users', async () => {
-      mockUserStore.set({ id: 'user1', email: 'user@test.com', role: 'student' });
+      mockUserStore.set({ id: 'user1', email: 'user@test.com', type: 'regular' });
 
       const { queryByText } = render(Navigation);
 
@@ -92,7 +92,7 @@ describe('Console Navigation E2E Tests', () => {
 
   describe('Console Dropdown Interaction', () => {
     it('should open dropdown when Console button is clicked', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText, queryByText } = render(Navigation);
 
@@ -112,7 +112,7 @@ describe('Console Navigation E2E Tests', () => {
     });
 
     it('should display all Console subsections', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText } = render(ConsoleDropdown);
 
@@ -131,7 +131,7 @@ describe('Console Navigation E2E Tests', () => {
 
   describe('Navigation Between Console Pages', () => {
     it('should have correct links for all Console pages', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText, container } = render(ConsoleDropdown);
 
@@ -154,7 +154,7 @@ describe('Console Navigation E2E Tests', () => {
 
   describe('Active Page Highlighting', () => {
     it('should highlight Console button when on Users page', () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { container } = render(ConsoleDropdown);
 
@@ -163,7 +163,7 @@ describe('Console Navigation E2E Tests', () => {
     });
 
     it('should highlight current page in dropdown', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText, container } = render(ConsoleDropdown);
 
@@ -182,7 +182,7 @@ describe('Console Navigation E2E Tests', () => {
 
   describe('Mobile Navigation', () => {
     it('should show Console in mobile menu for admin users', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByLabelText, getAllByText } = render(Navigation);
 
@@ -197,7 +197,7 @@ describe('Console Navigation E2E Tests', () => {
     });
 
     it('should not show Console in mobile menu for non-admin users', async () => {
-      mockUserStore.set({ id: 'user1', email: 'user@test.com', role: 'student' });
+      mockUserStore.set({ id: 'user1', email: 'user@test.com', type: 'regular' });
 
       const { getByLabelText, queryByText } = render(Navigation);
 
@@ -214,7 +214,7 @@ describe('Console Navigation E2E Tests', () => {
 
   describe('Console Dropdown Behavior', () => {
     it('should close dropdown when clicking outside', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText, container } = render(ConsoleDropdown);
 
@@ -232,7 +232,7 @@ describe('Console Navigation E2E Tests', () => {
     });
 
     it('should maintain dropdown state during navigation', async () => {
-      mockUserStore.set({ id: 'admin', email: 'admin@test.com', role: 'admin' });
+      mockUserStore.set({ id: 'admin', email: 'admin@test.com', type: 'admin' });
 
       const { getByText } = render(ConsoleDropdown);
 
@@ -253,10 +253,10 @@ describe('Console Navigation E2E Tests', () => {
     it('should only show Console to users with admin role', async () => {
       // Test with different roles
       const roles = [
-        { role: 'admin', shouldShow: true },
-        { role: 'student', shouldShow: false },
-        { role: 'teacher', shouldShow: false },
-        { role: null, shouldShow: false }
+        { type: 'admin', shouldShow: true },
+        { type: 'regular', shouldShow: false },
+        { type: 'regular', shouldShow: false },
+        { type: null, shouldShow: false }
       ];
 
       for (const { role, shouldShow } of roles) {

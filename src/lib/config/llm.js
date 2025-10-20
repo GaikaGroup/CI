@@ -32,7 +32,7 @@ export const LLM_FEATURES = {
 export const PROVIDER_CONFIG = {
   /**
    * Default provider to use ('openai' or 'ollama')
-   * We prefer local first to reduce cost/latency and keep data local.
+   * Ollama is faster for local processing (5-10 sec vs 40 sec)
    */
   DEFAULT_PROVIDER: (import.meta.env.VITE_DEFAULT_LLM_PROVIDER ?? 'ollama').toLowerCase(),
 
@@ -71,11 +71,17 @@ export const OLLAMA_CONFIG = {
    */
   MODEL: OLLAMA_MODELS_RAW[0] || import.meta.env.VITE_OLLAMA_MODEL || 'qwen2.5:1.5b',
 
-  // Max tokens to generate per response (keep conservative for 8 GB)
-  MAX_TOKENS: parseInt(import.meta.env.VITE_OLLAMA_MAX_TOKENS || '256', 10),
+  /**
+   * Vision model for image analysis
+   * minicpm-v:8b is faster than llava:7b (3-4x speedup)
+   */
+  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'minicpm-v:8b',
 
-  // Temperature for response generation (0.0 to 1.0)
-  TEMPERATURE: parseFloat(import.meta.env.VITE_OLLAMA_TEMPERATURE || '0.7'),
+  // Max tokens to generate per response (increased for detailed answers)
+  MAX_TOKENS: parseInt(import.meta.env.VITE_OLLAMA_MAX_TOKENS || '512', 10),
+
+  // Temperature for response generation (lower = faster, more focused)
+  TEMPERATURE: parseFloat(import.meta.env.VITE_OLLAMA_TEMPERATURE || '0.3'),
 
   // Context window (tokens kept in memory). 2048 is a good “balanced+” default on 8 GB.
   NUM_CTX: parseInt(import.meta.env.VITE_OLLAMA_NUM_CTX || '2048', 10),

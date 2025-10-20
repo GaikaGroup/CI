@@ -1,12 +1,12 @@
 <script>
   import { onMount } from 'svelte';
-  import { coursesStore } from '$lib/stores/courses';
+  import { coursesStore } from '$lib/stores/coursesDB';
   import { user, checkAuth } from '$modules/auth/stores';
-  import { activeEnrollments, enrollmentStats } from '$modules/courses/stores/enrollmentStore.js';
+  import { activeEnrollments, enrollmentStats } from '$lib/stores/enrollmentDB.js';
 
   onMount(async () => {
     await checkAuth();
-    coursesStore.initialise();
+    coursesStore.initialize();
   });
 </script>
 

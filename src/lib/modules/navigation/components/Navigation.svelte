@@ -1,20 +1,31 @@
 <script>
-  import { Book, Menu, X } from 'lucide-svelte';
+  import { Book, Menu, X, User, GraduationCap } from 'lucide-svelte';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
   import ThemeToggle from '$modules/theme/components/ThemeToggle.svelte';
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
-  import MyCoursesDropdown from './MyCoursesDropdown.svelte';
   import ConsoleDropdown from './ConsoleDropdown.svelte';
   import { requireAuth } from '$lib/stores/mode';
   import { user } from '$modules/auth/stores';
-  // import { goto } from '$app/navigation';
+  import { navigationMode, navigationBadges, NAVIGATION_MODES } from '$lib/stores/navigation.js';
+  import { goto } from '$app/navigation';
 
   let mobileMenuOpen = false;
 
   function toggleMobileMenu() {
     mobileMenuOpen = !mobileMenuOpen;
+  }
+
+  // Handle navigation to Student/Tutor modes
+  function handleStudentClick() {
+    goto('/student');
+    mobileMenuOpen = false;
+  }
+
+  function handleTutorClick() {
+    goto('/tutor');
+    mobileMenuOpen = false;
   }
 </script>
 
@@ -33,14 +44,40 @@
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center space-x-8">
         <ModeToggle on:change={(e) => requireAuth(e.detail.mode)} />
-        <a
-          href="/catalogue"
-          class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors font-medium"
-        >
-          Catalogue
-        </a>
+        
         {#if $user}
-          <MyCoursesDropdown />
+          <!-- Student Navigation -->
+          <button
+            on:click={handleStudentClick}
+            class="flex items-center gap-2 transition-colors font-medium {$navigationMode === NAVIGATION_MODES.STUDENT
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-stone-600 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-400'}"
+          >
+            <User class="w-4 h-4" />
+            Student
+            {#if $navigationBadges.student > 0}
+              <span class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200">
+                {$navigationBadges.student}
+              </span>
+            {/if}
+          </button>
+
+          <!-- Tutor Navigation -->
+          <button
+            on:click={handleTutorClick}
+            class="flex items-center gap-2 transition-colors font-medium {$navigationMode === NAVIGATION_MODES.TUTOR
+              ? 'text-amber-600 dark:text-amber-400'
+              : 'text-stone-600 hover:text-amber-700 dark:text-gray-300 dark:hover:text-amber-400'}"
+          >
+            <GraduationCap class="w-4 h-4" />
+            Tutor
+            {#if $navigationBadges.tutor > 0}
+              <span class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200">
+                {$navigationBadges.tutor}
+              </span>
+            {/if}
+          </button>
+
           <a
             href="/sessions"
             class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors font-medium"
@@ -49,7 +86,7 @@
           </a>
         {/if}
 
-        {#if $user?.role === 'admin'}
+        {#if $user?.type === 'admin'}
           <ConsoleDropdown />
         {/if}
         <ThemeToggle />
@@ -88,25 +125,40 @@
             }}
           />
         </div>
-        <a
-          href="/catalogue"
-          class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 font-medium"
-          on:click={() => {
-            mobileMenuOpen = false;
-          }}
-        >
-          Catalogue
-        </a>
+        
         {#if $user}
-          <a
-            href="/my-courses"
-            class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 font-medium"
-            on:click={() => {
-              mobileMenuOpen = false;
-            }}
+          <!-- Student Navigation Mobile -->
+          <button
+            on:click={handleStudentClick}
+            class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors font-medium {$navigationMode === NAVIGATION_MODES.STUDENT
+              ? 'text-blue-600 dark:text-blue-400'
+              : 'text-stone-600 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-400'}"
           >
-            My Courses
-          </a>
+            <User class="w-4 h-4" />
+            Student
+            {#if $navigationBadges.student > 0}
+              <span class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200">
+                {$navigationBadges.student}
+              </span>
+            {/if}
+          </button>
+
+          <!-- Tutor Navigation Mobile -->
+          <button
+            on:click={handleTutorClick}
+            class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors font-medium {$navigationMode === NAVIGATION_MODES.TUTOR
+              ? 'text-amber-600 dark:text-amber-400'
+              : 'text-stone-600 hover:text-amber-700 dark:text-gray-300 dark:hover:text-amber-400'}"
+          >
+            <GraduationCap class="w-4 h-4" />
+            Tutor
+            {#if $navigationBadges.tutor > 0}
+              <span class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200">
+                {$navigationBadges.tutor}
+              </span>
+            {/if}
+          </button>
+
           <a
             href="/sessions"
             class="block px-3 py-2 dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 font-medium"
@@ -118,7 +170,7 @@
           </a>
         {/if}
 
-        {#if $user?.role === 'admin'}
+        {#if $user?.type === 'admin'}
           <div class="px-3 py-2">
             <ConsoleDropdown />
           </div>

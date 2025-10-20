@@ -31,7 +31,7 @@ export const load = async ({ locals, cookies, fetch, url }) => {
     }
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || user.type !== 'admin') {
     throw redirect(303, `/login?redirect=${url.pathname}`);
   }
 

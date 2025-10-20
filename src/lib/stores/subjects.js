@@ -1,5 +1,5 @@
 // Backward compatibility - this module now imports from courses.js
-import { coursesStore } from './courses.js';
+import { coursesStore } from './coursesDB.js';
 
 // Re-export everything from courses store for backward compatibility
 export const subjectsStore = coursesStore;

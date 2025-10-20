@@ -10,7 +10,7 @@ import { usageTracker } from '$modules/analytics/UsageTracker';
 export async function GET({ locals }) {
   const user = locals.user;
 
-  if (!user || user.role !== 'admin') {
+  if (!user || user.type !== 'admin') {
     throw error(403, 'Forbidden');
   }
 

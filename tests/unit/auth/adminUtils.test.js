@@ -10,12 +10,12 @@ import {
 describe('Admin Utils', () => {
   describe('isAdmin', () => {
     it('should return true for admin user', () => {
-      const adminUser = { id: '1', role: 'admin' };
+      const adminUser = { id: '1', type: 'admin' };
       expect(isAdmin(adminUser)).toBe(true);
     });
 
     it('should return false for non-admin user', () => {
-      const regularUser = { id: '2', role: 'student' };
+      const regularUser = { id: '2', type: 'regular' };
       expect(isAdmin(regularUser)).toBe(false);
     });
 
@@ -30,12 +30,12 @@ describe('Admin Utils', () => {
 
   describe('requireAdmin', () => {
     it('should not throw for admin user', () => {
-      const adminUser = { id: '1', role: 'admin' };
+      const adminUser = { id: '1', type: 'admin' };
       expect(() => requireAdmin(adminUser)).not.toThrow();
     });
 
     it('should throw for non-admin user', () => {
-      const regularUser = { id: '2', role: 'student' };
+      const regularUser = { id: '2', type: 'regular' };
       expect(() => requireAdmin(regularUser)).toThrow('Admin access required');
     });
 
@@ -46,31 +46,31 @@ describe('Admin Utils', () => {
 
   describe('canAccessHiddenSessions', () => {
     it('should return true for admin user', () => {
-      const adminUser = { id: '1', role: 'admin' };
+      const adminUser = { id: '1', type: 'admin' };
       expect(canAccessHiddenSessions(adminUser)).toBe(true);
     });
 
     it('should return false for non-admin user', () => {
-      const regularUser = { id: '2', role: 'student' };
+      const regularUser = { id: '2', type: 'regular' };
       expect(canAccessHiddenSessions(regularUser)).toBe(false);
     });
   });
 
   describe('canRestoreSessions', () => {
     it('should return true for admin user', () => {
-      const adminUser = { id: '1', role: 'admin' };
+      const adminUser = { id: '1', type: 'admin' };
       expect(canRestoreSessions(adminUser)).toBe(true);
     });
 
     it('should return false for non-admin user', () => {
-      const regularUser = { id: '2', role: 'student' };
+      const regularUser = { id: '2', type: 'regular' };
       expect(canRestoreSessions(regularUser)).toBe(false);
     });
   });
 
   describe('getAdminPermissions', () => {
     it('should return all permissions for admin user', () => {
-      const adminUser = { id: '1', role: 'admin' };
+      const adminUser = { id: '1', type: 'admin' };
       const permissions = getAdminPermissions(adminUser);
 
       expect(permissions).toEqual({
@@ -84,7 +84,7 @@ describe('Admin Utils', () => {
     });
 
     it('should return no permissions for non-admin user', () => {
-      const regularUser = { id: '2', role: 'student' };
+      const regularUser = { id: '2', type: 'regular' };
       const permissions = getAdminPermissions(regularUser);
 
       expect(permissions).toEqual({

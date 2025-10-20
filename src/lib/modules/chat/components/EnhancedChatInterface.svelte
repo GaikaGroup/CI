@@ -207,6 +207,21 @@
   async function processRegularMessage(content, images) {
     // Import services dynamically to avoid circular dependencies
     const { sendMessage } = await import('../services');
+    const { buildMessagesWithOCR } = await import('../ocrChatService');
+
+    // Check if images have OCR data and prepare context
+    const hasOcrData = images && images.some(img => typeof img === 'object' && img.ocrData);
+    
+    if (hasOcrData) {
+      console.log('Images contain OCR data, building enhanced context');
+      const { messages: enhancedMessages, ocrContext } = buildMessagesWithOCR($messages, content, images);
+      
+      if (ocrContext) {
+        console.log('OCR context prepared:', ocrContext);
+        // Add OCR summary to console for debugging
+        console.log(`📊 OCR Summary: ${ocrContext.count} instruments detected`);
+      }
+    }
 
     // Use the session ID when sending messages
     if (sessionId) {
@@ -386,16 +401,20 @@
 
     // If the message has images, add ocrRequested flag to prevent duplicate processing
     if (images && images.length > 0) {
+      // Check if any images have OCR data
+      const hasOcrData = images.some(img => typeof img === 'object' && img.ocrData);
+      
       // Extract URLs from image objects
-      const imageUrls = images.map((img) => img.url);
+      const imageUrls = images.map((img) => typeof img === 'string' ? img : img.url);
 
-      // Store the original image objects for display
+      // Store the original image objects for display (with OCR data if available)
       addMessage(MESSAGE_TYPES.USER, content, images, messageId, {
         ocrRequested: false,
-        ocrProcessed: false
+        ocrProcessed: hasOcrData,
+        hasOcrData: hasOcrData
       });
 
-      console.log('Message has images, processing...');
+      console.log('Message has images, processing...', { hasOcrData });
       // Don't set processing state here, let processImages handle it
 
       // Pass the image URLs to processImages

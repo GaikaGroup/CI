@@ -12,7 +12,37 @@ export const LANGUAGE_PROMPTS = {
     strong:
       'СТРОГО ОБЯЗАТЕЛЬНО: Весь твой ответ должен быть написан исключительно на русском языке. Запрещено использовать любые другие языки, включая китайский, английский, испанский или любые другие. Если ты не уверен в переводе какого-то термина, используй русские эквиваленты или объяснения.',
     contextual: 'Пользователь общается на русском языке. Поддерживай разговор на русском.',
-    reminder: 'Помни: отвечай только на русском языке.'
+    reminder: 'Помни: отвечай только на русском языке.',
+    ultra_strong: `═══════════════════════════════════════════════════════════
+⚠️ АБСОЛЮТНОЕ ТРЕБОВАНИЕ К ЯЗЫКУ ⚠️
+═══════════════════════════════════════════════════════════
+
+ТЫ ДОЛЖЕН ОТВЕЧАТЬ ИСКЛЮЧИТЕЛЬНО НА РУССКОМ ЯЗЫКЕ!
+
+❌ ЗАПРЕЩЕНО использовать:
+   - Английский язык
+   - Китайский язык
+   - Испанский язык
+   - Любые другие языки
+
+✅ РАЗРЕШЕНО использовать:
+   - ТОЛЬКО русский язык
+   - Русские буквы: А-Я, а-я
+   - Русские слова и выражения
+
+📋 ПРАВИЛА:
+1. Каждое слово должно быть на русском
+2. Каждое предложение должно быть на русском
+3. Весь ответ от начала до конца - на русском
+4. Если не знаешь русского слова - опиши на русском
+5. Никаких исключений!
+
+🔍 ПРОВЕРКА ПЕРЕД ОТПРАВКОЙ:
+   - Прочитай свой ответ
+   - Убедись что ВСЁ на русском
+   - Если есть хоть одно слово не на русском - ПЕРЕДЕЛАЙ
+
+═══════════════════════════════════════════════════════════`
   },
   en: {
     enforcement:
@@ -21,7 +51,37 @@ export const LANGUAGE_PROMPTS = {
     strong:
       "STRICTLY REQUIRED: Your entire response must be written exclusively in English. You are forbidden from using any other languages including Russian, Chinese, Spanish, or any others. If you're unsure about translating a term, use English equivalents or explanations.",
     contextual: 'The user is communicating in English. Maintain the conversation in English.',
-    reminder: 'Remember: respond only in English.'
+    reminder: 'Remember: respond only in English.',
+    ultra_strong: `═══════════════════════════════════════════════════════════
+⚠️ ABSOLUTE LANGUAGE REQUIREMENT ⚠️
+═══════════════════════════════════════════════════════════
+
+YOU MUST RESPOND EXCLUSIVELY IN ENGLISH!
+
+❌ FORBIDDEN to use:
+   - Russian language
+   - Chinese language
+   - Spanish language
+   - Any other languages
+
+✅ ALLOWED to use:
+   - ONLY English language
+   - English letters: A-Z, a-z
+   - English words and expressions
+
+📋 RULES:
+1. Every word must be in English
+2. Every sentence must be in English
+3. The entire response from start to finish - in English
+4. If you don't know an English word - describe it in English
+5. No exceptions!
+
+🔍 CHECK BEFORE SENDING:
+   - Read your response
+   - Make sure EVERYTHING is in English
+   - If there's even one word not in English - REDO IT
+
+═══════════════════════════════════════════════════════════`
   },
   es: {
     enforcement:
@@ -30,7 +90,37 @@ export const LANGUAGE_PROMPTS = {
     strong:
       'ESTRICTAMENTE REQUERIDO: Toda tu respuesta debe estar escrita exclusivamente en español. Está prohibido usar cualquier otro idioma, incluyendo ruso, chino, inglés o cualquier otro. Si no estás seguro de la traducción de algún término, usa equivalentes o explicaciones en español.',
     contextual: 'El usuario se está comunicando en español. Mantén la conversación en español.',
-    reminder: 'Recuerda: responde solo en español.'
+    reminder: 'Recuerda: responde solo en español.',
+    ultra_strong: `═══════════════════════════════════════════════════════════
+⚠️ REQUISITO ABSOLUTO DE IDIOMA ⚠️
+═══════════════════════════════════════════════════════════
+
+¡DEBES RESPONDER EXCLUSIVAMENTE EN ESPAÑOL!
+
+❌ PROHIBIDO usar:
+   - Idioma inglés
+   - Idioma ruso
+   - Idioma chino
+   - Cualquier otro idioma
+
+✅ PERMITIDO usar:
+   - SOLO idioma español
+   - Letras españolas: A-Z, a-z, ñ, á, é, í, ó, ú, ü
+   - Palabras y expresiones españolas
+
+📋 REGLAS:
+1. Cada palabra debe estar en español
+2. Cada oración debe estar en español
+3. Toda la respuesta de principio a fin - en español
+4. Si no sabes una palabra en español - descríbela en español
+5. ¡Sin excepciones!
+
+🔍 VERIFICACIÓN ANTES DE ENVIAR:
+   - Lee tu respuesta
+   - Asegúrate de que TODO esté en español
+   - Si hay aunque sea una palabra que no esté en español - REHAZLA
+
+═══════════════════════════════════════════════════════════`
   }
 };
 
@@ -98,7 +188,12 @@ export class PromptEnhancer {
       let enhancedPrompt = originalPrompt;
 
       // Add enforcement based on confidence level and context
-      if (finalEnhancementLevel === 'strong' || hasLanguageMixing) {
+      if (finalEnhancementLevel === 'ultra_strong') {
+        // Ultra strong enforcement - add at beginning, middle, and end
+        const validationPrompt = this.languagePrompts[targetLanguage]?.validation || '';
+        const ultraStrongPrompt = this.languagePrompts[targetLanguage]?.ultra_strong || enforcementPrompt;
+        enhancedPrompt = `${ultraStrongPrompt}\n\n${originalPrompt}\n\n${validationPrompt}\n\n${ultraStrongPrompt}`;
+      } else if (finalEnhancementLevel === 'strong' || hasLanguageMixing) {
         // Strong enforcement - add at beginning and end with validation
         const validationPrompt = this.languagePrompts[targetLanguage]?.validation || '';
         enhancedPrompt = `${enforcementPrompt}\n\n${originalPrompt}\n\n${validationPrompt}`;
@@ -157,22 +252,9 @@ export class PromptEnhancer {
       return this.createGenericEnforcementPrompt(language);
     }
 
-    // Use strong enforcement if there was previous language mixing
-    if (hasLanguageMixing) {
-      return this.createLanguageEnforcementPrompt(language, 'strong');
-    }
-
-    // Select template based on confidence level
-    if (confidence >= 0.9) {
-      return this.createLanguageEnforcementPrompt(language, 'contextual');
-    } else if (confidence >= 0.7) {
-      return this.createLanguageEnforcementPrompt(language, 'enforcement');
-    } else if (confidence >= 0.5) {
-      return this.createLanguageEnforcementPrompt(language, 'strong');
-    } else {
-      // Low confidence - use strongest enforcement
-      return this.createLanguageEnforcementPrompt(language, 'strong');
-    }
+    // ALWAYS use ultra_strong enforcement to prevent language switching
+    // This is the most effective way to maintain language consistency
+    return this.createLanguageEnforcementPrompt(language, 'ultra_strong');
   }
 
   /**
@@ -218,16 +300,50 @@ export class PromptEnhancer {
       const lastUserMessageIndex = this.findLastUserMessageIndex(enhancedMessages);
       if (lastUserMessageIndex !== -1) {
         const lastUserMessage = enhancedMessages[lastUserMessageIndex];
+        
+        // Check if message has structured content (e.g., with images)
+        const isStructuredContent = Array.isArray(lastUserMessage.content);
+        
+        // Get text content for reminder check
+        const textContent = isStructuredContent 
+          ? lastUserMessage.content.filter(c => c.type === 'text').map(c => c.text).join(' ')
+          : lastUserMessage.content;
+        
         const reminder = this.createContextualLanguageReminder(
           targetLanguage,
-          lastUserMessage.content
+          textContent
         );
 
         if (reminder) {
-          enhancedMessages[lastUserMessageIndex] = {
-            ...lastUserMessage,
-            content: `${lastUserMessage.content}\n\n${reminder}`
-          };
+          if (isStructuredContent) {
+            // For structured content, add reminder to the first text part
+            const contentCopy = [...lastUserMessage.content];
+            const firstTextIndex = contentCopy.findIndex(c => c.type === 'text');
+            
+            if (firstTextIndex !== -1) {
+              contentCopy[firstTextIndex] = {
+                ...contentCopy[firstTextIndex],
+                text: `${contentCopy[firstTextIndex].text}\n\n${reminder}`
+              };
+            } else {
+              // No text part found, add one at the beginning
+              contentCopy.unshift({
+                type: 'text',
+                text: reminder
+              });
+            }
+            
+            enhancedMessages[lastUserMessageIndex] = {
+              ...lastUserMessage,
+              content: contentCopy
+            };
+          } else {
+            // For simple text content, append reminder as before
+            enhancedMessages[lastUserMessageIndex] = {
+              ...lastUserMessage,
+              content: `${lastUserMessage.content}\n\n${reminder}`
+            };
+          }
         }
       }
 

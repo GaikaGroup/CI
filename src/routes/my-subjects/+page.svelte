@@ -1,9 +1,15 @@
 <script>
-  // import { onMount } from 'svelte';
-  import { activeEnrollments, enrollmentStats } from '$modules/courses/stores/enrollmentStore.js';
+  import { onMount } from 'svelte';
+  import { activeEnrollments, enrollmentStats } from '$lib/stores/enrollmentDB.js';
   import { subjectsStore } from '$lib/stores/subjects';
-  // import { user } from '$modules/auth/stores';
+  import { user, checkAuth } from '$modules/auth/stores';
+  import { getCourseUrl, getCourseProgressUrl } from '$lib/utils/courseUrl.js';
   import { BookOpen, TrendingUp, Calendar, Award, Clock } from 'lucide-svelte';
+
+  // Initialize auth on mount
+  onMount(async () => {
+    await checkAuth();
+  });
 
   // Get subjects for enrolled subject IDs
   $: enrolledSubjects = $activeEnrollments
@@ -180,13 +186,13 @@
 
               <div class="flex gap-3">
                 <a
-                  href="/learn/{subject.id}"
+                  href={getCourseUrl(subject)}
                   class="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors text-center"
                 >
                   Continue Learning
                 </a>
                 <a
-                  href="/learn/{subject.id}/progress"
+                  href={getCourseProgressUrl(subject)}
                   class="flex-1 bg-stone-100 hover:bg-stone-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-stone-700 dark:text-gray-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors text-center"
                 >
                   View Progress

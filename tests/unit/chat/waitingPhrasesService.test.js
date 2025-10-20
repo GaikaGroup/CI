@@ -278,7 +278,7 @@ describe('WaitingPhrasesService', () => {
       expect(history).not.toBe(service.phraseHistory); // Should be a copy
 
       // Modifying returned history should not affect internal history
-      history.push({ phrase: 'new phrase' } as any);
+      history.push({ phrase: 'new phrase' });
       expect(service.phraseHistory).toHaveLength(1);
     });
   });
@@ -429,7 +429,7 @@ describe('WaitingPhrasesService', () => {
         lastAccessed: Date.now() - 40 * 60 * 1000
       };
 
-      service.phraseCache.set('old:key', oldEntry as any);
+      service.phraseCache.set('old:key', oldEntry);
 
       const initialSize = service.phraseCache.size;
       service.optimizeCache();
@@ -482,7 +482,7 @@ describe('WaitingPhrasesService', () => {
 
     it('should handle uninitialized state gracefully', () => {
       service.isInitialized = false;
-      service.config = null as any;
+      service.config = null;
 
       const categories = service.getAvailableCategories();
       expect(categories).toEqual(['DefaultWaitingAnswer']);

@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import { user } from '$modules/auth/stores';
-  import { activeEnrollments } from '$modules/courses/stores/enrollmentStore.js';
+  import { activeEnrollments } from '$lib/stores/enrollmentDB.js';
   import Button from '$shared/components/Button.svelte';
 
   import { debounce } from '$modules/courses/utils/performance.js';
@@ -88,6 +88,7 @@
   };
 
   const handleEditCourse = (course) => {
+    console.log('handleEditCourse called with:', course);
     dispatch('edit-course', { course });
   };
 
@@ -134,7 +135,15 @@
   };
 
   const canUserEditCourse = (course) => {
-    return $user && course.creatorId === $user.id;
+    const canEdit = $user && course.creatorId === $user.id;
+    console.log('Can edit course?', { 
+      courseName: course.name, 
+      courseId: course.id,
+      creatorId: course.creatorId, 
+      userId: $user?.id, 
+      canEdit 
+    });
+    return canEdit;
   };
 
   // Accessibility functions
@@ -162,7 +171,12 @@
     </div>
 
     {#if $user && allowCreateCourse}
-      <Button on:click={handleCreateCourse} variant="primary">Create Course</Button>
+      <a
+        href="/catalogue/edit?new=true"
+        class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+      >
+        Create your Course
+      </a>
     {/if}
   </div>
 
@@ -257,9 +271,6 @@
     <div class="text-center py-12">
       {#if courses.length === 0}
         <p class="text-stone-500 dark:text-gray-400 mb-4">No courses available yet.</p>
-        {#if $user}
-          <Button on:click={handleCreateCourse} variant="primary">Create the First Course</Button>
-        {/if}
       {:else}
         <p class="text-stone-500 dark:text-gray-400">No courses match your current filters.</p>
       {/if}
@@ -270,6 +281,7 @@
         <article
           class="flex h-full flex-col justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md focus-within:shadow-md dark:border-gray-700 dark:bg-gray-800"
           role="listitem"
+          data-testid="course-card"
         >
           <div class="space-y-3">
             <div class="flex items-start justify-between">
@@ -387,15 +399,35 @@
               </div>
             {/if}
 
-            <Button
-              class="w-full"
-              on:click={() => handlePrimaryAction(course)}
-              aria-label={`${
-                isCourseEnrolled(course) ? enrolledActionAriaPrefix : joinActionAriaPrefix
-              } ${course.name ?? 'course'}`}
-            >
-              {isCourseEnrolled(course) ? enrolledActionLabel : joinActionLabel}
-            </Button>
+            {#if isCourseEnrolled(course)}
+              <!-- Already Enrolled - Show Continue Learning Button -->
+              <button
+                class="w-full py-3 px-6 rounded-lg font-semibold text-base transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                on:click={() => handleLearnCourse(course)}
+                aria-label={`${enrolledActionAriaPrefix} ${course.name ?? 'course'}`}
+              >
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                  Continue Learning
+                </span>
+              </button>
+            {:else}
+              <!-- Not Enrolled - Show Enroll Button -->
+              <button
+                class="w-full py-3 px-6 rounded-lg font-semibold text-base transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                on:click={() => handleJoinCourse(course)}
+                aria-label={`${joinActionAriaPrefix} ${course.name ?? 'course'}`}
+              >
+                <span class="flex items-center justify-center gap-2">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  {joinActionLabel}
+                </span>
+              </button>
+            {/if}
           </div>
         </article>
       {/each}

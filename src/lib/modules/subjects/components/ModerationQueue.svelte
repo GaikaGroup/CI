@@ -344,7 +344,7 @@
                 {/if}
 
                 <!-- Actions -->
-                {#if report.status === REPORT_STATUS.PENDING && $user?.role === 'admin'}
+                {#if report.status === REPORT_STATUS.PENDING && $user?.type === 'admin'}
                   <div class="flex gap-2">
                     <Button
                       variant="secondary"

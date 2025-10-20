@@ -1,5 +1,5 @@
 <script>
-  import { enrollmentStats } from '$modules/courses/stores/enrollmentStore.js';
+  import { enrollmentStats } from '$lib/stores/enrollmentDB.js';
   import { BookOpen } from 'lucide-svelte';
 
   function handleMyCoursesClick() {

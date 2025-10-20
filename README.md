@@ -14,6 +14,7 @@ AI Tutor Platform is a modern, full-stack educational application built with Sve
 - 🎙️ **Voice Interaction**: Speech-to-text and text-to-speech with animated avatar
 - 📄 **Document Processing**: OCR for images/PDFs with GraphRAG knowledge integration
 - 🧮 **Math Support**: Automatic LaTeX/KaTeX rendering for mathematical expressions
+- 🔢 **Enhanced Math Reasoning**: Automatic detection and optimization for mathematical queries with detailed step-by-step solutions
 - 🌍 **Multi-language**: Interface available in English, Russian, and Spanish
 - 🔧 **Flexible AI**: Supports both cloud (OpenAI) and local (Ollama) language models
 - 👥 **Admin Dashboard**: User management, usage analytics, and moderation tools
@@ -166,9 +167,24 @@ The platform implements a sophisticated GraphRAG system for intelligent document
 **Document Processing Pipeline:**
 
 - Uploaded images or PDFs are classified, preprocessed and sent through configurable OCR engines
+- **Automatic Vision API Integration**: When images are uploaded, the system automatically switches to GPT-4 Vision (gpt-4o) for accurate visual understanding
+- **Dual Processing**: Images are processed both with local OCR (Tesseract.js) for text extraction and sent to Vision API for comprehensive analysis
 - Recognized text is processed through the GraphRAG system to create knowledge graphs
 - Documents are chunked into smaller pieces for better retrieval and processing
 - Each chunk is converted into nodes in a knowledge graph with relationships
+
+**Vision API Features:**
+
+- **Automatic Model Selection**: System detects images and automatically uses GPT-4o (Vision-capable model)
+- **Intelligent Recognition**: Accurately reads text from images including:
+  - Printed textbooks and worksheets
+  - Handwritten notes (with limitations)
+  - Diagrams with labels and measurements
+  - Mathematical formulas and equations
+  - Measurement instruments (thermometers, rulers, gauges, etc.)
+- **Fast Processing**: Typical response time 3-5 seconds for image analysis
+- **Fallback Support**: If Vision API is unavailable, falls back to local OCR processing
+- **Cost Optimization**: Only uses Vision API when images are present; text-only queries use standard models
 
 **GraphRAG Knowledge System:**
 
@@ -409,6 +425,8 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 | `VITE_OPENAI_MAX_RETRIES`          | API retry attempts                  | `3`                       | No       |
 | `VITE_OPENAI_RETRY_DELAY`          | Delay between retries (ms)          | `1000`                    | No       |
 | `VITE_OPENAI_TIMEOUT`              | Request timeout ms                  | `30000`                   | No       |
+| `VITE_OPENAI_VISION_MODEL`         | Vision-capable model for images     | `gpt-4o`                  | No       |
+| `VITE_ENABLE_AUTO_VISION`          | Auto-switch to Vision for images    | `true`                    | No       |
 | `VITE_WAITING_PHRASES_DEFAULT`     | ID of default waiting phrase        | `DefaultWaitingAnswer`    | No       |
 | `VITE_WAITING_PHRASES_DETAILED`    | ID for detailed waiting phrase      | `DetailedWaitingAnswer`   | No       |
 | `VITE_VOICE_INTERRUPTION_ENABLED`  | Enable voice interruption detection | `true`                    | No       |
@@ -469,15 +487,29 @@ VITE_WAITING_PHRASES_DETAILED=DetailedWaitingAnswer
 
 **Document-Enhanced Learning:**
 
-- Upload images or PDFs via the paperclip icon
-- Ask questions about uploaded materials - the AI uses GraphRAG to provide contextual answers
+- Upload images or PDFs via the camera icon
+- **Vision API automatically activates** when images are uploaded for accurate visual understanding
+- Ask questions about uploaded materials - the AI uses both Vision API and GraphRAG to provide contextual answers
 - Upload multiple related documents for comprehensive cross-material analysis
+
+**Vision API Use Cases:**
+
+- **Homework Help**: Upload photos of textbook problems and get step-by-step solutions
+- **Measurement Reading**: Take pictures of instruments (thermometers, rulers, gauges) and ask about readings
+- **Diagram Analysis**: Upload charts, graphs, or diagrams for detailed explanations
+- **Handwriting Recognition**: Submit handwritten notes for transcription and analysis (with limitations)
+- **Formula Recognition**: Photograph mathematical equations for solving and explanation
 
 **Mathematical Learning:**
 
 - Type mathematical expressions using standard notation (e.g., `x^2 + 2x + 1`)
 - Formulas are automatically rendered using KaTeX for proper mathematical display
 - Ask for step-by-step solutions to mathematical problems
+- **Enhanced Math Reasoning**: System automatically detects mathematical queries and optimizes for detailed solutions
+  - Automatically increases token limit to 4000 for comprehensive explanations
+  - Uses specialized prompts for different math categories (algebra, calculus, geometry, etc.)
+  - Provides step-by-step solutions with LaTeX-formatted formulas
+  - See [Math Reasoning Enhancement](docs/math-reasoning-enhancement.md) for details
 
 **Admin Features:**
 
@@ -541,7 +573,7 @@ CMD ["npm", "start"]
 
 ### Testing & Quality
 
-The platform includes comprehensive testing across multiple layers with special focus on voice interaction features.
+The platform includes comprehensive testing across multiple layers with special focus on voice interaction features. We enforce strict quality standards with automated coverage thresholds and CI/CD integration.
 
 #### Test Structure
 
@@ -552,6 +584,7 @@ The platform includes comprehensive testing across multiple layers with special 
 - Waiting phrases configuration and selection
 - Translation bridge functionality
 - Session and message services
+- Regression tests for fixed bugs (`tests/unit/bugfixes/`)
 
 **Integration Tests** (`tests/integration/`)
 
@@ -560,6 +593,7 @@ The platform includes comprehensive testing across multiple layers with special 
 - Multilingual i18n system integration
 - Error handling and graceful degradation
 - Performance impact assessment
+- API endpoint testing with database
 
 **End-to-End Tests** (`tests/e2e/`)
 
@@ -567,6 +601,47 @@ The platform includes comprehensive testing across multiple layers with special 
 - User experience validation
 - Error scenarios and recovery
 - Accessibility compliance testing
+
+**Smoke Tests** (`tests/smoke/`)
+
+- Quick deployment verification (< 30 seconds)
+- Health checks and critical functionality
+- Database connectivity
+- API availability
+
+#### Running Tests
+
+```bash
+# Run all tests
+npm run test:run
+
+# Run specific test suites
+npm run test:run tests/unit        # Unit tests only
+npm run test:integration            # Integration tests
+npm run test:e2e                    # E2E tests
+npm run test:smoke                  # Smoke tests
+
+# Run with coverage
+npm run test:coverage
+
+# Audit API test coverage
+npm run test:audit-api
+```
+
+#### Coverage Requirements
+
+We enforce minimum coverage thresholds:
+- **Lines**: 80%
+- **Functions**: 80%
+- **Branches**: 75%
+- **Statements**: 80%
+
+Coverage is automatically checked in:
+- Pre-push git hooks
+- CI/CD pipeline
+- Pull request reviews
+
+See [tests/README.md](tests/README.md) for detailed testing guidelines.
 
 #### Voice Feature Testing
 

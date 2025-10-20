@@ -4,7 +4,7 @@
   import { user, checkAuth, isAuthenticated } from '$modules/auth/stores';
   import { sessionStore } from '$modules/session/stores/sessionStore.js';
   import { appMode } from '$lib/stores/mode';
-  import { coursesStore } from '$lib/stores/courses.js';
+  import { coursesStore } from '$lib/stores/coursesDB.js';
   import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
   import CourseGroup from '$lib/components/CourseGroup.svelte';
 
@@ -19,8 +19,8 @@
 
   // Subscribe to stores
   $: sessions = $sessionStore.sessions;
-  $: currentMode = $appMode;
-  $: courses = $coursesStore;
+  $: currentMode = $appMode === 'catalogue' ? 'learn' : $appMode; // Map catalogue to learn for sessions page
+  $: courses = $coursesStore.courses || [];
 
   // Group sessions by course for LEARN mode
   $: groupedSessions = groupSessionsByCourse(sessions, courses, currentMode);
@@ -92,13 +92,30 @@
       // Use a temporary title - will be updated with first user message
       const title = `New Session ${new Date().toLocaleDateString()}`;
 
-      // Create session based on current mode
+      // Determine the actual mode to use
+      // If current mode is 'learn' or 'catalogue' but no courses available, use 'fun' mode
+      let sessionMode = currentMode;
+      let sessionCourseId = null;
+      
+      if (currentMode === 'learn' || currentMode === 'catalogue') {
+        sessionCourseId = getDefaultCourseId();
+        if (!sessionCourseId) {
+          // No courses available, fall back to fun mode
+          console.log('[Sessions] No courses available for learn mode, using fun mode instead');
+          sessionMode = 'fun';
+        } else {
+          // Use learn mode with the course
+          sessionMode = 'learn';
+        }
+      }
+
+      // Create session based on determined mode
       const session = await sessionStore.createSession(
         title,
-        currentMode,
+        sessionMode,
         'en',
         null,
-        currentMode === 'learn' ? getDefaultCourseId() : null
+        sessionCourseId
       );
 
       // Navigate to the new session page
@@ -163,22 +180,37 @@
   }
 
   onMount(async () => {
-    await checkAuth();
+    try {
+      console.log('[Sessions] Starting initialization...');
+      
+      await checkAuth();
+      console.log('[Sessions] Auth check completed, authenticated:', $isAuthenticated, 'user:', $user?.email);
 
-    // Initialize courses store
-    coursesStore.initialise();
+      // Redirect to login if not authenticated
+      if (!$isAuthenticated) {
+        console.log('[Sessions] Not authenticated, redirecting to login');
+        goto('/login?redirect=/sessions');
+        return;
+      }
 
-    // Only load sessions if user is authenticated
-    if ($user) {
-      try {
-        // Load sessions for the current mode
-        await sessionStore.loadSessions({ mode: $appMode });
-      } catch (error) {
-        console.error('Failed to load sessions:', error);
-        // If authentication fails, redirect to login
-        if (error.message.includes('Authentication required')) {
-          goto('/login?redirect=/sessions');
-        }
+      // Initialize courses store
+      console.log('[Sessions] Initializing courses store...');
+      await coursesStore.initialize();
+      console.log('[Sessions] Courses store initialized, courses:', $coursesStore.courses?.length);
+
+      // Initialize session store if user is authenticated
+      if ($user) {
+        console.log('[Sessions] Initializing session store...');
+        await sessionStore.initialize();
+        console.log('[Sessions] Session store initialized, sessions:', $sessionStore.sessions?.length);
+      }
+      
+      console.log('[Sessions] Initialization completed successfully');
+    } catch (error) {
+      console.error('[Sessions] Initialization error:', error);
+      // If authentication fails, redirect to login
+      if (error.message.includes('Authentication required')) {
+        goto('/login?redirect=/sessions');
       }
     }
   });
@@ -232,15 +264,17 @@
       <div class="sessions-container">
         <div class="sessions-header">
           <h2>Your Sessions</h2>
-          <button
-            class="new-session-btn"
-            on:click={createNewSession}
-            disabled={isCreatingSession}
-            title="Create new chat session"
-          >
-            <Plus class="h-4 w-4" />
-            {isCreatingSession ? 'Creating...' : 'New Chat'}
-          </button>
+          {#if currentMode === 'fun' || (currentMode === 'learn' && courses.length > 0)}
+            <button
+              class="new-session-btn"
+              on:click={createNewSession}
+              disabled={isCreatingSession}
+              title={currentMode === 'fun' ? 'Create new chat session' : 'Create new learning session'}
+            >
+              <Plus class="h-4 w-4" />
+              {isCreatingSession ? 'Creating...' : 'New Chat'}
+            </button>
+          {/if}
         </div>
 
         {#if currentMode === 'fun'}
@@ -318,22 +352,31 @@
               <div class="empty-state">
                 <div class="empty-content">
                   <BookOpen class="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <h3>No learning sessions yet</h3>
-                  <p>Create a new session to start learning with your AI assistant!</p>
                   {#if courses.length === 0}
+                    <h3>No courses enrolled yet</h3>
+                    <p>To start learning sessions, you need to enroll in courses first.</p>
                     <p class="text-sm text-gray-500 mt-2">
-                      You'll need to create or enroll in courses first to organize your learning
-                      sessions.
+                      Browse the course catalogue and enroll in subjects that interest you.
                     </p>
+                    <button
+                      class="create-first-session-btn"
+                      on:click={() => goto('/catalogue')}
+                    >
+                      <BookOpen class="h-4 w-4" />
+                      Browse Courses
+                    </button>
+                  {:else}
+                    <h3>No learning sessions yet</h3>
+                    <p>Create a new session to start learning with your AI assistant!</p>
+                    <button
+                      class="create-first-session-btn"
+                      on:click={createNewSession}
+                      disabled={isCreatingSession}
+                    >
+                      <Plus class="h-4 w-4" />
+                      {isCreatingSession ? 'Creating...' : 'Start Learning Session'}
+                    </button>
                   {/if}
-                  <button
-                    class="create-first-session-btn"
-                    on:click={createNewSession}
-                    disabled={isCreatingSession || courses.length === 0}
-                  >
-                    <Plus class="h-4 w-4" />
-                    {isCreatingSession ? 'Creating...' : 'Start Learning Session'}
-                  </button>
                 </div>
               </div>
             {:else}

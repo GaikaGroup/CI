@@ -33,7 +33,7 @@ describe('Users Page Component', () => {
   };
 
   const mockData = {
-    user: { id: 'admin', email: 'admin@test.com', role: 'admin' },
+    user: { id: 'admin', email: 'admin@test.com', type: 'admin' },
     users: mockUsers,
     statistics: mockStatistics
   };
@@ -135,7 +135,7 @@ describe('Users Page Component', () => {
 
   it('should show "No users found" when users array is empty', () => {
     const emptyData = {
-      user: { id: 'admin', email: 'admin@test.com', role: 'admin' },
+      user: { id: 'admin', email: 'admin@test.com', type: 'admin' },
       users: [],
       statistics: { totalUsers: 0, totalSessions: 0 }
     };
@@ -155,7 +155,7 @@ describe('Users Page Component', () => {
 
   it('should format numbers with commas', () => {
     const largeNumberData = {
-      user: { id: 'admin', email: 'admin@test.com', role: 'admin' },
+      user: { id: 'admin', email: 'admin@test.com', type: 'admin' },
       users: [
         {
           userId: 'user1@test.com',

@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { user } from '$modules/auth/stores';
-  import { coursesStore } from '$lib/stores/courses';
+  import { coursesStore } from '$lib/stores/coursesDB';
   import CourseEditMode from '$modules/courses/components/CourseEditMode.svelte';
   import { CourseService } from '$modules/courses/services/CourseService.js';
 
@@ -35,7 +35,7 @@
           course = result.course;
 
           // Check if user can edit this course
-          const canEdit = courseService.canUserModifyCourse(course, $user.id, $user.role);
+          const canEdit = courseService.canUserModifyCourse(course, $user.id, $user.type);
           if (!canEdit.allowed) {
             error = canEdit.reason;
             loading = false;
@@ -61,9 +61,9 @@
     try {
       let result;
       if (creating) {
-        result = await courseService.createCourse(courseData, $user.id, $user.role);
+        result = await courseService.createCourse(courseData, $user.id, $user.type);
       } else {
-        result = await courseService.updateCourse(courseData.id, courseData, $user.id, $user.role);
+        result = await courseService.updateCourse(courseData.id, courseData, $user.id, $user.type);
       }
 
       if (result.success) {

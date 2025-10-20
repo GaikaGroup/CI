@@ -47,7 +47,7 @@ describe('Users API Endpoint', () => {
       db.session.count.mockResolvedValue(8);
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -86,7 +86,7 @@ describe('Users API Endpoint', () => {
       db.session.count.mockResolvedValue(8);
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -115,7 +115,7 @@ describe('Users API Endpoint', () => {
 
     it('should return 403 if user is not admin', async () => {
       const mockLocals = {
-        user: { id: 'user1', email: 'user@test.com', role: 'student' }
+        user: { id: 'user1', email: 'user@test.com', type: 'regular' }
       };
 
       const mockCookies = {
@@ -133,7 +133,7 @@ describe('Users API Endpoint', () => {
       db.session.groupBy.mockRejectedValue(new Error('Database error'));
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -161,7 +161,7 @@ describe('Users API Endpoint', () => {
       db.session.count.mockResolvedValue(5);
 
       const mockLocals = {
-        user: { id: 'admin', email: 'admin@test.com', role: 'admin' }
+        user: { id: 'admin', email: 'admin@test.com', type: 'admin' }
       };
 
       const mockCookies = {
@@ -191,7 +191,7 @@ describe('Users API Endpoint', () => {
       const mockCookies = {
         get: vi
           .fn()
-          .mockReturnValue(JSON.stringify({ id: 'admin', email: 'admin@test.com', role: 'admin' }))
+          .mockReturnValue(JSON.stringify({ id: 'admin', email: 'admin@test.com', type: 'admin' }))
       };
 
       const response = await getUsersHandler({ locals: mockLocals, cookies: mockCookies });

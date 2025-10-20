@@ -1,14 +1,13 @@
 /**
- * Client Document Processor
+ * Client Document Processor with Advanced OCR
  *
- * This module provides a function for processing documents entirely on the client-side.
- * It ensures OCR processing only happens in the browser context.
+ * Uses advanced Tesseract OCR with preprocessing for better number recognition
  */
-import { DocumentProcessor } from './DocumentProcessor';
+import { AdvancedTesseractOCR } from './engines/AdvancedTesseractOCR';
 import { browser } from '$app/environment';
 
 /**
- * Process a document in the client
+ * Process a document in the client with advanced OCR
  * @param {string} imageData - Base64 encoded image data
  * @returns {Promise<Object>} - The processing result with text, document type, and confidence
  * @throws {Error} - If called outside of browser context
@@ -18,9 +17,9 @@ export async function processDocumentInClient(imageData) {
     throw new Error('This function must only be called in browser context');
   }
 
-  console.log('[ClientDocumentProcessor] Processing document in client');
+  console.log('[Advanced OCR] Processing document with enhanced recognition');
 
-  // Convert base64 to blob
+  // Convert base64 to Uint8Array
   const base64String = imageData.split(',')[1];
   const binaryString = atob(base64String);
   const bytes = new Uint8Array(binaryString.length);
@@ -28,15 +27,28 @@ export async function processDocumentInClient(imageData) {
     bytes[i] = binaryString.charCodeAt(i);
   }
 
-  // Get the MIME type from the data URL
-  const mimeMatch = imageData.match(/^data:([^;]+);/);
-  const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+  // Use advanced OCR
+  const ocr = new AdvancedTesseractOCR({
+    upscale: 2.5,
+    minConf: 50
+  });
 
-  const blob = new Blob([bytes], { type: mimeType });
+  const text = await ocr.recognize(bytes);
+  const confidence = await ocr.getConfidence(bytes);
 
-  // Process in client
-  console.log('[ClientDocumentProcessor] Creating DocumentProcessor instance');
-  const processor = new DocumentProcessor();
-  console.log('[ClientDocumentProcessor] Calling processDocument');
-  return await processor.processDocument(blob);
+  console.log('[Advanced OCR] Result:', {
+    textLength: text.length,
+    confidence: confidence,
+    preview: text.substring(0, 100)
+  });
+
+  return {
+    text,
+    documentType: 'image',
+    confidence,
+    metadata: {
+      engine: 'AdvancedTesseractOCR',
+      timestamp: new Date().toISOString()
+    }
+  };
 }

@@ -55,8 +55,8 @@ export class TesseractOCR extends IOCREngine {
       tesseractModule = await import('tesseract.js');
       createWorker = tesseractModule.createWorker;
     }
+    // Use default Tesseract.js CDN which works reliably
     return await createWorker(this.config.lang, 1, {
-      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
       corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js',
       workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/worker.min.js'
     });
@@ -69,9 +69,14 @@ export class TesseractOCR extends IOCREngine {
    */
   async _ocrCanvas(canvas) {
     const worker = await this.createOptimizedWorker();
+    
+    // Optimized for measurement instruments with numbers
     await worker.setParameters({
-      tessedit_pageseg_mode: '12' // Sparse text with orientation detection
+      tessedit_pageseg_mode: '11', // Sparse text - better for scattered numbers
+      tessedit_char_whitelist: '0123456789.,°CАампервтсекундлинйкмчабвгдежзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZ ',
+      classify_bln_numeric_mode: '1' // Better number recognition
     });
+    
     const result = await worker.recognize(canvas);
     await worker.terminate();
     return {

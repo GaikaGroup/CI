@@ -10,8 +10,22 @@ export default defineConfig({
     include: ['tests/**/*.test.js'],
     exclude: ['node_modules/**', 'build/**'],
     coverage: {
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/**', 'tests/**', 'build/**', '**/*.config.js', '**/*.config.ts']
+      reporter: ['text', 'json', 'html', 'json-summary'],
+      exclude: [
+        'node_modules/**',
+        'tests/**',
+        'build/**',
+        '**/*.config.js',
+        '**/*.config.ts',
+        '.svelte-kit/**',
+        'static/**'
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80
+      }
     },
     testTimeout: 15000, // 15 seconds for e2e tests
     hookTimeout: 10000 // 10 seconds for setup/teardown

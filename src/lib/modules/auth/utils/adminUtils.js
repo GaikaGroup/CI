@@ -8,7 +8,7 @@
  * @returns {boolean} True if user is admin
  */
 export function isAdmin(user) {
-  return Boolean(user && user.role === 'admin');
+  return Boolean(user && user.type === 'admin');
 }
 
 /**

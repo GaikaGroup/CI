@@ -164,7 +164,7 @@
           }
 
           // Send transcribed text (this will trigger waiting phrases and AI response)
-          const response = await sendTranscribedText(transcription);
+          const response = await sendTranscribedText(transcription, sessionId);
 
           // Add AI response to chat store with audio metadata
           if (response) {

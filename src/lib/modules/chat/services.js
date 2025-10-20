@@ -266,13 +266,21 @@ export async function sendMessage(
         );
       }
 
+      // Auto-switch to GPT-4 Vision when images are present
+      const hasImages = validImageData && validImageData.length > 0;
+      const visionProvider = hasImages ? 'openai' : provider;
+      const visionModel = hasImages ? 'gpt-4o' : undefined;
+      
+      console.log(`[Vision] Images detected: ${hasImages}, using provider: ${visionProvider}, model: ${visionModel || 'default'}`);
+      
       const requestBody = {
         content,
         images: validImageData,
-        recognizedText, // Send the already processed text
+        recognizedText, // OCR text as additional context
         language: get(selectedLanguage),
-        sessionContext, // Include session context in the request
-        provider, // Include provider selection if specified
+        sessionContext,
+        provider: visionProvider, // Force OpenAI for images
+        ...(visionModel ? { model: visionModel } : {}), // Force GPT-4o for images
         ...(activeExamProfile ? { examProfile: activeExamProfile } : {}),
         ...(maxTokens ? { maxTokens } : {}),
         ...(detailLevel ? { detailLevel } : {}),

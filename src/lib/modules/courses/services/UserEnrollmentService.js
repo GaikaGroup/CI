@@ -32,46 +32,8 @@ export class UserEnrollmentService {
    * Initialize test data for demonstration
    */
   initializeTestData() {
-    if (!browser) return;
-
-    // Check if we already have test data
-    if (this.enrollments.size > 0) return;
-
-    // Add test enrollments for AdminLogin (user ID '1')
-    const testEnrollments = [
-      {
-        userId: '1',
-        courseId: 'course-1',
-        subjectId: 'course-1',
-        enrolledAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-        status: ENROLLMENT_STATUS.ACTIVE,
-        progress: {
-          lessonsCompleted: 5,
-          assessmentsTaken: 2,
-          lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
-        }
-      },
-      {
-        userId: '1',
-        courseId: 'course-2',
-        subjectId: 'course-2',
-        enrolledAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
-        status: ENROLLMENT_STATUS.ACTIVE,
-        progress: {
-          lessonsCompleted: 8,
-          assessmentsTaken: 3,
-          lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // 1 day ago
-        }
-      }
-    ];
-
-    // Add test enrollments
-    testEnrollments.forEach((enrollment) => {
-      const key = `${enrollment.userId}-${enrollment.courseId}`;
-      this.enrollments.set(key, enrollment);
-    });
-
-    this.saveToStorage();
+    // Test data initialization disabled for clean testing environment
+    return;
   }
 
   /**

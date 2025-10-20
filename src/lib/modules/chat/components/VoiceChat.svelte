@@ -17,6 +17,9 @@
   } from '../voiceServices';
 
   const dispatch = createEventDispatcher();
+  
+  // Accept sessionId as a prop
+  export let sessionId = null;
   let fileInput;
   let isProcessing = false;
   let waitingPhraseStatus = false;
@@ -97,7 +100,7 @@
           updateWaitingPhraseStatus();
 
           // Send transcribed text (this will trigger waiting phrases)
-          await sendTranscribedText(transcription);
+          await sendTranscribedText(transcription, sessionId);
 
           // Update status after processing
           updateWaitingPhraseStatus();

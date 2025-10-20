@@ -60,7 +60,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions'),
         locals: {
-          user: { id: '1', role: 'student' }
+          user: { id: '1', type: 'regular' }
         }
       };
 
@@ -98,7 +98,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions'),
         locals: {
-          user: { id: '1', role: 'admin' }
+          user: { id: '1', type: 'admin' }
         }
       };
 
@@ -135,7 +135,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         url: new URL('http://localhost/api/admin/sessions?search=test&userId=user1'),
         locals: {
-          user: { id: '1', role: 'admin' }
+          user: { id: '1', type: 'admin' }
         }
       };
 
@@ -173,7 +173,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         params: { id: 'session1' },
         locals: {
-          user: { id: '1', role: 'student' }
+          user: { id: '1', type: 'regular' }
         }
       };
 
@@ -200,7 +200,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         params: { id: 'session1' },
         locals: {
-          user: { id: '1', role: 'admin' }
+          user: { id: '1', type: 'admin' }
         }
       };
 
@@ -222,7 +222,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         params: { id: 'nonexistent' },
         locals: {
-          user: { id: '1', role: 'admin' }
+          user: { id: '1', type: 'admin' }
         }
       };
 
@@ -248,7 +248,7 @@ describe('Admin Sessions API', () => {
       const mockRequest = {
         params: { id: 'session1' },
         locals: {
-          user: { id: '1', role: 'admin' }
+          user: { id: '1', type: 'admin' }
         }
       };
 

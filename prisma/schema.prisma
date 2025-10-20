@@ -11,6 +11,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique @db.VarChar(255)
+  firstName String   @map("first_name") @db.VarChar(100)
+  lastName  String   @map("last_name") @db.VarChar(100)
+  password  String   @db.VarChar(255) // Hashed password
+  type      String   @default("regular") @db.VarChar(20) // 'admin', 'regular'
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  sessions        Session[]
+  createdCourses  Course[] @relation("CourseCreator")
+  enrollments     Enrollment[]
+  preferences     UserPreference[]
+  reportedCourses CourseReport[] @relation("CourseReporter")
+  reviewedReports CourseReport[] @relation("CourseReviewer")
+  systemLogs      SystemLog[]
+  
+  // Indexes
+  @@index([email], name: "idx_user_email")
+  @@index([type], name: "idx_user_type")
+  @@index([isActive, createdAt], name: "idx_user_stats") // For statistics queries
+  @@map("users")
+}
+
 model Session {
   id           String    @id @default(cuid())
   userId       String    @map("user_id")
@@ -25,6 +52,8 @@ model Session {
   messageCount Int       @default(0) @map("message_count")
   
   // Relations
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course       Course?   @relation(fields: [courseId], references: [id], onDelete: SetNull)
   messages     Message[]
   
   // Indexes
@@ -32,6 +61,7 @@ model Session {
   @@index([courseId, updatedAt(sort: Desc)], name: "idx_course_sessions")
   @@index([title, preview], name: "idx_session_search")
   @@index([isHidden], name: "idx_session_visibility")
+  @@index([createdAt], name: "idx_session_stats") // For statistics queries
   @@map("sessions")
 }
 
@@ -48,5 +78,124 @@ model Message {
   
   // Indexes
   @@index([sessionId, createdAt], name: "idx_session_messages")
+  @@index([createdAt], name: "idx_message_stats") // For statistics queries
   @@map("messages")
+}
+
+model Course {
+  id                 String   @id @default(cuid())
+  name               String   @db.VarChar(255)
+  slug               String   @unique @db.VarChar(100)
+  description        String?  @db.Text
+  language           String   @db.VarChar(10)
+  level              String   @db.VarChar(50)
+  skills             Json?    // Array of skills
+  settings           Json?    // Course settings
+  practice           Json?    // Practice mode settings
+  exam               Json?    // Exam mode settings
+  agents             Json?    // Course agents
+  orchestrationAgent Json?    // Orchestration agent
+  materials          Json?    // Course materials
+  llmSettings        Json?    // LLM settings
+  creatorId          String   @map("creator_id")
+  creatorRole        String   @default("admin") @db.VarChar(20)
+  status             String   @default("active") @db.VarChar(20)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  creator            User     @relation("CourseCreator", fields: [creatorId], references: [id])
+  enrollments        Enrollment[]
+  sessions           Session[]
+  reports            CourseReport[]
+  
+  @@index([creatorId])
+  @@index([status])
+  @@index([language])
+  @@index([name])
+  @@index([slug])
+  @@map("courses")
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  courseId    String    @map("course_id")
+  status      String    @default("active") @db.VarChar(20) // active, completed, dropped
+  progress    Json?     // Progress tracking
+  enrolledAt  DateTime  @default(now()) @map("enrolled_at")
+  completedAt DateTime? @map("completed_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+  @@map("enrollments")
+}
+
+model UserPreference {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  key       String   @db.VarChar(100)
+  value     Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, key])
+  @@index([userId])
+  @@map("user_preferences")
+}
+
+model CourseReport {
+  id          String    @id @default(cuid())
+  courseId    String    @map("course_id")
+  reporterId  String    @map("reporter_id")
+  reason      String    @db.VarChar(255)
+  description String?   @db.Text
+  status      String    @default("pending") @db.VarChar(20) // pending, reviewed, resolved, dismissed
+  priority    String    @default("medium") @db.VarChar(20) // low, medium, high, critical
+  metadata    Json?     // Additional report data
+  reviewedBy  String?   @map("reviewed_by")
+  reviewedAt  DateTime? @map("reviewed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  // Relations
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  reporter    User      @relation("CourseReporter", fields: [reporterId], references: [id])
+  reviewer    User?     @relation("CourseReviewer", fields: [reviewedBy], references: [id])
+  
+  @@index([courseId])
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("course_reports")
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  level     String   @db.VarChar(20) // error, warn, info, debug
+  category  String   @db.VarChar(50) // auth, course, enrollment, etc.
+  message   String   @db.Text
+  metadata  Json?    // Additional log data
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([level])
+  @@index([category])
+  @@index([createdAt])
+  @@map("system_logs")
 }

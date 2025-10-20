@@ -6,6 +6,13 @@ import { USD_MICRO_PRECISION, roundUSDToPrecision } from '$lib/config/pricing';
 export class UsageTracker {
   constructor() {
     this._modelUsage = new Map();
+    this._mathUsage = {
+      totalMathQueries: 0,
+      byCategory: {},
+      totalTokens: 0,
+      totalCost: 0,
+      classifications: []
+    };
   }
 
   /**
@@ -165,10 +172,105 @@ export class UsageTracker {
   }
 
   /**
+   * Record a mathematical query for analytics
+   * @param {Object} classification - Classification result
+   * @param {Object} tokens - Token usage
+   * @param {number} cost - Cost in USD
+   */
+  recordMathQuery(classification, tokens = {}, cost = 0) {
+    if (!classification || !classification.isMath) {
+      return;
+    }
+
+    this._mathUsage.totalMathQueries += 1;
+
+    const category = classification.category || 'general';
+    if (!this._mathUsage.byCategory[category]) {
+      this._mathUsage.byCategory[category] = {
+        count: 0,
+        totalTokens: 0,
+        totalCost: 0,
+        avgConfidence: 0
+      };
+    }
+
+    const categoryData = this._mathUsage.byCategory[category];
+    categoryData.count += 1;
+
+    const totalTokens = this._sanitizeNumber(
+      tokens.total ?? tokens.total_tokens ?? 0
+    );
+    categoryData.totalTokens += totalTokens;
+    this._mathUsage.totalTokens += totalTokens;
+
+    const sanitizedCost = this._sanitizeNumber(cost, true, 0);
+    categoryData.totalCost += sanitizedCost;
+    this._mathUsage.totalCost += sanitizedCost;
+
+    // Update average confidence
+    const prevAvg = categoryData.avgConfidence;
+    const newCount = categoryData.count;
+    categoryData.avgConfidence = 
+      (prevAvg * (newCount - 1) + classification.confidence) / newCount;
+
+    // Store classification for analysis (keep last 100)
+    this._mathUsage.classifications.push({
+      category,
+      confidence: classification.confidence,
+      timestamp: Date.now()
+    });
+
+    if (this._mathUsage.classifications.length > 100) {
+      this._mathUsage.classifications.shift();
+    }
+  }
+
+  /**
+   * Get math usage statistics
+   * @returns {Object} Math usage summary
+   */
+  getMathSummary() {
+    const categories = Object.entries(this._mathUsage.byCategory).map(
+      ([category, data]) => ({
+        category,
+        count: data.count,
+        totalTokens: data.totalTokens,
+        avgTokens: data.count > 0 ? Math.round(data.totalTokens / data.count) : 0,
+        totalCost: roundUSDToPrecision(data.totalCost),
+        avgCost: roundUSDToPrecision(data.count > 0 ? data.totalCost / data.count : 0),
+        avgConfidence: Math.round(data.avgConfidence * 100) / 100
+      })
+    );
+
+    return {
+      totalMathQueries: this._mathUsage.totalMathQueries,
+      totalTokens: this._mathUsage.totalTokens,
+      avgTokens: this._mathUsage.totalMathQueries > 0 
+        ? Math.round(this._mathUsage.totalTokens / this._mathUsage.totalMathQueries)
+        : 0,
+      totalCost: roundUSDToPrecision(this._mathUsage.totalCost),
+      avgCost: roundUSDToPrecision(
+        this._mathUsage.totalMathQueries > 0 
+          ? this._mathUsage.totalCost / this._mathUsage.totalMathQueries 
+          : 0
+      ),
+      categories,
+      recentClassifications: this._mathUsage.classifications.slice(-10)
+    };
+  }
+
+  /**
    * Reset all tracked metrics.
    */
   reset() {
     this._modelUsage.clear();
+    this._mathUsage = {
+      totalMathQueries: 0,
+      byCategory: {},
+      totalTokens: 0,
+      totalCost: 0,
+      classifications: []
+    };
   }
 }
 
