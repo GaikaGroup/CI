@@ -7,8 +7,8 @@ export const OPENAI_CONFIG = {
   API_KEY: import.meta.env.VITE_OPENAI_API_KEY || 'your-api-key-here', // Use environment variable
   API_URL: 'https://api.openai.com/v1/chat/completions',
   MODEL: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4-turbo', // Changed to gpt-4-turbo which supports vision
-  MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_MAX_TOKENS || '500', 10),
-  DETAILED_MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_DETAILED_MAX_TOKENS || '4000', 10),
+  MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_MAX_TOKENS || '1500', 10),
+  DETAILED_MAX_TOKENS: parseInt(import.meta.env.VITE_OPENAI_DETAILED_MAX_TOKENS || '6000', 10),
   TEMPERATURE: parseFloat(import.meta.env.VITE_OPENAI_TEMPERATURE || '0.7'),
   // Retry configuration for API calls
   RETRY: {
@@ -16,7 +16,9 @@ export const OPENAI_CONFIG = {
     RETRY_DELAY: parseInt(import.meta.env.VITE_OPENAI_RETRY_DELAY || '1000', 10)
   },
   // Timeout in milliseconds
-  TIMEOUT: parseInt(import.meta.env.VITE_OPENAI_TIMEOUT || '30000', 10)
+  TIMEOUT: parseInt(import.meta.env.VITE_OPENAI_TIMEOUT || '30000', 10),
+  // Maximum number of messages to keep in conversation history
+  MAX_HISTORY_MESSAGES: parseInt(import.meta.env.VITE_OPENAI_MAX_HISTORY_MESSAGES || '20', 10)
 };
 
 export const WAITING_PHRASES_DEFAULT =

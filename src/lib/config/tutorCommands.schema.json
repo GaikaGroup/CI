@@ -56,8 +56,14 @@
                   "description": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100,
+                    "maxLength": 200,
                     "description": "Command description in English"
+                  },
+                  "example": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Usage example in English"
                   }
                 }
               },
@@ -73,8 +79,14 @@
                   "description": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100,
+                    "maxLength": 200,
                     "description": "Command description in Russian"
+                  },
+                  "example": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Usage example in Russian"
                   }
                 }
               },
@@ -90,8 +102,14 @@
                   "description": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100,
+                    "maxLength": 200,
                     "description": "Command description in Spanish"
+                  },
+                  "example": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Usage example in Spanish"
                   }
                 }
               }

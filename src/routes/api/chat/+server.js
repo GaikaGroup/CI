@@ -421,25 +421,31 @@ export async function POST({ request }) {
     // SMART LOGIC: For very short messages, check previous user messages
     // Short messages like "sí", "ok", "yes" are hard to detect reliably
     const wordCount = content.trim().split(/\s+/).length;
-    
+
     if (wordCount <= 2 && languageConfidence < 0.9 && sessionContext?.history) {
       // Message is very short and confidence is not high - check history
-      const userMessages = sessionContext.history.filter(msg => msg.role === 'user');
-      
+      const userMessages = sessionContext.history.filter((msg) => msg.role === 'user');
+
       if (userMessages.length > 0) {
         // Get the most recent user message (not the current one)
         const previousUserMessage = userMessages[userMessages.length - 1];
-        const historyDetection = languageDetector.detectLanguageFromText(previousUserMessage.content);
-        
+        const historyDetection = languageDetector.detectLanguageFromText(
+          previousUserMessage.content
+        );
+
         if (historyDetection.confidence > 0.7) {
-          console.log(`[Short Message] Overriding ${detectedLanguage} (${languageConfidence}) with history language ${historyDetection.language} (${historyDetection.confidence})`);
+          console.log(
+            `[Short Message] Overriding ${detectedLanguage} (${languageConfidence}) with history language ${historyDetection.language} (${historyDetection.confidence})`
+          );
           detectedLanguage = historyDetection.language;
           languageConfidence = historyDetection.confidence;
         }
       }
     }
-    
-    console.log(`[Final Language] Using: ${detectedLanguage} (confidence: ${languageConfidence}, words: ${wordCount})`)
+
+    console.log(
+      `[Final Language] Using: ${detectedLanguage} (confidence: ${languageConfidence}, words: ${wordCount})`
+    );
 
     // Create base system prompt with strong language enforcement
     const languageNames = {
@@ -451,9 +457,9 @@ export async function POST({ request }) {
       it: 'Italian',
       pt: 'Portuguese'
     };
-    
+
     const targetLanguage = languageNames[detectedLanguage] || 'English';
-    
+
     // ULTRA SIMPLE: Just tell the model to respond in the user's language
     const languageInstructions = {
       es: `Responde SOLO en español. El usuario escribe en español, tú respondes en español. Cada palabra debe ser en español.`,
@@ -469,7 +475,74 @@ export async function POST({ request }) {
 
 ${languageInstructions[detectedLanguage] || `Respond in ${targetLanguage}. The user is writing in ${targetLanguage}, so you must respond in ${targetLanguage}.`}
 
-Use the prior conversation messages and any provided documents to maintain context.
+⚠️ CRITICAL CONTEXT RULE:
+BEFORE answering ANY question, you MUST:
+1. Read ALL previous messages in this conversation
+2. Understand what topic was just discussed
+3. Use that context in your answer
+
+If the student uses a command like /explain, /test, /пример - it refers to the PREVIOUS topic in the conversation.
+NEVER ignore the conversation history. ALWAYS maintain context.
+
+IMPORTANT - COMMAND PROCESSING RULES:
+The student can use special commands that start with "/" to request specific actions. These commands are CONTEXTUAL and refer to the previous conversation:
+
+Available commands:
+- /solve or /решить or /resolver: Solve the problem or equation from the previous message step by step
+- /explain or /объяснить or /explicar: Explain the concept, solution, or topic from the previous message in more detail
+- /check or /проверить or /verificar: Check the student's work from the previous message for errors
+- /example or /пример or /ejemplo: Show an example related to the current topic or previous message
+- /cheatsheet or /шпаргалка or /guía: Create a quick reference guide for the current topic
+- /test or /тест or /prueba: Generate practice questions on the current topic
+- /conspect or /конспект or /notas: Create study notes for the current topic
+- /plan or /план: Create a study plan for the current topic
+- /essay or /эссе or /ensayo: Write a COMPLETE essay (not instructions) on the current topic. You must write the actual essay text, not explain how to write it.
+
+CRITICAL COMMAND CONTEXT RULES:
+⚠️ BEFORE ANSWERING ANY COMMAND, YOU MUST:
+1. READ THE ENTIRE CONVERSATION HISTORY ABOVE
+2. IDENTIFY THE LAST TOPIC OR QUESTION DISCUSSED
+3. APPLY THE COMMAND TO THAT TOPIC
+
+When a student uses a command, it ALWAYS refers to the PREVIOUS message or conversation context:
+
+Example 1:
+- Student: "теория струн"
+- You: [explain string theory]
+- Student: "/explain"
+- You MUST: Explain string theory in MORE DETAIL (the topic from previous message)
+
+Example 2:
+- Student: "2x + 5 = 15"
+- You: [provide solution]
+- Student: "/пример"
+- You MUST: Give an example similar to "2x + 5 = 15" (the problem from previous message)
+
+Example 3:
+- Student: "квантовая механика"
+- You: [explain quantum mechanics]
+- Student: "/тест"
+- You MUST: Create a test about quantum mechanics (the topic from previous message)
+
+Example 4 (ESSAY command):
+- Student: "теория струн"
+- You: [explain string theory]
+- Student: "/эссе"
+- You MUST: Write a COMPLETE essay about string theory (NOT instructions on how to write it)
+- WRONG: "Для написания эссе о теории струн, ты можешь рассмотреть..."
+- CORRECT: "Теория струн: революция в современной физике\n\nТеория струн представляет собой..."
+
+⚠️ CRITICAL: Commands without additional text ALWAYS refer to the IMMEDIATELY PREVIOUS topic in the conversation.
+⚠️ NEVER ask "what topic?" - ALWAYS look at the conversation history first!
+⚠️ For /essay or /эссе: WRITE THE ACTUAL ESSAY, not instructions!
+
+SMART CONTEXT AWARENESS:
+7. If a student just discussed topic A in detail, and then uses a command about topic B:
+   - You MAY briefly acknowledge topic A and offer to work on it instead
+   - Example: "I see you want an essay about [topic B]. I also noticed you just wrote detailed notes about [topic A]. Would you like me to write about [topic A] instead, or shall I proceed with [topic B]?"
+   - Keep this suggestion brief and friendly, don't insist
+   - If the student clearly wants topic B, proceed with topic B
+8. Be contextually aware but respect the student's explicit request
 
 Student question:
 [The student's current question about their exercise or homework]
@@ -482,14 +555,15 @@ Exercise (from photo):
 
 Your task:
 1. Use the previous documents and conversation history to maintain context throughout the conversation.
-2. Analyze the student's question, any previous documents, and the exercise text from the photo.
-3. Provide a helpful, educational response that addresses the student's specific question about the exercise.
-4. If the student is asking a follow-up question about a previously uploaded document, refer to that document in your response.
-5. If there are OCR processing notes indicating errors or issues with text recognition, acknowledge these issues in your response.
-6. If the text recognition was incomplete or unclear, ask the user if they would like to try uploading a clearer image or typing the text manually.
-7. Always be helpful and supportive, even if the text recognition was not perfect.
-8. IMPORTANT: If you see a note about "Image processing will be performed in the browser", this means the image is already uploaded and is being processed. Respond with: "I can see you've uploaded an image. I'll analyze the content once the image processing is complete. Please wait a moment."
-9. CRITICAL: If there are NO images attached to the message (i.e., no OCR Processing Note is present), do NOT mention image processing or image analysis in your response. Only mention images if they are actually present in the user's message.`;
+2. If the student uses a command (starts with /), check the previous messages to understand the context.
+3. Analyze the student's question, any previous documents, and the exercise text from the photo.
+4. Provide a helpful, educational response that addresses the student's specific question about the exercise.
+5. If the student is asking a follow-up question about a previously uploaded document, refer to that document in your response.
+6. If there are OCR processing notes indicating errors or issues with text recognition, acknowledge these issues in your response.
+7. If the text recognition was incomplete or unclear, ask the user if they would like to try uploading a clearer image or typing the text manually.
+8. Always be helpful and supportive, even if the text recognition was not perfect.
+9. IMPORTANT: If you see a note about "Image processing will be performed in the browser", this means the image is already uploaded and is being processed. Respond with: "I can see you've uploaded an image. I'll analyze the content once the image processing is complete. Please wait a moment."
+10. CRITICAL: If there are NO images attached to the message (i.e., no OCR Processing Note is present), do NOT mention image processing or image analysis in your response. Only mention images if they are actually present in the user's message.`;
 
     // Check if there were previous language inconsistencies for this session
     const sessionLanguageState = sessionLanguageManager.getSessionLanguage(sessionId);
@@ -513,9 +587,29 @@ Your task:
       }
     ];
 
-    // Add conversation history as individual messages
+    // Add conversation history as individual messages (limited to recent messages)
     if (sessionContext?.history && sessionContext.history.length > 0) {
-      sessionContext.history.forEach((entry) => {
+      // Determine max history based on provider
+      const isOllamaProvider =
+        !requestedProvider ||
+        requestedProvider === 'ollama' ||
+        PROVIDER_CONFIG.DEFAULT_PROVIDER === 'ollama';
+
+      const maxHistoryMessages = isOllamaProvider
+        ? parseInt(import.meta.env.VITE_OLLAMA_MAX_HISTORY_MESSAGES || '16', 10)
+        : OPENAI_CONFIG.MAX_HISTORY_MESSAGES;
+
+      // Take only the most recent messages to avoid exceeding context window
+      const recentHistory =
+        sessionContext.history.length > maxHistoryMessages
+          ? sessionContext.history.slice(-maxHistoryMessages)
+          : sessionContext.history;
+
+      console.log(
+        `Using ${recentHistory.length} of ${sessionContext.history.length} history messages (max: ${maxHistoryMessages})`
+      );
+
+      recentHistory.forEach((entry) => {
         messages.push({ role: entry.role, content: entry.content });
       });
     }
@@ -583,7 +677,7 @@ Your task:
           }
         ]
       };
-      
+
       // Add each image to the message
       for (const imageData of images) {
         userMessage.content.push({
@@ -593,11 +687,19 @@ Your task:
           }
         });
       }
-      
+
       messages.push(userMessage);
     } else {
       // Text-only message - add language instruction to user message
-      messages.push({ role: 'user', content: languageInstruction + fullContent });
+      let userContent = languageInstruction + fullContent;
+
+      // If this is a command, add explicit context reminder
+      if (fullContent.trim().startsWith('/')) {
+        const contextReminder = `\n\n⚠️ IMPORTANT: This is a COMMAND. Look at the conversation history above to understand what topic it refers to. Apply this command to the PREVIOUS topic discussed.`;
+        userContent = userContent + contextReminder;
+      }
+
+      messages.push({ role: 'user', content: userContent });
     }
 
     // Simple reminder in the target language
@@ -610,7 +712,7 @@ Your task:
       it: `Rispondi in italiano.`,
       pt: `Responda em português.`
     };
-    
+
     messages.push({
       role: 'system',
       content: simpleReminders[detectedLanguage] || `Respond in ${targetLanguage}.`
@@ -621,10 +723,9 @@ Your task:
 
     // Add agent-specific system prompt if available from course/session context
     // This allows each course to define its own AI tutor personality and instructions
-    const agentInstructions = sessionContext?.context?.agentInstructions || 
-                              activeExamProfile?.agentInstructions ||
-                              null;
-    
+    const agentInstructions =
+      sessionContext?.context?.agentInstructions || activeExamProfile?.agentInstructions || null;
+
     // Add language instruction directly into the base prompt
     const languagePrefix = {
       es: `RESPONDE EN ESPAÑOL.\n\n`,
@@ -640,13 +741,17 @@ Your task:
       // Use course-specific agent instructions with language prefix
       enhancedMessages.unshift({
         role: 'system',
-        content: (languagePrefix[detectedLanguage] || `RESPOND IN ${targetLanguage.toUpperCase()}.\n\n`) + agentInstructions
+        content:
+          (languagePrefix[detectedLanguage] || `RESPOND IN ${targetLanguage.toUpperCase()}.\n\n`) +
+          agentInstructions
       });
     } else {
       // Fallback to default educational tutor prompt with language prefix
       enhancedMessages.unshift({
         role: 'system',
-        content: (languagePrefix[detectedLanguage] || `RESPOND IN ${targetLanguage.toUpperCase()}.\n\n`) + `You are a helpful AI tutor assistant.
+        content:
+          (languagePrefix[detectedLanguage] || `RESPOND IN ${targetLanguage.toUpperCase()}.\n\n`) +
+          `You are a helpful AI tutor assistant.
 
 Your role is to:
 - Provide clear, accurate, and educational responses
@@ -683,7 +788,7 @@ Maintain a friendly and encouraging tone.`
       it: `La tua risposta: 100% italiano.`,
       pt: `Sua resposta: 100% português.`
     };
-    
+
     enhancedMessages.push({
       role: 'system',
       content: finalReminders[detectedLanguage] || `Your response: 100% ${targetLanguage}.`
@@ -712,8 +817,11 @@ Maintain a friendly and encouraging tone.`
 
     // Special handling for Ollama - add extra language enforcement
     // Small models like qwen2.5:1.5b need very explicit instructions
-    const isOllama = !requestedProvider || requestedProvider === 'ollama' || PROVIDER_CONFIG.DEFAULT_PROVIDER === 'ollama';
-    
+    const isOllama =
+      !requestedProvider ||
+      requestedProvider === 'ollama' ||
+      PROVIDER_CONFIG.DEFAULT_PROVIDER === 'ollama';
+
     if (isOllama) {
       // For Ollama, add a very simple, direct instruction at the very end
       const ollamaLanguageMap = {
@@ -725,35 +833,42 @@ Maintain a friendly and encouraging tone.`
         it: 'italiano',
         pt: 'português'
       };
-      
+
       const targetLangName = ollamaLanguageMap[detectedLanguage] || targetLanguage;
-      
+
       // Add as the absolute last message before generation
       enhancedMessages.push({
         role: 'system',
         content: `Language: ${targetLangName}`
       });
-      
+
       console.log(`[Ollama] Added extra language enforcement: ${targetLangName}`);
     }
 
-    console.log(`[Language Enforcement] Generating response in ${targetLanguage} (${detectedLanguage}) with ${enhancedMessages.filter(m => m.role === 'system').length} system messages`);
-    
+    console.log(
+      `[Language Enforcement] Generating response in ${targetLanguage} (${detectedLanguage}) with ${enhancedMessages.filter((m) => m.role === 'system').length} system messages`
+    );
+
     // Log first system message to verify language instruction is first
-    const firstSystemMsg = enhancedMessages.find(m => m.role === 'system');
+    const firstSystemMsg = enhancedMessages.find((m) => m.role === 'system');
     if (firstSystemMsg) {
       console.log(`[First System Message] ${firstSystemMsg.content.substring(0, 100)}...`);
     }
 
     // Generate completion using the provider manager with automatic enhancement
-    const result = await providerManager.generateChatCompletionWithEnhancement(enhancedMessages, options);
+    const result = await providerManager.generateChatCompletionWithEnhancement(
+      enhancedMessages,
+      options
+    );
 
     // Log which provider was used
     console.info(`Response generated using provider: ${result.provider}, model: ${result.model}`);
-    
+
     // Log math enhancement if applied
     if (result.enhanced) {
-      console.info(`Math enhancement applied - Category: ${result.classification?.category}, Confidence: ${result.classification?.confidence}`);
+      console.info(
+        `Math enhancement applied - Category: ${result.classification?.category}, Confidence: ${result.classification?.confidence}`
+      );
     }
 
     // Extract the response content
@@ -902,11 +1017,14 @@ Maintain a friendly and encouraging tone.`
 
     // In development, include error details
     if (import.meta.env.DEV) {
-      return json({ 
-        error: errorMessage, 
-        details: error.message,
-        stack: error.stack 
-      }, { status: statusCode });
+      return json(
+        {
+          error: errorMessage,
+          details: error.message,
+          stack: error.stack
+        },
+        { status: statusCode }
+      );
     }
 
     return json({ error: errorMessage }, { status: statusCode });

@@ -367,9 +367,13 @@ While the AI prepares a response, short phrases are displayed and synthesized se
    # Start Ollama service
    ollama serve
 
-   # Pull a model (in another terminal)
-   ollama pull qwen2.5:1.5b
+   # Pull FAST models (in another terminal) - 1-2 sec response time!
+   ollama pull phi3:mini
+   ollama pull gemma2:2b
    ```
+
+   **Note:** We use Phi-3 Mini and Gemma 2 2B for **fast responses (1-2 seconds)**.
+   See `QUICK_START_FAST_OLLAMA.md` for details.
 
 ### Available Scripts
 
@@ -397,41 +401,52 @@ While the AI prepares a response, short phrases are displayed and synthesized se
 
 ### Configuration
 
-| Variable                           | Description                         | Default                   | Required |
-| ---------------------------------- | ----------------------------------- | ------------------------- | -------- |
-| `VITE_OPENAI_API_KEY`              | OpenAI key for LLM, Whisper and TTS | –                         | **Yes**  |
-| `VITE_DEFAULT_LLM_PROVIDER`        | `openai` or `ollama`                | `ollama`                  | No       |
-| `VITE_ENABLE_LOCAL_LLM`            | Enable local model usage            | `true`                    | No       |
-| `VITE_ENABLE_LLM_FALLBACK`         | Fall back to OpenAI if local fails  | `true`                    | No       |
-| `VITE_ENABLE_PROVIDER_SWITCHING`   | Allow switching in UI               | `false` (true in dev)     | No       |
-| `VITE_LLM_FALLBACK_TIMEOUT`        | ms before provider fallback         | `10000`                   | No       |
-| `VITE_OLLAMA_API_URL`              | Ollama endpoint                     | `http://127.0.0.1:11434`  | No       |
-| `VITE_OLLAMA_MODELS`               | Comma list of Ollama models         | `qwen2.5:1.5b,qwen2.5:7b` | No       |
-| `VITE_OLLAMA_MODEL`                | Single model (legacy)               | first of MODELS           | No       |
-| `VITE_OLLAMA_MAX_TOKENS`           | Max tokens from Ollama              | `256`                     | No       |
-| `VITE_OLLAMA_TEMPERATURE`          | Sampling temperature                | `0.7`                     | No       |
-| `VITE_OLLAMA_NUM_CTX`              | Context window tokens               | `2048`                    | No       |
-| `VITE_OLLAMA_STRICT`               | Restrict to MODELS list             | `true`                    | No       |
-| `VITE_OLLAMA_REPEAT_PENALTY`       | Repetition penalty                  | `1.1`                     | No       |
-| `VITE_OLLAMA_TOP_P`                | Nucleus sampling parameter          | `0.9`                     | No       |
-| `VITE_OLLAMA_TOP_K`                | Top-k sampling size                 | `40`                      | No       |
-| `VITE_LLM_MEMORY_THRESHOLD`        | MB before switching to cloud        | `2048`                    | No       |
-| `VITE_LLM_CPU_THRESHOLD`           | CPU load threshold                  | `0.95`                    | No       |
-| `VITE_LLM_RESOURCE_CHECK_INTERVAL` | Resource check ms                   | `5000`                    | No       |
-| `VITE_OPENAI_MODEL`                | OpenAI model                        | `gpt-3.5-turbo`           | No       |
-| `VITE_OPENAI_MAX_TOKENS`           | Tokens for OpenAI replies           | `500`                     | No       |
-| `VITE_OPENAI_DETAILED_MAX_TOKENS`  | Tokens for detailed replies         | `4000`                    | No       |
-| `VITE_OPENAI_TEMPERATURE`          | OpenAI sampling temperature         | `0.7`                     | No       |
-| `VITE_OPENAI_MAX_RETRIES`          | API retry attempts                  | `3`                       | No       |
-| `VITE_OPENAI_RETRY_DELAY`          | Delay between retries (ms)          | `1000`                    | No       |
-| `VITE_OPENAI_TIMEOUT`              | Request timeout ms                  | `30000`                   | No       |
-| `VITE_OPENAI_VISION_MODEL`         | Vision-capable model for images     | `gpt-4o`                  | No       |
-| `VITE_ENABLE_AUTO_VISION`          | Auto-switch to Vision for images    | `true`                    | No       |
-| `VITE_WAITING_PHRASES_DEFAULT`     | ID of default waiting phrase        | `DefaultWaitingAnswer`    | No       |
-| `VITE_WAITING_PHRASES_DETAILED`    | ID for detailed waiting phrase      | `DetailedWaitingAnswer`   | No       |
-| `VITE_VOICE_INTERRUPTION_ENABLED`  | Enable voice interruption detection | `true`                    | No       |
-| `VITE_AVATAR_EMOTIONS_ENABLED`     | Enable avatar emotion detection     | `true`                    | No       |
-| `VITE_VOICE_DIAGNOSTICS_ENABLED`   | Enable voice performance monitoring | `false` (true in dev)     | No       |
+> **⚠️ Recent Changes (October 2024):**
+>
+> - **Response size increased**: `VITE_OPENAI_MAX_TOKENS` now defaults to **1500** (was 500) for more detailed answers
+> - **Detailed responses enhanced**: `VITE_OPENAI_DETAILED_MAX_TOKENS` now **6000** (was 4000)
+> - **Ollama improvements**: `VITE_OLLAMA_MAX_TOKENS` increased to **1024** (was 512)
+> - **Larger context window**: `VITE_OLLAMA_NUM_CTX` now **4096** (was 2048) for longer conversations
+> - **History limiting**: Conversation history now limited to last **20 messages** (OpenAI) or **16 messages** (Ollama) to prevent context overflow
+> - **New variables**: `VITE_OPENAI_MAX_HISTORY_MESSAGES` and `VITE_OLLAMA_MAX_HISTORY_MESSAGES` for fine-tuning
+
+| Variable                           | Description                         | Default                  | Required |
+| ---------------------------------- | ----------------------------------- | ------------------------ | -------- |
+| `VITE_OPENAI_API_KEY`              | OpenAI key for LLM, Whisper and TTS | –                        | **Yes**  |
+| `VITE_DEFAULT_LLM_PROVIDER`        | `openai` or `ollama`                | `ollama`                 | No       |
+| `VITE_ENABLE_LOCAL_LLM`            | Enable local model usage            | `true`                   | No       |
+| `VITE_ENABLE_LLM_FALLBACK`         | Fall back to OpenAI if local fails  | `true`                   | No       |
+| `VITE_ENABLE_PROVIDER_SWITCHING`   | Allow switching in UI               | `false` (true in dev)    | No       |
+| `VITE_LLM_FALLBACK_TIMEOUT`        | ms before provider fallback         | `10000`                  | No       |
+| `VITE_OLLAMA_API_URL`              | Ollama endpoint                     | `http://127.0.0.1:11434` | No       |
+| `VITE_OLLAMA_MODELS`               | Comma list of Ollama models         | `phi3:mini,gemma2:2b`    | No       |
+| `VITE_OLLAMA_MODEL`                | Single model (legacy)               | first of MODELS          | No       |
+| `VITE_OLLAMA_MAX_TOKENS`           | Max tokens from Ollama              | `1024` ⬆️                | No       |
+| `VITE_OLLAMA_TEMPERATURE`          | Sampling temperature                | `0.3`                    | No       |
+| `VITE_OLLAMA_NUM_CTX`              | Context window tokens               | `4096` ⬆️                | No       |
+| `VITE_OLLAMA_MAX_HISTORY_MESSAGES` | Max messages in history             | `16` 🆕                  | No       |
+| `VITE_OLLAMA_STRICT`               | Restrict to MODELS list             | `true`                   | No       |
+| `VITE_OLLAMA_REPEAT_PENALTY`       | Repetition penalty                  | `1.1`                    | No       |
+| `VITE_OLLAMA_TOP_P`                | Nucleus sampling parameter          | `0.9`                    | No       |
+| `VITE_OLLAMA_TOP_K`                | Top-k sampling size                 | `20`                     | No       |
+| `VITE_LLM_MEMORY_THRESHOLD`        | MB before switching to cloud        | `2048`                   | No       |
+| `VITE_LLM_CPU_THRESHOLD`           | CPU load threshold                  | `0.95`                   | No       |
+| `VITE_LLM_RESOURCE_CHECK_INTERVAL` | Resource check ms                   | `5000`                   | No       |
+| `VITE_OPENAI_MODEL`                | OpenAI model                        | `gpt-3.5-turbo`          | No       |
+| `VITE_OPENAI_MAX_TOKENS`           | Tokens for OpenAI replies           | `1500` ⬆️                | No       |
+| `VITE_OPENAI_DETAILED_MAX_TOKENS`  | Tokens for detailed replies         | `6000` ⬆️                | No       |
+| `VITE_OPENAI_MAX_HISTORY_MESSAGES` | Max messages in history             | `20` 🆕                  | No       |
+| `VITE_OPENAI_TEMPERATURE`          | OpenAI sampling temperature         | `0.7`                    | No       |
+| `VITE_OPENAI_MAX_RETRIES`          | API retry attempts                  | `3`                      | No       |
+| `VITE_OPENAI_RETRY_DELAY`          | Delay between retries (ms)          | `1000`                   | No       |
+| `VITE_OPENAI_TIMEOUT`              | Request timeout ms                  | `30000`                  | No       |
+| `VITE_OPENAI_VISION_MODEL`         | Vision-capable model for images     | `gpt-4o`                 | No       |
+| `VITE_ENABLE_AUTO_VISION`          | Auto-switch to Vision for images    | `true`                   | No       |
+| `VITE_WAITING_PHRASES_DEFAULT`     | ID of default waiting phrase        | `DefaultWaitingAnswer`   | No       |
+| `VITE_WAITING_PHRASES_DETAILED`    | ID for detailed waiting phrase      | `DetailedWaitingAnswer`  | No       |
+| `VITE_VOICE_INTERRUPTION_ENABLED`  | Enable voice interruption detection | `true`                   | No       |
+| `VITE_AVATAR_EMOTIONS_ENABLED`     | Enable avatar emotion detection     | `true`                   | No       |
+| `VITE_VOICE_DIAGNOSTICS_ENABLED`   | Enable voice performance monitoring | `false` (true in dev)    | No       |
 
 Example `.env`:
 
@@ -444,22 +459,24 @@ VITE_ENABLE_PROVIDER_SWITCHING=false
 VITE_LLM_FALLBACK_TIMEOUT=10000
 
 VITE_OLLAMA_API_URL=http://127.0.0.1:11434
-VITE_OLLAMA_MODELS=qwen2.5:1.5b,qwen2.5:7b
-VITE_OLLAMA_MAX_TOKENS=256
-VITE_OLLAMA_TEMPERATURE=0.7
-VITE_OLLAMA_NUM_CTX=2048
+VITE_OLLAMA_MODELS=phi3:mini,gemma2:2b
+VITE_OLLAMA_MAX_TOKENS=1024
+VITE_OLLAMA_TEMPERATURE=0.3
+VITE_OLLAMA_NUM_CTX=4096
+VITE_OLLAMA_MAX_HISTORY_MESSAGES=16
 VITE_OLLAMA_STRICT=true
 VITE_OLLAMA_REPEAT_PENALTY=1.1
 VITE_OLLAMA_TOP_P=0.9
-VITE_OLLAMA_TOP_K=40
+VITE_OLLAMA_TOP_K=20
 
 VITE_LLM_MEMORY_THRESHOLD=2048
 VITE_LLM_CPU_THRESHOLD=0.95
 VITE_LLM_RESOURCE_CHECK_INTERVAL=5000
 
 VITE_OPENAI_MODEL=gpt-3.5-turbo
-VITE_OPENAI_MAX_TOKENS=500
-VITE_OPENAI_DETAILED_MAX_TOKENS=4000
+VITE_OPENAI_MAX_TOKENS=1500
+VITE_OPENAI_DETAILED_MAX_TOKENS=6000
+VITE_OPENAI_MAX_HISTORY_MESSAGES=20
 VITE_OPENAI_TEMPERATURE=0.7
 VITE_OPENAI_MAX_RETRIES=3
 VITE_OPENAI_RETRY_DELAY=1000
@@ -631,12 +648,14 @@ npm run test:audit-api
 #### Coverage Requirements
 
 We enforce minimum coverage thresholds:
+
 - **Lines**: 80%
 - **Functions**: 80%
 - **Branches**: 75%
 - **Statements**: 80%
 
 Coverage is automatically checked in:
+
 - Pre-push git hooks
 - CI/CD pipeline
 - Pull request reviews

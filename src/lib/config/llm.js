@@ -78,14 +78,16 @@ export const OLLAMA_CONFIG = {
   VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'minicpm-v:8b',
 
   // Max tokens to generate per response (increased for detailed answers)
-  MAX_TOKENS: parseInt(import.meta.env.VITE_OLLAMA_MAX_TOKENS || '512', 10),
+  MAX_TOKENS: parseInt(import.meta.env.VITE_OLLAMA_MAX_TOKENS || '1024', 10),
 
   // Temperature for response generation (lower = faster, more focused)
   TEMPERATURE: parseFloat(import.meta.env.VITE_OLLAMA_TEMPERATURE || '0.3'),
 
   // Context window (tokens kept in memory). 2048 is a good “balanced+” default on 8 GB.
-  NUM_CTX: parseInt(import.meta.env.VITE_OLLAMA_NUM_CTX || '2048', 10),
+  NUM_CTX: parseInt(import.meta.env.VITE_OLLAMA_NUM_CTX || '4096', 10),
 
+  // Maximum number of messages to keep in conversation history
+  MAX_HISTORY_MESSAGES: parseInt(import.meta.env.VITE_OLLAMA_MAX_HISTORY_MESSAGES || '16', 10),
   /**
    * STRICT mode: if true, only choose from MODELS.
    * If none are available, throw (so ProviderManager can fall back to OpenAI),
