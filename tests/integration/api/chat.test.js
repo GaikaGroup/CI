@@ -14,7 +14,8 @@ describe('Chat API Integration Tests', () => {
       data: {
         email: `chat-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Chat Test User',
+        firstName: 'Chat',
+        lastName: 'Test User',
         type: 'student'
       }
     });
@@ -25,7 +26,7 @@ describe('Chat API Integration Tests', () => {
       data: {
         userId: testUserId,
         title: 'Test Chat Session',
-        mood: 'fun',
+        mode: 'fun',
         language: 'en',
         preview: 'Test session'
       }
@@ -101,7 +102,8 @@ describe('Chat API Integration Tests', () => {
         data: {
           email: `another-chat-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Another Chat User',
+          firstName: 'Another',
+          lastName: 'Chat User',
           type: 'student'
         }
       });

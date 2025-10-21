@@ -32,7 +32,8 @@ describe('Authentication API Integration Tests', () => {
         json: vi.fn().mockResolvedValue({
           email: testEmail,
           password: testPassword,
-          name: 'Test User'
+          firstName: 'Test',
+          lastName: 'User'
         })
       };
 
@@ -43,7 +44,7 @@ describe('Authentication API Integration Tests', () => {
       expect(data.success).toBe(true);
       expect(data.user).toBeDefined();
       expect(data.user.email).toBe(testEmail);
-      
+
       testUserId = data.user.id;
     });
 
@@ -70,7 +71,8 @@ describe('Authentication API Integration Tests', () => {
         json: vi.fn().mockResolvedValue({
           email: 'invalid-email',
           password: testPassword,
-          name: 'Test User'
+          firstName: 'Test',
+          lastName: 'User'
         })
       };
 
@@ -88,7 +90,8 @@ describe('Authentication API Integration Tests', () => {
         json: vi.fn().mockResolvedValue({
           email: testEmail,
           password: testPassword,
-          name: 'Another User'
+          firstName: 'Another',
+          lastName: 'User'
         })
       };
 
@@ -202,9 +205,9 @@ describe('Authentication API Integration Tests', () => {
         user: { id: testUserId, email: testEmail }
       };
 
-      const response = await logoutHandler({ 
-        locals: mockLocals, 
-        cookies: { delete: vi.fn() } 
+      const response = await logoutHandler({
+        locals: mockLocals,
+        cookies: { delete: vi.fn() }
       });
       const data = await response.json();
 
@@ -214,9 +217,9 @@ describe('Authentication API Integration Tests', () => {
 
     // Authentication error (401)
     it('should return 401 for unauthenticated user', async () => {
-      const response = await logoutHandler({ 
-        locals: {}, 
-        cookies: { delete: vi.fn() } 
+      const response = await logoutHandler({
+        locals: {},
+        cookies: { delete: vi.fn() }
       });
       const data = await response.json();
 
@@ -236,9 +239,9 @@ describe('Authentication API Integration Tests', () => {
         })
       };
 
-      const response = await logoutHandler({ 
-        locals: mockLocals, 
-        cookies: mockCookies 
+      const response = await logoutHandler({
+        locals: mockLocals,
+        cookies: mockCookies
       });
       const data = await response.json();
 

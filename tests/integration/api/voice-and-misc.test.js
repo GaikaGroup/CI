@@ -19,7 +19,8 @@ describe('Voice and Miscellaneous API Integration Tests', () => {
       data: {
         email: `voice-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Voice Test User',
+        firstName: 'Voice',
+        lastName: 'Test User',
         type: 'student'
       }
     });
@@ -30,7 +31,8 @@ describe('Voice and Miscellaneous API Integration Tests', () => {
       data: {
         email: `admin-voice-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Admin Voice User',
+        firstName: 'Admin',
+        lastName: 'Voice User',
         type: 'admin'
       }
     });

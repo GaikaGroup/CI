@@ -22,7 +22,8 @@ describe('Stats and Voice API Integration Tests', () => {
       data: {
         email: `stats-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Stats Test User',
+        firstName: 'Stats',
+        lastName: 'Test User',
         type: 'student'
       }
     });
@@ -32,7 +33,8 @@ describe('Stats and Voice API Integration Tests', () => {
       data: {
         email: `admin-stats-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Admin Stats User',
+        firstName: 'Admin',
+        lastName: 'Stats User',
         type: 'admin'
       }
     });

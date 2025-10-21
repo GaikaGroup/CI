@@ -21,7 +21,8 @@ describe('Messages API Integration Tests', () => {
       data: {
         email: `msg-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Message Test User',
+        firstName: 'Message',
+        lastName: 'Test User',
         type: 'student'
       }
     });
@@ -32,7 +33,7 @@ describe('Messages API Integration Tests', () => {
       data: {
         userId: testUserId,
         title: 'Test Message Session',
-        mood: 'fun',
+        mode: 'fun',
         language: 'en',
         preview: 'Test session'
       }
@@ -114,7 +115,8 @@ describe('Messages API Integration Tests', () => {
         data: {
           email: `another-msg-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Another Message User',
+          firstName: 'Another',
+          lastName: 'Message User',
           type: 'student'
         }
       });
@@ -207,7 +209,8 @@ describe('Messages API Integration Tests', () => {
         data: {
           email: `update-msg-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Update Message User',
+          firstName: 'Update',
+          lastName: 'Message User',
           type: 'student'
         }
       });
@@ -313,7 +316,8 @@ describe('Messages API Integration Tests', () => {
         data: {
           email: `delete-msg-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Delete Message User',
+          firstName: 'Delete',
+          lastName: 'Message User',
           type: 'student'
         }
       });

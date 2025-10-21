@@ -27,7 +27,8 @@ describe('Sessions Extended API Integration Tests', () => {
       data: {
         email: `session-ext-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Session Extended User',
+        firstName: 'Session',
+        lastName: 'Extended User',
         type: 'student'
       }
     });
@@ -37,7 +38,7 @@ describe('Sessions Extended API Integration Tests', () => {
       data: {
         userId: testUserId,
         title: 'Test Extended Session',
-        mood: 'fun',
+        mode: 'fun',
         language: 'en',
         preview: 'Test session'
       }
@@ -160,7 +161,8 @@ describe('Sessions Extended API Integration Tests', () => {
         data: {
           email: `another-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Another User',
+          firstName: 'Another',
+          lastName: 'User',
           type: 'student'
         }
       });
@@ -229,7 +231,8 @@ describe('Sessions Extended API Integration Tests', () => {
         data: {
           email: `msg-another-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Message Another User',
+          firstName: 'Message',
+          lastName: 'Another User',
           type: 'student'
         }
       });

@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Input Placeholders Configuration",
+  "description": "Schema for input placeholder examples in session chat",
+  "type": "object",
+  "required": ["version", "description", "placeholders", "settings"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Configuration version in semver format"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this configuration"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date in YYYY-MM-DD format"
+    },
+    "placeholders": {
+      "type": "object",
+      "description": "Placeholder examples organized by category",
+      "patternProperties": {
+        "^[a-z]+$": {
+          "type": "object",
+          "description": "Category of placeholders (e.g., general, mathematics, science, writing)",
+          "properties": {
+            "en": {
+              "type": "array",
+              "description": "English placeholders",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "minItems": 1
+            },
+            "ru": {
+              "type": "array",
+              "description": "Russian placeholders",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "minItems": 1
+            },
+            "es": {
+              "type": "array",
+              "description": "Spanish placeholders",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "minItems": 1
+            }
+          },
+          "required": ["en", "ru", "es"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "description": "Configuration settings for placeholder behavior",
+      "required": [
+        "rotationInterval",
+        "avoidRecentRepeats",
+        "historySize",
+        "defaultLanguage",
+        "defaultCategory"
+      ],
+      "properties": {
+        "rotationInterval": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 30000,
+          "description": "Rotation interval in milliseconds"
+        },
+        "avoidRecentRepeats": {
+          "type": "boolean",
+          "description": "Whether to avoid showing recently displayed placeholders"
+        },
+        "historySize": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Number of recent placeholders to track"
+        },
+        "defaultLanguage": {
+          "type": "string",
+          "enum": ["en", "ru", "es"],
+          "description": "Default language fallback"
+        },
+        "defaultCategory": {
+          "type": "string",
+          "description": "Default category to use"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

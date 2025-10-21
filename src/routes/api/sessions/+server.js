@@ -115,7 +115,7 @@ export async function POST({ request, locals }) {
   try {
     console.log('[POST /api/sessions] Request received');
     console.log('[POST /api/sessions] locals.user:', locals.user);
-    
+
     // Check authentication
     if (!locals.user || !locals.user.id) {
       console.log('[POST /api/sessions] Authentication failed - no user in locals');
@@ -125,7 +125,7 @@ export async function POST({ request, locals }) {
     const userId = locals.user.id;
     console.log('[POST /api/sessions] User ID:', userId);
     console.log('[POST /api/sessions] User type:', locals.user.type);
-    
+
     const body = await request.json();
     console.log('[POST /api/sessions] Request body:', body);
 
@@ -157,9 +157,13 @@ export async function POST({ request, locals }) {
       (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0)
     ) {
       console.log('[POST /api/sessions] Validation failed: Course ID required for LEARN mode');
-      return json({ 
-        error: 'Course ID is required for LEARN mode sessions. Please enroll in a course first or switch to FUN mode.' 
-      }, { status: 400 });
+      return json(
+        {
+          error:
+            'Course ID is required for LEARN mode sessions. Please enroll in a course first or switch to FUN mode.'
+        },
+        { status: 400 }
+      );
     }
 
     // Validate courseId format if provided
@@ -175,17 +179,20 @@ export async function POST({ request, locals }) {
       preview: preview?.trim() || null,
       courseId: courseId?.trim() || null
     });
-    
+
     try {
+      // NOTE: createWelcomeMessage set to false as per session-input-enhancement spec
+      // The chat interface now starts with an empty message history
       const session = await SessionService.createSession(
         userId,
         title.trim(),
         mode,
         language,
         preview?.trim() || null,
-        courseId?.trim() || null
+        courseId?.trim() || null,
+        false // createWelcomeMessage = false
       );
-      
+
       console.log('[POST /api/sessions] Session created successfully:', session.id);
       return json(session, { status: 201 });
     } catch (createError) {
@@ -198,7 +205,6 @@ export async function POST({ request, locals }) {
       });
       throw createError;
     }
-
   } catch (error) {
     console.error('[POST /api/sessions] Error:', error);
     console.error('[POST /api/sessions] Error details:', {

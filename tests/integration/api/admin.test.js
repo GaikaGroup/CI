@@ -19,7 +19,8 @@ describe('Admin API Integration Tests', () => {
       data: {
         email: `admin-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Admin User',
+        firstName: 'Admin',
+        lastName: 'User',
         type: 'admin'
       }
     });
@@ -30,7 +31,8 @@ describe('Admin API Integration Tests', () => {
       data: {
         email: `regular-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Regular User',
+        firstName: 'Regular',
+        lastName: 'User',
         type: 'student'
       }
     });
@@ -41,7 +43,7 @@ describe('Admin API Integration Tests', () => {
       data: {
         userId: regularUserId,
         title: 'Test Admin Session',
-        mood: 'fun',
+        mode: 'fun',
         language: 'en',
         preview: 'Test session'
       }

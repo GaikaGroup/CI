@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { 
-  GET as getCoursesHandler, 
-  POST as createCourseHandler 
+import {
+  GET as getCoursesHandler,
+  POST as createCourseHandler
 } from '../../../src/routes/api/courses/+server.js';
 import {
   GET as getCourseHandler,
@@ -17,13 +17,14 @@ describe('Courses API Integration Tests', () => {
 
   beforeAll(async () => {
     await prisma.$connect();
-    
+
     // Create test users
     const testUser = await prisma.user.create({
       data: {
         email: `test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Test User',
+        firstName: 'Test',
+        lastName: 'User',
         type: 'student'
       }
     });
@@ -33,7 +34,8 @@ describe('Courses API Integration Tests', () => {
       data: {
         email: `admin-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Admin User',
+        firstName: 'Admin',
+        lastName: 'User',
         type: 'admin'
       }
     });
@@ -49,7 +51,7 @@ describe('Courses API Integration Tests', () => {
         console.log('Course cleanup error:', error.message);
       }
     }
-    
+
     if (testUserId) {
       try {
         await prisma.user.delete({ where: { id: testUserId } });
@@ -107,7 +109,7 @@ describe('Courses API Integration Tests', () => {
       const mockUrl = new URL('http://localhost/api/courses');
 
       const response = await getCoursesHandler({ locals: mockLocals, url: mockUrl });
-      
+
       // Should handle error without crashing
       expect(response.status).toBeGreaterThanOrEqual(200);
     });
@@ -136,7 +138,7 @@ describe('Courses API Integration Tests', () => {
       expect(data.success).toBe(true);
       expect(data.course).toBeDefined();
       expect(data.course.name).toBe('Test Course');
-      
+
       testCourseId = data.course.id;
     });
 
@@ -269,7 +271,7 @@ describe('Courses API Integration Tests', () => {
       const params = { id: 'non-existent-id' };
 
       const response = await getCourseHandler({ locals: mockLocals, params });
-      
+
       expect(response.status).toBeGreaterThanOrEqual(400);
     });
   });
@@ -448,7 +450,7 @@ describe('Courses API Integration Tests', () => {
       const params = { id: 'non-existent-id' };
 
       const response = await deleteCourseHandler({ locals: mockLocals, params });
-      
+
       expect(response.status).toBeGreaterThanOrEqual(400);
     });
   });

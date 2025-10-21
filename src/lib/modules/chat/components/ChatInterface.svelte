@@ -57,6 +57,8 @@
   });
 
   // Initialize chat when language is selected
+  // NOTE: Default greeting message removed as per session-input-enhancement spec
+  // The chat interface now starts with an empty message history
   const formatModeNote = () => {
     if ($appMode === 'learn') {
       if ($examProfile) {
@@ -71,11 +73,12 @@
     return getTranslation($selectedLanguage, 'funModeNote');
   };
 
-  $: if ($selectedLanguage && $messages.length === 0) {
-    const welcomeMessage = getTranslation($selectedLanguage, 'welcomeMessage');
-    const modeNote = formatModeNote();
-    initializeChat(`${welcomeMessage} ${modeNote}`.trim());
-  }
+  // Removed automatic welcome message initialization
+  // $: if ($selectedLanguage && $messages.length === 0) {
+  //   const welcomeMessage = getTranslation($selectedLanguage, 'welcomeMessage');
+  //   const modeNote = formatModeNote();
+  //   initializeChat(`${welcomeMessage} ${modeNote}`.trim());
+  // }
 
   $: if (browser && sessionId && $appMode === 'learn' && container.has('sessionFactory')) {
     try {

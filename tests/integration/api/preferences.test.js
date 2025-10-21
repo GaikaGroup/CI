@@ -18,7 +18,8 @@ describe('Preferences API Integration Tests', () => {
       data: {
         email: `pref-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Preferences Test User',
+        firstName: 'Preferences',
+        lastName: 'Test User',
         type: 'student'
       }
     });

@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Help Tips Configuration",
+  "description": "Schema for contextual help tips in session interface",
+  "type": "object",
+  "required": ["version", "description", "tips", "settings"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Configuration version in semver format"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this configuration"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date in YYYY-MM-DD format"
+    },
+    "tips": {
+      "type": "object",
+      "description": "Help tips organized by context",
+      "patternProperties": {
+        "^[a-z-]+$": {
+          "type": "object",
+          "description": "Context-specific tips",
+          "required": ["en", "ru", "es"],
+          "properties": {
+            "en": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "English tip text"
+            },
+            "ru": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Russian tip text"
+            },
+            "es": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Spanish tip text"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "description": "Configuration settings for tip behavior",
+      "required": ["displayDuration", "fadeTransition", "defaultLanguage"],
+      "properties": {
+        "displayDuration": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Display duration in milliseconds (0 = always visible)"
+        },
+        "fadeTransition": {
+          "type": "boolean",
+          "description": "Whether to use fade transitions"
+        },
+        "defaultLanguage": {
+          "type": "string",
+          "enum": ["en", "ru", "es"],
+          "description": "Default language fallback"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

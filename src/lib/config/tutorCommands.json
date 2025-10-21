@@ -1,0 +1,175 @@
+{
+  "$schema": "./tutorCommands.schema.json",
+  "version": "1.0.0",
+  "description": "Tutor command definitions with multilingual support",
+  "lastUpdated": "2025-10-21",
+  "commands": [
+    {
+      "id": "solve",
+      "category": "problem-solving",
+      "translations": {
+        "en": {
+          "name": "/solve",
+          "description": "Solve a problem step by step"
+        },
+        "ru": {
+          "name": "/решить",
+          "description": "Решить задачу пошагово"
+        },
+        "es": {
+          "name": "/resolver",
+          "description": "Resolver un problema paso a paso"
+        }
+      }
+    },
+    {
+      "id": "explain",
+      "category": "understanding",
+      "translations": {
+        "en": {
+          "name": "/explain",
+          "description": "Explain the current topic in more detail"
+        },
+        "ru": {
+          "name": "/объяснить",
+          "description": "Подробнее объяснить текущую тему"
+        },
+        "es": {
+          "name": "/explicar",
+          "description": "Explicar el tema actual con más detalle"
+        }
+      }
+    },
+    {
+      "id": "check",
+      "category": "validation",
+      "translations": {
+        "en": {
+          "name": "/check",
+          "description": "Check your work for errors"
+        },
+        "ru": {
+          "name": "/проверить",
+          "description": "Проверить работу на ошибки"
+        },
+        "es": {
+          "name": "/verificar",
+          "description": "Verificar tu trabajo en busca de errores"
+        }
+      }
+    },
+    {
+      "id": "example",
+      "category": "learning",
+      "translations": {
+        "en": {
+          "name": "/example",
+          "description": "Show me an example of the current topic"
+        },
+        "ru": {
+          "name": "/пример",
+          "description": "Покажи мне пример по текущей теме"
+        },
+        "es": {
+          "name": "/ejemplo",
+          "description": "Muéstrame un ejemplo del tema actual"
+        }
+      }
+    },
+    {
+      "id": "cheatsheet",
+      "category": "reference",
+      "translations": {
+        "en": {
+          "name": "/cheatsheet",
+          "description": "Create a quick reference guide for current topic"
+        },
+        "ru": {
+          "name": "/шпаргалка",
+          "description": "Создать краткую справку по текущей теме"
+        },
+        "es": {
+          "name": "/guía",
+          "description": "Crear una guía de referencia rápida del tema actual"
+        }
+      }
+    },
+    {
+      "id": "test",
+      "category": "practice",
+      "translations": {
+        "en": {
+          "name": "/test",
+          "description": "Generate practice questions on current topic"
+        },
+        "ru": {
+          "name": "/тест",
+          "description": "Создать практические вопросы по текущей теме"
+        },
+        "es": {
+          "name": "/prueba",
+          "description": "Generar preguntas de práctica sobre el tema actual"
+        }
+      }
+    },
+    {
+      "id": "conspect",
+      "category": "notes",
+      "translations": {
+        "en": {
+          "name": "/conspect",
+          "description": "Create study notes for current topic"
+        },
+        "ru": {
+          "name": "/конспект",
+          "description": "Создать учебные заметки по текущей теме"
+        },
+        "es": {
+          "name": "/notas",
+          "description": "Crear notas de estudio del tema actual"
+        }
+      }
+    },
+    {
+      "id": "plan",
+      "category": "organization",
+      "translations": {
+        "en": {
+          "name": "/plan",
+          "description": "Create a study plan"
+        },
+        "ru": {
+          "name": "/план",
+          "description": "Создать план обучения"
+        },
+        "es": {
+          "name": "/plan",
+          "description": "Crear un plan de estudio"
+        }
+      }
+    },
+    {
+      "id": "essay",
+      "category": "writing",
+      "translations": {
+        "en": {
+          "name": "/essay",
+          "description": "Help with essay writing"
+        },
+        "ru": {
+          "name": "/эссе",
+          "description": "Помощь с написанием эссе"
+        },
+        "es": {
+          "name": "/ensayo",
+          "description": "Ayuda con la escritura de ensayos"
+        }
+      }
+    }
+  ],
+  "settings": {
+    "enableKeyboardShortcut": true,
+    "shortcutKey": "/",
+    "defaultLanguage": "en"
+  }
+}

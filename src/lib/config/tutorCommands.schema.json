@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tutor Commands Configuration",
+  "description": "Schema for tutor command definitions with multilingual support",
+  "type": "object",
+  "required": ["version", "description", "commands", "settings"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Configuration version in semver format"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this configuration"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date in YYYY-MM-DD format"
+    },
+    "commands": {
+      "type": "array",
+      "description": "List of available tutor commands",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "translations"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+$",
+            "description": "Unique command identifier"
+          },
+          "category": {
+            "type": "string",
+            "description": "Command category for grouping"
+          },
+          "translations": {
+            "type": "object",
+            "description": "Localized command names and descriptions",
+            "required": ["en", "ru", "es"],
+            "properties": {
+              "en": {
+                "type": "object",
+                "required": ["name", "description"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^/[a-z]+$",
+                    "description": "Command name in English"
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Command description in English"
+                  }
+                }
+              },
+              "ru": {
+                "type": "object",
+                "required": ["name", "description"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^/[а-яё]+$",
+                    "description": "Command name in Russian"
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Command description in Russian"
+                  }
+                }
+              },
+              "es": {
+                "type": "object",
+                "required": ["name", "description"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^/[a-záéíóúñ]+$",
+                    "description": "Command name in Spanish"
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Command description in Spanish"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "settings": {
+      "type": "object",
+      "description": "Configuration settings for command behavior",
+      "required": ["enableKeyboardShortcut", "shortcutKey", "defaultLanguage"],
+      "properties": {
+        "enableKeyboardShortcut": {
+          "type": "boolean",
+          "description": "Whether to enable keyboard shortcut for opening command menu"
+        },
+        "shortcutKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1,
+          "description": "Keyboard shortcut key"
+        },
+        "defaultLanguage": {
+          "type": "string",
+          "enum": ["en", "ru", "es"],
+          "description": "Default language fallback"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

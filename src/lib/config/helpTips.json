@@ -1,0 +1,28 @@
+{
+  "$schema": "./helpTips.schema.json",
+  "version": "1.0.0",
+  "description": "Contextual help tips for session interface",
+  "lastUpdated": "2025-10-21",
+  "tips": {
+    "default": {
+      "en": "Tip: The more detailed your question, the better the answer!",
+      "ru": "Совет: Чем подробнее вопрос, тем лучше ответ!",
+      "es": "¡Consejo: Cuanto más detallada sea tu pregunta, mejor será la respuesta!"
+    },
+    "with-images": {
+      "en": "Tip: Upload images of problems for visual analysis",
+      "ru": "Совет: Загрузите изображения задач для визуального анализа",
+      "es": "Consejo: Sube imágenes de problemas para análisis visual"
+    },
+    "commands": {
+      "en": "Tip: Use / to see available commands",
+      "ru": "Совет: Используй / чтобы увидеть доступные команды",
+      "es": "Consejo: Usa / para ver los comandos disponibles"
+    }
+  },
+  "settings": {
+    "displayDuration": 0,
+    "fadeTransition": true,
+    "defaultLanguage": "en"
+  }
+}

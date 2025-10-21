@@ -1,0 +1,170 @@
+{
+  "$schema": "./inputPlaceholders.schema.json",
+  "version": "1.0.0",
+  "description": "Input placeholder examples for session chat",
+  "lastUpdated": "2025-10-21",
+  "placeholders": {
+    "general": {
+      "en": [
+        "Ask me anything about math, science, or writing...",
+        "What would you like to learn today?",
+        "Need help with homework? Just ask!",
+        "Explain a concept, solve a problem, or practice a skill...",
+        "Type your question here...",
+        "How can I help you learn today?",
+        "What topic would you like to explore?",
+        "Ask me to explain, solve, or check your work...",
+        "Ready to learn? Ask me anything!",
+        "Let's tackle your questions together!",
+        "What's on your mind? I'm here to help!"
+      ],
+      "ru": [
+        "Спроси меня о математике, науке или письме...",
+        "Что бы ты хотел изучить сегодня?",
+        "Нужна помощь с домашним заданием? Просто спроси!",
+        "Объясни концепцию, реши задачу или попрактикуйся...",
+        "Введи свой вопрос здесь...",
+        "Как я могу помочь тебе учиться сегодня?",
+        "Какую тему ты хочешь изучить?",
+        "Попроси меня объяснить, решить или проверить работу...",
+        "Готов учиться? Спрашивай что угодно!",
+        "Давай разберём твои вопросы вместе!",
+        "Что тебя интересует? Я здесь, чтобы помочь!"
+      ],
+      "es": [
+        "Pregúntame sobre matemáticas, ciencias o escritura...",
+        "¿Qué te gustaría aprender hoy?",
+        "¿Necesitas ayuda con la tarea? ¡Solo pregunta!",
+        "Explica un concepto, resuelve un problema o practica...",
+        "Escribe tu pregunta aquí...",
+        "¿Cómo puedo ayudarte a aprender hoy?",
+        "¿Qué tema te gustaría explorar?",
+        "Pídeme que explique, resuelva o revise tu trabajo...",
+        "¿Listo para aprender? ¡Pregúntame lo que quieras!",
+        "¡Abordemos tus preguntas juntos!",
+        "¿Qué tienes en mente? ¡Estoy aquí para ayudar!"
+      ]
+    },
+    "mathematics": {
+      "en": [
+        "Solve this equation: 2x + 5 = 15",
+        "Explain how to find the derivative of x²",
+        "Help me understand quadratic equations",
+        "What's the formula for the area of a circle?",
+        "Show me how to factor polynomials",
+        "Explain the Pythagorean theorem",
+        "How do I solve systems of equations?",
+        "What are prime numbers?",
+        "Help me with fractions and decimals",
+        "Explain what logarithms are"
+      ],
+      "ru": [
+        "Реши это уравнение: 2x + 5 = 15",
+        "Объясни, как найти производную x²",
+        "Помоги мне понять квадратные уравнения",
+        "Какая формула площади круга?",
+        "Покажи, как разложить многочлены на множители",
+        "Объясни теорему Пифагора",
+        "Как решать системы уравнений?",
+        "Что такое простые числа?",
+        "Помоги мне с дробями и десятичными числами",
+        "Объясни, что такое логарифмы"
+      ],
+      "es": [
+        "Resuelve esta ecuación: 2x + 5 = 15",
+        "Explica cómo encontrar la derivada de x²",
+        "Ayúdame a entender las ecuaciones cuadráticas",
+        "¿Cuál es la fórmula del área de un círculo?",
+        "Muéstrame cómo factorizar polinomios",
+        "Explica el teorema de Pitágoras",
+        "¿Cómo resuelvo sistemas de ecuaciones?",
+        "¿Qué son los números primos?",
+        "Ayúdame con fracciones y decimales",
+        "Explica qué son los logaritmos"
+      ]
+    },
+    "science": {
+      "en": [
+        "Explain photosynthesis in simple terms",
+        "What is Newton's first law of motion?",
+        "How does the water cycle work?",
+        "What are the parts of a cell?",
+        "Explain the difference between atoms and molecules",
+        "What causes seasons on Earth?",
+        "How do vaccines work?",
+        "What is the periodic table?",
+        "Explain gravity and how it works",
+        "What is DNA and why is it important?"
+      ],
+      "ru": [
+        "Объясни фотосинтез простыми словами",
+        "Что такое первый закон Ньютона?",
+        "Как работает круговорот воды?",
+        "Какие части есть у клетки?",
+        "Объясни разницу между атомами и молекулами",
+        "Что вызывает смену времён года на Земле?",
+        "Как работают вакцины?",
+        "Что такое периодическая таблица?",
+        "Объясни гравитацию и как она работает",
+        "Что такое ДНК и почему это важно?"
+      ],
+      "es": [
+        "Explica la fotosíntesis en términos simples",
+        "¿Cuál es la primera ley de Newton del movimiento?",
+        "¿Cómo funciona el ciclo del agua?",
+        "¿Cuáles son las partes de una célula?",
+        "Explica la diferencia entre átomos y moléculas",
+        "¿Qué causa las estaciones en la Tierra?",
+        "¿Cómo funcionan las vacunas?",
+        "¿Qué es la tabla periódica?",
+        "Explica la gravedad y cómo funciona",
+        "¿Qué es el ADN y por qué es importante?"
+      ]
+    },
+    "writing": {
+      "en": [
+        "Help me write an essay introduction",
+        "Check my grammar and spelling",
+        "How do I structure a paragraph?",
+        "Give me ideas for a creative story",
+        "Explain the difference between their, there, and they're",
+        "Help me improve this sentence",
+        "What makes a good thesis statement?",
+        "How do I cite sources properly?",
+        "Give me feedback on my writing",
+        "Help me brainstorm essay topics"
+      ],
+      "ru": [
+        "Помоги мне написать введение к эссе",
+        "Проверь мою грамматику и орфографию",
+        "Как структурировать абзац?",
+        "Дай мне идеи для творческой истории",
+        "Объясни разницу между тся и ться",
+        "Помоги мне улучшить это предложение",
+        "Что делает хорошее тезисное утверждение?",
+        "Как правильно цитировать источники?",
+        "Дай мне обратную связь по моему тексту",
+        "Помоги мне придумать темы для эссе"
+      ],
+      "es": [
+        "Ayúdame a escribir una introducción de ensayo",
+        "Revisa mi gramática y ortografía",
+        "¿Cómo estructuro un párrafo?",
+        "Dame ideas para una historia creativa",
+        "Explica la diferencia entre por qué, porque y porqué",
+        "Ayúdame a mejorar esta oración",
+        "¿Qué hace una buena declaración de tesis?",
+        "¿Cómo cito fuentes correctamente?",
+        "Dame comentarios sobre mi escritura",
+        "Ayúdame a generar temas de ensayo"
+      ]
+    }
+  },
+  "settings": {
+    "rotationInterval": 5000,
+    "avoidRecentRepeats": true,
+    "historySize": 3,
+    "defaultLanguage": "en",
+    "defaultCategory": "general"
+  }
+}

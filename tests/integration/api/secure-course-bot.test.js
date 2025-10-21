@@ -26,7 +26,8 @@ describe('Secure Course Bot and AI Draft API Integration Tests', () => {
       data: {
         email: `secure-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Secure Test User',
+        firstName: 'Secure',
+        lastName: 'Test User',
         type: 'student'
       }
     });
@@ -37,7 +38,8 @@ describe('Secure Course Bot and AI Draft API Integration Tests', () => {
       data: {
         email: `admin-secure-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Admin Secure User',
+        firstName: 'Admin',
+        lastName: 'Secure User',
         type: 'admin'
       }
     });
@@ -46,7 +48,8 @@ describe('Secure Course Bot and AI Draft API Integration Tests', () => {
     // Create test course
     const testCourse = await prisma.course.create({
       data: {
-        name: 'Test Secure Course',
+        firstName: 'Test',
+        lastName: 'Secure Course',
         description: 'Course for secure bot testing',
         language: 'en',
         subject: 'test'
@@ -228,7 +231,9 @@ describe('Secure Course Bot and AI Draft API Integration Tests', () => {
         user: { id: adminUserId, type: 'admin' }
       };
 
-      const mockUrl = new URL('http://localhost/api/secure-course-bot/admin/incidents?severity=invalid');
+      const mockUrl = new URL(
+        'http://localhost/api/secure-course-bot/admin/incidents?severity=invalid'
+      );
 
       const response = await getIncidentsHandler({ locals: mockLocals, url: mockUrl });
       const data = await response.json();

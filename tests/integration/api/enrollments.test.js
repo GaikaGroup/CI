@@ -23,7 +23,8 @@ describe('Enrollments API Integration Tests', () => {
       data: {
         email: `enroll-test-${Date.now()}@example.com`,
         password: 'hashedpassword',
-        name: 'Enrollment Test User',
+        firstName: 'Enrollment',
+        lastName: 'Test User',
         type: 'student'
       }
     });
@@ -32,7 +33,8 @@ describe('Enrollments API Integration Tests', () => {
     // Create test course
     const testCourse = await prisma.course.create({
       data: {
-        name: 'Test Enrollment Course',
+        firstName: 'Test',
+        lastName: 'Enrollment Course',
         description: 'Course for enrollment testing',
         language: 'en',
         subject: 'test'
@@ -246,7 +248,8 @@ describe('Enrollments API Integration Tests', () => {
         data: {
           email: `another-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Another User',
+          firstName: 'Another',
+          lastName: 'User',
           type: 'student'
         }
       });
@@ -341,7 +344,8 @@ describe('Enrollments API Integration Tests', () => {
         data: {
           email: `update-test-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Update Test User',
+          firstName: 'Update',
+          lastName: 'Test User',
           type: 'student'
         }
       });
@@ -447,7 +451,8 @@ describe('Enrollments API Integration Tests', () => {
         data: {
           email: `delete-test-${Date.now()}@example.com`,
           password: 'hashedpassword',
-          name: 'Delete Test User',
+          firstName: 'Delete',
+          lastName: 'Test User',
           type: 'student'
         }
       });
