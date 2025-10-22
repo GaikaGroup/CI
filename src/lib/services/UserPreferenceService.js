@@ -1,6 +1,6 @@
 /**
  * User Preference Service
- * 
+ *
  * Handles user preferences and settings storage in database
  */
 
@@ -188,7 +188,7 @@ export class UserPreferenceService {
    */
   static async getNotificationPreferences(userId) {
     const result = await this.getUserPreference(userId, 'notifications');
-    
+
     // Default notification settings
     const defaultNotifications = {
       email: true,
@@ -214,7 +214,7 @@ export class UserPreferenceService {
    */
   static async getAccessibilityPreferences(userId) {
     const result = await this.getUserPreference(userId, 'accessibility');
-    
+
     // Default accessibility settings
     const defaultAccessibility = {
       fontSize: 'medium',
@@ -239,7 +239,7 @@ export class UserPreferenceService {
    */
   static async getLearningPreferences(userId) {
     const result = await this.getUserPreference(userId, 'learning');
-    
+
     // Default learning settings
     const defaultLearning = {
       preferredMode: 'fun',
@@ -298,7 +298,7 @@ export class UserPreferenceService {
   static async exportUserPreferences(userId) {
     try {
       const result = await this.getUserPreferences(userId);
-      
+
       if (!result.success) {
         return result;
       }
@@ -327,7 +327,7 @@ export class UserPreferenceService {
       }
 
       const result = await this.setUserPreferences(userId, importData.preferences);
-      
+
       return result;
     } catch (error) {
       console.error('Error importing preferences:', error);

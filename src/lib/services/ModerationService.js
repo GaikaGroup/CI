@@ -1,6 +1,6 @@
 /**
  * Moderation Service
- * 
+ *
  * Handles course reports and moderation functionality
  */
 
@@ -12,13 +12,7 @@ export class ModerationService {
    */
   static async createReport(reportData) {
     try {
-      const {
-        courseId,
-        reporterId,
-        reason,
-        description = null,
-        priority = 'medium'
-      } = reportData;
+      const { courseId, reporterId, reason, description = null, priority = 'medium' } = reportData;
 
       // Validate required fields
       if (!courseId || !reporterId || !reason) {
@@ -289,80 +283,72 @@ export class ModerationService {
    */
   static async getModerationStats(options = {}) {
     try {
-      const {
-        startDate = '',
-        endDate = ''
-      } = options;
+      const { startDate = '', endDate = '' } = options;
 
       const where = {
         ...(startDate && { createdAt: { gte: new Date(startDate) } }),
-        ...(endDate && { 
-          createdAt: { 
+        ...(endDate && {
+          createdAt: {
             ...(startDate ? { gte: new Date(startDate) } : {}),
-            lte: new Date(endDate) 
-          } 
+            lte: new Date(endDate)
+          }
         })
       };
 
-      const [
-        totalReports,
-        reportsByStatus,
-        reportsByPriority,
-        reportsByCourse,
-        recentReports
-      ] = await Promise.all([
-        // Total reports
-        prisma.courseReport.count({ where }),
+      const [totalReports, reportsByStatus, reportsByPriority, reportsByCourse, recentReports] =
+        await Promise.all([
+          // Total reports
+          prisma.courseReport.count({ where }),
 
-        // Reports by status
-        prisma.courseReport.groupBy({
-          by: ['status'],
-          where,
-          _count: true
-        }),
+          // Reports by status
+          prisma.courseReport.groupBy({
+            by: ['status'],
+            where,
+            _count: true
+          }),
 
-        // Reports by priority
-        prisma.courseReport.groupBy({
-          by: ['priority'],
-          where,
-          _count: true
-        }),
+          // Reports by priority
+          prisma.courseReport.groupBy({
+            by: ['priority'],
+            where,
+            _count: true
+          }),
 
-        // Top reported courses
-        prisma.courseReport.groupBy({
-          by: ['courseId'],
-          where,
-          _count: true,
-          orderBy: {
-            _count: {
-              courseId: 'desc'
-            }
-          },
-          take: 10
-        }),
-
-        // Recent reports
-        prisma.courseReport.findMany({
-          where,
-          include: {
-            course: {
-              select: {
-                id: true,
-                name: true
+          // Top reported courses
+          prisma.courseReport.groupBy({
+            by: ['courseId'],
+            where,
+            _count: true,
+            orderBy: {
+              _count: {
+                courseId: 'desc'
               }
             },
-            reporter: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true
+            take: 10
+          }),
+
+          // Recent reports
+          prisma.courseReport.findMany({
+            where,
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              },
+              reporter: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true
+                }
               }
-            }
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 10
-        })
-      ]);
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 10
+          })
+        ]);
 
       return {
         success: true,
@@ -386,7 +372,7 @@ export class ModerationService {
   static async bulkUpdateReports(reportIds, updates, reviewerId) {
     try {
       const validStatuses = ['pending', 'reviewed', 'resolved', 'dismissed'];
-      
+
       if (updates.status && !validStatuses.includes(updates.status)) {
         return { success: false, error: 'Invalid status' };
       }
@@ -448,11 +434,7 @@ export class ModerationService {
    */
   static async getCourseReports(courseId, options = {}) {
     try {
-      const {
-        status = 'all',
-        page = 1,
-        limit = 20
-      } = options;
+      const { status = 'all', page = 1, limit = 20 } = options;
 
       const skip = (page - 1) * limit;
 

@@ -10,16 +10,17 @@ describe('Voice Mode Session Title Logic', () => {
     const transcription = 'Помогите мне с математикой, пожалуйста';
     const expectedTitle = transcription;
     const expectedPreview = transcription;
-    
+
     expect(expectedTitle).toBe('Помогите мне с математикой, пожалуйста');
     expect(expectedPreview).toBe('Помогите мне с математикой, пожалуйста');
   });
 
   it('should truncate long transcriptions correctly', () => {
-    const longTranscription = 'Это очень длинное сообщение которое должно быть обрезано до пятидесяти символов максимум для заголовка сессии';
+    const longTranscription =
+      'Это очень длинное сообщение которое должно быть обрезано до пятидесяти символов максимум для заголовка сессии';
     const expectedTitle = longTranscription.substring(0, 50) + '...';
     const expectedPreview = longTranscription.substring(0, 200);
-    
+
     expect(expectedTitle).toBe('Это очень длинное сообщение которое должно быть обре...');
     expect(expectedPreview).toBe(longTranscription);
     expect(expectedTitle.length).toBeLessThanOrEqual(53); // 50 + "..."
@@ -29,7 +30,7 @@ describe('Voice Mode Session Title Logic', () => {
     const transcription = '';
     const expectedTitle = transcription;
     const expectedPreview = transcription;
-    
+
     expect(expectedTitle).toBe('');
     expect(expectedPreview).toBe('');
   });
@@ -37,7 +38,7 @@ describe('Voice Mode Session Title Logic', () => {
   it('should handle transcription with only spaces', () => {
     const transcription = '   ';
     const trimmed = transcription.trim();
-    
+
     expect(trimmed).toBe('');
     expect(trimmed.length).toBe(0);
   });
@@ -48,18 +49,14 @@ describe('Voice Mode Session Title Logic', () => {
       'New Session 16/10/2025',
       'New Session 01/01/2024'
     ];
-    
-    const existingTitles = [
-      'Existing Custom Title',
-      'Помощь с математикой',
-      'Spanish lesson'
-    ];
-    
-    newSessionTitles.forEach(title => {
+
+    const existingTitles = ['Existing Custom Title', 'Помощь с математикой', 'Spanish lesson'];
+
+    newSessionTitles.forEach((title) => {
       expect(title.startsWith('New Session')).toBe(true);
     });
-    
-    existingTitles.forEach(title => {
+
+    existingTitles.forEach((title) => {
       expect(title.startsWith('New Session')).toBe(false);
     });
   });
@@ -70,7 +67,7 @@ describe('Voice Mode Session Title Logic', () => {
       title: transcription.substring(0, 50) + (transcription.length > 50 ? '...' : ''),
       preview: transcription.substring(0, 200)
     };
-    
+
     expect(expectedBody).toEqual({
       title: 'Помогите мне с математикой',
       preview: 'Помогите мне с математикой'
@@ -92,11 +89,11 @@ describe('Voice Mode Session Title Logic', () => {
         language: 'es'
       }
     ];
-    
+
     testCases.forEach(({ transcription, language }) => {
       const title = transcription.substring(0, 50) + (transcription.length > 50 ? '...' : '');
       const preview = transcription.substring(0, 200);
-      
+
       expect(title.length).toBeLessThanOrEqual(53);
       expect(preview.length).toBeLessThanOrEqual(200);
       expect(title).toBe(transcription); // All test cases are under 50 chars

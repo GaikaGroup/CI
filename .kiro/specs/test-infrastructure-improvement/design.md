@@ -45,6 +45,7 @@ Test Infrastructure
 **File**: `vitest.config.js`
 
 **Enhancements**:
+
 ```javascript
 coverage: {
   reporter: ['text', 'json', 'html', 'json-summary'],
@@ -67,6 +68,7 @@ coverage: {
 ```
 
 **Behavior**:
+
 - Fails test run if any threshold not met
 - Generates multiple report formats for different consumers
 - Excludes non-application code from coverage calculation
@@ -76,6 +78,7 @@ coverage: {
 **Directory**: `tests/smoke/`
 
 **Structure**:
+
 ```
 tests/smoke/
 ├── README.md
@@ -85,6 +88,7 @@ tests/smoke/
 ```
 
 **health-check.test.js**:
+
 ```javascript
 describe('Health Check', () => {
   it('should start application without errors', async () => {
@@ -96,16 +100,12 @@ describe('Health Check', () => {
 ```
 
 **api-availability.test.js**:
+
 ```javascript
 describe('API Availability', () => {
-  const criticalEndpoints = [
-    '/api/auth/login',
-    '/api/sessions',
-    '/api/courses',
-    '/api/chat'
-  ];
-  
-  criticalEndpoints.forEach(endpoint => {
+  const criticalEndpoints = ['/api/auth/login', '/api/sessions', '/api/courses', '/api/chat'];
+
+  criticalEndpoints.forEach((endpoint) => {
     it(`should respond to ${endpoint}`, async () => {
       // Basic connectivity check
     });
@@ -114,6 +114,7 @@ describe('API Availability', () => {
 ```
 
 **database-connection.test.js**:
+
 ```javascript
 describe('Database Connection', () => {
   it('should connect to database', async () => {
@@ -130,6 +131,7 @@ describe('Database Connection', () => {
 **Directory**: `tests/unit/bugfixes/`
 
 **Structure**:
+
 ```
 tests/unit/bugfixes/
 ├── README.md
@@ -139,27 +141,33 @@ tests/unit/bugfixes/
 ```
 
 **README.md Template**:
+
 ```markdown
 # Regression Tests
 
 This directory contains tests for previously fixed bugs to prevent regressions.
 
 ## Naming Convention
+
 - GitHub issues: `issue-{number}-{short-description}.test.js`
 - Other bugs: `{descriptive-name}.test.js`
 
 ## Test Structure
+
 Each test should:
+
 1. Reference the original bug report
 2. Reproduce the bug scenario
 3. Verify the fix works
 4. Include edge cases
 
 ## Example
+
 See issue-123-session-timeout.test.js for a complete example.
 ```
 
 **Test Template**:
+
 ```javascript
 /**
  * Regression test for Issue #123
@@ -171,7 +179,7 @@ describe('Issue #123: Session Timeout', () => {
   it('should not expire session prematurely', async () => {
     // Test implementation
   });
-  
+
   it('should expire session after correct duration', async () => {
     // Test implementation
   });
@@ -183,6 +191,7 @@ describe('Issue #123: Session Timeout', () => {
 **Files**: `.husky/pre-commit`, `.husky/pre-push`, `.husky/commit-msg`
 
 **pre-commit**:
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -201,6 +210,7 @@ echo "✅ Pre-commit checks passed!"
 ```
 
 **pre-push**:
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -223,6 +233,7 @@ echo "✅ Ready to push!"
 ```
 
 **commit-msg**:
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -232,14 +243,12 @@ npx --no -- commitlint --edit ${1}
 ```
 
 **commitlint.config.js**:
+
 ```javascript
 export default {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    'type-enum': [2, 'always', [
-      'feat', 'fix', 'docs', 'style', 
-      'refactor', 'test', 'chore'
-    ]],
+    'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore']],
     'subject-case': [2, 'never', ['upper-case']]
   }
 };
@@ -273,6 +282,7 @@ export default {
    - Secret scanning
 
 **PostgreSQL Service Configuration**:
+
 ```yaml
 services:
   postgres:
@@ -290,6 +300,7 @@ services:
 ```
 
 **Coverage Upload**:
+
 ```yaml
 - name: Upload coverage to Codecov
   uses: codecov/codecov-action@v3
@@ -313,6 +324,7 @@ services:
 **Purpose**: Verify all API endpoints have required test coverage
 
 **Algorithm**:
+
 1. Scan `src/routes/api/` for all `+server.js` files
 2. Extract HTTP methods (GET, POST, PUT, DELETE)
 3. Search test files for corresponding tests
@@ -325,6 +337,7 @@ services:
 5. Generate coverage report
 
 **Output**:
+
 ```
 API Endpoint Coverage Audit
 ============================
@@ -336,10 +349,10 @@ API Endpoint Coverage Audit
 ⚠️  /api/courses
    ✅ GET - All scenarios covered
    ❌ POST - Missing: 403 (authorization)
-   
+
 ❌ /api/admin/users
    ❌ GET - Missing: 400 (validation), 500 (error)
-   
+
 Summary: 15/20 endpoints fully covered (75%)
 ```
 
@@ -348,6 +361,7 @@ Summary: 15/20 endpoints fully covered (75%)
 **File**: `tests/README.md`
 
 **Sections**:
+
 - Test structure overview
 - Running tests (all commands)
 - Writing new tests (patterns and examples)
@@ -359,6 +373,7 @@ Summary: 15/20 endpoints fully covered (75%)
 **File**: `tests/smoke/README.md`
 
 **Content**:
+
 - Purpose of smoke tests
 - When to run them
 - How to add new smoke tests
@@ -394,11 +409,11 @@ interface EndpointCoverage {
   path: string;
   method: string;
   scenarios: {
-    success: boolean;      // 200/201
-    auth: boolean;         // 401
+    success: boolean; // 200/201
+    auth: boolean; // 401
     authorization: boolean; // 403
-    validation: boolean;   // 400
-    error: boolean;        // 500
+    validation: boolean; // 400
+    error: boolean; // 500
   };
   testFiles: string[];
 }
@@ -411,6 +426,7 @@ interface EndpointCoverage {
 **Scenario**: Coverage falls below threshold
 
 **Handling**:
+
 1. Vitest fails with clear error message
 2. Shows which files have low coverage
 3. Displays current vs. required percentages
@@ -424,12 +440,14 @@ interface EndpointCoverage {
 **Scenario**: Lint, format, or test failures
 
 **Handling**:
+
 1. Display specific errors
 2. Suggest fix commands
 3. Block commit
 4. Preserve staged changes
 
 **Recovery Options**:
+
 - Fix issues and retry
 - Use `--no-verify` flag (discouraged)
 
@@ -438,6 +456,7 @@ interface EndpointCoverage {
 **Scenario**: Tests fail in CI
 
 **Handling**:
+
 1. Mark PR as failing
 2. Display test results in PR
 3. Link to detailed logs
@@ -450,6 +469,7 @@ interface EndpointCoverage {
 **Scenario**: Cannot connect to test database
 
 **Handling**:
+
 1. Check DATABASE_URL environment variable
 2. Verify PostgreSQL service is running
 3. Retry with exponential backoff
@@ -460,30 +480,35 @@ interface EndpointCoverage {
 ## Testing Strategy
 
 ### Unit Tests
+
 - **Target**: 80%+ coverage
 - **Scope**: Individual functions, services, utilities
 - **Mocking**: External dependencies mocked
 - **Speed**: < 30 seconds total
 
 ### Integration Tests
+
 - **Target**: All API endpoints
 - **Scope**: API routes with database
 - **Mocking**: Minimal (real database, mock external APIs)
 - **Speed**: < 60 seconds total
 
 ### E2E Tests
+
 - **Target**: Critical user flows
 - **Scope**: Full application workflows
 - **Mocking**: None (real environment)
 - **Speed**: < 30 seconds total
 
 ### Smoke Tests
+
 - **Target**: Deployment verification
 - **Scope**: Basic functionality checks
 - **Mocking**: None
 - **Speed**: < 30 seconds total
 
 ### Regression Tests
+
 - **Target**: All fixed bugs
 - **Scope**: Bug reproduction scenarios
 - **Mocking**: As needed
@@ -494,13 +519,16 @@ interface EndpointCoverage {
 ### Test Execution Time
 
 **Current State**:
+
 - Unknown (needs measurement)
 
 **Target State**:
+
 - Unit tests: < 30 seconds
 - All tests: < 2 minutes
 
 **Optimization Strategies**:
+
 1. Run tests in parallel (Vitest default)
 2. Use test.concurrent for independent tests
 3. Optimize database setup/teardown
@@ -510,6 +538,7 @@ interface EndpointCoverage {
 ### CI/CD Pipeline Optimization
 
 **Strategies**:
+
 1. Cache node_modules
 2. Cache Prisma client generation
 3. Run quality checks in parallel
@@ -519,6 +548,7 @@ interface EndpointCoverage {
 ### Coverage Report Generation
 
 **Optimization**:
+
 - Generate HTML reports only in CI (not locally)
 - Use json-summary for quick threshold checks
 - Upload to Codecov asynchronously
@@ -526,11 +556,13 @@ interface EndpointCoverage {
 ## Migration Plan
 
 ### Phase 1: Configuration (Day 1)
+
 1. Update vitest.config.js with thresholds
 2. Measure current coverage
 3. Adjust thresholds if needed (temporary lower values)
 
 ### Phase 2: Smoke Tests (Day 1-2)
+
 1. Create tests/smoke/ directory
 2. Implement health-check.test.js
 3. Implement api-availability.test.js
@@ -538,11 +570,13 @@ interface EndpointCoverage {
 5. Add npm script
 
 ### Phase 3: Regression Structure (Day 2)
+
 1. Create tests/unit/bugfixes/ directory
 2. Write README with guidelines
 3. Migrate existing bug-related tests
 
 ### Phase 4: Pre-commit Hooks (Day 2-3)
+
 1. Update .husky/pre-commit
 2. Create .husky/pre-push
 3. Create .husky/commit-msg
@@ -550,24 +584,28 @@ interface EndpointCoverage {
 5. Test hooks locally
 
 ### Phase 5: CI/CD Pipeline (Day 3-4)
+
 1. Create .github/workflows/ci.yml
 2. Configure PostgreSQL service
 3. Add coverage upload
 4. Test pipeline on feature branch
 
 ### Phase 6: API Coverage Audit (Day 4-5)
+
 1. Create audit script
 2. Run audit
 3. Identify gaps
 4. Create issues for missing tests
 
 ### Phase 7: Documentation (Day 5)
+
 1. Write tests/README.md
 2. Write tests/smoke/README.md
 3. Update main README.md
 4. Create examples
 
 ### Phase 8: Gradual Coverage Improvement (Ongoing)
+
 1. Add tests for uncovered code
 2. Increase thresholds incrementally
 3. Target 80% coverage within 2 weeks

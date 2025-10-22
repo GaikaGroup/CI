@@ -5,6 +5,9 @@ import {
   SessionNotFoundError,
   SessionValidationError
 } from '$lib/modules/session/services/SessionService.js';
+import { SessionFilterService } from '$lib/modules/session/services/SessionFilterService.js';
+import { SessionEnhancementService } from '$lib/modules/session/services/SessionEnhancementService.js';
+import { db } from '$lib/database/index.js';
 
 /**
  * Get user sessions with pagination and filtering
@@ -12,11 +15,11 @@ import {
  * Query parameters:
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 20, max: 100)
- * - sortBy: Sort field (default: 'updatedAt')
- * - sortOrder: Sort order (default: 'desc')
+ * - search: Search query for title, preview, and messages
+ * - dateRange: Date range filter (hour, day, week, month, year, all)
+ * - commands: Comma-separated list of command types
  * - mode: Filter by mode ('fun' or 'learn')
  * - language: Filter by language
- * - search: Search query for title and preview
  */
 export async function GET({ url, locals }) {
   try {
@@ -31,60 +34,79 @@ export async function GET({ url, locals }) {
     // Parse query parameters
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 100);
-    const sortBy = searchParams.get('sortBy') || 'updatedAt';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const search = searchParams.get('search') || '';
+    const dateRange = searchParams.get('dateRange') || 'all';
+    const commandsParam = searchParams.get('commands') || '';
     const mode = searchParams.get('mode') || null;
     const language = searchParams.get('language') || null;
-    const search = searchParams.get('search') || null;
-    const dateFrom = searchParams.get('dateFrom') || null;
-    const dateTo = searchParams.get('dateTo') || null;
 
-    // Validate sort parameters
-    const validSortFields = ['updatedAt', 'createdAt', 'title', 'messageCount'];
-    const validSortOrders = ['asc', 'desc'];
+    // Parse command types from comma-separated string
+    const commandTypes = commandsParam
+      ? commandsParam
+          .split(',')
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
+      : [];
 
-    if (!validSortFields.includes(sortBy)) {
-      return json({ error: 'Invalid sortBy parameter' }, { status: 400 });
-    }
-
-    if (!validSortOrders.includes(sortOrder)) {
-      return json({ error: 'Invalid sortOrder parameter' }, { status: 400 });
-    }
-
-    // Validate mode parameter
-    if (mode && !['fun', 'learn'].includes(mode)) {
-      return json({ error: 'Invalid mode parameter' }, { status: 400 });
-    }
-
-    // Validate date parameters
-    if (dateFrom && isNaN(Date.parse(dateFrom))) {
-      return json({ error: 'Invalid dateFrom parameter' }, { status: 400 });
-    }
-    if (dateTo && isNaN(Date.parse(dateTo))) {
-      return json({ error: 'Invalid dateTo parameter' }, { status: 400 });
-    }
-
-    const options = {
-      page,
-      limit,
-      sortBy,
-      sortOrder,
+    // Build filters object
+    const filters = {
+      search,
+      dateRange,
+      commandTypes,
       mode,
-      language,
-      dateFrom,
-      dateTo
+      language
     };
 
-    let result;
-
-    // Use search if query provided, otherwise get regular sessions
-    if (search && search.trim().length > 0) {
-      result = await SessionService.searchSessions(userId, search.trim(), options);
-    } else {
-      result = await SessionService.getUserSessions(userId, options);
+    // Validate and sanitize filters
+    const validation = SessionFilterService.validateFilters(filters);
+    if (!validation.valid) {
+      return json(
+        {
+          error: 'Invalid filter parameters',
+          details: validation.errors
+        },
+        { status: 400 }
+      );
     }
 
-    return json(result);
+    const sanitizedFilters = SessionFilterService.sanitizeFilters(filters);
+
+    // Build Prisma query
+    const where = SessionFilterService.buildQuery(sanitizedFilters, userId);
+    const include = SessionFilterService.buildIncludeClause(true);
+    const orderBy = SessionFilterService.buildOrderByClause('updatedAt', 'desc');
+    const pagination = SessionFilterService.calculatePagination(page, limit);
+
+    // Execute query
+    const [sessions, total] = await Promise.all([
+      db.session.findMany({
+        where,
+        include,
+        orderBy,
+        skip: pagination.skip,
+        take: pagination.take
+      }),
+      db.session.count({ where })
+    ]);
+
+    // Enhance sessions with computed fields
+    const enhancedSessions = SessionEnhancementService.enhanceSessions(sessions);
+
+    // Calculate pagination metadata
+    const pages = Math.ceil(total / limit);
+    const hasMore = page < pages;
+
+    return json({
+      success: true,
+      sessions: enhancedSessions,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages,
+        hasMore
+      }
+    });
   } catch (error) {
     console.error('Error in GET /api/sessions:', error);
 

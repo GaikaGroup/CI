@@ -69,14 +69,15 @@ export class TesseractOCR extends IOCREngine {
    */
   async _ocrCanvas(canvas) {
     const worker = await this.createOptimizedWorker();
-    
+
     // Optimized for measurement instruments with numbers
     await worker.setParameters({
       tessedit_pageseg_mode: '11', // Sparse text - better for scattered numbers
-      tessedit_char_whitelist: '0123456789.,°CАампервтсекундлинйкмчабвгдежзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZ ',
+      tessedit_char_whitelist:
+        '0123456789.,°CАампервтсекундлинйкмчабвгдежзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZ ',
       classify_bln_numeric_mode: '1' // Better number recognition
     });
-    
+
     const result = await worker.recognize(canvas);
     await worker.terminate();
     return {

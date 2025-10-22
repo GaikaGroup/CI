@@ -24,7 +24,7 @@ async function seedAdminUser() {
 
     // Create admin user
     const hashedPassword = await bcrypt.hash('admin123', 12);
-    
+
     const adminUser = await db.user.create({
       data: {
         firstName: 'Admin',
@@ -39,7 +39,6 @@ async function seedAdminUser() {
     console.log('📧 Email: admin@example.com');
     console.log('🔑 Password: admin123');
     console.log('👤 User ID:', adminUser.id);
-
   } catch (error) {
     console.error('❌ Error seeding admin user:', error);
     process.exit(1);

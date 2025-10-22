@@ -57,7 +57,6 @@ ollama run llava:7b "What do you see in this image?" --image /path/to/image.png
 
 1. **Есть ли изображения в запросе?**
    - Проверяет наличие `image_url` в сообщениях
-   
 2. **Выбирает модель:**
    - Если изображения есть → `llava:7b`
    - Если изображений нет → `qwen2.5:7b`
@@ -70,15 +69,17 @@ ollama run llava:7b "What do you see in this image?" --image /path/to/image.png
 ### Изменения в коде:
 
 **src/lib/config/llm.js:**
+
 ```javascript
 export const OLLAMA_CONFIG = {
   // ...
-  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b',
+  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b'
   // ...
 };
 ```
 
 **src/lib/modules/llm/providers/OllamaProvider.js:**
+
 ```javascript
 // Автоматически выбирает vision модель при наличии изображений
 const needsVision = this.hasImages(messages);
@@ -98,16 +99,19 @@ VITE_OLLAMA_VISION_MODEL=llava:7b
 ## Требования к ресурсам
 
 ### LLaVA 7B:
+
 - **RAM:** ~8 GB
 - **VRAM:** ~4 GB (если используется GPU)
 - **Диск:** ~4.7 GB
 
 ### LLaVA 13B:
+
 - **RAM:** ~16 GB
 - **VRAM:** ~8 GB (если используется GPU)
 - **Диск:** ~7.4 GB
 
 ### Рекомендации:
+
 - Для сервера с 8 GB RAM → `llava:7b`
 - Для сервера с 16+ GB RAM → `llava:13b`
 - Для быстрого тестирования → `llava` (самая легкая)
@@ -123,9 +127,7 @@ VITE_OLLAMA_VISION_MODEL=llava:7b
     {
       "role": "user",
       "content": "Реши задачу\n\nExercise (from photo):\n20. Определите...",
-      "images": [
-        "data:image/png;base64,iVBORw0KGgo..."
-      ]
+      "images": ["data:image/png;base64,iVBORw0KGgo..."]
     }
   ],
   "stream": false
@@ -149,6 +151,7 @@ npm run dev
 3. Проверьте логи сервера
 
 **Ожидаемые логи:**
+
 ```
 [Ollama] resolved model: llava:7b
 Response generated using provider: ollama, model: llava:7b
@@ -157,6 +160,7 @@ Response generated using provider: ollama, model: llava:7b
 ### 3. Проверьте ответ
 
 **Ожидаемый результат:**
+
 ```
 Для определения цены деления каждого прибора посмотрим на отметки:
 
@@ -236,16 +240,20 @@ nvidia-smi
 Если LLaVA не подходит, можно попробовать:
 
 ### BakLLaVA:
+
 ```bash
 ollama pull bakllava
 ```
+
 - Основана на Mistral
 - Хорошее качество vision
 
 ### LLaVA-Phi3:
+
 ```bash
 ollama pull llava-phi3
 ```
+
 - Более компактная
 - Быстрее работает
 
@@ -256,9 +264,10 @@ ollama pull llava-phi3
 ✅ **Бесплатное распознавание изображений**  
 ✅ **Локальная обработка (без отправки в облако)**  
 ✅ **Автоматический выбор модели**  
-✅ **Fallback к OpenAI при необходимости**  
+✅ **Fallback к OpenAI при необходимости**
 
 Система будет использовать:
+
 - `qwen2.5:7b` для текстовых вопросов (быстро)
 - `llava:7b` для вопросов с изображениями (vision)
 - `gpt-4-turbo` как fallback (если локальные модели не работают)

@@ -1,6 +1,6 @@
 /**
  * Course Navigation UX Fix Integration Test
- * 
+ *
  * Tests that the catalogue navigation functions correctly redirect to learn pages
  */
 
@@ -33,7 +33,7 @@ describe('Course Navigation UX Fix', () => {
   it('handleLearnCourse should navigate to learn page', async () => {
     // Import the catalogue page component logic
     const { handleLearnCourse } = await import('../../../src/routes/catalogue/+page.svelte');
-    
+
     const mockCourse = {
       id: 'course-1',
       name: 'Introduction to Mathematics',
@@ -55,7 +55,7 @@ describe('Course Navigation UX Fix', () => {
   it('should navigate to correct learn URL format', () => {
     const courseId = 'course-1';
     const expectedUrl = `/learn/${courseId}`;
-    
+
     // Test that our URL format is correct
     expect(expectedUrl).toBe('/learn/course-1');
     expect(expectedUrl).toMatch(/^\/learn\/[^/]+$/);
@@ -82,7 +82,7 @@ describe('Course Navigation UX Fix', () => {
     };
 
     const invalidCourse = {
-      name: 'Test Course',
+      name: 'Test Course'
       // Missing id
     };
 

@@ -5,11 +5,13 @@
 Была обнаружена несогласованность в пользовательском опыте при навигации к курсам:
 
 ### Вариант 1 (Правильный)
+
 - Зарегистрированный пользователь Admin переходит напрямую на страницу курса
 - Открывается `http://localhost:3001/learn/course-1`
 - Пользователь видит интерфейс обучения
 
 ### Вариант 2 (Неправильный - исправлен)
+
 - Пользователь заходит в каталог `http://localhost:3001/catalogue`
 - Нажимает кнопку "Learn" на курсе
 - Ранее: оставался в каталоге с параметрами URL
@@ -20,6 +22,7 @@
 ### Изменения в `src/routes/catalogue/+page.svelte`
 
 1. **handleLearnCourse**: Теперь выполняет прямой переход на страницу обучения
+
 ```javascript
 const handleLearnCourse = (event) => {
   const { course } = event.detail;
@@ -33,6 +36,7 @@ const handleLearnCourse = (event) => {
 ```
 
 2. **handleJoinCourse**: После успешной записи на курс переходит на страницу обучения
+
 ```javascript
 if (result.success) {
   console.log('Successfully enrolled, navigating to learn page');
@@ -42,6 +46,7 @@ if (result.success) {
 ```
 
 3. **handleCourseSelect**: Также переходит на страницу обучения
+
 ```javascript
 const handleCourseSelect = (event) => {
   const { course, mode } = event.detail;
@@ -63,6 +68,7 @@ const handleCourseSelect = (event) => {
 ### Тестирование
 
 Добавлены тесты для проверки:
+
 - Корректности URL навигации
 - Консистентности поведения разных путей навигации
 - Валидации параметров курса
@@ -76,6 +82,7 @@ const handleCourseSelect = (event) => {
 ## Результат
 
 Теперь оба варианта навигации приводят к одинаковому результату:
+
 - Прямой переход: `http://localhost:3001/learn/course-1`
 - Через каталог: `http://localhost:3001/learn/course-1`
 

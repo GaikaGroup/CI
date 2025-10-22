@@ -7,7 +7,7 @@ export async function POST({ locals }) {
   console.log('='.repeat(80));
   console.log('🔥 CLEAR CACHE REQUEST RECEIVED');
   console.log('='.repeat(80));
-  
+
   // Check admin access
   if (!locals.user || !isAdmin(locals.user)) {
     console.log('[API /admin/stats/clear-cache] ❌ Unauthorized access attempt');
@@ -22,7 +22,7 @@ export async function POST({ locals }) {
     statsService.clearCache();
     console.log('[API /admin/stats/clear-cache] ✅ Cache cleared successfully');
     console.log('='.repeat(80));
-    
+
     return json({ success: true, message: 'Stats cache cleared' });
   } catch (error) {
     console.error('[API /admin/stats/clear-cache] ❌ Error clearing stats cache:', error);

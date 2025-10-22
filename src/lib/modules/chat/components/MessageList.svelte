@@ -8,10 +8,14 @@
   import { LLM_FEATURES } from '$lib/config/llm';
   import TypewriterMessage from './TypewriterMessage.svelte';
   import MathRenderer from '$lib/components/MathRenderer.svelte';
+  import DislikeButton from './DislikeButton.svelte';
+  import FeedbackDialog from './FeedbackDialog.svelte';
 
   // No props needed anymore, using stores instead
 
   let messagesContainer;
+  let feedbackDialogOpen = false;
+  let selectedMessageId = null;
 
   // Scroll to bottom when messages change
   afterUpdate(() => {
@@ -137,6 +141,44 @@
 
     updateMessage(message.id, { animate: false });
   }
+
+  function handleDislike(event) {
+    selectedMessageId = event.detail.messageId;
+    feedbackDialogOpen = true;
+  }
+
+  function handleFeedbackSubmitted() {
+    // Refresh the message to show feedback indicator
+    if (selectedMessageId) {
+      // Find the message and mark it as having feedback
+      const messageIndex = $messages.findIndex((m) => m.id === selectedMessageId);
+      if (messageIndex !== -1) {
+        const message = $messages[messageIndex];
+        updateMessage(message.id, {
+          metadata: {
+            ...message.metadata,
+            feedback: { submitted: true }
+          }
+        });
+      }
+    }
+    feedbackDialogOpen = false;
+    selectedMessageId = null;
+  }
+
+  function hasFeedback(message) {
+    return message.metadata?.feedback != null;
+  }
+
+  function hasValidDatabaseId(message) {
+    // Check if message has a database ID (cuid format: starts with 'c' and is 25 chars)
+    return (
+      message.id &&
+      typeof message.id === 'string' &&
+      message.id.length > 20 &&
+      message.id.startsWith('c')
+    );
+  }
 </script>
 
 <div class="flex-1 overflow-y-auto px-6 py-4 min-h-0" bind:this={messagesContainer}>
@@ -177,18 +219,22 @@
             <div class="mb-3 flex flex-col gap-2">
               {#each message.images as img, index}
                 <div class="image-preview-container relative">
-                  <img 
-                    src={typeof img === 'string' ? img : img.url} 
-                    alt="Uploaded image {index + 1}" 
+                  <img
+                    src={typeof img === 'string' ? img : img.url}
+                    alt="Uploaded image {index + 1}"
                     class="message-image rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                     on:click={() => window.open(typeof img === 'string' ? img : img.url, '_blank')}
-                    on:keydown={(e) => e.key === 'Enter' && window.open(typeof img === 'string' ? img : img.url, '_blank')}
+                    on:keydown={(e) =>
+                      e.key === 'Enter' &&
+                      window.open(typeof img === 'string' ? img : img.url, '_blank')}
                     tabindex="0"
                     role="button"
                     aria-label="Open image {index + 1} in new tab"
                   />
                   {#if typeof img === 'object' && img.ocrData}
-                    <div class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg">
+                    <div
+                      class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg"
+                    >
                       <ScanLine class="w-3 h-3" />
                       <span>OCR: {img.ocrData.count}</span>
                     </div>
@@ -222,15 +268,12 @@
                   : 'text-stone-500'}"
           >
             <span class="opacity-75">{message.timestamp}</span>
-
-            {#if (message.type === MESSAGE_TYPES.TUTOR || message.type === 'tutor' || message.type === 'assistant') && message.provider && shouldShowProviderInfo()}
-              <div class="flex items-center ml-2 opacity-75">
-                <Server class="w-3 h-3 mr-1" />
-                <span>{getProviderDisplayName(message.provider.name)}</span>
-                {#if message.provider.model}
-                  <span class="ml-1">({message.provider.model})</span>
-                {/if}
-              </div>
+            {#if (message.type === MESSAGE_TYPES.TUTOR || message.type === 'assistant') && hasValidDatabaseId(message) && !message.waiting}
+              <DislikeButton
+                messageId={message.id}
+                hasFeedback={hasFeedback(message)}
+                on:dislike={handleDislike}
+              />
             {/if}
           </div>
         </div>
@@ -238,6 +281,12 @@
     {/each}
   {/if}
 </div>
+
+<FeedbackDialog
+  messageId={selectedMessageId}
+  bind:open={feedbackDialogOpen}
+  on:submitted={handleFeedbackSubmitted}
+/>
 
 <style>
   /* Стили для превью изображений */

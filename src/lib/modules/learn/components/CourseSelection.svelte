@@ -136,12 +136,12 @@
 
   const canUserEditCourse = (course) => {
     const canEdit = $user && course.creatorId === $user.id;
-    console.log('Can edit course?', { 
-      courseName: course.name, 
+    console.log('Can edit course?', {
+      courseName: course.name,
       courseId: course.id,
-      creatorId: course.creatorId, 
-      userId: $user?.id, 
-      canEdit 
+      creatorId: course.creatorId,
+      userId: $user?.id,
+      canEdit
     });
     return canEdit;
   };
@@ -408,7 +408,12 @@
               >
                 <span class="flex items-center justify-center gap-2">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M14 5l7 7m0 0l-7 7m7-7H3"
+                    />
                   </svg>
                   Continue Learning
                 </span>
@@ -422,7 +427,12 @@
               >
                 <span class="flex items-center justify-center gap-2">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
                   </svg>
                   {joinActionLabel}
                 </span>

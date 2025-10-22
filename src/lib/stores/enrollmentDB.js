@@ -1,6 +1,6 @@
 /**
  * Database-backed Enrollment Store
- * 
+ *
  * This store replaces the localStorage-based enrollment store with database operations
  */
 
@@ -34,15 +34,15 @@ function createEnrollmentStore() {
     async initialize(userId) {
       if (!browser || !userId) return;
 
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const result = await this.loadEnrollments(userId);
-        
+
         if (result.success) {
           const stats = this.calculateStats(result.enrollments);
-          
-          update(state => ({
+
+          update((state) => ({
             ...state,
             enrollments: result.enrollments,
             stats,
@@ -50,7 +50,7 @@ function createEnrollmentStore() {
             initialized: true
           }));
         } else {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: result.error,
             loading: false,
@@ -59,7 +59,7 @@ function createEnrollmentStore() {
         }
       } catch (error) {
         console.error('Error initializing enrollment store:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false,
@@ -74,7 +74,7 @@ function createEnrollmentStore() {
     async loadEnrollments(userId, options = {}) {
       try {
         const params = new URLSearchParams();
-        
+
         if (userId && userId !== 'current') {
           params.append('userId', userId);
         }
@@ -107,7 +107,7 @@ function createEnrollmentStore() {
      * Enroll in a course
      */
     async enrollInCourse(courseId) {
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const response = await fetch('/api/enrollments', {
@@ -121,7 +121,7 @@ function createEnrollmentStore() {
         const data = await response.json();
 
         if (!response.ok) {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: data.message || 'Failed to enroll in course',
             loading: false
@@ -130,10 +130,10 @@ function createEnrollmentStore() {
         }
 
         // Add enrollment to local state
-        update(state => {
+        update((state) => {
           const newEnrollments = [data.enrollment, ...state.enrollments];
           const stats = this.calculateStats(newEnrollments);
-          
+
           return {
             ...state,
             enrollments: newEnrollments,
@@ -145,7 +145,7 @@ function createEnrollmentStore() {
         return { success: true, enrollment: data.enrollment };
       } catch (error) {
         console.error('Error enrolling in course:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false
@@ -158,7 +158,7 @@ function createEnrollmentStore() {
      * Update enrollment status
      */
     async updateEnrollmentStatus(enrollmentId, status) {
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const response = await fetch(`/api/enrollments/${enrollmentId}`, {
@@ -172,7 +172,7 @@ function createEnrollmentStore() {
         const data = await response.json();
 
         if (!response.ok) {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: data.message || 'Failed to update enrollment',
             loading: false
@@ -181,12 +181,12 @@ function createEnrollmentStore() {
         }
 
         // Update enrollment in local state
-        update(state => {
-          const newEnrollments = state.enrollments.map(enrollment =>
+        update((state) => {
+          const newEnrollments = state.enrollments.map((enrollment) =>
             enrollment.id === enrollmentId ? data.enrollment : enrollment
           );
           const stats = this.calculateStats(newEnrollments);
-          
+
           return {
             ...state,
             enrollments: newEnrollments,
@@ -198,7 +198,7 @@ function createEnrollmentStore() {
         return { success: true, enrollment: data.enrollment };
       } catch (error) {
         console.error('Error updating enrollment:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false
@@ -227,9 +227,9 @@ function createEnrollmentStore() {
         }
 
         // Update enrollment in local state
-        update(state => ({
+        update((state) => ({
           ...state,
-          enrollments: state.enrollments.map(enrollment =>
+          enrollments: state.enrollments.map((enrollment) =>
             enrollment.id === enrollmentId ? data.enrollment : enrollment
           )
         }));
@@ -260,9 +260,9 @@ function createEnrollmentStore() {
      */
     isEnrolled(courseId) {
       let enrolled = false;
-      const unsubscribe = subscribe(state => {
+      const unsubscribe = subscribe((state) => {
         enrolled = state.enrollments.some(
-          enrollment => enrollment.courseId === courseId && enrollment.status === 'active'
+          (enrollment) => enrollment.courseId === courseId && enrollment.status === 'active'
         );
       });
       unsubscribe();
@@ -274,10 +274,8 @@ function createEnrollmentStore() {
      */
     getEnrollmentForCourse(courseId) {
       let enrollment = null;
-      const unsubscribe = subscribe(state => {
-        enrollment = state.enrollments.find(
-          enrollment => enrollment.courseId === courseId
-        );
+      const unsubscribe = subscribe((state) => {
+        enrollment = state.enrollments.find((enrollment) => enrollment.courseId === courseId);
       });
       unsubscribe();
       return enrollment;
@@ -287,16 +285,19 @@ function createEnrollmentStore() {
      * Calculate enrollment statistics
      */
     calculateStats(enrollments) {
-      return enrollments.reduce((stats, enrollment) => {
-        stats.total++;
-        stats[enrollment.status] = (stats[enrollment.status] || 0) + 1;
-        return stats;
-      }, {
-        total: 0,
-        active: 0,
-        completed: 0,
-        dropped: 0
-      });
+      return enrollments.reduce(
+        (stats, enrollment) => {
+          stats.total++;
+          stats[enrollment.status] = (stats[enrollment.status] || 0) + 1;
+          return stats;
+        },
+        {
+          total: 0,
+          active: 0,
+          completed: 0,
+          dropped: 0
+        }
+      );
     },
 
     /**
@@ -310,7 +311,7 @@ function createEnrollmentStore() {
      * Clear error state
      */
     clearError() {
-      update(state => ({ ...state, error: null }));
+      update((state) => ({ ...state, error: null }));
     },
 
     /**
@@ -326,16 +327,16 @@ function createEnrollmentStore() {
 export const enrollmentStore = createEnrollmentStore();
 
 // Derived stores
-export const isEnrollmentLoading = derived(enrollmentStore, $enrollment => $enrollment.loading);
-export const enrollmentError = derived(enrollmentStore, $enrollment => $enrollment.error);
-export const enrollmentStats = derived(enrollmentStore, $enrollment => $enrollment.stats);
+export const isEnrollmentLoading = derived(enrollmentStore, ($enrollment) => $enrollment.loading);
+export const enrollmentError = derived(enrollmentStore, ($enrollment) => $enrollment.error);
+export const enrollmentStats = derived(enrollmentStore, ($enrollment) => $enrollment.stats);
 
-export const activeEnrollments = derived(enrollmentStore, $enrollment => 
-  $enrollment.enrollments.filter(e => e.status === 'active')
+export const activeEnrollments = derived(enrollmentStore, ($enrollment) =>
+  $enrollment.enrollments.filter((e) => e.status === 'active')
 );
 
-export const completedEnrollments = derived(enrollmentStore, $enrollment => 
-  $enrollment.enrollments.filter(e => e.status === 'completed')
+export const completedEnrollments = derived(enrollmentStore, ($enrollment) =>
+  $enrollment.enrollments.filter((e) => e.status === 'completed')
 );
 
 // Auto-initialize when user changes

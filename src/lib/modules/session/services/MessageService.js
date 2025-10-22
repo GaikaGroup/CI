@@ -174,6 +174,33 @@ function validateMetadata(metadata) {
  */
 export class MessageService {
   /**
+   * Add a message with LLM model information
+   * @param {string} sessionId - Session ID
+   * @param {string} type - Message type ('user' or 'assistant')
+   * @param {string} content - Message content
+   * @param {Object} llmMetadata - LLM model metadata from ProviderManager
+   * @param {Object} existingMetadata - Other metadata (audio, images, etc.)
+   * @param {string} userId - User ID (for authorization)
+   * @returns {Promise<Object>} Created message object
+   */
+  static async addMessageWithModelInfo(
+    sessionId,
+    type,
+    content,
+    llmMetadata = null,
+    existingMetadata = null,
+    userId = null
+  ) {
+    // Merge metadata - only add llm metadata for assistant messages
+    const metadata = {
+      ...existingMetadata,
+      ...(llmMetadata && type === 'assistant' ? { llm: llmMetadata } : {})
+    };
+
+    return this.addMessage(sessionId, type, content, metadata, userId);
+  }
+
+  /**
    * Add a new message to a session
    * @param {string} sessionId - Session ID
    * @param {string} type - Message type ('user' or 'assistant')
@@ -228,11 +255,13 @@ export class MessageService {
               // Import LanguageDetector dynamically to avoid circular dependencies
               const { languageDetector } = await import('../../chat/LanguageDetector.js');
               const detectionResult = languageDetector.detectLanguageFromText(content.trim());
-              
+
               // Only update session language if detection confidence is high enough
               if (detectionResult && detectionResult.confidence > 0.6) {
                 sessionUpdateData.language = detectionResult.language;
-                console.log(`Updated session ${sessionId} language to: ${detectionResult.language} (confidence: ${detectionResult.confidence})`);
+                console.log(
+                  `Updated session ${sessionId} language to: ${detectionResult.language} (confidence: ${detectionResult.confidence})`
+                );
               }
             } catch (error) {
               console.warn('Failed to detect language for session update:', error);

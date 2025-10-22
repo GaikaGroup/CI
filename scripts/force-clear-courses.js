@@ -42,9 +42,9 @@ window.location.reload(true);
 `;
 
 console.log('📋 Copy and paste this code into your browser console:');
-console.log('=' .repeat(60));
+console.log('='.repeat(60));
 console.log(browserScript);
-console.log('=' .repeat(60));
+console.log('='.repeat(60));
 console.log('');
 console.log('Or run this in your browser:');
 console.log('1. Open Developer Tools (F12)');

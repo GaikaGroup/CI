@@ -20,7 +20,7 @@
 // Check conversation history to determine session language
 let sessionLanguageFromHistory = null;
 if (sessionContext?.history && sessionContext.history.length > 0) {
-  const assistantMessages = sessionContext.history.filter(msg => msg.role === 'assistant');
+  const assistantMessages = sessionContext.history.filter((msg) => msg.role === 'assistant');
   if (assistantMessages.length > 0) {
     const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
     const historyDetection = languageDetector.detectLanguageFromText(lastAssistantMessage.content);
@@ -32,7 +32,9 @@ if (sessionContext?.history && sessionContext.history.length > 0) {
 
 // If session has established language, use it instead of current message detection
 if (sessionLanguageFromHistory && sessionLanguageFromHistory !== detectedLanguage) {
-  console.log(`Overriding detected language ${detectedLanguage} with session language ${sessionLanguageFromHistory}`);
+  console.log(
+    `Overriding detected language ${detectedLanguage} with session language ${sessionLanguageFromHistory}`
+  );
   detectedLanguage = sessionLanguageFromHistory;
   languageConfidence = 0.95; // High confidence for session language
 }
@@ -106,7 +108,7 @@ YOU MUST RESPOND EXCLUSIVELY IN ENGLISH!
    - Make sure EVERYTHING is in English
    - If there's even one word not in English - REDO IT
 
-═══════════════════════════════════════════════════════════`
+═══════════════════════════════════════════════════════════`;
 ```
 
 **Эффект:** Детальные правила и чек-лист помогают модели понять важность требования.

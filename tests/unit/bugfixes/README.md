@@ -5,6 +5,7 @@ This directory contains tests for previously fixed bugs to prevent regressions. 
 ## Purpose
 
 Regression tests ensure that:
+
 - Fixed bugs don't reappear in future code changes
 - Bug fixes are properly documented with test cases
 - Edge cases discovered during bug fixes are covered
@@ -13,21 +14,25 @@ Regression tests ensure that:
 ## Naming Convention
 
 ### For GitHub Issues
+
 ```
 issue-{number}-{short-description}.test.js
 ```
 
 Examples:
+
 - `issue-123-session-timeout.test.js`
 - `issue-456-enrollment-duplicate.test.js`
 - `issue-789-voice-language-detection.test.js`
 
 ### For Other Bugs
+
 ```
 {descriptive-name}.test.js
 ```
 
 Examples:
+
 - `voice-recognition-language-detection.test.js`
 - `course-enrollment-race-condition.test.js`
 - `chat-message-ordering.test.js`
@@ -48,7 +53,7 @@ Each regression test should include:
 ```javascript
 /**
  * Regression test for Issue #123
- * 
+ *
  * Bug: Users were logged out prematurely due to incorrect token expiration
  * Fix: Corrected token expiration calculation in AuthService
  * Date: 2024-01-15
@@ -65,10 +70,10 @@ describe('Issue #123: Session Timeout Bug', () => {
   it('should not expire session prematurely', async () => {
     // Test that reproduces the original bug scenario
     const session = await AuthService.createSession(userId);
-    
+
     // Wait for a short time (less than expiration)
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // Session should still be valid
     const isValid = await AuthService.validateSession(session.token);
     expect(isValid).toBe(true);
@@ -77,10 +82,10 @@ describe('Issue #123: Session Timeout Bug', () => {
   it('should expire session after correct duration', async () => {
     // Test that session expires at the right time
     const session = await AuthService.createSession(userId, { expiresIn: 2 });
-    
+
     // Wait for expiration
-    await new Promise(resolve => setTimeout(resolve, 2100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2100));
+
     // Session should now be expired
     const isValid = await AuthService.validateSession(session.token);
     expect(isValid).toBe(false);
@@ -96,6 +101,7 @@ describe('Issue #123: Session Timeout Bug', () => {
 ## When to Add Regression Tests
 
 Add a regression test when:
+
 - Fixing a bug reported by users
 - Fixing a bug found during development
 - Fixing a bug found by other tests
@@ -119,6 +125,7 @@ Add a regression test when:
 ## Best Practices
 
 ### DO:
+
 - ✅ Write tests that clearly reproduce the bug
 - ✅ Include detailed comments explaining the bug
 - ✅ Reference the issue number or bug report
@@ -127,6 +134,7 @@ Add a regression test when:
 - ✅ Use descriptive test names
 
 ### DON'T:
+
 - ❌ Skip writing tests for "small" bugs
 - ❌ Write vague or generic tests
 - ❌ Forget to document what bug is being tested
@@ -182,12 +190,12 @@ describe('Issue #345: Enrollment Race Condition', () => {
     const results = await Promise.allSettled(requests);
 
     // Only one should succeed
-    const successful = results.filter(r => r.status === 'fulfilled' && r.value.success);
+    const successful = results.filter((r) => r.status === 'fulfilled' && r.value.success);
     expect(successful).toHaveLength(1);
 
     // Verify only one enrollment exists
     const enrollments = await EnrollmentService.getUserEnrollments(userId);
-    const courseEnrollments = enrollments.filter(e => e.courseId === courseId);
+    const courseEnrollments = enrollments.filter((e) => e.courseId === courseId);
     expect(courseEnrollments).toHaveLength(1);
   });
 });
@@ -252,6 +260,7 @@ npm run test:coverage tests/unit/bugfixes
 ## Questions?
 
 If you're unsure whether to add a regression test, ask yourself:
+
 - Could this bug happen again?
 - Is this an edge case we should always test?
 - Would this test help prevent similar bugs?

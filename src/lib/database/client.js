@@ -1,6 +1,6 @@
 /**
  * Database Client Wrapper
- * 
+ *
  * This module provides a properly configured Prisma client instance
  */
 
@@ -13,7 +13,7 @@ const { PrismaClient } = require('../../generated/prisma/index.js');
 // Create and configure Prisma client instance
 const prisma = new PrismaClient({
   log: ['error', 'warn'],
-  errorFormat: 'pretty',
+  errorFormat: 'pretty'
 });
 
 // Handle graceful shutdown

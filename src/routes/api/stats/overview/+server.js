@@ -11,10 +11,10 @@ export async function GET({ url, locals }) {
     }
 
     const timeRange = url.searchParams.get('range') || '30d';
-    
+
     const statsService = new StatsService();
     const stats = await statsService.getOverviewStats(timeRange);
-    
+
     return json(stats);
   } catch (error) {
     console.error('Error fetching overview stats:', error);

@@ -5,6 +5,7 @@
 This specification defines the requirements for redesigning the course detail page (`/learn/[courseId]`) to provide a more engaging, informative, and visually appealing user experience. The current page has a minimal design focused primarily on the chat interface. The new design will feature a modern landing page layout with comprehensive course information, instructor profiles, learning outcomes, and an enhanced visual hierarchy before users start learning.
 
 The redesign aims to:
+
 - Provide better course overview and context before starting
 - Showcase course instructors (AI agents) with detailed profiles
 - Display learning outcomes and skills clearly

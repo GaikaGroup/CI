@@ -1,6 +1,6 @@
 /**
  * Enrollment Service
- * 
+ *
  * Handles all enrollment-related database operations
  */
 
@@ -227,12 +227,7 @@ export class EnrollmentService {
    */
   static async getUserEnrollments(userId, options = {}) {
     try {
-      const {
-        status = 'all',
-        page = 1,
-        limit = 20,
-        includeProgress = true
-      } = options;
+      const { status = 'all', page = 1, limit = 20, includeProgress = true } = options;
 
       const skip = (page - 1) * limit;
 
@@ -291,11 +286,7 @@ export class EnrollmentService {
    */
   static async getCourseEnrollments(courseId, options = {}) {
     try {
-      const {
-        status = 'all',
-        page = 1,
-        limit = 20
-      } = options;
+      const { status = 'all', page = 1, limit = 20 } = options;
 
       const skip = (page - 1) * limit;
 
@@ -397,14 +388,14 @@ export class EnrollmentService {
 
       let totalProgress = 0;
 
-      enrollments.forEach(enrollment => {
+      enrollments.forEach((enrollment) => {
         stats[enrollment.status]++;
 
         if (enrollment.progress) {
           stats.totalLessons += enrollment.progress.lessonsCompleted || 0;
           stats.totalAssessments += enrollment.progress.assessmentsTaken || 0;
           stats.totalTimeSpent += enrollment.progress.totalTimeSpent || 0;
-          
+
           // Calculate progress percentage (assuming 100% is completion)
           const progress = enrollment.progress.progressPercentage || 0;
           totalProgress += progress;
@@ -487,11 +478,7 @@ export class EnrollmentService {
    */
   static async getEnrollmentAnalytics(options = {}) {
     try {
-      const {
-        startDate,
-        endDate,
-        courseId
-      } = options;
+      const { startDate, endDate, courseId } = options;
 
       const where = {
         ...(startDate && { enrolledAt: { gte: new Date(startDate) } }),
@@ -499,24 +486,20 @@ export class EnrollmentService {
         ...(courseId && { courseId })
       };
 
-      const [
-        totalEnrollments,
-        enrollmentsByStatus,
-        enrollmentsByMonth,
-        topCourses
-      ] = await Promise.all([
-        // Total enrollments
-        prisma.enrollment.count({ where }),
+      const [totalEnrollments, enrollmentsByStatus, enrollmentsByMonth, topCourses] =
+        await Promise.all([
+          // Total enrollments
+          prisma.enrollment.count({ where }),
 
-        // Enrollments by status
-        prisma.enrollment.groupBy({
-          by: ['status'],
-          where,
-          _count: true
-        }),
+          // Enrollments by status
+          prisma.enrollment.groupBy({
+            by: ['status'],
+            where,
+            _count: true
+          }),
 
-        // Enrollments by month
-        prisma.$queryRaw`
+          // Enrollments by month
+          prisma.$queryRaw`
           SELECT 
             DATE_TRUNC('month', enrolled_at) as month,
             COUNT(*) as count
@@ -527,19 +510,19 @@ export class EnrollmentService {
           LIMIT 12
         `,
 
-        // Top courses by enrollment count
-        prisma.enrollment.groupBy({
-          by: ['courseId'],
-          where,
-          _count: true,
-          orderBy: {
-            _count: {
-              courseId: 'desc'
-            }
-          },
-          take: 10
-        })
-      ]);
+          // Top courses by enrollment count
+          prisma.enrollment.groupBy({
+            by: ['courseId'],
+            where,
+            _count: true,
+            orderBy: {
+              _count: {
+                courseId: 'desc'
+              }
+            },
+            take: 10
+          })
+        ]);
 
       return {
         success: true,

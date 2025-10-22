@@ -15,12 +15,12 @@
     isCreatingSession = true;
     try {
       const title = `New ${course.name} Session ${new Date().toLocaleDateString()}`;
-      
+
       // Validate that we have a valid course ID
       if (!course.id || course.id === 'ungrouped') {
         throw new Error('Cannot create session without a valid course');
       }
-      
+
       const session = await sessionStore.createSession(title, 'learn', 'en', null, course.id);
       goto(`/sessions/${session.id}`);
     } catch (error) {

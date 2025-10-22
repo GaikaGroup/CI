@@ -20,19 +20,20 @@ console.log('✅ Cleared enrollment data');
 const keysToRemove = [];
 for (let i = 0; i < localStorage.length; i++) {
   const key = localStorage.key(i);
-  if (key && (
-    key.includes('course') ||
-    key.includes('Course') ||
-    key.includes('subject') ||
-    key.includes('Subject') ||
-    key.includes('enrollment') ||
-    key.includes('Enrollment')
-  )) {
+  if (
+    key &&
+    (key.includes('course') ||
+      key.includes('Course') ||
+      key.includes('subject') ||
+      key.includes('Subject') ||
+      key.includes('enrollment') ||
+      key.includes('Enrollment'))
+  ) {
     keysToRemove.push(key);
   }
 }
 
-keysToRemove.forEach(key => {
+keysToRemove.forEach((key) => {
   localStorage.removeItem(key);
   console.log(`✅ Removed: ${key}`);
 });

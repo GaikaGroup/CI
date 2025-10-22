@@ -3,7 +3,10 @@
  * Handles OCR integration in chat messages
  */
 
-import { createOCRContextMessage, enhanceMessageWithOCR } from '$lib/modules/ocr/ocrChatIntegration';
+import {
+  createOCRContextMessage,
+  enhanceMessageWithOCR
+} from '$lib/modules/ocr/ocrChatIntegration';
 import { setOcrResults, ocrResults } from './stores';
 import { get } from 'svelte/store';
 
@@ -12,21 +15,21 @@ import { get } from 'svelte/store';
  */
 export function prepareOCRContext(images) {
   if (!images || images.length === 0) return null;
-  
-  const ocrImages = images.filter(img => typeof img === 'object' && img.ocrData);
-  
+
+  const ocrImages = images.filter((img) => typeof img === 'object' && img.ocrData);
+
   if (ocrImages.length === 0) return null;
-  
+
   // Combine all OCR data
   let combinedText = '';
   let totalCount = 0;
   const structuredData = {};
-  
+
   ocrImages.forEach((img, index) => {
     const data = img.ocrData;
     combinedText += `\n📊 Изображение ${index + 1} (${img.name}):\n${data.text}\n`;
     totalCount += data.count;
-    
+
     // Merge structured data
     Object.entries(data.structured).forEach(([label, items]) => {
       if (!structuredData[label]) {
@@ -35,7 +38,7 @@ export function prepareOCRContext(images) {
       structuredData[label].push(...items);
     });
   });
-  
+
   return {
     text: combinedText.trim(),
     structured: structuredData,
@@ -48,7 +51,7 @@ export function prepareOCRContext(images) {
  */
 export function createOCRSystemMessage(ocrContext) {
   if (!ocrContext) return null;
-  
+
   return {
     role: 'system',
     content: `На изображениях распознаны следующие измерительные приборы:\n\n${ocrContext.text}\n\nИспользуй эту информацию для ответа на вопросы пользователя. Если пользователь спрашивает о цене деления, показаниях приборов или других измерениях, используй распознанные данные.`
@@ -60,7 +63,7 @@ export function createOCRSystemMessage(ocrContext) {
  */
 export function enhanceUserMessage(content, ocrContext) {
   if (!ocrContext) return content;
-  
+
   // Check if user is asking about instruments
   const instrumentKeywords = [
     'цена деления',
@@ -74,15 +77,15 @@ export function enhanceUserMessage(content, ocrContext) {
     'измерение',
     'шкала'
   ];
-  
-  const hasInstrumentQuestion = instrumentKeywords.some(keyword => 
+
+  const hasInstrumentQuestion = instrumentKeywords.some((keyword) =>
     content.toLowerCase().includes(keyword)
   );
-  
+
   if (hasInstrumentQuestion) {
     return `${content}\n\n[Контекст: На изображениях распознано ${ocrContext.count} прибор(ов)]`;
   }
-  
+
   return content;
 }
 
@@ -91,9 +94,9 @@ export function enhanceUserMessage(content, ocrContext) {
  */
 export function buildMessagesWithOCR(messages, userMessage, images) {
   const history = [];
-  
+
   // Add previous messages
-  messages.forEach(msg => {
+  messages.forEach((msg) => {
     if (msg.type === 'user') {
       history.push({
         role: 'user',
@@ -106,10 +109,10 @@ export function buildMessagesWithOCR(messages, userMessage, images) {
       });
     }
   });
-  
+
   // Prepare OCR context from images
   const ocrContext = prepareOCRContext(images);
-  
+
   // Add OCR system message if available
   if (ocrContext) {
     const systemMessage = createOCRSystemMessage(ocrContext);
@@ -117,14 +120,14 @@ export function buildMessagesWithOCR(messages, userMessage, images) {
       history.push(systemMessage);
     }
   }
-  
+
   // Add current user message (enhanced with OCR context if relevant)
   const enhancedMessage = enhanceUserMessage(userMessage, ocrContext);
   history.push({
     role: 'user',
     content: enhancedMessage
   });
-  
+
   return {
     messages: history,
     ocrContext
@@ -136,9 +139,9 @@ export function buildMessagesWithOCR(messages, userMessage, images) {
  */
 export function getOCRSummary(ocrContext) {
   if (!ocrContext) return null;
-  
+
   const { structured, count } = ocrContext;
-  
+
   const instrumentLabels = {
     speedometer: 'Спидометр',
     ammeter: 'Амперметр',
@@ -147,14 +150,14 @@ export function getOCRSummary(ocrContext) {
     stopwatch: 'Секундомер',
     unknown: 'Неизвестный прибор'
   };
-  
+
   const summary = [];
-  
+
   Object.entries(structured).forEach(([label, items]) => {
     const labelName = instrumentLabels[label] || label;
     summary.push(`${labelName}: ${items.length}`);
   });
-  
+
   return {
     total: count,
     breakdown: summary.join(', ')
@@ -178,9 +181,9 @@ export function shouldProcessOCR(content) {
     'деление',
     'измерение'
   ];
-  
+
   const lower = content.toLowerCase();
-  return triggers.some(trigger => lower.includes(trigger));
+  return triggers.some((trigger) => lower.includes(trigger));
 }
 
 /**
@@ -188,9 +191,9 @@ export function shouldProcessOCR(content) {
  */
 export function formatOCRForChat(ocrContext) {
   if (!ocrContext) return '';
-  
+
   const summary = getOCRSummary(ocrContext);
   if (!summary) return '';
-  
+
   return `📊 Распознано приборов: ${summary.total}\n${summary.breakdown}`;
 }

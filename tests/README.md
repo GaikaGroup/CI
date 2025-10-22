@@ -117,10 +117,10 @@ describe('MyService', () => {
   it('should process data correctly', () => {
     // Arrange
     const input = 'test data';
-    
+
     // Act
     const result = MyService.process(input);
-    
+
     // Assert
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
@@ -130,7 +130,7 @@ describe('MyService', () => {
     // Test error scenarios
     const invalidInput = null;
     const result = MyService.process(invalidInput);
-    
+
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
   });
@@ -163,7 +163,7 @@ describe('User API Integration', () => {
       method: 'POST',
       body: JSON.stringify({ name: 'Test User', email: 'test@example.com' })
     });
-    
+
     const data = await response.json();
     expect(data.success).toBe(true);
     expect(data.data.id).toBeDefined();
@@ -224,6 +224,7 @@ We enforce minimum coverage thresholds:
 - **Statements**: 80%
 
 Coverage is automatically checked:
+
 - On every test run with `npm run test:coverage`
 - In pre-push git hooks
 - In CI/CD pipeline
@@ -262,12 +263,14 @@ Tests run automatically in our CI/CD pipeline:
 ### Pre-commit Hooks
 
 Before each commit:
+
 - Lint and format staged files
 - Run unit tests
 
 ### Pre-push Hooks
 
 Before each push:
+
 - Run full test suite
 - Check coverage thresholds
 - Verify build succeeds
@@ -312,16 +315,19 @@ git push --no-verify
 ### Tests Failing Locally
 
 1. **Check database connection**:
+
    ```bash
    npm run db:test
    ```
 
 2. **Regenerate Prisma client**:
+
    ```bash
    npm run db:generate
    ```
 
 3. **Run migrations**:
+
    ```bash
    npm run db:migrate
    ```
@@ -342,6 +348,7 @@ git push --no-verify
 ### Slow Tests
 
 1. Identify slow tests:
+
    ```bash
    npm run test:run -- --reporter=verbose
    ```
@@ -353,6 +360,7 @@ git push --no-verify
 ### Coverage Not Updating
 
 1. Delete coverage directory:
+
    ```bash
    rm -rf coverage
    ```

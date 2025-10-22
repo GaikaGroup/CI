@@ -1,0 +1,128 @@
+{
+  "en": {
+    "sessions": {
+      "title": "My Sessions",
+      "subtitle_fun": "Manage and continue your chat conversations",
+      "subtitle_learn": "Manage and continue your learning conversations",
+      "search_placeholder": "Search sessions...",
+      "filter_by_date": "Filter by date range",
+      "filter_by_commands": "Filter by commands",
+      "new_chat": "New Chat",
+      "creating": "Creating...",
+      "no_sessions": "No sessions found",
+      "no_sessions_filters": "Try adjusting your filters or search query.",
+      "no_sessions_empty": "Create a new session to start chatting with your AI assistant!",
+      "clear_filters": "Clear Filters",
+      "start_new_chat": "Start New Chat",
+      "loading": "Loading sessions...",
+      "loading_more": "Loading more sessions...",
+      "no_more": "No more sessions to load",
+      "error_loading": "Error loading sessions. Please try again.",
+      "retry": "Retry",
+      "clear_all": "Clear all"
+    },
+    "dateRanges": {
+      "hour": "Last Hour",
+      "day": "Last Day",
+      "week": "Last Week",
+      "month": "Last Month",
+      "year": "Last Year",
+      "all": "All Time"
+    },
+    "commands": {
+      "solve": "Solve",
+      "explain": "Explain",
+      "check": "Check",
+      "example": "Example",
+      "cheatsheet": "Cheatsheet",
+      "test": "Test",
+      "conspect": "Conspect",
+      "plan": "Plan",
+      "essay": "Essay"
+    }
+  },
+  "ru": {
+    "sessions": {
+      "title": "Мои Сессии",
+      "subtitle_fun": "Управляйте и продолжайте свои чат-разговоры",
+      "subtitle_learn": "Управляйте и продолжайте свои учебные разговоры",
+      "search_placeholder": "Поиск сессий...",
+      "filter_by_date": "Фильтр по дате",
+      "filter_by_commands": "Фильтр по командам",
+      "new_chat": "Новый Чат",
+      "creating": "Создание...",
+      "no_sessions": "Сессии не найдены",
+      "no_sessions_filters": "Попробуйте изменить фильтры или поисковый запрос.",
+      "no_sessions_empty": "Создайте новую сессию, чтобы начать общение с AI-ассистентом!",
+      "clear_filters": "Очистить Фильтры",
+      "start_new_chat": "Начать Новый Чат",
+      "loading": "Загрузка сессий...",
+      "loading_more": "Загрузка дополнительных сессий...",
+      "no_more": "Больше нет сессий для загрузки",
+      "error_loading": "Ошибка загрузки сессий. Пожалуйста, попробуйте снова.",
+      "retry": "Повторить",
+      "clear_all": "Очистить все"
+    },
+    "dateRanges": {
+      "hour": "Последний Час",
+      "day": "Последний День",
+      "week": "Последняя Неделя",
+      "month": "Последний Месяц",
+      "year": "Последний Год",
+      "all": "Все Время"
+    },
+    "commands": {
+      "solve": "Решить",
+      "explain": "Объяснить",
+      "check": "Проверить",
+      "example": "Пример",
+      "cheatsheet": "Шпаргалка",
+      "test": "Тест",
+      "conspect": "Конспект",
+      "plan": "План",
+      "essay": "Эссе"
+    }
+  },
+  "es": {
+    "sessions": {
+      "title": "Mis Sesiones",
+      "subtitle_fun": "Gestiona y continúa tus conversaciones de chat",
+      "subtitle_learn": "Gestiona y continúa tus conversaciones de aprendizaje",
+      "search_placeholder": "Buscar sesiones...",
+      "filter_by_date": "Filtrar por rango de fechas",
+      "filter_by_commands": "Filtrar por comandos",
+      "new_chat": "Nuevo Chat",
+      "creating": "Creando...",
+      "no_sessions": "No se encontraron sesiones",
+      "no_sessions_filters": "Intenta ajustar tus filtros o consulta de búsqueda.",
+      "no_sessions_empty": "¡Crea una nueva sesión para comenzar a chatear con tu asistente AI!",
+      "clear_filters": "Limpiar Filtros",
+      "start_new_chat": "Iniciar Nuevo Chat",
+      "loading": "Cargando sesiones...",
+      "loading_more": "Cargando más sesiones...",
+      "no_more": "No hay más sesiones para cargar",
+      "error_loading": "Error al cargar sesiones. Por favor, inténtalo de nuevo.",
+      "retry": "Reintentar",
+      "clear_all": "Limpiar todo"
+    },
+    "dateRanges": {
+      "hour": "Última Hora",
+      "day": "Último Día",
+      "week": "Última Semana",
+      "month": "Último Mes",
+      "year": "Último Año",
+      "all": "Todo el Tiempo"
+    },
+    "commands": {
+      "solve": "Resolver",
+      "explain": "Explicar",
+      "check": "Verificar",
+      "example": "Ejemplo",
+      "cheatsheet": "Guía",
+      "test": "Prueba",
+      "conspect": "Notas",
+      "plan": "Plan",
+      "essay": "Ensayo"
+    }
+  }
+}

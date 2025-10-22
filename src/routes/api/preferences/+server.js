@@ -1,6 +1,6 @@
 /**
  * User Preferences API Endpoints
- * 
+ *
  * GET /api/preferences - Get user preferences
  * POST /api/preferences - Set user preferences
  * PUT /api/preferences - Update user preferences
@@ -11,7 +11,7 @@ import UserPreferenceService from '$lib/services/UserPreferenceService.js';
 
 /**
  * GET /api/preferences
- * 
+ *
  * Query parameters:
  * - key: Get specific preference by key
  */
@@ -48,7 +48,6 @@ export async function GET({ url, locals }) {
         preferences: result.preferences
       });
     }
-
   } catch (error) {
     console.error('Error in GET /api/preferences:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -57,7 +56,7 @@ export async function GET({ url, locals }) {
 
 /**
  * POST /api/preferences
- * 
+ *
  * Body: {
  *   key: string,
  *   value: any
@@ -93,7 +92,6 @@ export async function POST({ request, locals }) {
           value: result.preference.value
         }
       });
-
     } else if (body.preferences && typeof body.preferences === 'object') {
       // Set multiple preferences
       const result = await UserPreferenceService.setUserPreferences(
@@ -109,11 +107,9 @@ export async function POST({ request, locals }) {
         message: 'Preferences saved successfully',
         count: result.preferences.length
       });
-
     } else {
       return json({ message: 'Invalid request body' }, { status: 400 });
     }
-
   } catch (error) {
     console.error('Error in POST /api/preferences:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -122,7 +118,7 @@ export async function POST({ request, locals }) {
 
 /**
  * PUT /api/preferences
- * 
+ *
  * Body: {
  *   key: string,
  *   value: any
@@ -141,11 +137,7 @@ export async function PUT({ request, locals }) {
       return json({ message: 'Preference key is required' }, { status: 400 });
     }
 
-    const result = await UserPreferenceService.setUserPreference(
-      locals.user.id,
-      key,
-      value
-    );
+    const result = await UserPreferenceService.setUserPreference(locals.user.id, key, value);
 
     if (!result.success) {
       return json({ message: result.error }, { status: 400 });
@@ -158,7 +150,6 @@ export async function PUT({ request, locals }) {
         value: result.preference.value
       }
     });
-
   } catch (error) {
     console.error('Error in PUT /api/preferences:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -167,7 +158,7 @@ export async function PUT({ request, locals }) {
 
 /**
  * DELETE /api/preferences
- * 
+ *
  * Query parameters:
  * - key: Preference key to delete
  */
@@ -193,7 +184,6 @@ export async function DELETE({ url, locals }) {
     return json({
       message: 'Preference deleted successfully'
     });
-
   } catch (error) {
     console.error('Error in DELETE /api/preferences:', error);
     return json({ message: 'Internal server error' }, { status: 500 });

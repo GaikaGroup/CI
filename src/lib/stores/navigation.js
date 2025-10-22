@@ -32,17 +32,17 @@ function createNavigationStore() {
 
   return {
     subscribe,
-    
+
     /**
      * Set current navigation mode
      */
     setMode: (mode) => {
       if (Object.values(NAVIGATION_MODES).includes(mode)) {
-        update(state => ({
+        update((state) => ({
           ...state,
           currentMode: mode
         }));
-        
+
         // Store in localStorage for persistence
         if (browser) {
           localStorage.setItem('navigationMode', mode);
@@ -54,7 +54,7 @@ function createNavigationStore() {
      * Update badge counts
      */
     updateBadges: (studentCount, tutorCount) => {
-      update(state => ({
+      update((state) => ({
         ...state,
         badges: {
           student: studentCount || 0,
@@ -67,7 +67,7 @@ function createNavigationStore() {
      * Initialize navigation state
      */
     initialize: () => {
-      update(state => ({
+      update((state) => ({
         ...state,
         isInitialized: true
       }));
@@ -76,7 +76,7 @@ function createNavigationStore() {
       if (browser) {
         const savedMode = localStorage.getItem('navigationMode');
         if (savedMode && Object.values(NAVIGATION_MODES).includes(savedMode)) {
-          update(state => ({
+          update((state) => ({
             ...state,
             currentMode: savedMode
           }));
@@ -96,7 +96,7 @@ function createNavigationStore() {
         },
         isInitialized: false
       });
-      
+
       if (browser) {
         localStorage.removeItem('navigationMode');
       }
@@ -107,25 +107,18 @@ function createNavigationStore() {
 export const navigationStore = createNavigationStore();
 
 // Derived store for student course count (enrolled courses)
-export const studentCourseCount = derived(
-  [activeEnrollments],
-  ([$activeEnrollments]) => {
-    return $activeEnrollments ? $activeEnrollments.length : 0;
-  }
-);
+export const studentCourseCount = derived([activeEnrollments], ([$activeEnrollments]) => {
+  return $activeEnrollments ? $activeEnrollments.length : 0;
+});
 
 // Derived store for tutor course count (authored courses)
-export const tutorCourseCount = derived(
-  [coursesStore, user],
-  ([$coursesStore, $user]) => {
-    if (!$user || !$coursesStore.courses) return 0;
-    
-    return $coursesStore.courses.filter(course => 
-      course.creatorId === $user.id || 
-      course.creatorRole === 'user' // For backward compatibility
-    ).length;
-  }
-);
+export const tutorCourseCount = derived([coursesStore, user], ([$coursesStore, $user]) => {
+  if (!$user || !$coursesStore.courses) return 0;
+
+  return $coursesStore.courses.filter(
+    (course) => course.creatorId === $user.id || course.creatorRole === 'user' // For backward compatibility
+  ).length;
+});
 
 // Combined badge counts
 export const badgeCounts = derived(
@@ -138,7 +131,7 @@ export const badgeCounts = derived(
 
 // Auto-update navigation badges when counts change
 if (browser) {
-  badgeCounts.subscribe(counts => {
+  badgeCounts.subscribe((counts) => {
     navigationStore.updateBadges(counts.student, counts.tutor);
   });
 }
@@ -155,29 +148,14 @@ if (browser) {
 }
 
 // Export current mode as derived store
-export const navigationMode = derived(
-  navigationStore,
-  $nav => $nav.currentMode
-);
+export const navigationMode = derived(navigationStore, ($nav) => $nav.currentMode);
 
 // Export badge counts as derived store
-export const navigationBadges = derived(
-  navigationStore,
-  $nav => $nav.badges
-);
+export const navigationBadges = derived(navigationStore, ($nav) => $nav.badges);
 
 // Helper functions
-export const isStudentMode = derived(
-  navigationMode,
-  $mode => $mode === NAVIGATION_MODES.STUDENT
-);
+export const isStudentMode = derived(navigationMode, ($mode) => $mode === NAVIGATION_MODES.STUDENT);
 
-export const isTutorMode = derived(
-  navigationMode,
-  $mode => $mode === NAVIGATION_MODES.TUTOR
-);
+export const isTutorMode = derived(navigationMode, ($mode) => $mode === NAVIGATION_MODES.TUTOR);
 
-export const isFunMode = derived(
-  navigationMode,
-  $mode => $mode === NAVIGATION_MODES.FUN
-);
+export const isFunMode = derived(navigationMode, ($mode) => $mode === NAVIGATION_MODES.FUN);

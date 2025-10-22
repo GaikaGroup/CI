@@ -25,26 +25,26 @@ const testFiles = [
 
 function fixFile(filePath) {
   const fullPath = path.join(__dirname, '..', filePath);
-  
+
   if (!fs.existsSync(fullPath)) {
     console.log(`⏭️  File not found: ${filePath}`);
     return;
   }
 
   let content = fs.readFileSync(fullPath, 'utf8');
-  
+
   // Replace role: 'admin' with type: 'admin'
   content = content.replace(/role: 'admin'/g, "type: 'admin'");
-  
+
   // Replace role: 'student' with type: 'regular'
   content = content.replace(/role: 'student'/g, "type: 'regular'");
-  
+
   // Replace role: 'teacher' with type: 'regular'
   content = content.replace(/role: 'teacher'/g, "type: 'regular'");
-  
+
   // Replace { role: null } with { type: null }
-  content = content.replace(/role: null/g, "type: null");
-  
+  content = content.replace(/role: null/g, 'type: null');
+
   fs.writeFileSync(fullPath, content);
   console.log(`✅ Fixed: ${filePath}`);
 }

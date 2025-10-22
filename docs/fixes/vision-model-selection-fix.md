@@ -34,7 +34,7 @@ async generateChatCompletion(messages, options = {}) {
     options.hasImages = true;
     console.log('[ProviderManager] Detected images in messages, will use vision model');
   }
-  
+
   const providerName = options.provider || (await this.getBestProvider());
   const provider = this.getProvider(providerName);
   // ...
@@ -50,13 +50,13 @@ async generateChatCompletion(messages, options = {}) {
   try {
     // Check if we need vision model (from options or by checking messages)
     const needsVision = options.hasImages || this.hasImages(messages);
-    
+
     if (needsVision) {
       console.log('[Ollama] Using vision model:', this.config.VISION_MODEL);
     }
-    
+
     const modelToUse = needsVision ? this.config.VISION_MODEL : options.model;
-    
+
     const model = await this.resolveModel(modelToUse);
     // ...
   }
@@ -88,12 +88,14 @@ async generateChatCompletion(messages, options = {}) {
 ## Логи
 
 ### До исправления:
+
 ```
 [Ollama] resolved model: qwen2.5:7b
 Response generated using provider: ollama, model: qwen2.5:7b
 ```
 
 ### После исправления:
+
 ```
 [ProviderManager] Detected images in messages, will use vision model
 [Ollama] Using vision model: llava:7b
@@ -136,6 +138,6 @@ npm run dev
 ✅ **ProviderManager определяет наличие изображений**  
 ✅ **OllamaProvider использует vision модель**  
 ✅ **LLaVA анализирует изображение**  
-✅ **Нейросеть дает конкретные ответы**  
+✅ **Нейросеть дает конкретные ответы**
 
 Теперь система правильно выбирает модель в зависимости от типа запроса!

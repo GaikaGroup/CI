@@ -11,9 +11,9 @@ global.fetch = vi.fn();
 
 // Mock the stores and dependencies
 vi.mock('$lib/modules/chat/stores', () => ({
-  selectedImages: { 
-    subscribe: vi.fn(), 
-    set: vi.fn(), 
+  selectedImages: {
+    subscribe: vi.fn(),
+    set: vi.fn(),
     get: vi.fn(() => [])
   },
   addMessage: vi.fn()
@@ -25,8 +25,8 @@ vi.mock('$lib/stores/app', () => ({
 }));
 
 vi.mock('$modules/i18n/stores', () => ({
-  selectedLanguage: { 
-    subscribe: vi.fn(), 
+  selectedLanguage: {
+    subscribe: vi.fn(),
     get: vi.fn(() => 'en')
   }
 }));
@@ -134,8 +134,9 @@ describe('Voice Mode Session Title Update', () => {
   });
 
   it('should truncate long transcriptions in session title', async () => {
-    const longTranscription = 'Это очень длинное сообщение которое должно быть обрезано до пятидесяти символов максимум для заголовка сессии';
-    
+    const longTranscription =
+      'Это очень длинное сообщение которое должно быть обрезано до пятидесяти символов максимум для заголовка сессии';
+
     const mockSessionData = {
       id: mockSessionId,
       title: 'New Session 15/10/2025',
@@ -206,12 +207,10 @@ describe('Voice Mode Session Title Update', () => {
 
   it('should handle session fetch errors gracefully', async () => {
     // Mock session fetch to fail
-    global.fetch
-      .mockRejectedValueOnce(new Error('Session not found'))
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ response: 'Отвечаю несмотря на ошибку!' })
-      });
+    global.fetch.mockRejectedValueOnce(new Error('Session not found')).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ response: 'Отвечаю несмотря на ошибку!' })
+    });
 
     // Should not throw error
     await expect(sendTranscribedText(mockTranscription, mockSessionId)).resolves.not.toThrow();

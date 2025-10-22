@@ -3,11 +3,13 @@
 ## Что изменилось?
 
 **Было:**
+
 ```
 http://localhost:3000/learn/cmgwvky3b00a3duwxipmf24wi
 ```
 
 **Стало:**
+
 ```
 http://localhost:3000/learn/kak-vospitat-koshku-cmgwvky3b
 ```
@@ -36,22 +38,23 @@ npx prisma generate
 
 ## Примеры
 
-| Название курса | Slug |
-|----------------|------|
-| Как воспитать кошку | kak-vospitat-koshku-abc12345 |
+| Название курса          | Slug                              |
+| ----------------------- | --------------------------------- |
+| Как воспитать кошку     | kak-vospitat-koshku-abc12345      |
 | Основы программирования | osnovy-programmirovaniya-def67890 |
-| Learn English | learn-english-ghi34567 |
+| Learn English           | learn-english-ghi34567            |
 
 ## Преимущества для SEO
 
 ✅ Читаемые URL  
 ✅ Ключевые слова в адресе  
 ✅ Лучше индексируются поисковиками  
-✅ Красивые превью в соцсетях  
+✅ Красивые превью в соцсетях
 
 ## Обратная совместимость
 
 Оба формата работают:
+
 - `/learn/kak-vospitat-koshku-abc12345` ✅ (новый, slug)
 - `/learn/cmgwvky3b00a3duwxipmf24wi` ✅ (старый, ID)
 

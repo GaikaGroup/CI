@@ -23,7 +23,7 @@
 let sessionLanguageFromHistory = null;
 if (sessionContext?.history && sessionContext.history.length > 0) {
   // First, try to detect language from USER messages (more reliable)
-  const userMessages = sessionContext.history.filter(msg => msg.role === 'user');
+  const userMessages = sessionContext.history.filter((msg) => msg.role === 'user');
   if (userMessages.length > 0) {
     const lastUserMessage = userMessages[userMessages.length - 1];
     const historyDetection = languageDetector.detectLanguageFromText(lastUserMessage.content);
@@ -31,15 +31,17 @@ if (sessionContext?.history && sessionContext.history.length > 0) {
       sessionLanguageFromHistory = historyDetection.language;
     }
   }
-  
+
   // If no user messages or low confidence, check assistant messages
   // But only if there are multiple assistant messages (skip initial greeting)
   if (!sessionLanguageFromHistory) {
-    const assistantMessages = sessionContext.history.filter(msg => msg.role === 'assistant');
+    const assistantMessages = sessionContext.history.filter((msg) => msg.role === 'assistant');
     if (assistantMessages.length > 1) {
       // Use the most recent assistant message (skip the first greeting)
       const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
-      const historyDetection = languageDetector.detectLanguageFromText(lastAssistantMessage.content);
+      const historyDetection = languageDetector.detectLanguageFromText(
+        lastAssistantMessage.content
+      );
       if (historyDetection.confidence > 0.7) {
         sessionLanguageFromHistory = historyDetection.language;
       }
@@ -48,7 +50,8 @@ if (sessionContext?.history && sessionContext.history.length > 0) {
 }
 ```
 
-**Эффект:** 
+**Эффект:**
+
 - ✅ Игнорирует начальное приветствие на английском
 - ✅ Фокусируется на языке пользователя
 - ✅ Проверяет ассистента только если есть несколько ответов
@@ -66,18 +69,23 @@ if (sessionContext?.history && sessionContext.history.length > 0) {
 if (sessionLanguageFromHistory && sessionLanguageFromHistory !== detectedLanguage) {
   if (languageConfidence < 0.8) {
     // Low confidence in current detection - trust session history
-    console.log(`Overriding detected language ${detectedLanguage} with session language ${sessionLanguageFromHistory}`);
+    console.log(
+      `Overriding detected language ${detectedLanguage} with session language ${sessionLanguageFromHistory}`
+    );
     detectedLanguage = sessionLanguageFromHistory;
     languageConfidence = 0.95;
   } else {
     // High confidence in current detection - might be intentional switch
-    console.log(`User might be switching language from ${sessionLanguageFromHistory} to ${detectedLanguage}`);
+    console.log(
+      `User might be switching language from ${sessionLanguageFromHistory} to ${detectedLanguage}`
+    );
     // Use the newly detected language
   }
 }
 ```
 
 **Эффект:**
+
 - ✅ Сохраняет язык сессии при неоднозначных сообщениях
 - ✅ Позволяет переключиться при явном запросе (высокая уверенность)
 
@@ -91,12 +99,13 @@ if (sessionLanguageFromHistory && sessionLanguageFromHistory !== detectedLanguag
 const languageReminders = {
   es: `⚠️ RECORDATORIO CRÍTICO: Debes responder EXCLUSIVAMENTE en ESPAÑOL. El usuario está escribiendo en español. TODA tu respuesta debe ser en español. NO uses inglés, ruso, chino ni ningún otro idioma. ¡SOLO ESPAÑOL!`,
   ru: `⚠️ КРИТИЧЕСКОЕ НАПОМИНАНИЕ: Ты должен отвечать ИСКЛЮЧИТЕЛЬНО на РУССКОМ языке. Пользователь пишет на русском. ВЕСЬ твой ответ должен быть на русском. НЕ используй английский, испанский, китайский или любой другой язык. ТОЛЬКО РУССКИЙ!`,
-  en: `⚠️ CRITICAL REMINDER: You MUST respond EXCLUSIVELY in ENGLISH. The user is writing in English. Your ENTIRE response must be in English. DO NOT use Spanish, Russian, Chinese, or any other language. ONLY ENGLISH!`,
+  en: `⚠️ CRITICAL REMINDER: You MUST respond EXCLUSIVELY in ENGLISH. The user is writing in English. Your ENTIRE response must be in English. DO NOT use Spanish, Russian, Chinese, or any other language. ONLY ENGLISH!`
   // ... другие языки
 };
 ```
 
 **Эффект:**
+
 - ✅ Модель видит инструкции на целевом языке
 - ✅ Усиливает "погружение" в целевой язык
 - ✅ Более естественно для модели
@@ -112,7 +121,7 @@ const languageReminders = {
 const finalReminders = {
   es: `ESPAÑOL SOLAMENTE. Tu próxima respuesta debe ser 100% en español. Ni una sola palabra en otro idioma.`,
   ru: `ТОЛЬКО РУССКИЙ. Твой следующий ответ должен быть на 100% на русском языке. Ни одного слова на другом языке.`,
-  en: `ENGLISH ONLY. Your next response must be 100% in English. Not a single word in another language.`,
+  en: `ENGLISH ONLY. Your next response must be 100% in English. Not a single word in another language.`
   // ... другие языки
 };
 
@@ -123,6 +132,7 @@ enhancedMessages.push({
 ```
 
 **Эффект:**
+
 - ✅ Последнее что видит модель перед генерацией
 - ✅ Короткое и четкое
 - ✅ На целевом языке
@@ -134,10 +144,13 @@ enhancedMessages.push({
 Добавлено детальное логирование:
 
 ```javascript
-console.log(`[Language Enforcement] Generating response in ${targetLanguage} (${detectedLanguage}) with ${enhancedMessages.filter(m => m.role === 'system').length} system messages`);
+console.log(
+  `[Language Enforcement] Generating response in ${targetLanguage} (${detectedLanguage}) with ${enhancedMessages.filter((m) => m.role === 'system').length} system messages`
+);
 ```
 
 **Эффект:**
+
 - ✅ Видно сколько системных сообщений используется
 - ✅ Легче отлаживать проблемы
 - ✅ Можно отследить весь процесс
@@ -260,14 +273,14 @@ npm run dev
 
 ## Изменения от v2
 
-| Аспект | v2 | v3 |
-|--------|----|----|
-| Приоритет истории | Ассистент | **Пользователь** |
-| Обработка приветствия | Учитывается | **Игнорируется** |
-| Напоминания | На английском | **На целевом языке** |
-| Финальное напоминание | Одно | **Два (среднее + финальное)** |
-| Логика переключения | Всегда блокирует | **Умная (учет уверенности)** |
-| Количество уровней | 5 | **7** |
+| Аспект                | v2               | v3                            |
+| --------------------- | ---------------- | ----------------------------- |
+| Приоритет истории     | Ассистент        | **Пользователь**              |
+| Обработка приветствия | Учитывается      | **Игнорируется**              |
+| Напоминания           | На английском    | **На целевом языке**          |
+| Финальное напоминание | Одно             | **Два (среднее + финальное)** |
+| Логика переключения   | Всегда блокирует | **Умная (учет уверенности)**  |
+| Количество уровней    | 5                | **7**                         |
 
 ## Файлы Изменены
 

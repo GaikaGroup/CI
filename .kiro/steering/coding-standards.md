@@ -15,25 +15,26 @@ inclusion: always
 ## Code Organization
 
 ### Svelte Components
+
 ```svelte
 <script>
   // 1. Imports
   import { onMount } from 'svelte';
-  
+
   // 2. Props
   export let data;
-  
+
   // 3. State
   let loading = false;
-  
+
   // 4. Reactive statements
   $: displayData = data?.items || [];
-  
+
   // 5. Functions
   function handleClick() {
     // ...
   }
-  
+
   // 6. Lifecycle
   onMount(() => {
     // ...
@@ -56,6 +57,7 @@ inclusion: always
 ```
 
 ### Services
+
 ```javascript
 /**
  * Service description
@@ -81,7 +83,9 @@ export class MyService {
 ## Error Handling
 
 ### API Responses
+
 Always return consistent format:
+
 ```javascript
 // Success
 return { success: true, data: result };
@@ -91,6 +95,7 @@ return { success: false, error: 'Error message' };
 ```
 
 ### Try-Catch Blocks
+
 ```javascript
 try {
   const result = await operation();
@@ -102,6 +107,7 @@ try {
 ```
 
 ### User-Facing Errors
+
 - Show friendly error messages
 - Log technical details to console
 - Provide recovery options when possible
@@ -114,14 +120,11 @@ try {
 
 ```javascript
 // Good
-const [users, courses] = await Promise.all([
-  getUsers(),
-  getCourses()
-]);
+const [users, courses] = await Promise.all([getUsers(), getCourses()]);
 
 // Avoid
-getUsers().then(users => {
-  getCourses().then(courses => {
+getUsers().then((users) => {
+  getCourses().then((courses) => {
     // ...
   });
 });
@@ -130,12 +133,14 @@ getUsers().then(users => {
 ## Comments
 
 ### When to Comment
+
 - Complex algorithms
 - Non-obvious business logic
 - API integrations
 - Workarounds or hacks
 
 ### When NOT to Comment
+
 - Obvious code
 - Self-explanatory variable names
 - Simple operations
@@ -153,6 +158,7 @@ await delay(Math.pow(2, retryCount) * 1000);
 ## Imports
 
 ### Order
+
 1. External libraries
 2. Internal modules
 3. Components
@@ -178,6 +184,7 @@ import { slugify } from '$lib/utils/slugify';
 ## Naming Conventions
 
 ### Variables
+
 - `camelCase` for variables and functions
 - `UPPER_SNAKE_CASE` for constants
 - Descriptive names, avoid abbreviations
@@ -193,21 +200,23 @@ const max = 3;
 ```
 
 ### Functions
+
 - Use verbs: `get`, `set`, `create`, `update`, `delete`
 - Boolean functions: `is`, `has`, `can`, `should`
 
 ```javascript
 // Good
-function getCourse(id) { }
-function isEnrolled(userId, courseId) { }
-function canEditCourse(user, course) { }
+function getCourse(id) {}
+function isEnrolled(userId, courseId) {}
+function canEditCourse(user, course) {}
 
 // Avoid
-function course(id) { }
-function enrolled(userId, courseId) { }
+function course(id) {}
+function enrolled(userId, courseId) {}
 ```
 
 ### Components
+
 - PascalCase
 - Descriptive, not generic
 
@@ -224,15 +233,17 @@ function enrolled(userId, courseId) { }
 ## Performance
 
 ### Avoid Unnecessary Re-renders
+
 ```svelte
 <!-- Good: Reactive only when needed -->
 $: filteredItems = items.filter(item => item.active);
 
 <!-- Avoid: Reactive on every change -->
-$: allData = { items, users, courses, sessions };
+$: allData = {(items, users, courses, sessions)};
 ```
 
 ### Lazy Loading
+
 ```javascript
 // Good: Load on demand
 const { default: HeavyComponent } = await import('./HeavyComponent.svelte');
@@ -244,11 +255,13 @@ import HeavyComponent from './HeavyComponent.svelte';
 ## Security
 
 ### Never Expose Secrets
+
 - Use environment variables
 - Never commit API keys
 - Validate all user input
 
 ### Sanitize User Input
+
 ```javascript
 // Good
 const sanitized = input.trim().toLowerCase();

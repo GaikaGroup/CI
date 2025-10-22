@@ -3,6 +3,7 @@
 ## Если есть бэкап PostgreSQL
 
 ### 1. Восстановить данные из бэкапа
+
 ```bash
 # Если есть SQL дамп
 psql -d ai_tutor_sessions -f backup.sql
@@ -12,6 +13,7 @@ pg_restore -d ai_tutor_sessions backup.dump
 ```
 
 ### 2. Добавить slug к существующим курсам
+
 ```bash
 # Запустить скрипт генерации slug
 node scripts/generate-course-slugs.js
@@ -20,6 +22,7 @@ node scripts/generate-course-slugs.js
 ## Если НЕТ бэкапа
 
 К сожалению, данные потеряны. Нужно будет:
+
 1. Заново создать пользователей
 2. Заново создать курсы
 3. Заново записаться на курсы
@@ -49,6 +52,7 @@ chmod +x scripts/backup-db.sh
 ```
 
 ### Добавить в crontab для автоматического бэкапа
+
 ```bash
 # Запускать каждый день в 2:00 ночи
 0 2 * * * /path/to/project/scripts/backup-db.sh

@@ -7,6 +7,7 @@
 **Запускается на каждый push и pull request**
 
 #### Этап: Code Quality
+
 ```yaml
 - Lint (ESLint)
 - Format check (Prettier)
@@ -14,6 +15,7 @@
 ```
 
 #### Этап: Testing
+
 ```yaml
 - Unit tests
 - Integration tests
@@ -22,6 +24,7 @@
 ```
 
 #### Этап: Build
+
 ```yaml
 - Build production bundle
 - Check build size
@@ -29,6 +32,7 @@
 ```
 
 #### Этап: Security
+
 ```yaml
 - Dependency audit (npm audit)
 - Security vulnerabilities scan
@@ -40,11 +44,13 @@
 **Запускается после успешного CI**
 
 #### Staging Environment
+
 - Автоматический деплой на staging при merge в `develop`
 - Smoke tests после деплоя
 - Уведомление команды
 
 #### Production Environment
+
 - Автоматический деплой на production при merge в `main`
 - Database migrations (с подтверждением)
 - Health checks после деплоя
@@ -53,6 +59,7 @@
 ## GitHub Actions Configuration
 
 ### Структура workflows
+
 ```
 .github/
 └── workflows/
@@ -79,27 +86,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run ESLint
         run: npm run lint
-      
+
       - name: Check formatting
         run: npm run format -- --check
-  
+
   test:
     name: Tests
     runs-on: ubuntu-latest
     needs: quality
-    
+
     services:
       postgres:
         image: postgres:15
@@ -113,47 +120,47 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Setup test database
         run: |
           npm run db:migrate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-      
+
       - name: Run unit tests
         run: npm run test:run tests/unit
-      
+
       - name: Run integration tests
         run: npm run test:run tests/integration
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-      
+
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-      
+
       - name: Generate coverage report
         run: npm run test:coverage
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage/coverage-final.json
           fail_ci_if_error: true
-      
+
       - name: Check coverage threshold
         run: |
           COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
@@ -161,52 +168,52 @@ jobs:
             echo "Coverage $COVERAGE% is below 80% threshold"
             exit 1
           fi
-  
+
   build:
     name: Build
     runs-on: ubuntu-latest
     needs: test
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Check build size
         run: |
           SIZE=$(du -sh build | cut -f1)
           echo "Build size: $SIZE"
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build
           path: build/
           retention-days: 7
-  
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - name: Run npm audit
         run: npm audit --audit-level=moderate
-      
+
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
         with:
@@ -230,42 +237,42 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     environment: staging
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
         env:
           NODE_ENV: production
           PUBLIC_API_URL: ${{ secrets.STAGING_API_URL }}
-      
+
       - name: Run database migrations
         run: npm run db:migrate
         env:
           DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-      
+
       - name: Deploy to staging server
         run: |
           # Ваш скрипт деплоя (например, rsync, scp, или API вашего хостинга)
           echo "Deploying to staging..."
         env:
           DEPLOY_KEY: ${{ secrets.STAGING_DEPLOY_KEY }}
-      
+
       - name: Run smoke tests
         run: npm run test:smoke
         env:
           TEST_URL: ${{ secrets.STAGING_URL }}
-      
+
       - name: Notify team
         if: always()
         uses: 8398a7/action-slack@v3
@@ -290,49 +297,49 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
         env:
           NODE_ENV: production
           PUBLIC_API_URL: ${{ secrets.PROD_API_URL }}
-      
+
       - name: Backup database
         run: |
           echo "Creating database backup..."
           # Ваш скрипт бэкапа
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-      
+
       - name: Run database migrations
         run: npm run db:migrate
         env:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-      
+
       - name: Deploy to production
         run: |
           # Ваш скрипт деплоя
           echo "Deploying to production..."
         env:
           DEPLOY_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
-      
+
       - name: Health check
         run: |
           sleep 10
           curl -f ${{ secrets.PROD_URL }}/health || exit 1
-      
+
       - name: Notify team
         if: always()
         uses: 8398a7/action-slack@v3
@@ -340,7 +347,7 @@ jobs:
           status: ${{ job.status }}
           text: 'Production deployment ${{ job.status }}'
           webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      
+
       - name: Create release tag
         if: success()
         run: |
@@ -360,7 +367,7 @@ stages:
   - deploy
 
 variables:
-  NODE_VERSION: "20"
+  NODE_VERSION: '20'
   POSTGRES_DB: test_db
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
@@ -474,6 +481,7 @@ deploy:production:
 ### Обязательные переменные окружения:
 
 #### Staging
+
 ```
 STAGING_DATABASE_URL
 STAGING_API_URL
@@ -483,6 +491,7 @@ OPENAI_API_KEY (staging)
 ```
 
 #### Production
+
 ```
 PROD_DATABASE_URL
 PROD_API_URL
@@ -492,6 +501,7 @@ OPENAI_API_KEY (production)
 ```
 
 #### Общие
+
 ```
 SLACK_WEBHOOK (для уведомлений)
 CODECOV_TOKEN (для coverage reports)
@@ -500,6 +510,7 @@ CODECOV_TOKEN (для coverage reports)
 ## Branch Strategy
 
 ### Основные ветки:
+
 - `main` - production код, всегда стабильный
 - `develop` - staging код, интеграция фич
 - `feature/*` - новые фичи
@@ -507,6 +518,7 @@ CODECOV_TOKEN (для coverage reports)
 - `hotfix/*` - срочные исправления для production
 
 ### Workflow:
+
 1. Создаём feature branch из `develop`
 2. Разрабатываем, коммитим, пушим
 3. Создаём Pull Request в `develop`
@@ -520,12 +532,14 @@ CODECOV_TOKEN (для coverage reports)
 ## Pre-commit Hooks (Husky)
 
 ### Установка Husky
+
 ```bash
 npm install --save-dev husky
 npx husky init
 ```
 
 ### .husky/pre-commit
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -548,6 +562,7 @@ echo "✅ All checks passed!"
 ```
 
 ### .husky/pre-push
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -570,6 +585,7 @@ echo "✅ Ready to push!"
 ```
 
 ### .husky/commit-msg
+
 ```bash
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -584,6 +600,7 @@ npx --no -- commitlint --edit ${1}
 ## Commit Message Convention
 
 ### Формат:
+
 ```
 <type>(<scope>): <subject>
 
@@ -593,6 +610,7 @@ npx --no -- commitlint --edit ${1}
 ```
 
 ### Types:
+
 - `feat`: Новая фича
 - `fix`: Исправление бага
 - `docs`: Изменения в документации
@@ -602,6 +620,7 @@ npx --no -- commitlint --edit ${1}
 - `chore`: Обновление зависимостей, конфигурации и т.д.
 
 ### Примеры:
+
 ```
 feat(chat): add multilingual support for waiting phrases
 
@@ -624,7 +643,9 @@ Fixes #456
 ## Monitoring и Alerts
 
 ### Health Checks
+
 Каждое приложение должно иметь `/health` endpoint:
+
 ```javascript
 // src/routes/health/+server.js
 export async function GET() {
@@ -633,20 +654,24 @@ export async function GET() {
     redis: await checkRedis(),
     openai: await checkOpenAI()
   };
-  
-  const healthy = Object.values(checks).every(c => c.status === 'ok');
-  
-  return new Response(JSON.stringify({
-    status: healthy ? 'healthy' : 'unhealthy',
-    checks,
-    timestamp: new Date().toISOString()
-  }), {
-    status: healthy ? 200 : 503
-  });
+
+  const healthy = Object.values(checks).every((c) => c.status === 'ok');
+
+  return new Response(
+    JSON.stringify({
+      status: healthy ? 'healthy' : 'unhealthy',
+      checks,
+      timestamp: new Date().toISOString()
+    }),
+    {
+      status: healthy ? 200 : 503
+    }
+  );
 }
 ```
 
 ### Уведомления
+
 - Slack/Discord для деплоев
 - Email для критических ошибок
 - Sentry для мониторинга ошибок в production
@@ -654,6 +679,7 @@ export async function GET() {
 ## Rollback Strategy
 
 ### Автоматический rollback:
+
 ```yaml
 - name: Health check
   run: |
@@ -666,6 +692,7 @@ export async function GET() {
 ```
 
 ### Ручной rollback:
+
 ```bash
 # Откатиться на предыдущий коммит
 git revert HEAD
@@ -679,12 +706,14 @@ git checkout v20240101-120000
 ## Database Migrations
 
 ### Безопасные миграции:
+
 1. Всегда создавайте бэкап перед миграцией
 2. Тестируйте миграции на staging
 3. Миграции должны быть обратимыми
 4. Используйте транзакции
 
 ### Пример безопасной миграции:
+
 ```javascript
 // migrations/add_user_preferences.js
 export async function up(prisma) {
@@ -693,14 +722,14 @@ export async function up(prisma) {
     ALTER TABLE users 
     ADD COLUMN preferences JSONB
   `;
-  
+
   // Заполняем дефолтными значениями
   await prisma.$executeRaw`
     UPDATE users 
     SET preferences = '{}'::jsonb 
     WHERE preferences IS NULL
   `;
-  
+
   // Делаем NOT NULL
   await prisma.$executeRaw`
     ALTER TABLE users 

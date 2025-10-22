@@ -22,11 +22,11 @@
           <span class="text-sm">{language}</span>
         </div>
       </div>
-      
+
       <h1 class="text-5xl font-bold mb-6">{courseName}</h1>
-      
+
       <p class="text-xl mb-8 text-white/90">{description}</p>
-      
+
       <div class="flex items-center space-x-4">
         <button
           on:click={onEnroll}

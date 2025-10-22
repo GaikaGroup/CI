@@ -3,11 +3,13 @@
 ## Что было сделано:
 
 ### 🗄️ База данных
+
 - ✅ Удалены все сессии в режимах "fun" и "learn" (15 сессий)
 - ✅ Удалены все связанные сообщения (автоматически через CASCADE)
 - ✅ База данных готова для тестирования создания курсов
 
 ### 📚 Курсы по умолчанию
+
 - ✅ **УДАЛЕНЫ ИЗ КОДА** - `DEFAULT_COURSES` теперь пустой массив
 - ✅ Приложение больше не будет автоматически создавать курсы по умолчанию
 - ✅ Каталог курсов будет полностью пустым
@@ -29,15 +31,16 @@ localStorage.removeItem('courseEnrollments');
 
 // Clear all course-related keys
 const allKeys = Object.keys(localStorage);
-const courseKeys = allKeys.filter(key => 
-  key.toLowerCase().includes('course') || 
-  key.toLowerCase().includes('subject') ||
-  key.toLowerCase().includes('enrollment') ||
-  key.toLowerCase().includes('admin') ||
-  key.toLowerCase().includes('moderation')
+const courseKeys = allKeys.filter(
+  (key) =>
+    key.toLowerCase().includes('course') ||
+    key.toLowerCase().includes('subject') ||
+    key.toLowerCase().includes('enrollment') ||
+    key.toLowerCase().includes('admin') ||
+    key.toLowerCase().includes('moderation')
 );
 
-courseKeys.forEach(key => {
+courseKeys.forEach((key) => {
   localStorage.removeItem(key);
   console.log('✅ Removed:', key);
 });
@@ -57,6 +60,7 @@ window.location.reload(true);
 ## 🎯 Готово к тестированию!
 
 Теперь у вас:
+
 - ✅ Пустая база данных (0 сессий)
 - ✅ Пустой каталог курсов (0 курсов)
 - ✅ Никаких курсов по умолчанию

@@ -12,9 +12,13 @@
     </div>
     <div class="space-y-6">
       {#each agents as instructor}
-        <div class="p-6 bg-gradient-to-r from-gray-50 to-orange-50 rounded-xl hover:shadow-md transition-shadow">
+        <div
+          class="p-6 bg-gradient-to-r from-gray-50 to-orange-50 rounded-xl hover:shadow-md transition-shadow"
+        >
           <div class="flex items-start space-x-4">
-            <div class="w-16 h-16 bg-orange-200 rounded-full flex items-center justify-center flex-shrink-0">
+            <div
+              class="w-16 h-16 bg-orange-200 rounded-full flex items-center justify-center flex-shrink-0"
+            >
               <MessageSquare class="w-8 h-8 text-orange-600" />
             </div>
             <div class="flex-1">

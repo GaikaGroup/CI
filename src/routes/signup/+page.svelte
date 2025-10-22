@@ -1,7 +1,7 @@
 <script>
   import { goto } from '$app/navigation';
   import { register } from '$lib/modules/auth/services.js';
-  
+
   let firstName = '';
   let lastName = '';
   let email = '';

@@ -21,7 +21,7 @@ export async function fastOCR(imageFile) {
     });
 
     const { data } = await worker.recognize(imageFile);
-    
+
     return {
       text: data.text || '',
       confidence: data.confidence || 0
@@ -60,11 +60,11 @@ export function extractData(ocrText) {
 
   // Detect instruments
   const instruments = {
-    'термометр': 'thermometer',
-    'линейка': 'ruler',
-    'амперметр': 'ammeter',
-    'спидометр': 'speedometer',
-    'секундомер': 'stopwatch'
+    термометр: 'thermometer',
+    линейка: 'ruler',
+    амперметр: 'ammeter',
+    спидометр: 'speedometer',
+    секундомер: 'stopwatch'
   };
 
   for (const [keyword, type] of Object.entries(instruments)) {
@@ -83,7 +83,7 @@ export async function processImageFast(file) {
   try {
     const result = await fastOCR(file);
     const extracted = extractData(result.text);
-    
+
     return {
       text: result.text,
       confidence: result.confidence,

@@ -21,10 +21,13 @@ describe('API Availability Smoke Test', () => {
       try {
         const module = await import(route);
         expect(module).toBeDefined();
-        
+
         // Verify at least one HTTP method handler exists
         const hasHandler = module.GET || module.POST || module.PUT || module.DELETE;
-        expect(hasHandler, `Route ${route} should export at least one HTTP method handler`).toBeDefined();
+        expect(
+          hasHandler,
+          `Route ${route} should export at least one HTTP method handler`
+        ).toBeDefined();
       } catch (error) {
         throw new Error(`Failed to load API route ${route}: ${error.message}`);
       }
@@ -34,10 +37,10 @@ describe('API Availability Smoke Test', () => {
   it('should verify API handlers have correct structure', async () => {
     // Import a sample API handler and verify its structure
     const { GET } = await import('../../src/routes/api/sessions/+server.js');
-    
+
     expect(GET).toBeDefined();
     expect(typeof GET).toBe('function');
-    
+
     // Verify function signature (should accept request context)
     expect(GET.length).toBeGreaterThan(0);
   });
@@ -78,16 +81,16 @@ describe('API Availability Smoke Test', () => {
 
   it('should verify API endpoints load within acceptable time', async () => {
     const startTime = Date.now();
-    
+
     // Load multiple endpoints
     await Promise.all([
       import('../../src/routes/api/sessions/+server.js'),
       import('../../src/routes/api/courses/+server.js'),
       import('../../src/routes/api/chat/+server.js')
     ]);
-    
+
     const duration = Date.now() - startTime;
-    
+
     // All endpoints should load quickly
     expect(duration).toBeLessThan(2000); // < 2 seconds
   });

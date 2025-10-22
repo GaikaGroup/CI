@@ -133,7 +133,7 @@
   const handleEditCourse = (event) => {
     const { course } = event.detail;
     console.log('Edit course event:', course);
-    
+
     if (!course || !course.id) {
       console.error('Cannot edit course: missing course or course ID', course);
       return;

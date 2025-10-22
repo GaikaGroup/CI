@@ -210,12 +210,16 @@
     const { buildMessagesWithOCR } = await import('../ocrChatService');
 
     // Check if images have OCR data and prepare context
-    const hasOcrData = images && images.some(img => typeof img === 'object' && img.ocrData);
-    
+    const hasOcrData = images && images.some((img) => typeof img === 'object' && img.ocrData);
+
     if (hasOcrData) {
       console.log('Images contain OCR data, building enhanced context');
-      const { messages: enhancedMessages, ocrContext } = buildMessagesWithOCR($messages, content, images);
-      
+      const { messages: enhancedMessages, ocrContext } = buildMessagesWithOCR(
+        $messages,
+        content,
+        images
+      );
+
       if (ocrContext) {
         console.log('OCR context prepared:', ocrContext);
         // Add OCR summary to console for debugging
@@ -402,10 +406,10 @@
     // If the message has images, add ocrRequested flag to prevent duplicate processing
     if (images && images.length > 0) {
       // Check if any images have OCR data
-      const hasOcrData = images.some(img => typeof img === 'object' && img.ocrData);
-      
+      const hasOcrData = images.some((img) => typeof img === 'object' && img.ocrData);
+
       // Extract URLs from image objects
-      const imageUrls = images.map((img) => typeof img === 'string' ? img : img.url);
+      const imageUrls = images.map((img) => (typeof img === 'string' ? img : img.url));
 
       // Store the original image objects for display (with OCR data if available)
       addMessage(MESSAGE_TYPES.USER, content, images, messageId, {

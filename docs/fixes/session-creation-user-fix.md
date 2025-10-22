@@ -15,6 +15,7 @@ Created a script to add test users to the database with proper password hashing.
 ### Script Created: `scripts/create-test-users.js`
 
 This script creates two test users:
+
 - **Admin User**: AdminLogin / AdminPswd (type: admin)
 - **Regular User**: UserLogin / UserPswd (type: regular)
 
@@ -68,6 +69,7 @@ To prevent this issue in the future:
 ## Related Issues
 
 This fix also resolves:
+
 - Authentication working but operations failing
 - Foreign key constraint violations on user-related tables
 - Silent failures in user-dependent operations
@@ -77,6 +79,7 @@ This fix also resolves:
 The demo authentication in `LocalAuthService.js` was checking for these exact credentials but only storing them in localStorage/cookies without creating database records. This created a mismatch between the authentication layer and the data layer.
 
 The proper flow should be:
+
 1. User authenticates → JWT token created
 2. JWT token contains user ID from database
 3. All operations use this user ID

@@ -102,7 +102,7 @@ export function checkAuth() {
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
-          
+
           // Clear old data with 'role' field - force re-login
           if (userData.role) {
             console.log('[Auth] Found old data with role field, clearing localStorage');
@@ -110,7 +110,7 @@ export function checkAuth() {
             resolve(null);
             return;
           }
-          
+
           persistUserSession(userData);
           resolve(userData);
         } catch (e) {

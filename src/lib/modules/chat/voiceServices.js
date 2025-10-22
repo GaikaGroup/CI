@@ -679,8 +679,11 @@ export async function sendTranscribedText(transcription, sessionId = null) {
         if (sessionResponse.ok) {
           const sessionData = await sessionResponse.json();
           if (sessionData.title && sessionData.title.startsWith('New Session')) {
-            console.log('Updating session title from voice message:', transcription.substring(0, 50));
-            
+            console.log(
+              'Updating session title from voice message:',
+              transcription.substring(0, 50)
+            );
+
             // Update session title with the transcribed text
             await fetch(`/api/sessions/${sessionId}`, {
               method: 'PUT',

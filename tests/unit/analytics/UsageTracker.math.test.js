@@ -135,11 +135,7 @@ describe('UsageTracker - Math Metrics', () => {
   });
 
   it('should handle missing token data gracefully', () => {
-    tracker.recordMathQuery(
-      { isMath: true, category: 'algebra', confidence: 0.9 },
-      {},
-      0.04
-    );
+    tracker.recordMathQuery({ isMath: true, category: 'algebra', confidence: 0.9 }, {}, 0.04);
 
     const summary = tracker.getMathSummary();
     expect(summary.totalMathQueries).toBe(1);

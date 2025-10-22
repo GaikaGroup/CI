@@ -17,11 +17,13 @@
 **Файл:** `src/lib/modules/llm/enhancers/RequestEnhancer.js`
 
 1. Добавлен импорт конфигурации математики:
+
 ```javascript
 import { MATH_CONFIG, MATH_FEATURES, LOCAL_MATH_CONFIG } from '$lib/config/math';
 ```
 
 2. Обновлены параметры для автоматического выбора провайдера:
+
 ```javascript
 const DEFAULT_MATH_PARAMS = {
   maxTokens: MATH_CONFIG.MAX_TOKENS,
@@ -32,30 +34,33 @@ const DEFAULT_MATH_PARAMS = {
 ```
 
 3. Добавлена функция выбора провайдера:
+
 ```javascript
 function getMathProviderConfig() {
   if (MATH_FEATURES.ENABLE_LOCAL_MATH_MODELS) {
     return {
       provider: 'ollama',
-      model: LOCAL_MATH_CONFIG.MODEL  // qwen2.5-math:7b
+      model: LOCAL_MATH_CONFIG.MODEL // qwen2.5-math:7b
     };
   }
   return {
     provider: 'openai',
-    model: MATH_CONFIG.MODEL  // gpt-4-turbo
+    model: MATH_CONFIG.MODEL // gpt-4-turbo
   };
 }
 ```
 
 4. Обновлены параметры категорий для использования правильного провайдера:
+
 ```javascript
 const CATEGORY_PARAMS = {
-  algebra: { maxTokens: 3000, temperature: 0.3, ...getMathProviderConfig() },
+  algebra: { maxTokens: 3000, temperature: 0.3, ...getMathProviderConfig() }
   // ... остальные категории
 };
 ```
 
 5. Добавлено переключение провайдера в методе `enhance()`:
+
 ```javascript
 provider: mathParams.provider || options.provider, // Force OpenAI for math
 ```
@@ -65,6 +70,7 @@ provider: mathParams.provider || options.provider, // Force OpenAI for math
 ### Вариант 1: Использовать GPT-4 (рекомендуется для максимального качества)
 
 **Настройка .env:**
+
 ```bash
 # Отключить локальные модели для математики
 VITE_MATH_ENABLE_LOCAL_MODELS=false
@@ -72,6 +78,7 @@ VITE_MATH_MODEL=gpt-4-turbo
 ```
 
 **Результат:**
+
 - ✅ Максимальная точность (~95%+)
 - ✅ Быстрые ответы (5-10 секунд)
 - ✅ Поддержка всех типов задач
@@ -80,11 +87,13 @@ VITE_MATH_MODEL=gpt-4-turbo
 ### Вариант 2: Использовать локальную математическую модель
 
 **Установка модели:**
+
 ```bash
 ollama pull qwen2.5-math:7b
 ```
 
 **Настройка .env:**
+
 ```bash
 # Включить локальную математическую модель
 VITE_MATH_ENABLE_LOCAL_MODELS=true
@@ -94,6 +103,7 @@ VITE_ENABLE_LLM_FALLBACK=true
 ```
 
 **Результат:**
+
 - ✅ Бесплатно
 - ✅ Хорошая точность (~85-90%)
 - ✅ Fallback на GPT-4 для сложных задач
@@ -103,6 +113,7 @@ VITE_ENABLE_LLM_FALLBACK=true
 ### Вариант 3: Гибридный режим (рекомендуется для баланса)
 
 **Настройка .env:**
+
 ```bash
 # Локальная модель с fallback
 VITE_MATH_ENABLE_LOCAL_MODELS=true
@@ -113,6 +124,7 @@ VITE_ENABLE_LLM_FALLBACK=true
 ```
 
 **Результат:**
+
 - ✅ Экономия на простых задачах
 - ✅ Качество на сложных задачах
 - ✅ Автоматическое переключение
@@ -146,6 +158,7 @@ Response generated using provider: ollama, model: qwen2.5:7b  // ❌ Общая 
 ```
 
 **Ожидаемый результат:**
+
 - Система должна использовать `gpt-4-turbo` или `qwen2.5-math:7b`
 - Решение должно быть правильным
 - В логах должен быть правильный провайдер
@@ -169,16 +182,19 @@ Response generated using provider: ollama, model: qwen2.5:7b  // ❌ Общая 
 **Рекомендация:** `qwen2.5-math:7b`
 
 **Почему:**
+
 - ✅ Специально обучена на математике
 - ✅ Точность ~85-90% (vs 50-60% у обычной qwen2.5:7b)
 - ✅ Показывает пошаговые решения
 - ✅ Умеренные требования (8 GB RAM)
 
 **Альтернативы:**
+
 - `deepseek-math:7b` - хороша для анализа и доказательств
 - `qwen2.5-math:1.5b` - для слабых машин (4 GB RAM)
 
 **НЕ используйте:**
+
 - ❌ `qwen2.5:7b` - общая модель, не для математики
 - ❌ `llama3:8b` - общая модель, не для математики
 

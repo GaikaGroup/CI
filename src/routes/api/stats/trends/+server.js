@@ -11,10 +11,10 @@ export async function GET({ url, locals }) {
     }
 
     const timeRange = url.searchParams.get('range') || '30d';
-    
+
     const statsService = new StatsService();
     const trends = await statsService.getTrendsData(timeRange);
-    
+
     return json(trends);
   } catch (error) {
     console.error('Error fetching trends data:', error);

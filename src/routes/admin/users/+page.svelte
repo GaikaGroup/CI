@@ -13,9 +13,10 @@
 
   // Filter users based on search query
   $: filteredUsers = searchQuery.trim()
-    ? users.filter((user) => 
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? users.filter(
+        (user) =>
+          user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (user.name && user.name.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : users;
 
@@ -173,7 +174,8 @@
                   <div class="flex flex-col gap-1">
                     <!-- User Type Badge -->
                     <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {user.type === 'admin'
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {user.type ===
+                      'admin'
                         ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200'
                         : 'bg-gray-100 text-gray-800 dark:bg-gray-900/40 dark:text-gray-200'}"
                     >
@@ -184,11 +186,12 @@
                       <div class="flex gap-1 flex-wrap">
                         {#each user.roles as role}
                           <span
-                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {role === 'Student'
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {role ===
+                            'Student'
                               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200'
                               : role === 'Tutor'
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200'
-                              : 'bg-stone-100 text-stone-700 dark:bg-stone-900/40 dark:text-stone-200'}"
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200'
+                                : 'bg-stone-100 text-stone-700 dark:bg-stone-900/40 dark:text-stone-200'}"
                           >
                             {role}
                           </span>

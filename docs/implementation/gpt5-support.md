@@ -7,6 +7,7 @@
 ## Изменения в API
 
 ### Старые модели (GPT-3.5, GPT-4, GPT-4o)
+
 ```json
 {
   "model": "gpt-4o",
@@ -17,6 +18,7 @@
 ```
 
 ### Новые модели (GPT-5, o1-preview, o1-mini)
+
 ```json
 {
   "model": "gpt-5",
@@ -26,6 +28,7 @@
 ```
 
 **Ключевые отличия:**
+
 - ❌ `max_tokens` → ✅ `max_completion_tokens`
 - ❌ `temperature` не поддерживается (модели используют внутренний reasoning)
 
@@ -51,11 +54,13 @@ if (usesNewAPI) {
 ### Поддерживаемые модели
 
 **Новый API (max_completion_tokens):**
+
 - `gpt-5`
 - `o1-preview`
 - `o1-mini`
 
 **Старый API (max_tokens):**
+
 - `gpt-3.5-turbo`
 - `gpt-4`
 - `gpt-4-turbo`
@@ -68,50 +73,55 @@ if (usesNewAPI) {
 ```javascript
 // src/lib/config/math.js
 export const MATH_CONFIG = {
-  MODEL: 'gpt-5',  // Автоматически использует max_completion_tokens
+  MODEL: 'gpt-5', // Автоматически использует max_completion_tokens
   MAX_TOKENS: 4000,
-  TEMPERATURE: 0.3  // Игнорируется для GPT-5
+  TEMPERATURE: 0.3 // Игнорируется для GPT-5
 };
 ```
 
 ## Тестирование
 
 ### Успешный запрос к GPT-5
+
 ```javascript
-const result = await providerManager.generateChatCompletionWithEnhancement(
-  messages,
-  { model: 'gpt-5', maxTokens: 4000 }
-);
+const result = await providerManager.generateChatCompletionWithEnhancement(messages, {
+  model: 'gpt-5',
+  maxTokens: 4000
+});
 // Автоматически использует max_completion_tokens
 ```
 
 ### Ошибка до исправления
+
 ```
-OpenAI API error: Unsupported parameter: 'max_tokens' is not supported 
+OpenAI API error: Unsupported parameter: 'max_tokens' is not supported
 with this model. Use 'max_completion_tokens' instead.
 ```
 
 ### После исправления
+
 ✅ Запрос выполняется успешно с правильными параметрами
 
 ## Преимущества GPT-5 для математики
 
 Тестирование показало, что GPT-5 значительно превосходит другие модели:
 
-| Модель | Точность | Reasoning |
-|--------|----------|-----------|
-| **GPT-5** | ⭐⭐⭐⭐⭐ | Отлично |
-| o1-preview | ⭐⭐⭐⭐ | Хорошо |
-| GPT-4o | ⭐⭐⭐ | Средне |
-| GPT-4-turbo | ⭐⭐⭐ | Средне |
+| Модель      | Точность   | Reasoning |
+| ----------- | ---------- | --------- |
+| **GPT-5**   | ⭐⭐⭐⭐⭐ | Отлично   |
+| o1-preview  | ⭐⭐⭐⭐   | Хорошо    |
+| GPT-4o      | ⭐⭐⭐     | Средне    |
+| GPT-4-turbo | ⭐⭐⭐     | Средне    |
 
 **Пример:** Сложная задача с параметрами
+
 - GPT-5: ✅ Правильный ответ (23)
 - Все остальные модели: ❌ Неправильные ответы (2, 4, 16)
 
 ## Обратная совместимость
 
 Изменения полностью обратно совместимы:
+
 - ✅ Старые модели продолжают работать с `max_tokens`
 - ✅ Новые модели автоматически используют `max_completion_tokens`
 - ✅ Не требуется изменений в коде приложения
@@ -127,6 +137,7 @@ VITE_MATH_MODEL=gpt-5
 ```
 
 Или в коде:
+
 ```javascript
 MATH_CONFIG.MODEL = 'gpt-5';
 ```
@@ -136,11 +147,13 @@ MATH_CONFIG.MODEL = 'gpt-5';
 ## Troubleshooting
 
 ### Ошибка: "Unsupported parameter: 'max_tokens'"
+
 **Причина:** Используется новая модель со старым API
 
 **Решение:** Обновите OpenAIProvider (уже исправлено)
 
 ### Ошибка: "temperature is not supported"
+
 **Причина:** Новые модели не поддерживают temperature
 
 **Решение:** Параметр автоматически исключается для новых моделей

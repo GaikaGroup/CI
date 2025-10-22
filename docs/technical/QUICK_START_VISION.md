@@ -15,6 +15,7 @@ ollama list | grep llava
 ```
 
 Должно показать:
+
 ```
 llava:7b    ...    4.7 GB    ...
 ```
@@ -36,6 +37,7 @@ npm run dev
 ### 5. Проверьте логи
 
 В терминале должно появиться:
+
 ```
 [Ollama] Using vision model: llava:7b
 ```
@@ -43,11 +45,13 @@ npm run dev
 ## Если не работает
 
 ### Проблема: llava не установлена
+
 ```bash
 ollama pull llava:7b
 ```
 
 ### Проблема: Ollama не запущен
+
 ```bash
 # Проверить
 curl http://127.0.0.1:11434/api/tags
@@ -57,12 +61,15 @@ ollama serve
 ```
 
 ### Проблема: Используется неправильная модель
+
 Проверьте `.env`:
+
 ```bash
 VITE_OLLAMA_VISION_MODEL=llava:7b
 ```
 
 ### Проблема: Изображения не обрабатываются
+
 1. Перезапустите приложение
 2. Очистите кэш браузера
 3. Проверьте логи на ошибки
@@ -70,21 +77,25 @@ VITE_OLLAMA_VISION_MODEL=llava:7b
 ## Альтернативные модели
 
 ### llava:13b (лучше качество, больше памяти)
+
 ```bash
 ollama pull llava:13b
 ```
 
 В `.env`:
+
 ```bash
 VITE_OLLAMA_VISION_MODEL=llava:13b
 ```
 
 ### llava:34b (максимальное качество)
+
 ```bash
 ollama pull llava:34b
 ```
 
 В `.env`:
+
 ```bash
 VITE_OLLAMA_VISION_MODEL=llava:34b
 ```
@@ -99,14 +110,17 @@ VITE_OLLAMA_VISION_MODEL=llava:34b
 ## Системные требования
 
 ### Минимальные (llava:7b)
+
 - RAM: 8 GB
 - Диск: 5 GB свободного места
 
 ### Рекомендуемые (llava:13b)
+
 - RAM: 16 GB
 - Диск: 10 GB свободного места
 
 ### Для llava:34b
+
 - RAM: 32 GB
 - Диск: 20 GB свободного места
 

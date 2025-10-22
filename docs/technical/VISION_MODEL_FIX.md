@@ -5,6 +5,7 @@
 При загрузке изображения и задании вопроса система использовала текстовую модель `qwen2.5:7b` вместо модели для работы с изображениями `llava:7b`.
 
 ### Симптомы
+
 - В логах: `[ProviderManager] No images detected in messages`
 - Модель: `[Ollama] resolved model: qwen2.5:7b` вместо `llava:7b`
 - Изображения не анализировались нейросетью
@@ -16,6 +17,7 @@
 ### Что происходило:
 
 1. **Создание сообщения с изображениями** (правильно):
+
    ```javascript
    {
      role: 'user',
@@ -27,6 +29,7 @@
    ```
 
 2. **Обработка PromptEnhancer** (неправильно):
+
    ```javascript
    // СТАРЫЙ КОД - преобразовывал структурированный content в строку
    enhancedMessages[lastUserMessageIndex] = {
@@ -34,7 +37,7 @@
      content: `${lastUserMessage.content}\n\n${reminder}`
    };
    ```
-   
+
    Результат: `content` становился строкой `"[object Object]\n\n(Ответь на русском языке)"`
 
 3. **Проверка изображений** (не находила):
@@ -60,18 +63,18 @@ const isStructuredContent = Array.isArray(lastUserMessage.content);
 if (isStructuredContent) {
   // Для структурированного контента добавляем напоминание в текстовую часть
   const contentCopy = [...lastUserMessage.content];
-  const firstTextIndex = contentCopy.findIndex(c => c.type === 'text');
-  
+  const firstTextIndex = contentCopy.findIndex((c) => c.type === 'text');
+
   if (firstTextIndex !== -1) {
     contentCopy[firstTextIndex] = {
       ...contentCopy[firstTextIndex],
       text: `${contentCopy[firstTextIndex].text}\n\n${reminder}`
     };
   }
-  
+
   enhancedMessages[lastUserMessageIndex] = {
     ...lastUserMessage,
-    content: contentCopy  // Массив сохраняется!
+    content: contentCopy // Массив сохраняется!
   };
 }
 ```
@@ -79,6 +82,7 @@ if (isStructuredContent) {
 ## Результат
 
 После исправления:
+
 - ✅ Структура сообщения с изображениями сохраняется
 - ✅ `hasImages()` правильно определяет наличие изображений
 - ✅ `OllamaProvider` выбирает модель `llava:7b` для vision-запросов
@@ -87,11 +91,13 @@ if (isStructuredContent) {
 ## Тестирование
 
 Создан тест для проверки:
+
 ```bash
 node test-vision-fix.js
 ```
 
 Результаты:
+
 - ✅ Определение изображений: работает
 - ✅ Старое поведение: изображения терялись (подтверждено)
 - ✅ Новое поведение: изображения сохраняются
@@ -103,12 +109,13 @@ node test-vision-fix.js
 
 ```javascript
 export const OLLAMA_CONFIG = {
-  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b',
+  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b'
   // ...
 };
 ```
 
 Для изменения модели установите переменную окружения:
+
 ```bash
 VITE_OLLAMA_VISION_MODEL=llava:13b
 ```

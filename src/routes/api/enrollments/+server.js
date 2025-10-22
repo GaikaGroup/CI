@@ -1,6 +1,6 @@
 /**
  * Enrollments API Endpoints
- * 
+ *
  * GET /api/enrollments - Get user enrollments
  * POST /api/enrollments - Enroll in a course
  */
@@ -10,7 +10,7 @@ import EnrollmentService from '$lib/services/EnrollmentService.js';
 
 /**
  * GET /api/enrollments
- * 
+ *
  * Query parameters:
  * - status: Filter by status (default: all)
  * - page: Page number (default: 1)
@@ -77,7 +77,6 @@ export async function GET({ url, locals }) {
         pagination: result.pagination
       });
     }
-
   } catch (error) {
     console.error('Error in GET /api/enrollments:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -86,7 +85,7 @@ export async function GET({ url, locals }) {
 
 /**
  * POST /api/enrollments
- * 
+ *
  * Body: {
  *   courseId: string
  * }
@@ -112,11 +111,13 @@ export async function POST({ request, locals }) {
       return json({ message: result.error }, { status: 400 });
     }
 
-    return json({
-      message: 'Successfully enrolled in course',
-      enrollment: result.enrollment
-    }, { status: 201 });
-
+    return json(
+      {
+        message: 'Successfully enrolled in course',
+        enrollment: result.enrollment
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error in POST /api/enrollments:', error);
     return json({ message: 'Internal server error' }, { status: 500 });

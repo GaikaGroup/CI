@@ -191,7 +191,8 @@ export class PromptEnhancer {
       if (finalEnhancementLevel === 'ultra_strong') {
         // Ultra strong enforcement - add at beginning, middle, and end
         const validationPrompt = this.languagePrompts[targetLanguage]?.validation || '';
-        const ultraStrongPrompt = this.languagePrompts[targetLanguage]?.ultra_strong || enforcementPrompt;
+        const ultraStrongPrompt =
+          this.languagePrompts[targetLanguage]?.ultra_strong || enforcementPrompt;
         enhancedPrompt = `${ultraStrongPrompt}\n\n${originalPrompt}\n\n${validationPrompt}\n\n${ultraStrongPrompt}`;
       } else if (finalEnhancementLevel === 'strong' || hasLanguageMixing) {
         // Strong enforcement - add at beginning and end with validation
@@ -300,26 +301,26 @@ export class PromptEnhancer {
       const lastUserMessageIndex = this.findLastUserMessageIndex(enhancedMessages);
       if (lastUserMessageIndex !== -1) {
         const lastUserMessage = enhancedMessages[lastUserMessageIndex];
-        
+
         // Check if message has structured content (e.g., with images)
         const isStructuredContent = Array.isArray(lastUserMessage.content);
-        
+
         // Get text content for reminder check
-        const textContent = isStructuredContent 
-          ? lastUserMessage.content.filter(c => c.type === 'text').map(c => c.text).join(' ')
+        const textContent = isStructuredContent
+          ? lastUserMessage.content
+              .filter((c) => c.type === 'text')
+              .map((c) => c.text)
+              .join(' ')
           : lastUserMessage.content;
-        
-        const reminder = this.createContextualLanguageReminder(
-          targetLanguage,
-          textContent
-        );
+
+        const reminder = this.createContextualLanguageReminder(targetLanguage, textContent);
 
         if (reminder) {
           if (isStructuredContent) {
             // For structured content, add reminder to the first text part
             const contentCopy = [...lastUserMessage.content];
-            const firstTextIndex = contentCopy.findIndex(c => c.type === 'text');
-            
+            const firstTextIndex = contentCopy.findIndex((c) => c.type === 'text');
+
             if (firstTextIndex !== -1) {
               contentCopy[firstTextIndex] = {
                 ...contentCopy[firstTextIndex],
@@ -332,7 +333,7 @@ export class PromptEnhancer {
                 text: reminder
               });
             }
-            
+
             enhancedMessages[lastUserMessageIndex] = {
               ...lastUserMessage,
               content: contentCopy

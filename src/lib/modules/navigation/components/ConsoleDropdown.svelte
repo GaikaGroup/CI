@@ -28,9 +28,10 @@
   });
 
   // Check if current page is a Console page
-  $: isConsolePage = $page.url.pathname.startsWith('/admin/') || $page.url.pathname.startsWith('/stats');
+  $: isConsolePage =
+    $page.url.pathname.startsWith('/admin/') || $page.url.pathname.startsWith('/stats');
   $: currentPath = $page.url.pathname;
-  
+
   // Close dropdown when navigating to a different page
   $: if (currentPath) {
     showDropdown = false;
@@ -56,7 +57,8 @@
       <a
         href="/stats"
         on:click={closeDropdown}
-        class="block px-4 py-2 text-sm transition-colors {currentPath === '/stats' || currentPath === '/admin'
+        class="block px-4 py-2 text-sm transition-colors {currentPath === '/stats' ||
+        currentPath === '/admin'
           ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 font-medium'
           : 'text-stone-700 hover:bg-stone-100 dark:text-gray-300 dark:hover:bg-gray-700'}"
       >

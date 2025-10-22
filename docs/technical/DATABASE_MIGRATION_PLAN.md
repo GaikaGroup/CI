@@ -3,6 +3,7 @@
 ## Текущее состояние
 
 ### Данные в localStorage:
+
 - ✅ **Курсы/предметы**: `learnModeCourses`, `learnModeSubjects`
 - ✅ **Подписки**: `userEnrollments`, `courseEnrollments`, `subjectEnrollments`
 - ✅ **Админ данные**: `adminSubjects`, `adminCourses`, `moderationQueue`, `moderationData`
@@ -12,10 +13,12 @@
 - ✅ **Админ настройки**: `adminDashboardData`
 
 ### Данные в sessionStorage:
+
 - ✅ **OCR результаты**: временные результаты распознавания
 - ✅ **Сессионные данные**: временные данные сессий
 
 ### Данные в БД (PostgreSQL):
+
 - ✅ **User**: пользователи
 - ✅ **Session**: сессии чата
 - ✅ **Message**: сообщения
@@ -23,6 +26,7 @@
 ## Этап 1: Расширение схемы базы данных
 
 ### 1.1 Добавить модели для курсов/предметов
+
 ```prisma
 model Course {
   id              String   @id @default(cuid())
@@ -44,13 +48,13 @@ model Course {
   isActive        Boolean  @default(true) @map("is_active")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   creator         User     @relation("CourseCreator", fields: [creatorId], references: [id])
   enrollments     Enrollment[]
   sessions        Session[]
   reports         CourseReport[]
-  
+
   @@index([creatorId])
   @@index([status])
   @@index([language])
@@ -59,6 +63,7 @@ model Course {
 ```
 
 ### 1.2 Добавить модель подписок
+
 ```prisma
 model Enrollment {
   id              String   @id @default(cuid())
@@ -69,11 +74,11 @@ model Enrollment {
   enrolledAt      DateTime @default(now()) @map("enrolled_at")
   completedAt     DateTime? @map("completed_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
@@ -83,6 +88,7 @@ model Enrollment {
 ```
 
 ### 1.3 Добавить модель настроек пользователя
+
 ```prisma
 model UserPreference {
   id              String   @id @default(cuid())
@@ -91,10 +97,10 @@ model UserPreference {
   value           Json
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, key])
   @@index([userId])
   @@map("user_preferences")
@@ -102,6 +108,7 @@ model UserPreference {
 ```
 
 ### 1.4 Добавить модель отчетов/модерации
+
 ```prisma
 model CourseReport {
   id              String   @id @default(cuid())
@@ -116,12 +123,12 @@ model CourseReport {
   reviewedAt      DateTime? @map("reviewed_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   reporter        User     @relation("CourseReporter", fields: [reporterId], references: [id])
   reviewer        User?    @relation("CourseReviewer", fields: [reviewedBy], references: [id])
-  
+
   @@index([courseId])
   @@index([reporterId])
   @@index([status])
@@ -131,6 +138,7 @@ model CourseReport {
 ```
 
 ### 1.5 Добавить модель системных логов
+
 ```prisma
 model SystemLog {
   id              String   @id @default(cuid())
@@ -140,10 +148,10 @@ model SystemLog {
   message         String   @db.Text
   metadata        Json?    // Additional log data
   createdAt       DateTime @default(now()) @map("created_at")
-  
+
   // Relations
   user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  
+
   @@index([userId])
   @@index([level])
   @@index([category])
@@ -153,10 +161,11 @@ model SystemLog {
 ```
 
 ### 1.6 Обновить модель User
+
 ```prisma
 model User {
   // ... existing fields ...
-  
+
   // New relations
   createdCourses  Course[] @relation("CourseCreator")
   enrollments     Enrollment[]
@@ -170,25 +179,30 @@ model User {
 ## Этап 2: Создание сервисов для работы с БД
 
 ### 2.1 CourseService - управление курсами
+
 - Создание, обновление, удаление курсов
 - Поиск и фильтрация курсов
 - Управление статусами курсов
 
 ### 2.2 EnrollmentService - управление подписками
+
 - Подписка/отписка от курсов
 - Отслеживание прогресса
 - Статистика подписок
 
 ### 2.3 UserPreferenceService - настройки пользователя
+
 - Сохранение/загрузка настроек
 - Синхронизация с localStorage
 
 ### 2.4 ModerationService - модерация контента
+
 - Создание отчетов
 - Обработка жалоб
 - Административные действия
 
 ### 2.5 SystemLogService - системные логи
+
 - Логирование ошибок
 - Аудит действий пользователей
 - Мониторинг системы
@@ -196,6 +210,7 @@ model User {
 ## Этап 3: Миграция данных
 
 ### 3.1 Скрипт миграции localStorage → БД
+
 ```javascript
 // migrate-localStorage-to-db.js
 async function migrateLocalStorageData() {
@@ -208,6 +223,7 @@ async function migrateLocalStorageData() {
 ```
 
 ### 3.2 Обновление существующих компонентов
+
 - Замена localStorage на API вызовы
 - Обновление stores для работы с БД
 - Добавление кэширования для производительности
@@ -215,11 +231,13 @@ async function migrateLocalStorageData() {
 ## Этап 4: Постепенный переход
 
 ### 4.1 Гибридный режим
+
 - Чтение из БД с fallback на localStorage
 - Постепенная миграция пользователей
 - Синхронизация данных
 
 ### 4.2 Полный переход
+
 - Отключение localStorage
 - Удаление старых скриптов очистки
 - Финальная очистка кода
@@ -227,11 +245,13 @@ async function migrateLocalStorageData() {
 ## Этап 5: Оптимизация и мониторинг
 
 ### 5.1 Производительность
+
 - Индексы БД
 - Кэширование запросов
 - Пагинация данных
 
 ### 5.2 Мониторинг
+
 - Логирование операций БД
 - Метрики производительности
 - Алерты на ошибки

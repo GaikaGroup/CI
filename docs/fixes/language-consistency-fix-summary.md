@@ -16,7 +16,7 @@ El bot de IA estaba respondiendo en inglés cuando el usuario hacía preguntas e
 // Check conversation history to determine session language
 let sessionLanguageFromHistory = null;
 if (sessionContext?.history && sessionContext.history.length > 0) {
-  const assistantMessages = sessionContext.history.filter(msg => msg.role === 'assistant');
+  const assistantMessages = sessionContext.history.filter((msg) => msg.role === 'assistant');
   if (assistantMessages.length > 0) {
     const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
     const historyDetection = languageDetector.detectLanguageFromText(lastAssistantMessage.content);
@@ -88,7 +88,7 @@ YOU MUST RESPOND EXCLUSIVELY IN ENGLISH!
    - Read your response
    - Make sure EVERYTHING is in English
    - If there's even one word not in English - REDO IT
-═══════════════════════════════════════════════════════════`
+═══════════════════════════════════════════════════════════`;
 ```
 
 ### 4. Recordatorio Inmediato Antes de Cada Respuesta
@@ -137,21 +137,25 @@ selectPromptTemplate(language, confidence = 1.0, hasLanguageMixing = false) {
 ## Componentes del Sistema de Consistencia de Idioma
 
 ### LanguageDetector (`src/lib/modules/chat/LanguageDetector.js`)
+
 - Detecta el idioma del texto del usuario
 - Proporciona puntuación de confianza
 - Valida la consistencia del idioma en las respuestas
 
 ### SessionLanguageManager (`src/lib/modules/chat/SessionLanguageManager.js`)
+
 - Almacena la preferencia de idioma por sesión
 - Mantiene historial de validaciones
 - Rastrea inconsistencias de idioma
 
 ### PromptEnhancer (`src/lib/modules/chat/PromptEnhancer.js`)
+
 - Añade restricciones de idioma a los prompts
 - Proporciona diferentes niveles de refuerzo (gentle, medium, strong)
 - Incluye plantillas específicas por idioma
 
 ### LanguageConsistencyLogger (`src/lib/modules/chat/LanguageConsistencyLogger.js`)
+
 - Registra problemas de consistencia de idioma
 - Proporciona métricas para monitoreo
 - Ayuda a identificar patrones de errores
@@ -161,6 +165,7 @@ selectPromptTemplate(language, confidence = 1.0, hasLanguageMixing = false) {
 ### Prueba Manual
 
 1. **Iniciar una conversación en español:**
+
    ```
    Usuario: "¿Cuánto vale algunos coches en España? Son accesibles para gente or caros?"
    ```
@@ -183,6 +188,7 @@ selectPromptTemplate(language, confidence = 1.0, hasLanguageMixing = false) {
 ### Monitoreo de Logs
 
 Los logs del servidor mostrarán:
+
 ```
 Language detected: es (confidence: 0.85)
 Enhanced prompt for es (confidence: 0.85, level: strong, mixing: false)
@@ -190,6 +196,7 @@ Language validation: PASS
 ```
 
 Si hay problemas, verás:
+
 ```
 Language validation: FAIL
 High severity language inconsistency detected
@@ -198,6 +205,7 @@ High severity language inconsistency detected
 ## Idiomas Soportados
 
 El sistema actualmente soporta:
+
 - Inglés (en)
 - Español (es)
 - Ruso (ru)

@@ -21,8 +21,7 @@ export const MATH_FEATURES = {
     (import.meta.env.VITE_MATH_ENABLE_SYSTEM_PROMPTS ?? 'true') === 'true',
 
   // Enable local math models (for future use with Ollama)
-  ENABLE_LOCAL_MATH_MODELS:
-    (import.meta.env.VITE_MATH_ENABLE_LOCAL_MODELS ?? 'false') === 'true'
+  ENABLE_LOCAL_MATH_MODELS: (import.meta.env.VITE_MATH_ENABLE_LOCAL_MODELS ?? 'false') === 'true'
 };
 
 // -----------------------------

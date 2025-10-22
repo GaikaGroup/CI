@@ -17,7 +17,7 @@
   } from '../voiceServices';
 
   const dispatch = createEventDispatcher();
-  
+
   // Accept sessionId as a prop
   export let sessionId = null;
   let fileInput;

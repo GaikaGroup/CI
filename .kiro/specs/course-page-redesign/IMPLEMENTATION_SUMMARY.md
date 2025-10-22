@@ -25,6 +25,7 @@
 ### 3. Key Features
 
 #### Landing Page (для незаписанных пользователей)
+
 - ✅ Современный hero-раздел с градиентом (orange → amber)
 - ✅ Навигационная панель с брендингом mAItutors
 - ✅ Информация о курсе в боковой панели (sticky)
@@ -35,11 +36,13 @@
 - ✅ Responsive дизайн (mobile, tablet, desktop)
 
 #### State Management
+
 - ✅ Состояние enrollment (записан/не записан)
 - ✅ Переключение между landing page и chat interface
 - ✅ Обработчики для кнопок "Enroll" и "Start Learning"
 
 #### Server-Side
+
 - ✅ Подсчет активных студентов курса из базы данных
 - ✅ Передача studentCount в компоненты
 

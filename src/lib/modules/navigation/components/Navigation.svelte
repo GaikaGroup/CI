@@ -44,19 +44,22 @@
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center space-x-8">
         <ModeToggle on:change={(e) => requireAuth(e.detail.mode)} />
-        
+
         {#if $user}
           <!-- Student Navigation -->
           <button
             on:click={handleStudentClick}
-            class="flex items-center gap-2 transition-colors font-medium {$navigationMode === NAVIGATION_MODES.STUDENT
+            class="flex items-center gap-2 transition-colors font-medium {$navigationMode ===
+            NAVIGATION_MODES.STUDENT
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-stone-600 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-400'}"
           >
             <User class="w-4 h-4" />
             Student
             {#if $navigationBadges.student > 0}
-              <span class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200">
+              <span
+                class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200"
+              >
                 {$navigationBadges.student}
               </span>
             {/if}
@@ -65,14 +68,17 @@
           <!-- Tutor Navigation -->
           <button
             on:click={handleTutorClick}
-            class="flex items-center gap-2 transition-colors font-medium {$navigationMode === NAVIGATION_MODES.TUTOR
+            class="flex items-center gap-2 transition-colors font-medium {$navigationMode ===
+            NAVIGATION_MODES.TUTOR
               ? 'text-amber-600 dark:text-amber-400'
               : 'text-stone-600 hover:text-amber-700 dark:text-gray-300 dark:hover:text-amber-400'}"
           >
             <GraduationCap class="w-4 h-4" />
             Tutor
             {#if $navigationBadges.tutor > 0}
-              <span class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200">
+              <span
+                class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200"
+              >
                 {$navigationBadges.tutor}
               </span>
             {/if}
@@ -125,19 +131,22 @@
             }}
           />
         </div>
-        
+
         {#if $user}
           <!-- Student Navigation Mobile -->
           <button
             on:click={handleStudentClick}
-            class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors font-medium {$navigationMode === NAVIGATION_MODES.STUDENT
+            class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors font-medium {$navigationMode ===
+            NAVIGATION_MODES.STUDENT
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-stone-600 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-400'}"
           >
             <User class="w-4 h-4" />
             Student
             {#if $navigationBadges.student > 0}
-              <span class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200">
+              <span
+                class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200"
+              >
                 {$navigationBadges.student}
               </span>
             {/if}
@@ -146,14 +155,17 @@
           <!-- Tutor Navigation Mobile -->
           <button
             on:click={handleTutorClick}
-            class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors font-medium {$navigationMode === NAVIGATION_MODES.TUTOR
+            class="flex items-center gap-2 w-full px-3 py-2 text-left transition-colors font-medium {$navigationMode ===
+            NAVIGATION_MODES.TUTOR
               ? 'text-amber-600 dark:text-amber-400'
               : 'text-stone-600 hover:text-amber-700 dark:text-gray-300 dark:hover:text-amber-400'}"
           >
             <GraduationCap class="w-4 h-4" />
             Tutor
             {#if $navigationBadges.tutor > 0}
-              <span class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200">
+              <span
+                class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200"
+              >
                 {$navigationBadges.tutor}
               </span>
             {/if}

@@ -17,7 +17,7 @@ graph TB
     C --> F[Cache Layer]
     E --> G[(PostgreSQL)]
     F --> H[Redis/Memory Cache]
-    
+
     D --> I[UserStatsChart]
     D --> J[CoursePopularityChart]
     D --> K[FinanceChart]
@@ -48,7 +48,7 @@ graph TB
   import AttentionEconomyChart from '$lib/modules/stats/components/AttentionEconomyChart.svelte';
   import TrendsPanel from '$lib/modules/stats/components/TrendsPanel.svelte';
   import TimeRangeSelector from '$lib/modules/stats/components/TimeRangeSelector.svelte';
-  
+
   let statsData = null;
   let loading = true;
   let selectedTimeRange = '30d';
@@ -77,12 +77,24 @@ class StatsService {
     return data;
   }
 
-  async getUserStats(timeRange = '30d') { /* ... */ }
-  async getCourseStats(timeRange = '30d') { /* ... */ }
-  async getFinanceStats(timeRange = '30d') { /* ... */ }
-  async getLanguageStats(timeRange = '30d') { /* ... */ }
-  async getAttentionEconomyStats(timeRange = '30d') { /* ... */ }
-  async getTrendsData(timeRange = '30d') { /* ... */ }
+  async getUserStats(timeRange = '30d') {
+    /* ... */
+  }
+  async getCourseStats(timeRange = '30d') {
+    /* ... */
+  }
+  async getFinanceStats(timeRange = '30d') {
+    /* ... */
+  }
+  async getLanguageStats(timeRange = '30d') {
+    /* ... */
+  }
+  async getAttentionEconomyStats(timeRange = '30d') {
+    /* ... */
+  }
+  async getTrendsData(timeRange = '30d') {
+    /* ... */
+  }
 }
 ```
 
@@ -110,27 +122,37 @@ class StatsService {
 ### 4. Chart Components
 
 #### User Activity Chart
+
 **File**: `src/lib/modules/stats/components/UserActivityChart.svelte`
+
 - Line chart showing daily active users and new registrations
 - Uses Chart.js or similar lightweight library
 
-#### Course Popularity Chart  
+#### Course Popularity Chart
+
 **File**: `src/lib/modules/stats/components/CoursePopularityChart.svelte`
+
 - Bar chart for top 10 popular courses
 - Table for bottom 5 underperforming courses
 
 #### Finance Chart
+
 **File**: `src/lib/modules/stats/components/FinanceChart.svelte`
+
 - Pie chart for OpenAI vs Local LLM costs
 - Line chart for monthly spending trends
 
 #### Language Chart
+
 **File**: `src/lib/modules/stats/components/LanguageChart.svelte`
+
 - Horizontal bar chart for language usage in sessions
 - Metrics for multilingual users
 
 #### Attention Economy Chart
+
 **File**: `src/lib/modules/stats/components/AttentionEconomyChart.svelte`
+
 - Time distribution between Fun/Learn modes
 - Average session duration trends
 
@@ -153,7 +175,7 @@ model LlmUsage {
   sessionId        String?  @map("session_id") // Optional link to session
   messageId        String?  @map("message_id") // Optional link to message
   createdAt        DateTime @default(now()) @map("created_at")
-  
+
   @@index([provider, createdAt])
   @@index([model, createdAt])
   @@index([createdAt])
@@ -162,6 +184,7 @@ model LlmUsage {
 ```
 
 This model will:
+
 - Persist all AI usage data across server restarts
 - Enable historical analysis and trend tracking
 - Support high-precision cost tracking (up to 8 decimal places)
@@ -179,7 +202,7 @@ interface StatsOverview {
     active30d: number;
     growth: number; // percentage
   };
-  
+
   sessions: {
     total: number;
     new7d: number;
@@ -187,7 +210,7 @@ interface StatsOverview {
     avgDuration: number;
     growth: number;
   };
-  
+
   messages: {
     total: number;
     new7d: number;
@@ -195,27 +218,27 @@ interface StatsOverview {
     avgPerSession: number;
     growth: number;
   };
-  
+
   courses: {
     total: number;
     new30d: number;
     popular: CourseStats[];
     underperforming: CourseStats[];
   };
-  
+
   finance: {
     totalCost: number;
     monthlyCosts: MonthlyCost[];
     providerDistribution: ProviderCost[];
     avgCostPerMessage: number;
   };
-  
+
   languages: {
     totalLanguages: number;
     topLanguages: LanguageStats[];
     avgLanguagesPerUser: number;
   };
-  
+
   attentionEconomy: {
     totalTime: number;
     funVsLearn: ModeDistribution;
@@ -259,9 +282,10 @@ interface ModeDistribution {
 ### 2. Database Queries
 
 #### User Statistics Query
+
 ```sql
 -- Total users and growth
-SELECT 
+SELECT
   COUNT(*) as total_users,
   COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_7d,
   COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as new_30d
@@ -269,19 +293,20 @@ FROM users;
 
 -- Active users (users with sessions in period)
 SELECT COUNT(DISTINCT user_id) as active_users
-FROM sessions 
+FROM sessions
 WHERE created_at >= NOW() - INTERVAL '30 days';
 ```
 
 #### Course Statistics Query
+
 ```sql
 -- Popular courses
-SELECT 
+SELECT
   course_id,
   COUNT(*) as session_count,
   AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/60) as avg_duration_minutes
-FROM sessions 
-WHERE course_id IS NOT NULL 
+FROM sessions
+WHERE course_id IS NOT NULL
   AND created_at >= NOW() - INTERVAL '30 days'
 GROUP BY course_id
 ORDER BY session_count DESC
@@ -289,9 +314,10 @@ LIMIT 10;
 ```
 
 #### Language Statistics Query
+
 ```sql
 -- Language usage in sessions
-SELECT 
+SELECT
   language,
   COUNT(*) as session_count,
   ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as percentage
@@ -306,10 +332,11 @@ ORDER BY session_count DESC;
 ### 1. Stats API Routes
 
 **File**: `src/routes/api/stats/overview/+server.js`
+
 ```javascript
 export async function GET({ url }) {
   const timeRange = url.searchParams.get('range') || '30d';
-  
+
   try {
     const stats = await StatsService.getOverviewStats(timeRange);
     return json(stats);
@@ -328,16 +355,17 @@ export async function GET({ url }) {
 ### 2. Page Load Data
 
 **File**: `src/routes/stats/+page.server.js`
+
 ```javascript
 export async function load({ url }) {
   const timeRange = url.searchParams.get('range') || '30d';
-  
+
   try {
     const [overview, trends] = await Promise.all([
       StatsService.getOverviewStats(timeRange),
       StatsService.getTrendsData(timeRange)
     ]);
-    
+
     return {
       overview,
       trends,
@@ -356,18 +384,18 @@ export async function load({ url }) {
 ## Error Handling
 
 ### 1. Graceful Degradation
+
 - If specific chart data fails to load, show placeholder with retry button
 - If entire stats fail, show basic metrics from cache
 - Loading states with skeleton components
 
 ### 2. Error States
+
 ```svelte
 {#if error}
   <div class="bg-red-50 border border-red-200 rounded-lg p-4">
     <p class="text-red-700">Failed to load statistics</p>
-    <button on:click={retry} class="mt-2 px-4 py-2 bg-red-600 text-white rounded">
-      Retry
-    </button>
+    <button on:click={retry} class="mt-2 px-4 py-2 bg-red-600 text-white rounded"> Retry </button>
   </div>
 {:else if loading}
   <StatsSkeletonLoader />
@@ -379,16 +407,19 @@ export async function load({ url }) {
 ## Testing Strategy
 
 ### 1. Unit Tests
+
 - `StatsService.test.js` - Test data fetching and caching
 - `KPICards.test.js` - Test component rendering with different data
 - `Chart components` - Test chart rendering and interactions
 
 ### 2. Integration Tests
+
 - API endpoint tests for all stats routes
 - Database query performance tests
 - Cache functionality tests
 
 ### 3. E2E Tests
+
 - Full stats page loading and interaction
 - Time range filtering functionality
 - Chart interactions and tooltips
@@ -396,16 +427,19 @@ export async function load({ url }) {
 ## Performance Considerations
 
 ### 1. Caching Strategy
+
 - Server-side caching for 10 minutes
 - Client-side caching for navigation
 - Incremental data updates for real-time metrics
 
 ### 2. Database Optimization
+
 - Indexed queries on frequently accessed columns
 - Materialized views for complex aggregations
 - Query result pagination for large datasets
 
 ### 3. Chart Performance
+
 - Lazy loading of chart components
 - Data sampling for large datasets
 - Efficient re-rendering on data updates
@@ -413,11 +447,13 @@ export async function load({ url }) {
 ## Security
 
 ### 1. Access Control
+
 - Admin role verification on all stats routes
 - Session validation for API endpoints
 - Rate limiting on stats API calls
 
 ### 2. Data Privacy
+
 - No PII in aggregated statistics
 - Anonymized user data in charts
 - Secure handling of financial data
@@ -425,14 +461,15 @@ export async function load({ url }) {
 ## Migration Plan
 
 ### 1. URL Migration
+
 1. Create new `/stats` route
 2. Implement redirect from `/admin` to `/stats`
 3. Update Console navigation dropdown
 4. Update internal links and references
 
 ### 2. Deployment Strategy
+
 1. Deploy new stats components
 2. Test with existing admin users
 3. Update navigation after verification
 4. Monitor performance and usage
-

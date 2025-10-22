@@ -19,7 +19,7 @@ if (imageUrls.length > 0) {
       const response = await fetch(imageUrl);
       if (!response.ok) return null;
       const blob = await response.blob();
-      
+
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
@@ -31,9 +31,9 @@ if (imageUrls.length > 0) {
       return null;
     }
   });
-  
+
   const results = await Promise.all(imageDataPromises);
-  base64Images = results.filter(img => img !== null);
+  base64Images = results.filter((img) => img !== null);
 }
 
 // Add message with base64 images
@@ -55,9 +55,9 @@ addMessage(MESSAGE_TYPES.USER, content, base64Images, messageId);
   <div class="mb-3 flex flex-col gap-2">
     {#each message.images as img, index}
       <div class="image-preview-container">
-        <img 
-          src={img} 
-          alt="Uploaded image {index + 1}" 
+        <img
+          src={img}
+          alt="Uploaded image {index + 1}"
           class="message-image rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
           on:click={() => window.open(img, '_blank')}
         />

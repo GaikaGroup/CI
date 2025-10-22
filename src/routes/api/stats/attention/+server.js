@@ -11,10 +11,10 @@ export async function GET({ url, locals }) {
     }
 
     const timeRange = url.searchParams.get('range') || '30d';
-    
+
     const statsService = new StatsService();
     const attentionStats = await statsService.getAttentionEconomyStats(timeRange);
-    
+
     return json(attentionStats);
   } catch (error) {
     console.error('Error fetching attention economy stats:', error);

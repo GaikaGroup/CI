@@ -10,7 +10,7 @@ export async function authenticateUser(event) {
   try {
     // Get token from cookie or Authorization header
     let token = event.cookies.get('auth_token');
-    
+
     if (!token) {
       const authHeader = event.request.headers.get('authorization');
       if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -24,10 +24,10 @@ export async function authenticateUser(event) {
 
     // Verify JWT token
     const decoded = jwt.verify(token, securityConfig.jwtSecret);
-    
+
     // Load user from database
     const user = await db.user.findUnique({
-      where: { 
+      where: {
         id: decoded.userId,
         isActive: true
       },
@@ -52,7 +52,6 @@ export async function authenticateUser(event) {
       type: user.type,
       createdAt: user.createdAt
     };
-
   } catch (error) {
     // If JWT is invalid, clear the cookie to prevent repeated errors
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {

@@ -3,7 +3,11 @@
  * Connects universal OCR pipeline with chat functionality
  */
 
-import { ocrTextbookUniversal, normalizeTextbookStrings, defaultConfig } from './ocrTextbookUniversal';
+import {
+  ocrTextbookUniversal,
+  normalizeTextbookStrings,
+  defaultConfig
+} from './ocrTextbookUniversal';
 
 /**
  * Process any image using FAST OCR
@@ -16,9 +20,9 @@ export async function processImage(file, options = {}) {
     // Use simple fast OCR instead of complex pipeline
     const { processImageFast } = await import('./simpleFastOCR.js');
     const result = await processImageFast(file);
-    
+
     if (!result) return null;
-    
+
     return {
       text: result.text,
       structured: result.structured,
@@ -45,10 +49,10 @@ function extractStructuredData(results) {
     formulas: [],
     questions: []
   };
-  
+
   for (const result of results) {
     const text = result.text;
-    
+
     // Extract measurements (number + unit)
     const measurementRegex = /(\d+(?:[.,]\d+)?)\s*(°C|см|км\/ч|А|м|мм|кг|г|л|мл|°|%|Вт|В|Ом)/gi;
     let match;
@@ -59,14 +63,14 @@ function extractStructuredData(results) {
         text: match[0]
       });
     }
-    
+
     // Extract ALL numbers (including scale markings)
     const numberRegex = /\b\d+(?:[.,]\d+)?\b/g;
     while ((match = numberRegex.exec(text)) !== null) {
       const num = match[0].replace(',', '.');
       structured.numbers.push(num);
     }
-    
+
     // Detect scale ranges (e.g., "0-100", "35 37 39 41")
     const rangeRegex = /(\d+)\s*[-–—]\s*(\d+)/g;
     while ((match = rangeRegex.exec(text)) !== null) {
@@ -76,7 +80,7 @@ function extractStructuredData(results) {
         text: match[0]
       });
     }
-    
+
     // Detect instrument types
     const instrumentKeywords = {
       thermometer: /термометр/i,
@@ -87,25 +91,25 @@ function extractStructuredData(results) {
       voltmeter: /вольтметр/i,
       scale: /весы/i
     };
-    
+
     for (const [type, regex] of Object.entries(instrumentKeywords)) {
       if (regex.test(text)) {
         structured.instruments.push({ type, text: result.text });
       }
     }
-    
+
     // Detect math formulas
     const formulaRegex = /[a-zA-Zа-яА-Я]\s*[=+\-*/]\s*[\d.]+|[a-zA-Zа-яА-Я]\^?\d+/g;
     while ((match = formulaRegex.exec(text)) !== null) {
       structured.formulas.push(match[0]);
     }
-    
+
     // Detect questions
     if (/\?|задача|найти|определить|вычислить|решить|какова|цена деления/i.test(text)) {
       structured.questions.push(text);
     }
   }
-  
+
   return structured;
 }
 
@@ -117,27 +121,27 @@ export const processInstrumentImage = processImage;
  */
 export function createOCRContextMessage(ocrData) {
   if (!ocrData || !ocrData.text) return null;
-  
+
   let context = `📊 Распознанный текст с изображения:\n${ocrData.text}\n`;
-  
+
   if (ocrData.structured.numbers.length > 0) {
     context += `\n🔢 Обнаруженные числа на изображении: ${ocrData.structured.numbers.join(', ')}`;
   }
-  
+
   if (ocrData.structured.scales.length > 0) {
-    context += `\n📏 Шкалы: ${ocrData.structured.scales.map(s => `${s.min}-${s.max}`).join(', ')}`;
+    context += `\n📏 Шкалы: ${ocrData.structured.scales.map((s) => `${s.min}-${s.max}`).join(', ')}`;
   }
-  
+
   if (ocrData.structured.measurements.length > 0) {
-    context += `\n📐 Измерения: ${ocrData.structured.measurements.map(m => `${m.value} ${m.unit}`).join(', ')}`;
+    context += `\n📐 Измерения: ${ocrData.structured.measurements.map((m) => `${m.value} ${m.unit}`).join(', ')}`;
   }
-  
+
   if (ocrData.structured.instruments.length > 0) {
-    context += `\n🔬 Приборы: ${ocrData.structured.instruments.map(i => i.type).join(', ')}`;
+    context += `\n🔬 Приборы: ${ocrData.structured.instruments.map((i) => i.type).join(', ')}`;
   }
-  
+
   context += `\n\n💡 Используй эти данные для ответа на вопрос. Все числа и шкалы уже распознаны.`;
-  
+
   return context;
 }
 
@@ -146,9 +150,9 @@ export function createOCRContextMessage(ocrData) {
  */
 export function enhanceMessageWithOCR(message, ocrData) {
   if (!ocrData) return message;
-  
+
   const context = createOCRContextMessage(ocrData);
   if (!context) return message;
-  
+
   return `${message}\n\n${context}`;
 }

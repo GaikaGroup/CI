@@ -226,6 +226,24 @@
         }
       });
 
+      // Auto-wrap standalone LaTeX commands (e.g., \frac{km}{h}, ^\circ)
+      html = html.replace(/\\frac\{[^}]+\}\{[^}]+\}/g, (match) => {
+        try {
+          return katex.default.renderToString(match, {
+            displayMode: false,
+            throwOnError: false,
+            strict: false,
+            trust: true
+          });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      // Fix common LaTeX errors: ^\circC -> ^\circ C
+      html = html.replace(/\^\\circC/g, '^\\circ C');
+      html = html.replace(/\^\\circ([A-Z])/g, '^\\circ $1');
+
       // Обработка жирного текста (markdown)
       html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 

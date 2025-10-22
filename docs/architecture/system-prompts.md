@@ -34,11 +34,13 @@
 ## LEARN Mode (Режим Обучения)
 
 ### Когда Используется:
+
 - Студент подписан на курс
 - Сессия создана в контексте курса
 - `sessionContext.context.agentInstructions` присутствует
 
 ### Источник Промпта:
+
 **Инструкции агента из курса** (`agentInstructions`)
 
 ### Пример:
@@ -61,6 +63,7 @@ systemPrompt = "You are an algebra tutor specializing in equations..."
 ```
 
 ### Характеристики:
+
 - ✅ **Уникальный для каждого курса**
 - ✅ **Настраивается создателем курса**
 - ✅ **Может быть несколько агентов** (с оркестрацией)
@@ -71,11 +74,13 @@ systemPrompt = "You are an algebra tutor specializing in equations..."
 ## FUN Mode (Свободный Режим)
 
 ### Когда Используется:
+
 - Студент НЕ подписан на курс
 - Сессия создана без курса
 - `sessionContext.context.agentInstructions` отсутствует
 
 ### Источник Промпта:
+
 **Универсальный fallback промпт** из кода приложения
 
 ### Текущий Промпт:
@@ -89,10 +94,11 @@ Your role is to:
 - Be patient and supportive
 - Use examples when helpful
 
-Maintain a friendly and encouraging tone.`
+Maintain a friendly and encouraging tone.`;
 ```
 
 ### Характеристики:
+
 - ✅ **Одинаковый для всех пользователей**
 - ✅ **Общий образовательный характер**
 - ✅ **Не специализирован** под конкретный предмет
@@ -108,9 +114,8 @@ Maintain a friendly and encouraging tone.`
 // src/routes/api/chat/+server.js
 
 // Получаем инструкции агента из контекста сессии
-const agentInstructions = sessionContext?.context?.agentInstructions || 
-                          activeExamProfile?.agentInstructions ||
-                          null;
+const agentInstructions =
+  sessionContext?.context?.agentInstructions || activeExamProfile?.agentInstructions || null;
 
 if (agentInstructions) {
   // LEARN MODE: Используем инструкции из курса
@@ -163,7 +168,7 @@ POST /api/courses
 #### 3. Через Базу Данных
 
 ```sql
-UPDATE courses 
+UPDATE courses
 SET agents = '[
   {
     "id": "physics-tutor",
@@ -188,6 +193,7 @@ enhancedMessages.unshift({
 ```
 
 Затем перезапустите сервер:
+
 ```bash
 npm run dev
 ```
@@ -290,12 +296,14 @@ npm run dev
 ### Для Создателей Курсов:
 
 1. **Будьте Специфичны**
+
    ```
    ❌ "You are a tutor"
    ✅ "You are a calculus tutor specializing in derivatives and integrals"
    ```
 
 2. **Определите Стиль**
+
    ```
    ✅ "Always show step-by-step solutions"
    ✅ "Use real-world examples"
@@ -303,6 +311,7 @@ npm run dev
    ```
 
 3. **Укажите Формат**
+
    ```
    ✅ "Use mathematical notation"
    ✅ "Provide code examples"
@@ -336,16 +345,19 @@ npm run dev
 ## Текущий Статус
 
 ✅ **Реализовано:**
+
 - Двухуровневая система промптов
 - Автоматический выбор на основе режима
 - Поддержка агентов курса
 - Fallback для FUN mode
 
 📋 **Где Настроить:**
+
 - **LEARN mode**: Админ-панель → Courses → Agents
 - **FUN mode**: `src/routes/api/chat/+server.js` (строка ~577)
 
 🔄 **Как Применить Изменения:**
+
 ```bash
 # Для LEARN mode (курсы)
 # Изменения применяются сразу через админ-панель

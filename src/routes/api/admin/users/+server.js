@@ -68,14 +68,14 @@ export async function GET({ locals, cookies }) {
     });
 
     // Get user roles for all users
-    const userIds = users.map(u => u.id);
+    const userIds = users.map((u) => u.id);
     const userRoles = await UserRoleService.getUserRolesBatch(userIds);
 
     // Format users data with dynamic roles
     const formattedUsers = users.map((user) => {
       const stats = sessionStats.get(user.id) || { sessionCount: 0, messageCount: 0 };
       const roleInfo = userRoles.get(user.id) || { roles: ['Regular'] };
-      
+
       return {
         userId: user.id,
         email: user.email,
@@ -97,11 +97,10 @@ export async function GET({ locals, cookies }) {
       totalSessions: totalSessions
     };
 
-    return json({ 
-      users: formattedUsers, 
-      statistics 
+    return json({
+      users: formattedUsers,
+      statistics
     });
-
   } catch (error) {
     console.error('Error in GET /api/admin/users:', error);
     return json({ error: 'Failed to fetch user data' }, { status: 500 });

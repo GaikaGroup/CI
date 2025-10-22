@@ -123,6 +123,7 @@ npm run create-test-users
 **Cause**: Users don't exist in database
 
 **Solution**:
+
 ```bash
 npm run create-test-users
 ```
@@ -132,6 +133,7 @@ npm run create-test-users
 **Cause**: Prisma client needs to be generated
 
 **Solution**:
+
 ```bash
 npm run db:generate
 ```
@@ -141,6 +143,7 @@ npm run db:generate
 **Cause**: PostgreSQL is not running
 
 **Solution**:
+
 1. Start PostgreSQL service
 2. Check DATABASE_URL in `.env`
 3. Verify database exists
@@ -150,6 +153,7 @@ npm run db:generate
 **Cause**: Mismatched user data between cookies and database
 
 **Solution**:
+
 1. Clear browser cookies/localStorage
 2. Run `npm run create-test-users`
 3. Login again

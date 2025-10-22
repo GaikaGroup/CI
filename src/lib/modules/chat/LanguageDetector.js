@@ -330,11 +330,13 @@ export class LanguageDetector {
         language: 'es',
         confidence: 0.99,
         scores: { es: 0.99, en: 0, ru: 0 },
-        confidenceFactors: [{
-          factor: 'spanish_specific_characters',
-          weight: 1.0,
-          confidence: 0.99
-        }],
+        confidenceFactors: [
+          {
+            factor: 'spanish_specific_characters',
+            weight: 1.0,
+            confidence: 0.99
+          }
+        ],
         method: 'spanish_character_detection',
         timestamp: Date.now()
       };
@@ -378,7 +380,7 @@ export class LanguageDetector {
     // If text has Spanish-specific characters OR Spanish keywords, it's Spanish
     if (hasSpanishAccents || spanishKeywordMatches.length > 0) {
       let spanishConfidence = 0;
-      
+
       if (hasSpanishAccents) {
         const accentRatio = spanishAccentMatches.length / text.length;
         spanishConfidence += Math.min(0.7, accentRatio * 5);
@@ -388,7 +390,7 @@ export class LanguageDetector {
           confidence: spanishConfidence
         });
       }
-      
+
       if (spanishKeywordMatches.length > 0) {
         const keywordRatio = spanishKeywordMatches.length / text.split(/\s+/).length;
         spanishConfidence += Math.min(0.5, keywordRatio * 0.8);
@@ -398,7 +400,7 @@ export class LanguageDetector {
           confidence: keywordRatio * 0.8
         });
       }
-      
+
       // If we have strong Spanish indicators, return immediately
       if (spanishConfidence > 0.5 || hasSpanishAccents) {
         return {

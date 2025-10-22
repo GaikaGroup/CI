@@ -197,9 +197,7 @@ export class UsageTracker {
     const categoryData = this._mathUsage.byCategory[category];
     categoryData.count += 1;
 
-    const totalTokens = this._sanitizeNumber(
-      tokens.total ?? tokens.total_tokens ?? 0
-    );
+    const totalTokens = this._sanitizeNumber(tokens.total ?? tokens.total_tokens ?? 0);
     categoryData.totalTokens += totalTokens;
     this._mathUsage.totalTokens += totalTokens;
 
@@ -210,8 +208,7 @@ export class UsageTracker {
     // Update average confidence
     const prevAvg = categoryData.avgConfidence;
     const newCount = categoryData.count;
-    categoryData.avgConfidence = 
-      (prevAvg * (newCount - 1) + classification.confidence) / newCount;
+    categoryData.avgConfidence = (prevAvg * (newCount - 1) + classification.confidence) / newCount;
 
     // Store classification for analysis (keep last 100)
     this._mathUsage.classifications.push({
@@ -230,28 +227,27 @@ export class UsageTracker {
    * @returns {Object} Math usage summary
    */
   getMathSummary() {
-    const categories = Object.entries(this._mathUsage.byCategory).map(
-      ([category, data]) => ({
-        category,
-        count: data.count,
-        totalTokens: data.totalTokens,
-        avgTokens: data.count > 0 ? Math.round(data.totalTokens / data.count) : 0,
-        totalCost: roundUSDToPrecision(data.totalCost),
-        avgCost: roundUSDToPrecision(data.count > 0 ? data.totalCost / data.count : 0),
-        avgConfidence: Math.round(data.avgConfidence * 100) / 100
-      })
-    );
+    const categories = Object.entries(this._mathUsage.byCategory).map(([category, data]) => ({
+      category,
+      count: data.count,
+      totalTokens: data.totalTokens,
+      avgTokens: data.count > 0 ? Math.round(data.totalTokens / data.count) : 0,
+      totalCost: roundUSDToPrecision(data.totalCost),
+      avgCost: roundUSDToPrecision(data.count > 0 ? data.totalCost / data.count : 0),
+      avgConfidence: Math.round(data.avgConfidence * 100) / 100
+    }));
 
     return {
       totalMathQueries: this._mathUsage.totalMathQueries,
       totalTokens: this._mathUsage.totalTokens,
-      avgTokens: this._mathUsage.totalMathQueries > 0 
-        ? Math.round(this._mathUsage.totalTokens / this._mathUsage.totalMathQueries)
-        : 0,
+      avgTokens:
+        this._mathUsage.totalMathQueries > 0
+          ? Math.round(this._mathUsage.totalTokens / this._mathUsage.totalMathQueries)
+          : 0,
       totalCost: roundUSDToPrecision(this._mathUsage.totalCost),
       avgCost: roundUSDToPrecision(
-        this._mathUsage.totalMathQueries > 0 
-          ? this._mathUsage.totalCost / this._mathUsage.totalMathQueries 
+        this._mathUsage.totalMathQueries > 0
+          ? this._mathUsage.totalCost / this._mathUsage.totalMathQueries
           : 0
       ),
       categories,

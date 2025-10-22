@@ -1,12 +1,14 @@
 # Navigation Restructure Implementation Plan
 
 ## 1. Create Navigation State Management
+
 - Create navigation store for managing current mode and badge counts
 - Implement badge calculation logic based on user's enrolled and authored courses
 - Add reactive updates when course enrollment changes
 - _Requirements: 1.1, 5.1, 5.2, 5.3, 5.4, 5.5_
 
 ## 2. Build Student Dashboard Page
+
 - [ ] 2.1 Create student page route and layout structure
   - Set up `/student` route with tab-based interface
   - Implement responsive design for mobile and desktop
@@ -31,6 +33,7 @@
   - _Requirements: 2.4_
 
 ## 3. Build Tutor Dashboard Page
+
 - [ ] 3.1 Create tutor page route and layout structure
   - Set up `/tutor` route with tab-based interface
   - Implement responsive design for mobile and desktop
@@ -61,6 +64,7 @@
   - _Requirements: 3.5_
 
 ## 4. Implement Dual Role Support
+
 - [ ] 4.1 Add self-enrollment functionality
   - Allow course authors to enroll in their own courses
   - Handle dual role permissions and access
@@ -74,6 +78,7 @@
   - _Requirements: 4.1, 4.2, 4.7_
 
 ## 5. Update Header Navigation
+
 - [ ] 5.1 Replace navigation items with Student/Tutor structure
   - Remove Learn, Catalogue, My Courses navigation items
   - Add Student and Tutor navigation with icons
@@ -93,6 +98,7 @@
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
 ## 6. Add Visual Design and UX Enhancements
+
 - [ ] 6.1 Implement role-based styling
   - Create distinct visual themes for Student and Tutor modes
   - Add appropriate icons and color schemes
@@ -106,6 +112,7 @@
   - _Requirements: 7.3_
 
 ## 7. Implement Legacy Route Handling
+
 - [ ] 7.1 Add redirect logic for old routes
   - Redirect `/catalogue` to `/student?tab=browse`
   - Redirect `/my-subjects` to `/student?tab=learning`
@@ -119,6 +126,7 @@
   - _Requirements: 6.4, 6.5_
 
 ## 8. Testing and Quality Assurance
+
 - [ ] 8.1 Write unit tests for navigation components
   - Test navigation state management
   - Test badge calculation logic
@@ -138,6 +146,7 @@
   - _Requirements: 1.1-1.5, 8.1-8.5_
 
 ## 9. Performance Optimization and Cleanup
+
 - [ ] 9.1 Implement performance optimizations
   - Add lazy loading for tab content
   - Optimize course data fetching and caching

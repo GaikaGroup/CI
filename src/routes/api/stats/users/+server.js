@@ -7,7 +7,7 @@ export async function GET({ url, locals }) {
   console.log('='.repeat(80));
   console.log('📊 USER STATS REQUEST RECEIVED');
   console.log('='.repeat(80));
-  
+
   try {
     // Check admin access
     if (!locals.user || !isAdmin(locals.user)) {
@@ -18,21 +18,21 @@ export async function GET({ url, locals }) {
     const timeRange = url.searchParams.get('range') || '30d';
     console.log('[API /stats/users] ✓ Authorized user:', locals.user.id);
     console.log('[API /stats/users] 📅 Time range:', timeRange);
-    
+
     const statsService = new StatsService();
     const [userStats, dailyActivity, registrationTrends] = await Promise.all([
       statsService.getUserStats(timeRange),
       statsService.getDailyUserActivity(timeRange),
       statsService.getUserRegistrationTrends('1y')
     ]);
-    
+
     console.log('[API /stats/users] ✅ Returning data:', {
       userStats,
       dailyActivityDays: dailyActivity.length,
       registrationTrendsMonths: registrationTrends.length
     });
     console.log('='.repeat(80));
-    
+
     return json({
       userStats,
       dailyActivity,

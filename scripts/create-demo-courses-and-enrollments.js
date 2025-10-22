@@ -55,7 +55,9 @@ async function createDemoCourses() {
       }
     });
 
-    console.log(`✅ Created course: ${course2.name} by ${adminUser.firstName} ${adminUser.lastName}`);
+    console.log(
+      `✅ Created course: ${course2.name} by ${adminUser.firstName} ${adminUser.lastName}`
+    );
 
     // Enroll demo user in admin's course (making them a Student)
     const enrollment1 = await db.enrollment.create({
@@ -77,7 +79,9 @@ async function createDemoCourses() {
       }
     });
 
-    console.log(`✅ Enrolled ${demoUser.firstName} ${demoUser.lastName} in their own course "${course1.name}"`);
+    console.log(
+      `✅ Enrolled ${demoUser.firstName} ${demoUser.lastName} in their own course "${course1.name}"`
+    );
 
     // Create some additional regular users
     const regularUsers = [
@@ -127,7 +131,6 @@ async function createDemoCourses() {
     console.log(`👤 ${demoUser.firstName} ${demoUser.lastName}: Regular + Student + Tutor`);
     console.log(`👤 Анна Иванова: Regular + Student`);
     console.log(`👤 Михаил Петров: Regular + Student`);
-
   } catch (error) {
     console.error('❌ Error creating demo courses:', error);
     process.exit(1);

@@ -44,6 +44,7 @@ ALTER TABLE "table" ALTER COLUMN "field" SET NOT NULL;
 ## This Project Has Production Data
 
 This project contains:
+
 - User accounts and authentication data
 - Course content and materials
 - Learning sessions and chat history

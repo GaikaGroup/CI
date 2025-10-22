@@ -80,10 +80,9 @@ async function seedDemoUsers() {
 
     console.log('\n🎉 Demo users seeding completed!');
     console.log('\n📋 Demo user credentials:');
-    demoUsers.forEach(user => {
+    demoUsers.forEach((user) => {
       console.log(`📧 ${user.email} | 🔑 ${user.password}`);
     });
-
   } catch (error) {
     console.error('❌ Error seeding demo users:', error);
     process.exit(1);

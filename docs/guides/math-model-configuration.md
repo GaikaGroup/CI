@@ -36,7 +36,7 @@ VITE_MATH_MODEL=gpt-4o
 ```javascript
 export const MATH_CONFIG = {
   // ...
-  MODEL: import.meta.env.VITE_MATH_MODEL || 'gpt-4o',  // Измените здесь
+  MODEL: import.meta.env.VITE_MATH_MODEL || 'gpt-4o' // Измените здесь
   // ...
 };
 ```
@@ -114,7 +114,10 @@ import { usageTracker } from '$lib/modules/analytics/UsageTracker';
 
 const summary = usageTracker.getMathSummary();
 console.log('Math queries:', summary.totalMathQueries);
-console.log('Average confidence:', summary.categories.map(c => c.avgConfidence));
+console.log(
+  'Average confidence:',
+  summary.categories.map((c) => c.avgConfidence)
+);
 ```
 
 ## Локальные модели (альтернатива)
@@ -164,16 +167,19 @@ Error: The model `o1-preview` does not exist or you do not have access to it
 ## Стоимость
 
 ### GPT-4o (текущая)
+
 - Input: $2.50 / 1M tokens
 - Output: $10.00 / 1M tokens
 - Средняя задача (4000 tokens): ~$0.04
 
 ### o1-preview (если доступна)
-- Input: $15.00 / 1M tokens  
+
+- Input: $15.00 / 1M tokens
 - Output: $60.00 / 1M tokens
 - Средняя задача (4000 tokens): ~$0.24
 
 ### Локальные модели
+
 - Бесплатно
 - Требуется 8+ GB RAM
 - Медленнее (20-40 сек)

@@ -2,10 +2,10 @@
 
 /**
  * Script de prueba para verificar la consistencia de idioma
- * 
+ *
  * Uso:
  *   node scripts/test-language-consistency.js
- * 
+ *
  * Este script envía mensajes de prueba en diferentes idiomas
  * y verifica que las respuestas estén en el idioma correcto.
  */
@@ -47,7 +47,7 @@ async function testLanguageConsistency() {
   console.log('🧪 Iniciando pruebas de consistencia de idioma...\n');
 
   const apiUrl = process.env.API_URL || 'http://localhost:5173/api/chat';
-  
+
   let passedTests = 0;
   let failedTests = 0;
 
@@ -60,7 +60,7 @@ async function testLanguageConsistency() {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           content: test.message,
@@ -102,11 +102,12 @@ async function testLanguageConsistency() {
         console.log(`   Respuesta: "${aiResponse.substring(0, 100)}..."`);
         passedTests++;
       } else {
-        console.log(`   ❌ INCORRECTO: Se esperaba ${test.expectedLanguage}, se detectó ${detectedLanguage}`);
+        console.log(
+          `   ❌ INCORRECTO: Se esperaba ${test.expectedLanguage}, se detectó ${detectedLanguage}`
+        );
         console.log(`   Respuesta: "${aiResponse.substring(0, 100)}..."`);
         failedTests++;
       }
-
     } catch (error) {
       console.log(`   ❌ Error en la prueba: ${error.message}`);
       failedTests++;
@@ -118,16 +119,18 @@ async function testLanguageConsistency() {
   console.log(`   ✅ Pruebas exitosas: ${passedTests}`);
   console.log(`   ❌ Pruebas fallidas: ${failedTests}`);
   console.log(`   📈 Tasa de éxito: ${((passedTests / testMessages.length) * 100).toFixed(1)}%`);
-  
+
   if (failedTests === 0) {
-    console.log('\n🎉 ¡Todas las pruebas pasaron! La consistencia de idioma está funcionando correctamente.');
+    console.log(
+      '\n🎉 ¡Todas las pruebas pasaron! La consistencia de idioma está funcionando correctamente.'
+    );
   } else {
     console.log('\n⚠️  Algunas pruebas fallaron. Revisa los logs del servidor para más detalles.');
   }
 }
 
 // Ejecutar pruebas
-testLanguageConsistency().catch(error => {
+testLanguageConsistency().catch((error) => {
   console.error('Error fatal en las pruebas:', error);
   process.exit(1);
 });

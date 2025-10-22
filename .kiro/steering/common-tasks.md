@@ -7,6 +7,7 @@ inclusion: always
 ## Adding a New Feature
 
 ### 1. Create Feature Spec
+
 ```bash
 # Create spec in .kiro/specs/
 .kiro/specs/my-feature/
@@ -16,6 +17,7 @@ inclusion: always
 ```
 
 ### 2. Create Module Structure
+
 ```bash
 src/lib/modules/my-feature/
 ├── components/
@@ -25,6 +27,7 @@ src/lib/modules/my-feature/
 ```
 
 ### 3. Add API Endpoints
+
 ```bash
 src/routes/api/my-feature/
 ├── +server.js
@@ -33,6 +36,7 @@ src/routes/api/my-feature/
 ```
 
 ### 4. Add Tests
+
 ```bash
 tests/
 ├── unit/my-feature/
@@ -43,30 +47,38 @@ tests/
 ## Adding a New API Endpoint
 
 ### 1. Create Route File
+
 ```javascript
 // src/routes/api/my-endpoint/+server.js
 export async function GET({ locals }) {
   if (!locals.user) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Authentication required'
-    }), { status: 401 });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Authentication required'
+      }),
+      { status: 401 }
+    );
   }
-  
+
   try {
     const result = await MyService.getData(locals.user.id);
     return new Response(JSON.stringify(result));
   } catch (error) {
     console.error('API Error:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Internal server error'
-    }), { status: 500 });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'Internal server error'
+      }),
+      { status: 500 }
+    );
   }
 }
 ```
 
 ### 2. Add Service Method
+
 ```javascript
 // src/lib/services/MyService.js
 export class MyService {
@@ -84,6 +96,7 @@ export class MyService {
 ```
 
 ### 3. Test the Endpoint
+
 ```javascript
 // tests/integration/api/my-endpoint.test.js
 import { describe, it, expect } from 'vitest';
@@ -91,7 +104,7 @@ import { describe, it, expect } from 'vitest';
 describe('GET /api/my-endpoint', () => {
   it('returns data for authenticated user', async () => {
     const response = await fetch('/api/my-endpoint', {
-      headers: { 'Cookie': 'session=test-token' }
+      headers: { Cookie: 'session=test-token' }
     });
     const data = await response.json();
     expect(data.success).toBe(true);
@@ -102,6 +115,7 @@ describe('GET /api/my-endpoint', () => {
 ## Adding a Database Model
 
 ### 1. Update Prisma Schema
+
 ```prisma
 // prisma/schema.prisma
 model MyModel {
@@ -109,15 +123,16 @@ model MyModel {
   name      String   @db.VarChar(255)
   userId    String   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   user      User     @relation(fields: [userId], references: [id])
-  
+
   @@index([userId])
   @@map("my_models")
 }
 ```
 
 ### 2. Create Migration
+
 ```bash
 # IMPORTANT: Always backup before migration!
 npm run db:backup:pre-migration
@@ -130,6 +145,7 @@ npm run db:generate
 ```
 
 ### 3. Create Service
+
 ```javascript
 // src/lib/services/MyModelService.js
 import { prisma } from '$lib/database/client';
@@ -151,14 +167,15 @@ export class MyModelService {
 ## Adding a Svelte Component
 
 ### 1. Create Component File
+
 ```svelte
 <!-- src/lib/modules/my-feature/components/MyComponent.svelte -->
 <script>
   export let data;
   export let onAction = () => {};
-  
+
   let loading = false;
-  
+
   async function handleClick() {
     loading = true;
     try {
@@ -185,12 +202,13 @@ export class MyModelService {
 ```
 
 ### 2. Use Component
+
 ```svelte
 <script>
   import MyComponent from '$lib/modules/my-feature/components/MyComponent.svelte';
-  
+
   const data = { title: 'Hello' };
-  
+
   function handleAction(data) {
     console.log('Action:', data);
   }
@@ -202,21 +220,25 @@ export class MyModelService {
 ## Running Tests
 
 ### Run All Tests
+
 ```bash
 npm run test:run
 ```
 
 ### Run Specific Test File
+
 ```bash
 npm run test:run tests/unit/my-feature/myService.test.js
 ```
 
 ### Run Tests in Watch Mode
+
 ```bash
 npm run test
 ```
 
 ### Run with Coverage
+
 ```bash
 npm run test:coverage
 ```
@@ -224,12 +246,14 @@ npm run test:coverage
 ## Debugging
 
 ### Debug API Endpoints
+
 ```javascript
 // Add console.log in API route
 console.log('[DEBUG]', { locals, params, body });
 ```
 
 ### Debug Svelte Components
+
 ```svelte
 <script>
   $: console.log('[DEBUG] Component state:', { data, loading });
@@ -237,29 +261,34 @@ console.log('[DEBUG]', { locals, params, body });
 ```
 
 ### Debug Database Queries
+
 ```javascript
 // Enable Prisma query logging in .env
-DATABASE_URL="postgresql://..."
-DEBUG="prisma:query"
+DATABASE_URL = 'postgresql://...';
+DEBUG = 'prisma:query';
 ```
 
 ## Common Issues
 
 ### "Module not found"
+
 - Check import paths use `$lib` alias
 - Verify file exists and is exported
 - Restart dev server
 
 ### "Database connection failed"
+
 - Check DATABASE_URL in .env
 - Verify PostgreSQL is running
 - Run migrations: `npm run db:migrate`
 
 ### "Prisma Client not generated"
+
 - Run: `npm run db:generate`
 - Restart dev server
 
 ### "API returns 401"
+
 - Check authentication in hooks.server.js
 - Verify session cookie is set
 - Check user is logged in

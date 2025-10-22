@@ -20,21 +20,21 @@ class StatsService {
 
   /**
    * Check if data is cached and still valid
-   * @param {string} cacheKey 
+   * @param {string} cacheKey
    * @returns {boolean}
    */
   isCached(cacheKey) {
     const cached = this.cache.get(cacheKey);
     if (!cached) return false;
-    
+
     const now = Date.now();
-    return (now - cached.timestamp) < this.cacheTimeout;
+    return now - cached.timestamp < this.cacheTimeout;
   }
 
   /**
    * Set cache with timestamp
-   * @param {string} cacheKey 
-   * @param {any} data 
+   * @param {string} cacheKey
+   * @param {any} data
    */
   setCache(cacheKey, data) {
     this.cache.set(cacheKey, {
@@ -45,7 +45,7 @@ class StatsService {
 
   /**
    * Get cached data
-   * @param {string} cacheKey 
+   * @param {string} cacheKey
    * @returns {any}
    */
   getCachedData(cacheKey) {
@@ -55,7 +55,7 @@ class StatsService {
 
   /**
    * Parse time range to date
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Date}
    */
   parseTimeRange(timeRange) {
@@ -78,7 +78,7 @@ class StatsService {
 
   /**
    * Get overview statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').StatsOverview>}
    */
   async getOverviewStats(timeRange = '30d') {
@@ -88,15 +88,16 @@ class StatsService {
     }
 
     try {
-      const [users, sessions, messages, courses, finance, languages, attentionEconomy] = await Promise.all([
-        this.getUserStats(timeRange),
-        this.getSessionStats(timeRange),
-        this.getMessageStats(timeRange),
-        this.getCourseStats(timeRange),
-        this.getFinanceStats(timeRange),
-        this.getLanguageStats(timeRange),
-        this.getAttentionEconomyStats(timeRange)
-      ]);
+      const [users, sessions, messages, courses, finance, languages, attentionEconomy] =
+        await Promise.all([
+          this.getUserStats(timeRange),
+          this.getSessionStats(timeRange),
+          this.getMessageStats(timeRange),
+          this.getCourseStats(timeRange),
+          this.getFinanceStats(timeRange),
+          this.getLanguageStats(timeRange),
+          this.getAttentionEconomyStats(timeRange)
+        ]);
 
       const data = {
         users,
@@ -118,7 +119,7 @@ class StatsService {
 
   /**
    * Get user statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').UserStats>}
    */
   async getUserStats(timeRange = '30d') {
@@ -157,10 +158,13 @@ class StatsService {
       const previousPeriodCount = Number(userStats[0].previous_period);
       const activeUsers7d = Number(activeUsersStats[0].active_7d);
       const activeUsers30d = Number(activeUsersStats[0].active_30d);
-      
-      const growth = previousPeriodCount > 0 
-        ? ((activeUsers30d - previousPeriodCount) / previousPeriodCount) * 100 
-        : (activeUsers30d > 0 ? 100 : 0);
+
+      const growth =
+        previousPeriodCount > 0
+          ? ((activeUsers30d - previousPeriodCount) / previousPeriodCount) * 100
+          : activeUsers30d > 0
+            ? 100
+            : 0;
 
       const data = {
         total: totalUsers,
@@ -188,7 +192,7 @@ class StatsService {
 
   /**
    * Get session statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').SessionStats>}
    */
   async getSessionStats(timeRange = '30d') {
@@ -229,9 +233,12 @@ class StatsService {
       const previousPeriodSessions = Number(sessionStats[0].previous_period);
       const avgDuration = Math.round(Number(sessionStats[0].avg_duration) || 0);
 
-      const growth = previousPeriodSessions > 0 
-        ? ((newSessions30d - previousPeriodSessions) / previousPeriodSessions) * 100 
-        : (newSessions30d > 0 ? 100 : 0);
+      const growth =
+        previousPeriodSessions > 0
+          ? ((newSessions30d - previousPeriodSessions) / previousPeriodSessions) * 100
+          : newSessions30d > 0
+            ? 100
+            : 0;
 
       const data = {
         total: totalSessions,
@@ -257,7 +264,7 @@ class StatsService {
 
   /**
    * Get message statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').MessageStats>}
    */
   async getMessageStats(timeRange = '30d') {
@@ -295,9 +302,12 @@ class StatsService {
       const previousPeriodMessages = Number(messageStats[0].previous_period);
       const avgPerSession = Math.round((Number(avgStats[0].avg_per_session) || 0) * 100) / 100;
 
-      const growth = previousPeriodMessages > 0 
-        ? ((newMessages30d - previousPeriodMessages) / previousPeriodMessages) * 100 
-        : (newMessages30d > 0 ? 100 : 0);
+      const growth =
+        previousPeriodMessages > 0
+          ? ((newMessages30d - previousPeriodMessages) / previousPeriodMessages) * 100
+          : newMessages30d > 0
+            ? 100
+            : 0;
 
       const data = {
         total: totalMessages,
@@ -323,7 +333,7 @@ class StatsService {
 
   /**
    * Get course statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').CourseStats>}
    */
   async getCourseStats(timeRange = '30d') {
@@ -361,10 +371,10 @@ class StatsService {
           createdAt: true
         }
       });
-      
+
       // Filter in memory to find courses that started in last 30 days
       const newCourses30d = allCoursesWithFirstSession.filter(
-        course => course._min.createdAt && course._min.createdAt >= thirtyDaysAgo
+        (course) => course._min.createdAt && course._min.createdAt >= thirtyDaysAgo
       ).length;
 
       // Get popular courses (top 10 by session count)
@@ -392,7 +402,7 @@ class StatsService {
         take: 10
       });
 
-      const popular = popularCoursesResult.map(course => ({
+      const popular = popularCoursesResult.map((course) => ({
         id: course.courseId || 'unknown',
         name: course.courseId || 'Unknown Course', // In real app, you'd join with course table
         sessionCount: course._count.id,
@@ -423,14 +433,12 @@ class StatsService {
         }
       });
 
-      const underperforming = allCoursesWithStats
-        .slice(0, 5)
-        .map(course => ({
-          id: course.courseId || 'unknown',
-          name: course.courseId || 'Unknown Course',
-          sessionCount: course._count.id,
-          avgTime: Math.round((course._avg.messageCount || 0) * 2)
-        }));
+      const underperforming = allCoursesWithStats.slice(0, 5).map((course) => ({
+        id: course.courseId || 'unknown',
+        name: course.courseId || 'Unknown Course',
+        sessionCount: course._count.id,
+        avgTime: Math.round((course._avg.messageCount || 0) * 2)
+      }));
 
       const data = {
         total: totalCourses,
@@ -454,7 +462,7 @@ class StatsService {
 
   /**
    * Get finance statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').FinanceStats>}
    */
   async getFinanceStats(timeRange = '30d') {
@@ -473,7 +481,7 @@ class StatsService {
       let totalCost = 0;
       let totalMessages = 0;
 
-      usageSummary.models.forEach(model => {
+      usageSummary.models.forEach((model) => {
         const provider = model.provider;
         if (!providerCosts[provider]) {
           providerCosts[provider] = {
@@ -515,11 +523,13 @@ class StatsService {
 
       // Simple monthly costs (current month only for now)
       const currentMonth = new Date().toISOString().substring(0, 7);
-      const monthlyCosts = [{
-        month: currentMonth,
-        cost: totalCost, // Keep exact cost
-        messageCount: totalMessages
-      }];
+      const monthlyCosts = [
+        {
+          month: currentMonth,
+          cost: totalCost, // Keep exact cost
+          messageCount: totalMessages
+        }
+      ];
 
       const avgCostPerMessage = totalMessages > 0 ? totalCost / totalMessages : 0;
 
@@ -537,9 +547,7 @@ class StatsService {
       return {
         totalCost: 0,
         monthlyCosts: [],
-        providerDistribution: [
-          { provider: 'local', cost: 0, messageCount: 0, percentage: 100 }
-        ],
+        providerDistribution: [{ provider: 'local', cost: 0, messageCount: 0, percentage: 100 }],
         avgCostPerMessage: 0
       };
     }
@@ -547,7 +555,7 @@ class StatsService {
 
   /**
    * Get language statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').LanguageStats>}
    */
   async getLanguageStats(timeRange = '30d') {
@@ -571,10 +579,10 @@ class StatsService {
           }
         }
       });
-      
+
       // Filter out sessions with empty userIds or languages
-      const validLanguageUsage = languageUsage.filter(lang => 
-        lang.language && lang.language.trim() !== ''
+      const validLanguageUsage = languageUsage.filter(
+        (lang) => lang.language && lang.language.trim() !== ''
       );
 
       const totalSessions = validLanguageUsage.reduce((sum, lang) => sum + lang._count.id, 0);
@@ -582,19 +590,19 @@ class StatsService {
 
       // Top 5 languages with percentages - map language codes to readable names
       const languageNames = {
-        'en': 'English',
-        'ru': 'Russian',
-        'es': 'Spanish',
-        'fr': 'French',
-        'de': 'German',
-        'it': 'Italian',
-        'pt': 'Portuguese',
-        'zh': 'Chinese',
-        'ja': 'Japanese',
-        'ko': 'Korean'
+        en: 'English',
+        ru: 'Russian',
+        es: 'Spanish',
+        fr: 'French',
+        de: 'German',
+        it: 'Italian',
+        pt: 'Portuguese',
+        zh: 'Chinese',
+        ja: 'Japanese',
+        ko: 'Korean'
       };
 
-      const topLanguages = validLanguageUsage.slice(0, 5).map(lang => ({
+      const topLanguages = validLanguageUsage.slice(0, 5).map((lang) => ({
         language: languageNames[lang.language] || lang.language,
         sessionCount: lang._count.id,
         percentage: totalSessions > 0 ? Math.round((lang._count.id / totalSessions) * 100) : 0
@@ -608,10 +616,14 @@ class StatsService {
         }
       });
 
-      const validUserLanguages = userLanguages.filter(u => u.userId && u.userId.trim() !== '');
+      const validUserLanguages = userLanguages.filter((u) => u.userId && u.userId.trim() !== '');
       const totalUsers = validUserLanguages.length;
-      const totalLanguageUsages = validUserLanguages.reduce((sum, user) => sum + user._count.language, 0);
-      const avgLanguagesPerUser = totalUsers > 0 ? Math.round((totalLanguageUsages / totalUsers) * 100) / 100 : 0;
+      const totalLanguageUsages = validUserLanguages.reduce(
+        (sum, user) => sum + user._count.language,
+        0
+      );
+      const avgLanguagesPerUser =
+        totalUsers > 0 ? Math.round((totalLanguageUsages / totalUsers) * 100) / 100 : 0;
 
       const data = {
         totalLanguages,
@@ -633,7 +645,7 @@ class StatsService {
 
   /**
    * Get attention economy statistics
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<import('../types.js').AttentionEconomyStats>}
    */
   async getAttentionEconomyStats(timeRange = '30d') {
@@ -667,7 +679,7 @@ class StatsService {
       let learnTime = 0;
       const courseTimeMap = {};
 
-      sessions.forEach(session => {
+      sessions.forEach((session) => {
         // Estimate session time: min of (time between create/update, messageCount * 2 minutes)
         const timeDiff = (session.updatedAt.getTime() - session.createdAt.getTime()) / (1000 * 60); // minutes
         const estimatedTime = Math.min(timeDiff, session.messageCount * 2); // Max 2 minutes per message
@@ -704,9 +716,9 @@ class StatsService {
       };
 
       // Average session time by mode
-      const funSessions = sessions.filter(s => s.mode === 'fun');
-      const learnSessions = sessions.filter(s => s.mode === 'learn');
-      
+      const funSessions = sessions.filter((s) => s.mode === 'fun');
+      const learnSessions = sessions.filter((s) => s.mode === 'learn');
+
       const avgSessionTime = [
         {
           mode: 'fun',
@@ -754,7 +766,7 @@ class StatsService {
 
   /**
    * Get daily/hourly user activity for charts
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<Array<{date: string, activeUsers: number, newUsers: number}>>}
    */
   async getDailyUserActivity(timeRange = '30d') {
@@ -773,9 +785,14 @@ class StatsService {
       // Use end of today instead of current time to include all sessions created today
       const now = new Date();
       now.setHours(23, 59, 59, 999); // Set to end of today
-      
-      console.log('[getDailyUserActivity] Fetching sessions from', startDate.toISOString(), 'to', now.toISOString());
-      
+
+      console.log(
+        '[getDailyUserActivity] Fetching sessions from',
+        startDate.toISOString(),
+        'to',
+        now.toISOString()
+      );
+
       // Fetch all sessions in the time range in ONE query
       const sessions = await this.prisma.session.findMany({
         where: {
@@ -793,29 +810,38 @@ class StatsService {
           createdAt: 'asc'
         }
       });
-      
+
       console.log('[getDailyUserActivity] Found', sessions.length, 'sessions in range');
-      
+
       // Log sessions with empty or null userId
-      const emptyUserIdSessions = sessions.filter(s => !s.userId || s.userId.trim() === '');
+      const emptyUserIdSessions = sessions.filter((s) => !s.userId || s.userId.trim() === '');
       if (emptyUserIdSessions.length > 0) {
-        console.log('[getDailyUserActivity] WARNING:', emptyUserIdSessions.length, 'sessions have empty userId');
-        console.log('[getDailyUserActivity] Sample empty userId sessions:', emptyUserIdSessions.slice(0, 3).map(s => ({
-          id: s.id,
-          userId: s.userId,
-          createdAt: s.createdAt
-        })));
+        console.log(
+          '[getDailyUserActivity] WARNING:',
+          emptyUserIdSessions.length,
+          'sessions have empty userId'
+        );
+        console.log(
+          '[getDailyUserActivity] Sample empty userId sessions:',
+          emptyUserIdSessions.slice(0, 3).map((s) => ({
+            id: s.id,
+            userId: s.userId,
+            createdAt: s.createdAt
+          }))
+        );
       }
-      
+
       // Check for specific session
-      const targetSession = sessions.find(s => s.id === 'cmgwnpd45001tduwxaizxanvl');
+      const targetSession = sessions.find((s) => s.id === 'cmgwnpd45001tduwxaizxanvl');
       if (targetSession) {
         console.log('[getDailyUserActivity] ✓ Found target session cmgwnpd45001tduwxaizxanvl:', {
           userId: targetSession.userId,
           createdAt: targetSession.createdAt
         });
       } else {
-        console.log('[getDailyUserActivity] ✗ Target session cmgwnpd45001tduwxaizxanvl NOT found in query results');
+        console.log(
+          '[getDailyUserActivity] ✗ Target session cmgwnpd45001tduwxaizxanvl NOT found in query results'
+        );
       }
 
       // Get first session date for each user in ONE query
@@ -828,7 +854,7 @@ class StatsService {
 
       // Create a map of userId -> first session date
       const firstSessionMap = new Map();
-      userFirstSessions.forEach(item => {
+      userFirstSessions.forEach((item) => {
         firstSessionMap.set(item.userId, item._min.createdAt);
       });
 
@@ -836,40 +862,40 @@ class StatsService {
       const days = [];
       const currentDate = new Date(startDate);
       currentDate.setUTCHours(0, 0, 0, 0); // Start from beginning of start date
-      
+
       const endDate = new Date();
       endDate.setUTCHours(23, 59, 59, 999); // End of today
-      
+
       // Safety check to prevent infinite loop
       const maxDays = 400; // Max 400 days
       let dayCount = 0;
-      
+
       while (currentDate <= endDate && dayCount < maxDays) {
         days.push(new Date(currentDate));
         currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         dayCount++;
       }
-      
+
       if (dayCount >= maxDays) {
         console.warn('[getDailyUserActivity] Hit max days limit, stopping loop');
       }
 
       // Process data in memory instead of making DB queries
-      const dailyActivity = days.map(date => {
+      const dailyActivity = days.map((date) => {
         const nextDay = new Date(date);
         nextDay.setUTCDate(nextDay.getUTCDate() + 1);
 
         // Filter sessions for this day
-        const sessionsThisDay = sessions.filter(s => 
-          s.createdAt >= date && s.createdAt < nextDay
+        const sessionsThisDay = sessions.filter(
+          (s) => s.createdAt >= date && s.createdAt < nextDay
         );
 
         // Get unique users for this day
-        const uniqueUsers = new Set(sessionsThisDay.map(s => s.userId));
+        const uniqueUsers = new Set(sessionsThisDay.map((s) => s.userId));
 
         // Count new users (users whose first session was on this day)
         let newUsersCount = 0;
-        uniqueUsers.forEach(userId => {
+        uniqueUsers.forEach((userId) => {
           const firstSessionDate = firstSessionMap.get(userId);
           if (firstSessionDate && firstSessionDate >= date && firstSessionDate < nextDay) {
             newUsersCount++;
@@ -877,7 +903,7 @@ class StatsService {
         });
 
         const dateStr = date.toISOString().split('T')[0];
-        
+
         // Log today's data
         if (dateStr === new Date().toISOString().split('T')[0]) {
           console.log('[getDailyUserActivity] TODAY', dateStr, ':', {
@@ -888,15 +914,15 @@ class StatsService {
             sessionsCount: sessionsThisDay.length,
             activeUsers: uniqueUsers.size,
             newUsers: newUsersCount,
-            sampleSessions: sessionsThisDay.slice(0, 3).map(s => ({
+            sampleSessions: sessionsThisDay.slice(0, 3).map((s) => ({
               id: s.id,
               userId: s.userId,
               createdAt: s.createdAt
             }))
           });
-          
+
           // Check if target session should be in today
-          const targetInRange = sessions.find(s => s.id === 'cmgwnpd45001tduwxaizxanvl');
+          const targetInRange = sessions.find((s) => s.id === 'cmgwnpd45001tduwxaizxanvl');
           if (targetInRange) {
             const inToday = targetInRange.createdAt >= date && targetInRange.createdAt < nextDay;
             console.log('[getDailyUserActivity] Target session check:', {
@@ -921,7 +947,7 @@ class StatsService {
 
       console.log('[getDailyUserActivity] Returning', dailyActivity.length, 'days of data');
       console.log('[getDailyUserActivity] Last 3 days:', dailyActivity.slice(-3));
-      
+
       this.setCache(cacheKey, dailyActivity);
       return dailyActivity;
     } catch (error) {
@@ -932,7 +958,7 @@ class StatsService {
 
   /**
    * Get hourly user activity for short time ranges
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<Array<{date: string, activeUsers: number, newUsers: number}>>}
    */
   async getHourlyUserActivity(timeRange = '1d') {
@@ -945,9 +971,14 @@ class StatsService {
     try {
       const startDate = this.parseTimeRange(timeRange);
       const now = new Date();
-      
-      console.log('[getHourlyUserActivity] Fetching sessions from', startDate.toISOString(), 'to', now.toISOString());
-      
+
+      console.log(
+        '[getHourlyUserActivity] Fetching sessions from',
+        startDate.toISOString(),
+        'to',
+        now.toISOString()
+      );
+
       // Fetch all sessions in the time range
       const sessions = await this.prisma.session.findMany({
         where: {
@@ -965,9 +996,9 @@ class StatsService {
           createdAt: 'asc'
         }
       });
-      
+
       console.log('[getHourlyUserActivity] Found', sessions.length, 'sessions in range');
-      
+
       // Get first session date for each user
       const userFirstSessions = await this.prisma.session.groupBy({
         by: ['userId'],
@@ -977,7 +1008,7 @@ class StatsService {
       });
 
       const firstSessionMap = new Map();
-      userFirstSessions.forEach(item => {
+      userFirstSessions.forEach((item) => {
         firstSessionMap.set(item.userId, item._min.createdAt);
       });
 
@@ -985,14 +1016,14 @@ class StatsService {
       const hours = [];
       const currentHour = new Date(startDate);
       currentHour.setMinutes(0, 0, 0);
-      
+
       const endHour = new Date(now);
       endHour.setMinutes(59, 59, 999);
-      
+
       // Safety check
       const maxHours = 200;
       let hourCount = 0;
-      
+
       while (currentHour <= endHour && hourCount < maxHours) {
         hours.push(new Date(currentHour));
         currentHour.setHours(currentHour.getHours() + 1);
@@ -1000,18 +1031,18 @@ class StatsService {
       }
 
       // Process data by hour
-      const hourlyActivity = hours.map(hour => {
+      const hourlyActivity = hours.map((hour) => {
         const nextHour = new Date(hour);
         nextHour.setHours(nextHour.getHours() + 1);
 
-        const sessionsThisHour = sessions.filter(s => 
-          s.createdAt >= hour && s.createdAt < nextHour
+        const sessionsThisHour = sessions.filter(
+          (s) => s.createdAt >= hour && s.createdAt < nextHour
         );
 
-        const uniqueUsers = new Set(sessionsThisHour.map(s => s.userId));
+        const uniqueUsers = new Set(sessionsThisHour.map((s) => s.userId));
 
         let newUsersCount = 0;
-        uniqueUsers.forEach(userId => {
+        uniqueUsers.forEach((userId) => {
           const firstSessionDate = firstSessionMap.get(userId);
           if (firstSessionDate && firstSessionDate >= hour && firstSessionDate < nextHour) {
             newUsersCount++;
@@ -1026,7 +1057,7 @@ class StatsService {
       });
 
       console.log('[getHourlyUserActivity] Returning', hourlyActivity.length, 'hours of data');
-      
+
       this.setCache(cacheKey, hourlyActivity);
       return hourlyActivity;
     } catch (error) {
@@ -1037,7 +1068,7 @@ class StatsService {
 
   /**
    * Get user registration trends over time
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<Array<{month: string, registrations: number}>>}
    */
   async getUserRegistrationTrends(timeRange = '1y') {
@@ -1048,7 +1079,7 @@ class StatsService {
 
     try {
       const startDate = this.parseTimeRange(timeRange);
-      
+
       // Get first sessions for each user (registration date)
       const firstSessions = await this.prisma.session.groupBy({
         by: ['userId'],
@@ -1064,7 +1095,7 @@ class StatsService {
 
       // Group by month
       const monthlyRegistrations = {};
-      firstSessions.forEach(session => {
+      firstSessions.forEach((session) => {
         if (session._min.createdAt) {
           const month = session._min.createdAt.toISOString().substring(0, 7); // YYYY-MM
           monthlyRegistrations[month] = (monthlyRegistrations[month] || 0) + 1;
@@ -1085,7 +1116,7 @@ class StatsService {
 
   /**
    * Get trends data for forecasting
-   * @param {string} timeRange 
+   * @param {string} timeRange
    * @returns {Promise<any>}
    */
   async getTrendsData(timeRange = '30d') {
@@ -1101,10 +1132,12 @@ class StatsService {
       // Calculate user growth trend
       const recentActivity = dailyActivity.slice(-7); // Last 7 days
       const previousActivity = dailyActivity.slice(-14, -7); // Previous 7 days
-      
-      const recentAvg = recentActivity.reduce((sum, day) => sum + day.activeUsers, 0) / recentActivity.length;
-      const previousAvg = previousActivity.reduce((sum, day) => sum + day.activeUsers, 0) / previousActivity.length;
-      
+
+      const recentAvg =
+        recentActivity.reduce((sum, day) => sum + day.activeUsers, 0) / recentActivity.length;
+      const previousAvg =
+        previousActivity.reduce((sum, day) => sum + day.activeUsers, 0) / previousActivity.length;
+
       let userGrowthTrend = 'stable';
       if (recentAvg > previousAvg * 1.1) userGrowthTrend = 'growing';
       else if (recentAvg < previousAvg * 0.9) userGrowthTrend = 'declining';
@@ -1115,15 +1148,22 @@ class StatsService {
       const forecastNextMonth = Math.max(0, Math.round(currentUsers * (1 + growthRate * 4))); // 4 weeks
 
       // Weekly patterns (day of week analysis)
-      const weeklyPatterns = Array(7).fill(0).map((_, dayOfWeek) => {
-        const daysOfWeek = dailyActivity.filter(day => new Date(day.date).getDay() === dayOfWeek);
-        const avgActivity = daysOfWeek.reduce((sum, day) => sum + day.activeUsers, 0) / daysOfWeek.length;
-        return {
-          dayOfWeek,
-          dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek],
-          avgActivity: Math.round(avgActivity)
-        };
-      });
+      const weeklyPatterns = Array(7)
+        .fill(0)
+        .map((_, dayOfWeek) => {
+          const daysOfWeek = dailyActivity.filter(
+            (day) => new Date(day.date).getDay() === dayOfWeek
+          );
+          const avgActivity =
+            daysOfWeek.reduce((sum, day) => sum + day.activeUsers, 0) / daysOfWeek.length;
+          return {
+            dayOfWeek,
+            dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
+              dayOfWeek
+            ],
+            avgActivity: Math.round(avgActivity)
+          };
+        });
 
       // Platform health indicator
       let platformHealth = 'green';

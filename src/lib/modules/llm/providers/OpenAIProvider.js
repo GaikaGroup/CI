@@ -63,7 +63,7 @@ export class OpenAIProvider extends ProviderInterface {
 
       // Determine if model uses new API (GPT-5, o1-preview, o1-mini)
       const usesNewAPI = model.startsWith('gpt-5') || model.startsWith('o1-');
-      
+
       // New models need more time for reasoning (2 minutes vs 30 seconds)
       const timeout = usesNewAPI ? 120000 : this.config.TIMEOUT;
 
@@ -72,7 +72,7 @@ export class OpenAIProvider extends ProviderInterface {
       const timeoutId = setTimeout(() => {
         controller.abort();
       }, timeout);
-      
+
       // Build request body based on model type
       const requestBody = {
         model,

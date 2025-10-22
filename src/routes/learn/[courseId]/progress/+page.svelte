@@ -3,10 +3,7 @@
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { user, checkAuth } from '$modules/auth/stores';
-  import {
-    activeEnrollments,
-    enrollmentStats
-  } from '$lib/stores/enrollmentDB.js';
+  import { activeEnrollments, enrollmentStats } from '$lib/stores/enrollmentDB.js';
   import { validateCourseAccess } from '$lib/utils/courseNavigation.js';
   import {
     ArrowLeft,

@@ -23,7 +23,7 @@
         const response = await fetch('/api/preferences');
         if (response.ok) {
           const data = await response.json();
-          
+
           if (data.preferences.theme) {
             const isDark = data.preferences.theme === 'dark';
             $darkMode = isDark;
@@ -31,7 +31,7 @@
               document.documentElement.classList.add('dark');
             }
           }
-          
+
           if (data.preferences.language) {
             $selectedLanguage = data.preferences.language;
             languageSelectionComplete = true;
@@ -55,7 +55,10 @@
           }
         }
       } catch (error) {
-        console.warn('Failed to load preferences from database, using localStorage fallback:', error);
+        console.warn(
+          'Failed to load preferences from database, using localStorage fallback:',
+          error
+        );
         // Fallback to localStorage
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {

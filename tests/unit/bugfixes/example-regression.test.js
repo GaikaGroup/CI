@@ -1,9 +1,9 @@
 /**
  * Example Regression Test
- * 
+ *
  * This is a template showing how to write regression tests for bug fixes.
  * Copy this structure when creating new regression tests.
- * 
+ *
  * Bug: [Describe what the bug was]
  * Fix: [Describe how it was fixed]
  * Date: [Date of fix]
@@ -32,10 +32,10 @@ describe('Example Regression Test', () => {
   it('should handle the scenario that caused the original bug', () => {
     // Arrange: Set up the conditions that triggered the bug
     const input = 'problematic input';
-    
+
     // Act: Perform the action that caused the bug
     const result = processInput(input);
-    
+
     // Assert: Verify the bug is fixed
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
@@ -48,10 +48,10 @@ describe('Example Regression Test', () => {
   it('should correctly handle the fixed behavior', () => {
     // Arrange
     const validInput = 'valid input';
-    
+
     // Act
     const result = processInput(validInput);
-    
+
     // Assert
     expect(result.success).toBe(true);
     expect(result.data).toBeDefined();
@@ -64,10 +64,10 @@ describe('Example Regression Test', () => {
   it('should handle edge case: empty input', () => {
     // Arrange
     const emptyInput = '';
-    
+
     // Act
     const result = processInput(emptyInput);
-    
+
     // Assert
     expect(result.success).toBe(false);
     expect(result.error).toContain('empty');
@@ -76,10 +76,10 @@ describe('Example Regression Test', () => {
   it('should handle edge case: null input', () => {
     // Arrange
     const nullInput = null;
-    
+
     // Act
     const result = processInput(nullInput);
-    
+
     // Assert
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -88,10 +88,10 @@ describe('Example Regression Test', () => {
   it('should handle edge case: undefined input', () => {
     // Arrange
     const undefinedInput = undefined;
-    
+
     // Act
     const result = processInput(undefinedInput);
-    
+
     // Assert
     expect(result.success).toBe(false);
   });
@@ -102,13 +102,9 @@ describe('Example Regression Test', () => {
    */
   it('should not break existing valid use cases', () => {
     // Test that normal, valid inputs still work
-    const normalInputs = [
-      'normal input 1',
-      'normal input 2',
-      'normal input 3'
-    ];
+    const normalInputs = ['normal input 1', 'normal input 2', 'normal input 3'];
 
-    normalInputs.forEach(input => {
+    normalInputs.forEach((input) => {
       const result = processInput(input);
       expect(result.success).toBe(true);
     });
@@ -120,12 +116,9 @@ describe('Example Regression Test', () => {
    */
   it('should handle similar scenarios correctly', () => {
     // Test variations of the bug scenario
-    const similarInputs = [
-      'variation 1',
-      'variation 2'
-    ];
+    const similarInputs = ['variation 1', 'variation 2'];
 
-    similarInputs.forEach(input => {
+    similarInputs.forEach((input) => {
       const result = processInput(input);
       expect(result).toBeDefined();
     });

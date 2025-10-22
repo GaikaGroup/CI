@@ -270,9 +270,11 @@ export async function sendMessage(
       const hasImages = validImageData && validImageData.length > 0;
       const visionProvider = hasImages ? 'openai' : provider;
       const visionModel = hasImages ? 'gpt-4o' : undefined;
-      
-      console.log(`[Vision] Images detected: ${hasImages}, using provider: ${visionProvider}, model: ${visionModel || 'default'}`);
-      
+
+      console.log(
+        `[Vision] Images detected: ${hasImages}, using provider: ${visionProvider}, model: ${visionModel || 'default'}`
+      );
+
       const requestBody = {
         content,
         images: validImageData,
@@ -344,7 +346,7 @@ export async function sendMessage(
         console.warn('[OCR] No OCR text returned from server');
       }
 
-      return true;
+      return data;
     } else {
       // No images, just send the text message
       console.log('No images to process, sending text-only message');
@@ -393,7 +395,7 @@ export async function sendMessage(
         await storeConversation(sessionStorageAdapter, sessionId, content, data.response);
       }
 
-      return true;
+      return data;
     }
   } catch (error) {
     console.error('Error sending message:', error);

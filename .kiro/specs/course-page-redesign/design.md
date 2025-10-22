@@ -35,6 +35,7 @@ The page will manage three primary states:
 3. **Learning State**: Chat interface for enrolled users
 
 State transitions:
+
 ```
 Loading → Landing (if not enrolled)
 Loading → Learning (if enrolled)
@@ -62,6 +63,7 @@ graph TD
 Main landing page component that orchestrates all sub-components.
 
 **Props:**
+
 ```typescript
 interface CourseLandingPageProps {
   course: {
@@ -82,6 +84,7 @@ interface CourseLandingPageProps {
 ```
 
 **Responsibilities:**
+
 - Layout orchestration (hero, main content, sidebar)
 - Responsive grid management
 - Event handling for enrollment actions
@@ -91,6 +94,7 @@ interface CourseLandingPageProps {
 Hero section with gradient background and primary CTA.
 
 **Props:**
+
 ```typescript
 interface CourseHeroProps {
   courseName: string;
@@ -104,6 +108,7 @@ interface CourseHeroProps {
 ```
 
 **Visual Design:**
+
 - Gradient background: `bg-gradient-to-r from-orange-500 to-amber-500`
 - Typography: `text-5xl font-bold` for title
 - White text with semi-transparent badges
@@ -114,6 +119,7 @@ interface CourseHeroProps {
 Sticky sidebar with course metadata and enrollment CTA.
 
 **Props:**
+
 ```typescript
 interface CourseInfoSidebarProps {
   level: string;
@@ -126,6 +132,7 @@ interface CourseInfoSidebarProps {
 ```
 
 **Behavior:**
+
 - Sticky positioning on desktop (`sticky top-8`)
 - Stacks below content on mobile
 - Displays "What's Included" feature list
@@ -136,6 +143,7 @@ interface CourseInfoSidebarProps {
 Displays AI agent profiles with detailed information.
 
 **Props:**
+
 ```typescript
 interface InstructorProfilesProps {
   agents: Agent[];
@@ -152,6 +160,7 @@ interface Agent {
 ```
 
 **Visual Design:**
+
 - Gradient cards: `bg-gradient-to-r from-gray-50 to-orange-50`
 - Icon placeholder for each agent
 - Tone and formality badges
@@ -162,6 +171,7 @@ interface Agent {
 Grid display of learning outcomes.
 
 **Props:**
+
 ```typescript
 interface SkillsSectionProps {
   skills: string[];
@@ -169,6 +179,7 @@ interface SkillsSectionProps {
 ```
 
 **Layout:**
+
 - 2-column grid on desktop, 1-column on mobile
 - Checkmark icons with orange accent
 - Hover effects on skill cards
@@ -178,6 +189,7 @@ interface SkillsSectionProps {
 Information about the learning experience.
 
 **Props:**
+
 ```typescript
 interface LearningFormatSectionProps {
   // Static content, no props needed
@@ -185,6 +197,7 @@ interface LearningFormatSectionProps {
 ```
 
 **Content:**
+
 - AI Assistants: 24/7 availability
 - Materials: Included resources
 - Practice: Interactive exercises
@@ -230,8 +243,8 @@ interface EnrollmentState {
 Will be fetched from the database (requires new query):
 
 ```sql
-SELECT COUNT(*) as studentCount 
-FROM Enrollment 
+SELECT COUNT(*) as studentCount
+FROM Enrollment
 WHERE courseId = ? AND status = 'active'
 ```
 
@@ -246,6 +259,7 @@ WHERE courseId = ? AND status = 'active'
 ### Server-Side Errors
 
 Existing error handling in `+page.server.js` will be maintained:
+
 - 400: Invalid course ID
 - 401: Authentication required
 - 403: Course not available
@@ -291,31 +305,37 @@ Existing error handling in `+page.server.js` will be maintained:
 ## Implementation Phases
 
 ### Phase 1: Component Creation
+
 - Create all new Svelte components
 - Implement basic layouts and styling
 - Add Lucide icons integration
 
 ### Phase 2: State Management
+
 - Add enrollment state to +page.svelte
 - Implement enrollment flow
 - Add loading and error states
 
 ### Phase 3: Data Integration
+
 - Fetch student count from database
 - Map course agents to instructor profiles
 - Integrate with existing course data
 
 ### Phase 4: Responsive Design
+
 - Implement mobile layouts
 - Add tablet breakpoints
 - Test sticky sidebar behavior
 
 ### Phase 5: Integration with Chat
+
 - Connect enrollment flow to chat interface
 - Maintain course context across states
 - Test state transitions
 
 ### Phase 6: Polish and Testing
+
 - Add animations and transitions
 - Implement hover effects
 - Write and run all tests
@@ -344,6 +364,7 @@ Existing error handling in `+page.server.js` will be maintained:
 ### Internationalization
 
 The page will use the existing i18n system:
+
 - Course content comes from database (already localized)
 - UI labels will use existing translation keys
 - New translation keys needed:
@@ -366,6 +387,7 @@ The page will use the existing i18n system:
 ### Backward Compatibility
 
 The redesign maintains full backward compatibility:
+
 - Existing enrolled users see chat interface immediately
 - Course data structure unchanged
 - API endpoints unchanged
@@ -400,6 +422,7 @@ The redesign maintains full backward compatibility:
 ### Spacing
 
 Using Tailwind's spacing scale:
+
 - Container padding: `px-4 sm:px-6 lg:px-8`
 - Section spacing: `py-12`
 - Card padding: `p-6` or `p-8`
@@ -432,6 +455,7 @@ line-height: 1.5;
 ### New Dependencies
 
 None required - all functionality uses existing dependencies:
+
 - Svelte/SvelteKit (existing)
 - Tailwind CSS (existing)
 - Lucide Svelte (existing)
@@ -464,6 +488,7 @@ None required - all functionality uses existing dependencies:
 ### Logging
 
 Add structured logging for:
+
 - Enrollment attempts
 - State transitions
 - Error conditions

@@ -5,16 +5,19 @@
 ## Быстрый старт
 
 ### Создать бэкап
+
 ```bash
 npm run db:backup
 ```
 
 ### Создать бэкап перед миграцией
+
 ```bash
 npm run db:backup:pre-migration
 ```
 
 ### Восстановить из бэкапа
+
 ```bash
 npm run db:restore backups/backup_20241019_223000.sql.gz
 ```
@@ -22,20 +25,26 @@ npm run db:restore backups/backup_20241019_223000.sql.gz
 ## Команды
 
 ### `npm run db:backup`
+
 Создает полный бэкап базы данных:
+
 - Сохраняет в `backups/backup_YYYYMMDD_HHMMSS.sql.gz`
 - Автоматически сжимает (gzip)
 - Хранит последние 30 бэкапов
 - Автоматически удаляет старые бэкапы
 
 ### `npm run db:backup:pre-migration`
+
 Создает бэкап перед миграцией:
+
 - Сохраняет в `backups/pre-migration/pre_migration_YYYYMMDD_HHMMSS.sql.gz`
 - **Используйте ВСЕГДА перед `prisma migrate`**
 - Не удаляет старые бэкапы автоматически
 
 ### `npm run db:restore <файл>`
+
 Восстанавливает базу данных из бэкапа:
+
 - **ВНИМАНИЕ**: Удаляет все текущие данные!
 - Требует подтверждения (введите 'yes')
 - Автоматически распаковывает .gz файлы
@@ -43,6 +52,7 @@ npm run db:restore backups/backup_20241019_223000.sql.gz
 ## Примеры использования
 
 ### Перед миграцией
+
 ```bash
 # 1. Создать бэкап
 npm run db:backup:pre-migration
@@ -55,6 +65,7 @@ npm run db:restore backups/pre-migration/pre_migration_20241019_223000.sql.gz
 ```
 
 ### Регулярный бэкап
+
 ```bash
 # Создать бэкап вручную
 npm run db:backup
@@ -64,6 +75,7 @@ ls -lh backups/
 ```
 
 ### Восстановление
+
 ```bash
 # Посмотреть доступные бэкапы
 npm run db:restore
@@ -77,6 +89,7 @@ npm run db:restore backups/backup_20241019_223000.sql.gz
 ### Настроить ежедневный бэкап (cron)
 
 Добавьте в crontab:
+
 ```bash
 # Открыть crontab
 crontab -e
@@ -88,6 +101,7 @@ crontab -e
 ### Настроить бэкап перед каждой миграцией
 
 Создайте алиас в `~/.zshrc` или `~/.bashrc`:
+
 ```bash
 alias migrate='npm run db:backup:pre-migration && npm run db:migrate'
 ```
@@ -115,6 +129,7 @@ backups/
 ## Размер бэкапов
 
 Типичные размеры (сжатые):
+
 - Пустая база: ~5 KB
 - С тестовыми данными: ~50 KB
 - Production (1000 пользователей): ~5 MB
@@ -123,6 +138,7 @@ backups/
 ## Безопасность
 
 ⚠️ **Важно:**
+
 - Бэкапы содержат все данные, включая пароли (хешированные)
 - Не коммитьте папку `backups/` в git (уже в .gitignore)
 - Храните бэкапы в безопасном месте
@@ -131,6 +147,7 @@ backups/
 ## Troubleshooting
 
 ### "Database not found"
+
 ```bash
 # Проверьте имя базы в .env
 cat .env | grep DATABASE_URL
@@ -140,12 +157,14 @@ psql -l
 ```
 
 ### "Permission denied"
+
 ```bash
 # Сделайте скрипты исполняемыми
 chmod +x scripts/*.sh
 ```
 
 ### "Command not found: pg_dump"
+
 ```bash
 # macOS
 brew install postgresql
@@ -167,12 +186,14 @@ sudo apt-get install postgresql-client
 ## Рекомендации
 
 ✅ **Делайте:**
+
 - Бэкап перед каждой миграцией
 - Регулярные автоматические бэкапы (ежедневно)
 - Проверяйте бэкапы раз в месяц (пробуйте восстановить)
 - Храните бэкапы в нескольких местах
 
 ❌ **Не делайте:**
+
 - Миграции без бэкапа
 - `prisma migrate reset` на production
 - Удаление папки backups/

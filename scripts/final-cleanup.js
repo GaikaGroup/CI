@@ -12,19 +12,20 @@ const allKeys = Object.keys(localStorage);
 console.log('Found localStorage keys:', allKeys);
 
 // Remove all course/subject/enrollment related keys
-const keysToRemove = allKeys.filter(key => 
-  key.includes('course') || 
-  key.includes('Course') || 
-  key.includes('subject') || 
-  key.includes('Subject') ||
-  key.includes('enrollment') ||
-  key.includes('Enrollment') ||
-  key.includes('learn') ||
-  key.includes('Learn')
+const keysToRemove = allKeys.filter(
+  (key) =>
+    key.includes('course') ||
+    key.includes('Course') ||
+    key.includes('subject') ||
+    key.includes('Subject') ||
+    key.includes('enrollment') ||
+    key.includes('Enrollment') ||
+    key.includes('learn') ||
+    key.includes('Learn')
 );
 
 console.log('Removing keys:', keysToRemove);
-keysToRemove.forEach(key => {
+keysToRemove.forEach((key) => {
   localStorage.removeItem(key);
   console.log(`✅ Removed: ${key}`);
 });
@@ -48,7 +49,7 @@ if (typeof window !== 'undefined') {
       console.log('ℹ️ Could not clear window.coursesStore');
     }
   }
-  
+
   if (window.subjectsStore) {
     try {
       window.subjectsStore.set([]);
@@ -57,7 +58,7 @@ if (typeof window !== 'undefined') {
       console.log('ℹ️ Could not clear window.subjectsStore');
     }
   }
-  
+
   if (window.enrollmentStore) {
     try {
       window.enrollmentStore.initialize(null);
@@ -71,14 +72,17 @@ if (typeof window !== 'undefined') {
 // 4. Clear browser cache for this domain (if possible)
 console.log('🌐 Attempting to clear cache...');
 if ('caches' in window) {
-  caches.keys().then(names => {
-    names.forEach(name => {
-      caches.delete(name);
+  caches
+    .keys()
+    .then((names) => {
+      names.forEach((name) => {
+        caches.delete(name);
+      });
+      console.log('✅ Cleared browser cache');
+    })
+    .catch((e) => {
+      console.log('ℹ️ Could not clear browser cache');
     });
-    console.log('✅ Cleared browser cache');
-  }).catch(e => {
-    console.log('ℹ️ Could not clear browser cache');
-  });
 }
 
 console.log('');

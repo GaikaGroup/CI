@@ -32,6 +32,7 @@ npx prisma studio
 ### ✅ Обновленная схема Prisma
 
 Файл `prisma/schema.prisma` уже обновлен с новыми моделями:
+
 - `Course` - курсы/предметы
 - `Enrollment` - подписки пользователей
 - `UserPreference` - настройки пользователя
@@ -41,6 +42,7 @@ npx prisma studio
 ### ✅ Новые сервисы
 
 Созданы сервисы для работы с БД:
+
 - `CourseService` - управление курсами
 - `EnrollmentService` - управление подписками
 - `UserPreferenceService` - настройки пользователя
@@ -48,6 +50,7 @@ npx prisma studio
 ### ✅ API endpoints
 
 Созданы новые API endpoints:
+
 - `/api/courses` - CRUD операции с курсами
 - `/api/enrollments` - управление подписками
 - `/api/preferences` - настройки пользователя
@@ -78,7 +81,7 @@ console.log('Backup:', JSON.stringify(backup, null, 2));
 
 ```javascript
 // Загрузка и запуск миграции
-import('/scripts/migrate-localStorage-to-db.js').then(module => {
+import('/scripts/migrate-localStorage-to-db.js').then((module) => {
   window.runMigration = module.runMigration;
   console.log('Migration script loaded. Run window.runMigration() to start.');
 });
@@ -98,7 +101,7 @@ node scripts/migrate-localStorage-to-db.js
 
 ```sql
 -- Проверка количества мигрированных записей
-SELECT 
+SELECT
   (SELECT COUNT(*) FROM courses) as courses_count,
   (SELECT COUNT(*) FROM enrollments) as enrollments_count,
   (SELECT COUNT(*) FROM user_preferences) as preferences_count,
@@ -146,11 +149,11 @@ onMount(async () => {
   try {
     const response = await fetch('/api/preferences');
     const data = await response.json();
-    
+
     if (data.preferences.theme) {
       $darkMode = data.preferences.theme === 'dark';
     }
-    
+
     if (data.preferences.language) {
       $selectedLanguage = data.preferences.language;
     }
@@ -159,7 +162,7 @@ onMount(async () => {
     // Fallback to localStorage for backward compatibility
     const savedTheme = localStorage.getItem('theme');
     const savedLanguage = localStorage.getItem('language');
-    
+
     if (savedTheme) $darkMode = savedTheme === 'dark';
     if (savedLanguage) $selectedLanguage = savedLanguage;
   }
@@ -236,16 +239,16 @@ let cacheTimestamp = 0;
 
 async function getCachedCourses() {
   const now = Date.now();
-  if (coursesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+  if (coursesCache && now - cacheTimestamp < CACHE_DURATION) {
     return coursesCache;
   }
-  
+
   const result = await loadCourses();
   if (result.success) {
     coursesCache = result.courses;
     cacheTimestamp = now;
   }
-  
+
   return result;
 }
 ```
@@ -330,18 +333,21 @@ TRUNCATE TABLE course_reports, enrollments, courses, user_preferences, system_lo
 ## Контрольный список
 
 ### Перед миграцией
+
 - [ ] Резервная копия localStorage
 - [ ] Резервная копия БД
 - [ ] Тестирование на dev окружении
 - [ ] Проверка всех зависимостей
 
 ### Во время миграции
+
 - [ ] Мониторинг процесса миграции
 - [ ] Проверка логов на ошибки
 - [ ] Валидация мигрированных данных
 - [ ] Тестирование основных функций
 
 ### После миграции
+
 - [ ] Функциональное тестирование
 - [ ] Тестирование производительности
 - [ ] Проверка всех пользовательских сценариев

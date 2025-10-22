@@ -1,6 +1,6 @@
 /**
  * Course Service
- * 
+ *
  * Handles all course-related database operations
  */
 
@@ -34,7 +34,7 @@ export class CourseService {
           llmSettings: courseData.llmSettings || {},
           creatorId,
           creatorRole: courseData.creatorRole || 'user',
-          status: courseData.status || 'active',
+          status: courseData.status || 'active'
         },
         include: {
           creator: {
@@ -430,7 +430,8 @@ export class CourseService {
           totalReports: stats._count.reports,
           totalMessages,
           enrollmentsByStatus,
-          averageMessagesPerSession: stats._count.sessions > 0 ? totalMessages / stats._count.sessions : 0
+          averageMessagesPerSession:
+            stats._count.sessions > 0 ? totalMessages / stats._count.sessions : 0
         }
       };
     } catch (error) {
@@ -444,12 +445,7 @@ export class CourseService {
    */
   static async searchCourses(query, options = {}) {
     try {
-      const {
-        limit = 10,
-        language = '',
-        level = '',
-        status = 'active'
-      } = options;
+      const { limit = 10, language = '', level = '', status = 'active' } = options;
 
       const courses = await prisma.course.findMany({
         where: {
@@ -476,9 +472,7 @@ export class CourseService {
             }
           }
         },
-        orderBy: [
-          { name: 'asc' }
-        ],
+        orderBy: [{ name: 'asc' }],
         take: limit
       });
 
@@ -494,11 +488,7 @@ export class CourseService {
    */
   static async getCoursesByCreator(creatorId, options = {}) {
     try {
-      const {
-        page = 1,
-        limit = 20,
-        status = 'all'
-      } = options;
+      const { page = 1, limit = 20, status = 'all' } = options;
 
       const skip = (page - 1) * limit;
 

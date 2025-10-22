@@ -18,6 +18,7 @@ Header Navigation:
 ### Page Structure
 
 #### Student Page (`/student`)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ Student Dashboard                                           │
@@ -30,6 +31,7 @@ Header Navigation:
 ```
 
 #### Tutor Page (`/tutor`)
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ Tutor Dashboard                                             │
@@ -46,18 +48,21 @@ Header Navigation:
 ### Navigation Component Updates
 
 #### Header Navigation (`src/lib/components/Header.svelte`)
+
 - Replace existing navigation items
 - Add badge support for Student/Tutor counts
 - Implement active state highlighting
 - Add responsive mobile menu
 
 #### Student Dashboard (`src/routes/student/+page.svelte`)
+
 - Tab-based interface
 - Browse Courses tab (existing catalogue functionality)
 - My Learning tab (enrolled courses)
 - Progress tab (learning statistics)
 
 #### Tutor Dashboard (`src/routes/tutor/+page.svelte`)
+
 - Tab-based interface
 - My Courses tab (authored courses)
 - Create Course tab (course creation)
@@ -67,6 +72,7 @@ Header Navigation:
 ### Data Models
 
 #### Navigation State Store
+
 ```javascript
 // src/lib/stores/navigation.js
 export const navigationStore = writable({
@@ -81,6 +87,7 @@ export const navigationStore = writable({
 ```
 
 #### Role-based Course Filtering
+
 ```javascript
 // Enhanced course store methods
 export const courseStore = {
@@ -117,11 +124,13 @@ Legacy Redirects:
 ## Error Handling
 
 ### Navigation Error States
+
 - Handle missing permissions gracefully
 - Provide fallback navigation for unauthorized access
 - Display appropriate error messages for failed course operations
 
 ### Data Loading States
+
 - Show loading indicators during course data fetching
 - Handle empty states for each tab
 - Provide retry mechanisms for failed requests
@@ -129,18 +138,21 @@ Legacy Redirects:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Navigation component rendering
 - Badge count calculations
 - Tab switching functionality
 - Route handling and redirects
 
 ### Integration Tests
+
 - Student dashboard functionality
 - Tutor dashboard functionality
 - Cross-role course enrollment
 - Navigation state persistence
 
 ### E2E Tests
+
 - Complete user journey: Fun → Student → Tutor
 - Course creation and enrollment flow
 - Mobile navigation functionality
@@ -149,11 +161,13 @@ Legacy Redirects:
 ## Performance Considerations
 
 ### Lazy Loading
+
 - Load tab content only when accessed
 - Implement virtual scrolling for large course lists
 - Cache course data to minimize API calls
 
 ### State Management
+
 - Efficient badge count updates
 - Minimize re-renders during navigation
 - Optimize course filtering operations
@@ -161,11 +175,13 @@ Legacy Redirects:
 ## Accessibility
 
 ### Keyboard Navigation
+
 - Full keyboard support for all navigation elements
 - Proper tab order and focus management
 - ARIA labels for screen readers
 
 ### Visual Indicators
+
 - High contrast mode support
 - Clear visual hierarchy
 - Consistent iconography and labeling
@@ -173,11 +189,13 @@ Legacy Redirects:
 ## Mobile Design
 
 ### Responsive Navigation
+
 - Collapsible hamburger menu for mobile
 - Touch-friendly tab interface
 - Optimized spacing and sizing
 
 ### Mobile-specific Features
+
 - Swipe gestures for tab navigation
 - Pull-to-refresh functionality
 - Optimized course card layouts
@@ -185,21 +203,25 @@ Legacy Redirects:
 ## Migration Strategy
 
 ### Phase 1: New Routes and Components
+
 - Create new Student and Tutor pages
 - Implement tab-based interfaces
 - Add navigation badges
 
 ### Phase 2: Header Navigation Update
+
 - Update main navigation component
 - Add role-based styling
 - Implement responsive design
 
 ### Phase 3: Legacy Route Handling
+
 - Add redirect logic for old routes
 - Update internal links
 - Test backward compatibility
 
 ### Phase 4: Cleanup
+
 - Remove old navigation items
 - Clean up unused components
 - Update documentation

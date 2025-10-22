@@ -276,6 +276,18 @@
         $selectedImages = [];
       }
 
+      // Prepare conversation history for context (AFTER adding current message)
+      // Wait a tick to ensure the message is in the store
+      await tick();
+      
+      const conversationHistory = $messages
+        .filter((msg) => msg.type === 'user' || msg.type === 'assistant')
+        .slice(-10) // Last 10 messages for context
+        .map((msg) => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }));
+
       // Call AI service to get response
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -286,7 +298,11 @@
           content,
           images: images ? images.map((img) => img.url) : null,
           language: $sessionStore.currentSession?.language || $selectedLanguage,
-          sessionId: sessionId
+          sessionId: sessionId,
+          sessionContext: {
+            sessionId: sessionId,
+            history: conversationHistory
+          }
         })
       });
 

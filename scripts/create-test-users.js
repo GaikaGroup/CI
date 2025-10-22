@@ -68,7 +68,6 @@ async function createTestUsers() {
     console.log('\nYou can now login with:');
     console.log('  Admin: AdminLogin / AdminPswd');
     console.log('  User:  UserLogin / UserPswd');
-
   } catch (error) {
     console.error('Error creating test users:', error);
     process.exit(1);

@@ -66,9 +66,13 @@ if (!course.id || course.id === 'ungrouped') {
 Enhanced the error message to be more helpful:
 
 ```javascript
-return json({ 
-  error: 'Course ID is required for LEARN mode sessions. Please enroll in a course first or switch to FUN mode.' 
-}, { status: 400 });
+return json(
+  {
+    error:
+      'Course ID is required for LEARN mode sessions. Please enroll in a course first or switch to FUN mode.'
+  },
+  { status: 400 }
+);
 ```
 
 ### 5. Added Debug Logging (`src/routes/api/sessions/+server.js`)

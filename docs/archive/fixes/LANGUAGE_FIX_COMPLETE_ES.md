@@ -2,9 +2,10 @@
 
 ## 🎯 Problema Resuelto
 
-El bot de IA estaba respondiendo en **inglés** cuando el usuario hacía preguntas en **español** (u otros idiomas). 
+El bot de IA estaba respondiendo en **inglés** cuando el usuario hacía preguntas en **español** (u otros idiomas).
 
 **Ejemplo del problema:**
+
 - Usuario: "¿Cuánto vale algunos coches en España?"
 - Bot: "Hold on, let me think this one through..." ❌ (respuesta en inglés)
 
@@ -60,6 +61,7 @@ El script probará automáticamente varios idiomas y te dirá si todo funciona c
 ## 📊 Qué Esperar
 
 ### Antes de la Corrección ❌
+
 ```
 Usuario: "¿Cuánto vale algunos coches en España?"
 Bot: "Hold on, let me think this one through..."
@@ -67,6 +69,7 @@ Bot: "In Spain, the price of cars can vary widely..."
 ```
 
 ### Después de la Corrección ✅
+
 ```
 Usuario: "¿Cuánto vale algunos coches en España?"
 Bot: "Déjame pensar en esto..."
@@ -84,6 +87,7 @@ Language validation: PASS
 ```
 
 Si hay algún problema, verás:
+
 ```
 Language validation: FAIL
 High severity language inconsistency detected

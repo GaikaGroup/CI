@@ -21,11 +21,13 @@
 ### Демо-пользователи:
 
 **Администратор:**
+
 - Email: `AdminLogin`
 - Password: `AdminPswd`
 - Type: Admin + Tutor
 
 **Обычный пользователь:**
+
 - Email: `User1Login`
 - Password: `User1Pswd`
 - Type: Regular + Student + Tutor
@@ -35,10 +37,11 @@
 ### Что изменилось:
 
 1. **Поле в базе данных:**
+
    ```sql
    -- Было:
    role VARCHAR(20) DEFAULT 'student'
-   
+
    -- Стало:
    type VARCHAR(20) DEFAULT 'regular'
    ```
@@ -54,6 +57,7 @@
 ### Автоматическая миграция:
 
 Система автоматически обрабатывает старые cookies:
+
 - Если найдено поле `role`, оно переименовывается в `type`
 - Cookie обновляется с новым форматом
 - Пользователь может продолжить работу без перелогина
@@ -61,6 +65,7 @@
 ### Очистка данных:
 
 Если автоматическая миграция не работает:
+
 ```bash
 # Запустить скрипт очистки
 node scripts/clear-auth-data.js
@@ -82,6 +87,7 @@ node scripts/clear-auth-data.js
 ## Откат (если нужен)
 
 Если нужно откатить изменения:
+
 ```sql
 ALTER TABLE users RENAME COLUMN type TO role;
 UPDATE users SET role = 'student' WHERE role = 'regular';

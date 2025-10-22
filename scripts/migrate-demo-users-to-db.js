@@ -59,10 +59,9 @@ async function migrateDemoUsers() {
 
     console.log('\n🎉 Demo users migration completed!');
     console.log('\n📋 All demo users are now in database:');
-    demoUsers.forEach(user => {
+    demoUsers.forEach((user) => {
       console.log(`📧 ${user.email} | 🔑 ${user.password} | 👤 ${user.type}`);
     });
-
   } catch (error) {
     console.error('❌ Error migrating demo users:', error);
     process.exit(1);

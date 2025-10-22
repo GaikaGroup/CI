@@ -21,7 +21,9 @@ async function checkDatabase() {
       }
     });
     console.log(`👥 Users: ${userCount}`);
-    users.forEach(u => console.log(`   - ${u.firstName} ${u.lastName} (${u.email}) - type: ${u.type}`));
+    users.forEach((u) =>
+      console.log(`   - ${u.firstName} ${u.lastName} (${u.email}) - type: ${u.type}`)
+    );
 
     // Count courses
     const courseCount = await db.course.count();
@@ -32,7 +34,7 @@ async function checkDatabase() {
       }
     });
     console.log(`\n📚 Courses: ${courseCount}`);
-    courses.forEach(c => console.log(`   - ${c.name} (${c.status})`));
+    courses.forEach((c) => console.log(`   - ${c.name} (${c.status})`));
 
     // Count enrollments
     const enrollmentCount = await db.enrollment.count();
@@ -47,7 +49,6 @@ async function checkDatabase() {
     console.log(`📨 Messages: ${messageCount}`);
 
     console.log('\n✅ Database check complete!');
-
   } catch (error) {
     console.error('❌ Error checking database:', error);
     process.exit(1);

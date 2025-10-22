@@ -278,7 +278,7 @@ function createCoursesStore() {
     getUserRoleInCourse(userId, courseId) {
       let role = 'none';
       subscribe((courses) => {
-        const course = courses.find(c => c.id === courseId);
+        const course = courses.find((c) => c.id === courseId);
         if (course && course.creatorId === userId) {
           role = 'author';
         }
@@ -304,7 +304,7 @@ function createCoursesStore() {
     getAuthoredCourses(userId) {
       let authoredCourses = [];
       subscribe((courses) => {
-        authoredCourses = courses.filter(course => course.creatorId === userId);
+        authoredCourses = courses.filter((course) => course.creatorId === userId);
       })();
       return authoredCourses;
     }

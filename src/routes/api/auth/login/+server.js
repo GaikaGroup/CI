@@ -16,15 +16,12 @@ export async function POST({ request, cookies }) {
 
     // Validate required fields
     if (!email || !password) {
-      return json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
+      return json({ error: 'Email and password are required' }, { status: 400 });
     }
 
     // Find user by email (try both original and lowercase)
     let user = await db.user.findUnique({
-      where: { 
+      where: {
         email: email.trim(),
         isActive: true
       }
@@ -33,7 +30,7 @@ export async function POST({ request, cookies }) {
     // If not found, try lowercase
     if (!user) {
       user = await db.user.findUnique({
-        where: { 
+        where: {
           email: email.toLowerCase().trim(),
           isActive: true
         }
@@ -41,25 +38,19 @@ export async function POST({ request, cookies }) {
     }
 
     if (!user) {
-      return json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+      return json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
-    
+
     if (!isValidPassword) {
-      return json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+      return json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
+      {
         userId: user.id,
         email: user.email,
         type: user.type
@@ -99,12 +90,8 @@ export async function POST({ request, cookies }) {
       user: userData,
       token
     });
-
   } catch (error) {
     console.error('Login error:', error);
-    return json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return json({ error: 'Internal server error' }, { status: 500 });
   }
 }

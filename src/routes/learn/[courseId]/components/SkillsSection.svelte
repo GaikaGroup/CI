@@ -12,7 +12,9 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       {#each skills as skill}
-        <div class="flex items-start space-x-3 p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors">
+        <div
+          class="flex items-start space-x-3 p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
+        >
           <CheckCircle class="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
           <span class="text-gray-800">{skill}</span>
         </div>

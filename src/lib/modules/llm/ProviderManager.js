@@ -116,10 +116,14 @@ export class ProviderManager {
    */
   hasImages(messages) {
     console.log('[ProviderManager] Checking for images in messages:', messages.length);
-    const result = messages.some(m => {
-      console.log('[ProviderManager] Message content type:', typeof m.content, Array.isArray(m.content));
+    const result = messages.some((m) => {
+      console.log(
+        '[ProviderManager] Message content type:',
+        typeof m.content,
+        Array.isArray(m.content)
+      );
       if (Array.isArray(m.content)) {
-        const hasImageUrl = m.content.some(c => {
+        const hasImageUrl = m.content.some((c) => {
           console.log('[ProviderManager] Content part type:', c.type);
           return c.type === 'image_url';
         });
@@ -135,7 +139,7 @@ export class ProviderManager {
    * Generate a chat completion using the best available provider
    * @param {Array} messages - Array of message objects with role and content
    * @param {Object} options - Additional options for the request
-   * @returns {Promise<Object>} - The generated completion
+   * @returns {Promise<Object>} - The generated completion with llmMetadata
    */
   async generateChatCompletion(messages, options = {}) {
     // Check if messages contain images and add flag to options
@@ -146,11 +150,17 @@ export class ProviderManager {
     } else {
       console.log('[ProviderManager] No images detected in messages');
     }
-    
+
     const providerName = options.provider || (await this.getBestProvider());
     const provider = this.getProvider(providerName);
+    
+    // Track attempted model for fallback scenarios
+    let attemptedModel = null;
+    let fallbackOccurred = false;
+    let fallbackReason = null;
 
-    const invokeProvider = async (providerInstance, name, requestOptions) => {
+    const invokeProvider = async (providerInstance, name, requestOptions, isAttempt = false) => {
+      const invocationTimestamp = new Date().toISOString();
       const result = await providerInstance.generateChatCompletion(messages, requestOptions);
       const resolvedProvider = result.provider || name;
       const modelName = result.model || requestOptions?.model;
@@ -216,17 +226,44 @@ export class ProviderManager {
         cost
       });
 
+      // Build LLM metadata for storage
+      const llmMetadata = {
+        provider: resolvedProvider,
+        model: modelName,
+        version: result.version || null,
+        timestamp: invocationTimestamp,
+        config: {
+          temperature: requestOptions.temperature || null,
+          maxTokens: requestOptions.maxTokens || requestOptions.max_tokens || null,
+          systemPrompt: requestOptions.systemPrompt ? '[present]' : null // Don't store full prompt
+        }
+      };
+
+      // Add fallback information if applicable
+      if (fallbackOccurred && !isAttempt) {
+        llmMetadata.fallback = {
+          attempted: attemptedModel,
+          reason: fallbackReason
+        };
+      }
+
       return {
         ...result,
-        provider: resolvedProvider
+        provider: resolvedProvider,
+        llmMetadata
       };
     };
 
     try {
       // Try the selected provider
-      return await invokeProvider(provider, providerName, options);
+      attemptedModel = options.model || providerName;
+      return await invokeProvider(provider, providerName, options, true);
     } catch (error) {
       console.error(`Error with provider ${providerName}:`, error);
+      
+      // Mark that fallback occurred
+      fallbackOccurred = true;
+      fallbackReason = error.message;
 
       // If fallback is enabled and we're not already using a fallback, try another provider
       if (this.fallbackEnabled && !options.isFallback) {
@@ -237,7 +274,7 @@ export class ProviderManager {
               return await invokeProvider(fallbackProvider, name, {
                 ...options,
                 isFallback: true
-              });
+              }, false);
             } catch (fallbackError) {
               console.error(`Fallback provider ${name} failed:`, fallbackError);
             }
@@ -289,7 +326,7 @@ export class ProviderManager {
   async generateChatCompletionWithEnhancement(messages, options = {}) {
     // Extract the last user message for classification
     const lastUserMessage = this._extractLastUserMessage(messages);
-    
+
     if (!lastUserMessage) {
       // No user message to classify, use standard generation
       return this.generateChatCompletion(messages, options);
@@ -297,9 +334,9 @@ export class ProviderManager {
 
     // Extract context for better classification
     const context = messages
-      .filter(m => m.role === 'user')
+      .filter((m) => m.role === 'user')
       .slice(-3)
-      .map(m => this._extractMessageText(m));
+      .map((m) => this._extractMessageText(m));
 
     // Classify the query
     const classification = this.mathClassifier.classify(lastUserMessage, context);
@@ -326,7 +363,7 @@ export class ProviderManager {
       // Detect language from options or default to 'ru'
       const language = options.language || 'ru';
       enhancedOptions = this.requestEnhancer.enhance(options, classification, language);
-      
+
       console.log('[ProviderManager] Enhanced options for math query:', {
         originalMaxTokens: options.maxTokens,
         enhancedMaxTokens: enhancedOptions.maxTokens,
@@ -335,10 +372,7 @@ export class ProviderManager {
 
       // If system prompt was added, prepend it to messages
       if (enhancedOptions.systemPrompt && !this._hasSystemMessage(messages)) {
-        messages = [
-          { role: 'system', content: enhancedOptions.systemPrompt },
-          ...messages
-        ];
+        messages = [{ role: 'system', content: enhancedOptions.systemPrompt }, ...messages];
       } else if (enhancedOptions.systemPrompt && this._hasSystemMessage(messages)) {
         // Append to existing system message
         messages = messages.map((msg, idx) => {
@@ -363,13 +397,13 @@ export class ProviderManager {
     if (classification.isMath) {
       // Extract token usage from result
       const tokens = result.usage || result.raw?.usage || {};
-      
+
       // Calculate cost if available
       const cost = result.cost || 0;
-      
+
       // Record the math query
       usageTracker.recordMathQuery(classification, tokens, cost);
-      
+
       console.log('[ProviderManager] Math query recorded:', {
         category: classification.category,
         confidence: classification.confidence,
@@ -389,7 +423,7 @@ export class ProviderManager {
       }
     }
 
-    // Add classification metadata to result
+    // Add classification metadata to result (preserve llmMetadata)
     return {
       ...result,
       classification,
@@ -420,8 +454,8 @@ export class ProviderManager {
     }
     if (Array.isArray(message.content)) {
       return message.content
-        .filter(part => part.type === 'text')
-        .map(part => part.text)
+        .filter((part) => part.type === 'text')
+        .map((part) => part.text)
         .join(' ');
     }
     return '';

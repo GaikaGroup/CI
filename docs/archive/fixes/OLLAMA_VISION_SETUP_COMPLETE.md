@@ -9,10 +9,11 @@
 ### 1. Добавлена конфигурация vision модели
 
 **src/lib/config/llm.js:**
+
 ```javascript
 export const OLLAMA_CONFIG = {
   // ...
-  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b',
+  VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b'
   // ...
 };
 ```
@@ -20,6 +21,7 @@ export const OLLAMA_CONFIG = {
 ### 2. Добавлена логика выбора модели
 
 **src/lib/modules/llm/providers/OllamaProvider.js:**
+
 ```javascript
 // Проверка наличия изображений
 hasImages(messages) {
@@ -42,16 +44,16 @@ const modelToUse = needsVision ? this.config.VISION_MODEL : options.model;
 // Конвертация сообщений для Ollama
 const ollamaMessages = messages.map((m) => {
   if (Array.isArray(m.content)) {
-    const textParts = m.content.filter(c => c.type === 'text').map(c => c.text);
-    const imageParts = m.content.filter(c => c.type === 'image_url');
-    
+    const textParts = m.content.filter((c) => c.type === 'text').map((c) => c.text);
+    const imageParts = m.content.filter((c) => c.type === 'image_url');
+
     return {
       role: m.role,
       content: textParts.join('\n'),
-      images: imageParts.map(img => img.image_url.url)
+      images: imageParts.map((img) => img.image_url.url)
     };
   }
-  
+
   return { role: m.role, content: String(m.content) };
 });
 ```
@@ -119,16 +121,19 @@ npm run dev
 ### Примеры:
 
 **Текстовый вопрос:**
+
 ```
 "Что такое физика?" → qwen2.5:7b (быстро, бесплатно)
 ```
 
 **Вопрос с изображением:**
+
 ```
 "Реши задачу" + [изображение] → llava:7b (vision, бесплатно)
 ```
 
 **Если llava не работает:**
+
 ```
 "Реши задачу" + [изображение] → gpt-4-turbo (fallback, платно)
 ```
@@ -136,11 +141,13 @@ npm run dev
 ## Требования
 
 ### Минимальные:
+
 - **RAM:** 8 GB
 - **Диск:** 5 GB свободного места
 - **Ollama:** установлен и запущен
 
 ### Рекомендуемые:
+
 - **RAM:** 16 GB
 - **GPU:** NVIDIA с 4+ GB VRAM (опционально, для ускорения)
 - **Диск:** 10 GB свободного места
@@ -154,6 +161,7 @@ ollama list
 ```
 
 **Ожидаемый вывод:**
+
 ```
 NAME            ID              SIZE    MODIFIED
 llava:7b        abc123def       4.7 GB  2 minutes ago
@@ -168,6 +176,7 @@ qwen2.5:7b      def456ghi       4.4 GB  1 hour ago
 4. Проверьте логи сервера
 
 **Ожидаемые логи:**
+
 ```
 [Ollama] resolved model: llava:7b
 Response generated using provider: ollama, model: llava:7b
@@ -176,6 +185,7 @@ Response generated using provider: ollama, model: llava:7b
 ### 3. Проверьте ответ
 
 **Ожидаемый результат:**
+
 ```
 Для определения цены деления каждого прибора посмотрим на отметки:
 
@@ -210,25 +220,31 @@ VITE_OLLAMA_VISION_MODEL=llava:7b
 Если `llava:7b` не подходит:
 
 ### BakLLaVA (на базе Mistral):
+
 ```bash
 ollama pull bakllava
 ```
+
 ```env
 VITE_OLLAMA_VISION_MODEL=bakllava
 ```
 
 ### LLaVA 13B (более точная):
+
 ```bash
 ollama pull llava:13b
 ```
+
 ```env
 VITE_OLLAMA_VISION_MODEL=llava:13b
 ```
 
 ### LLaVA-Phi3 (более быстрая):
+
 ```bash
 ollama pull llava-phi3
 ```
+
 ```env
 VITE_OLLAMA_VISION_MODEL=llava-phi3
 ```
@@ -236,11 +252,13 @@ VITE_OLLAMA_VISION_MODEL=llava-phi3
 ## Troubleshooting
 
 ### "model not found"
+
 ```bash
 ollama pull llava:7b
 ```
 
 ### "connection refused"
+
 ```bash
 # Проверьте Ollama
 systemctl status ollama
@@ -250,12 +268,14 @@ ollama serve
 ```
 
 ### "out of memory"
+
 ```bash
 # Используйте более легкую модель
 ollama pull llava
 ```
 
 ### Медленная работа
+
 - Проверьте, используется ли GPU: `nvidia-smi`
 - Уменьшите `NUM_CTX` в конфигурации
 - Используйте более легкую модель
@@ -266,7 +286,7 @@ ollama pull llava
 ✅ **Локально** - Данные не уходят в облако  
 ✅ **Автоматически** - Выбор модели по наличию изображений  
 ✅ **Fallback** - OpenAI как запасной вариант  
-✅ **Быстро** - Текстовые вопросы обрабатываются qwen2.5  
+✅ **Быстро** - Текстовые вопросы обрабатываются qwen2.5
 
 ## Документация
 
@@ -275,6 +295,7 @@ ollama pull llava
 ## Следующие шаги
 
 1. **Установите LLaVA на сервере:**
+
    ```bash
    ollama pull llava:7b
    ```

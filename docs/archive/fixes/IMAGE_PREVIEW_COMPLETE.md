@@ -30,7 +30,7 @@ Blob URLs (временные ссылки вида `blob:http://...`) не ко
 const imageDataPromises = imageUrls.map(async (imageUrl) => {
   const response = await fetch(imageUrl);
   const blob = await response.blob();
-  
+
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
@@ -45,17 +45,20 @@ addMessage(MESSAGE_TYPES.USER, content, base64Images, messageId);
 ## Результат
 
 ✅ **Превью изображений отображается корректно**
+
 - Изображения показываются как превью, а не как текст
 - Можно кликнуть для просмотра в полном размере
 - Изображения сохраняются в базе данных
 - Изображения остаются видимыми после перезагрузки
 
 ✅ **OCR текст обрабатывается правильно**
+
 - Распознанный текст НЕ отображается в чате (чистый UI)
 - OCR текст передается в нейросеть вместе с вопросом
 - Нейросеть получает полный контекст: вопрос + текст с изображения
 
 ✅ **UX улучшения**
+
 - Плавные переходы при наведении
 - Закругленные углы и тени
 - Поддержка темной темы

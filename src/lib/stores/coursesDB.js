@@ -1,6 +1,6 @@
 /**
  * Database-backed Courses Store
- * 
+ *
  * This store replaces the localStorage-based courses store with database operations
  */
 
@@ -33,13 +33,13 @@ function createCoursesStore() {
     async initialize(options = {}) {
       if (!browser) return;
 
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const result = await this.loadCourses(options);
-        
+
         if (result.success) {
-          update(state => ({
+          update((state) => ({
             ...state,
             courses: result.courses,
             pagination: result.pagination,
@@ -47,7 +47,7 @@ function createCoursesStore() {
             initialized: true
           }));
         } else {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: result.error,
             loading: false,
@@ -56,7 +56,7 @@ function createCoursesStore() {
         }
       } catch (error) {
         console.error('Error initializing courses store:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false,
@@ -71,7 +71,7 @@ function createCoursesStore() {
     async loadCourses(options = {}) {
       try {
         const params = new URLSearchParams();
-        
+
         Object.entries(options).forEach(([key, value]) => {
           if (value !== undefined && value !== '') {
             params.append(key, value.toString());
@@ -100,7 +100,7 @@ function createCoursesStore() {
      * Create a new course
      */
     async addCourse(courseData) {
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const response = await fetch('/api/courses', {
@@ -114,7 +114,7 @@ function createCoursesStore() {
         const data = await response.json();
 
         if (!response.ok) {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: data.message || 'Failed to create course',
             loading: false
@@ -123,7 +123,7 @@ function createCoursesStore() {
         }
 
         // Add course to local state
-        update(state => ({
+        update((state) => ({
           ...state,
           courses: [data.course, ...state.courses],
           loading: false
@@ -132,7 +132,7 @@ function createCoursesStore() {
         return { success: true, course: data.course };
       } catch (error) {
         console.error('Error creating course:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false
@@ -145,7 +145,7 @@ function createCoursesStore() {
      * Update a course
      */
     async updateCourse(courseId, updates) {
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const response = await fetch(`/api/courses/${courseId}`, {
@@ -159,7 +159,7 @@ function createCoursesStore() {
         const data = await response.json();
 
         if (!response.ok) {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: data.message || 'Failed to update course',
             loading: false
@@ -168,18 +168,16 @@ function createCoursesStore() {
         }
 
         // Update course in local state
-        update(state => ({
+        update((state) => ({
           ...state,
-          courses: state.courses.map(course =>
-            course.id === courseId ? data.course : course
-          ),
+          courses: state.courses.map((course) => (course.id === courseId ? data.course : course)),
           loading: false
         }));
 
         return { success: true, course: data.course };
       } catch (error) {
         console.error('Error updating course:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false
@@ -192,7 +190,7 @@ function createCoursesStore() {
      * Delete a course
      */
     async removeCourse(courseId, hardDelete = false) {
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const params = hardDelete ? '?hard=true' : '';
@@ -203,7 +201,7 @@ function createCoursesStore() {
         const data = await response.json();
 
         if (!response.ok) {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: data.message || 'Failed to delete course',
             loading: false
@@ -212,16 +210,16 @@ function createCoursesStore() {
         }
 
         // Remove course from local state
-        update(state => ({
+        update((state) => ({
           ...state,
-          courses: state.courses.filter(course => course.id !== courseId),
+          courses: state.courses.filter((course) => course.id !== courseId),
           loading: false
         }));
 
         return { success: true };
       } catch (error) {
         console.error('Error deleting course:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false
@@ -234,7 +232,7 @@ function createCoursesStore() {
      * Search courses
      */
     async searchCourses(query, options = {}) {
-      update(state => ({ ...state, loading: true, error: null }));
+      update((state) => ({ ...state, loading: true, error: null }));
 
       try {
         const searchOptions = {
@@ -245,14 +243,14 @@ function createCoursesStore() {
         const result = await this.loadCourses(searchOptions);
 
         if (result.success) {
-          update(state => ({
+          update((state) => ({
             ...state,
             courses: result.courses,
             pagination: result.pagination,
             loading: false
           }));
         } else {
-          update(state => ({
+          update((state) => ({
             ...state,
             error: result.error,
             loading: false
@@ -262,7 +260,7 @@ function createCoursesStore() {
         return result;
       } catch (error) {
         console.error('Error searching courses:', error);
-        update(state => ({
+        update((state) => ({
           ...state,
           error: error.message,
           loading: false
@@ -301,7 +299,7 @@ function createCoursesStore() {
      * Clear error state
      */
     clearError() {
-      update(state => ({ ...state, error: null }));
+      update((state) => ({ ...state, error: null }));
     },
 
     /**
@@ -316,7 +314,7 @@ function createCoursesStore() {
      */
     async loadMore() {
       let currentState;
-      const unsubscribe = subscribe(state => {
+      const unsubscribe = subscribe((state) => {
         currentState = state;
       });
       unsubscribe();
@@ -329,7 +327,7 @@ function createCoursesStore() {
       const result = await this.loadCourses({ page: nextPage });
 
       if (result.success) {
-        update(state => ({
+        update((state) => ({
           ...state,
           courses: [...state.courses, ...result.courses],
           pagination: result.pagination
@@ -345,21 +343,21 @@ function createCoursesStore() {
 export const coursesStore = createCoursesStore();
 
 // Derived stores
-export const isCoursesLoading = derived(coursesStore, $courses => $courses.loading);
-export const coursesError = derived(coursesStore, $courses => $courses.error);
-export const coursesInitialized = derived(coursesStore, $courses => $courses.initialized);
+export const isCoursesLoading = derived(coursesStore, ($courses) => $courses.loading);
+export const coursesError = derived(coursesStore, ($courses) => $courses.error);
+export const coursesInitialized = derived(coursesStore, ($courses) => $courses.initialized);
 
 // Filtered courses
-export const activeCourses = derived(coursesStore, $courses => 
-  $courses.courses.filter(course => course.status === 'active')
+export const activeCourses = derived(coursesStore, ($courses) =>
+  $courses.courses.filter((course) => course.status === 'active')
 );
 
-export const userCreatedCourses = derived(coursesStore, $courses => 
-  $courses.courses.filter(course => course.creatorRole === 'user')
+export const userCreatedCourses = derived(coursesStore, ($courses) =>
+  $courses.courses.filter((course) => course.creatorRole === 'user')
 );
 
-export const adminCreatedCourses = derived(coursesStore, $courses => 
-  $courses.courses.filter(course => course.creatorRole === 'admin')
+export const adminCreatedCourses = derived(coursesStore, ($courses) =>
+  $courses.courses.filter((course) => course.creatorRole === 'admin')
 );
 
 // Backward compatibility

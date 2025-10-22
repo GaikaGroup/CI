@@ -55,30 +55,26 @@ describe('Database Connection Smoke Test', () => {
 
   it('should perform database operations within acceptable time', async () => {
     const startTime = Date.now();
-    
+
     // Perform a simple query
     await prisma.user.count();
-    
+
     const duration = Date.now() - startTime;
-    
+
     // Database query should be fast
     expect(duration).toBeLessThan(1000); // < 1 second
   });
 
   it('should verify database connection pool is healthy', async () => {
     // Test multiple concurrent queries
-    const queries = [
-      prisma.user.count(),
-      prisma.session.count(),
-      prisma.course.count()
-    ];
+    const queries = [prisma.user.count(), prisma.session.count(), prisma.course.count()];
 
     const startTime = Date.now();
     const results = await Promise.all(queries);
     const duration = Date.now() - startTime;
 
     // All queries should succeed
-    results.forEach(result => {
+    results.forEach((result) => {
       expect(typeof result).toBe('number');
       expect(result).toBeGreaterThanOrEqual(0);
     });

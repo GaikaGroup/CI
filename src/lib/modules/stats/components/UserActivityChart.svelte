@@ -12,38 +12,38 @@
   async function fetchData() {
     loading = true;
     error = null;
-    
+
     try {
       const response = await fetch(`/api/stats/users?range=${timeRange}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user activity data');
       }
-      
+
       const data = await response.json();
-      
+
       if (data.dailyActivity && data.dailyActivity.length > 0) {
         // Check if data is hourly (for 1h or 1d ranges)
         const isHourly = timeRange === '1h' || timeRange === '1d';
-        
-        const labels = data.dailyActivity.map(day => {
+
+        const labels = data.dailyActivity.map((day) => {
           const date = new Date(day.date);
           if (isHourly) {
             // Show hour format for hourly data
-            return date.toLocaleTimeString('en-US', { 
-              month: 'short', 
-              day: 'numeric', 
-              hour: '2-digit', 
-              minute: '2-digit' 
+            return date.toLocaleTimeString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
             });
           } else {
             // Show date format for daily data
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           }
         });
-        
-        const activeUsers = data.dailyActivity.map(day => day.activeUsers);
-        const newUsers = data.dailyActivity.map(day => day.newUsers);
-        
+
+        const activeUsers = data.dailyActivity.map((day) => day.activeUsers);
+        const newUsers = data.dailyActivity.map((day) => day.newUsers);
+
         renderChart(labels, activeUsers, newUsers);
       } else {
         renderChart([], [], []);
@@ -155,16 +155,18 @@
 
 <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
   <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">User Activity</h3>
-  
+
   {#if loading}
     <div class="h-64 flex items-center justify-center">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
     </div>
   {:else if error}
     <div class="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded">
       <div class="text-center">
         <p class="text-red-500 dark:text-red-400 mb-2">{error}</p>
-        <button 
+        <button
           on:click={fetchData}
           class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
         >

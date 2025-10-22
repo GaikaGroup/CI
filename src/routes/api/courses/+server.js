@@ -1,6 +1,6 @@
 /**
  * Courses API Endpoints
- * 
+ *
  * GET /api/courses - Get all courses with filtering and pagination
  * POST /api/courses - Create a new course
  */
@@ -10,7 +10,7 @@ import CourseService from '$lib/services/CourseService.js';
 
 /**
  * GET /api/courses
- * 
+ *
  * Query parameters:
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 20)
@@ -52,7 +52,6 @@ export async function GET({ url, locals }) {
       courses: result.courses,
       pagination: result.pagination
     });
-
   } catch (error) {
     console.error('Error in GET /api/courses:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -61,7 +60,7 @@ export async function GET({ url, locals }) {
 
 /**
  * POST /api/courses
- * 
+ *
  * Body: {
  *   name: string,
  *   description?: string,
@@ -102,11 +101,13 @@ export async function POST({ request, locals }) {
       return json({ message: result.error }, { status: 400 });
     }
 
-    return json({
-      message: 'Course created successfully',
-      course: result.course
-    }, { status: 201 });
-
+    return json(
+      {
+        message: 'Course created successfully',
+        course: result.course
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error in POST /api/courses:', error);
     return json({ message: 'Internal server error' }, { status: 500 });

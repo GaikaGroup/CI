@@ -108,20 +108,24 @@ export async function POST({ params, request, locals }) {
       return json({ error: 'Message content is required' }, { status: 400 });
     }
 
-    const { type, content, metadata = null } = body;
+    const { type, content, metadata = null, llmMetadata = null } = body;
 
     // Validate metadata if provided
     if (metadata && typeof metadata !== 'object') {
       return json({ error: 'Metadata must be an object' }, { status: 400 });
     }
 
-    const message = await MessageService.addMessage(
-      sessionId,
-      type,
-      content.trim(),
-      metadata,
-      userId
-    );
+    // Use addMessageWithModelInfo if llmMetadata is provided
+    const message = llmMetadata
+      ? await MessageService.addMessageWithModelInfo(
+          sessionId,
+          type,
+          content.trim(),
+          llmMetadata,
+          metadata,
+          userId
+        )
+      : await MessageService.addMessage(sessionId, type, content.trim(), metadata, userId);
 
     return json(message, { status: 201 });
   } catch (error) {

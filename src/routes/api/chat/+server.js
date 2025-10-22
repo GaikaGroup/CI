@@ -987,7 +987,9 @@ Maintain a friendly and encouraging tone.`
           name: result.provider,
           model: result.model
         }
-      })
+      }),
+      // Always include llmMetadata for storage (even if not shown to user)
+      llmMetadata: result.llmMetadata
     });
   } catch (error) {
     console.error('Error in chat API:', error);

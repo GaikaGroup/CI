@@ -1,6 +1,6 @@
 /**
  * System Log Service
- * 
+ *
  * Handles system logging and error tracking in database
  */
 
@@ -130,11 +130,11 @@ export class SystemLogService {
         ...(category && { category }),
         ...(userId && { userId }),
         ...(startDate && { createdAt: { gte: new Date(startDate) } }),
-        ...(endDate && { 
-          createdAt: { 
+        ...(endDate && {
+          createdAt: {
             ...(startDate ? { gte: new Date(startDate) } : {}),
-            lte: new Date(endDate) 
-          } 
+            lte: new Date(endDate)
+          }
         })
       };
 
@@ -179,29 +179,20 @@ export class SystemLogService {
    */
   static async getLogStats(options = {}) {
     try {
-      const {
-        startDate = '',
-        endDate = '',
-        category = ''
-      } = options;
+      const { startDate = '', endDate = '', category = '' } = options;
 
       const where = {
         ...(category && { category }),
         ...(startDate && { createdAt: { gte: new Date(startDate) } }),
-        ...(endDate && { 
-          createdAt: { 
+        ...(endDate && {
+          createdAt: {
             ...(startDate ? { gte: new Date(startDate) } : {}),
-            lte: new Date(endDate) 
-          } 
+            lte: new Date(endDate)
+          }
         })
       };
 
-      const [
-        totalLogs,
-        logsByLevel,
-        logsByCategory,
-        recentErrors
-      ] = await Promise.all([
+      const [totalLogs, logsByLevel, logsByCategory, recentErrors] = await Promise.all([
         // Total logs
         prisma.systemLog.count({ where }),
 
@@ -299,7 +290,7 @@ export class SystemLogService {
   static async logAPICall(endpoint, method, userId = null, duration = null, success = true) {
     const level = success ? 'info' : 'error';
     const message = `API ${method} ${endpoint} - ${success ? 'Success' : 'Failed'}`;
-    
+
     return this.logInfo(message, userId, 'api', {
       endpoint,
       method,

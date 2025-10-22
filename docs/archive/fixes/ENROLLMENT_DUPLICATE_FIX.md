@@ -3,6 +3,7 @@
 ## Проблема
 
 При попытке записаться на курс пользователь получал ошибку:
+
 ```
 Failed to join course: User is already enrolled in this course
 ```
@@ -24,6 +25,7 @@ Failed to join course: User is already enrolled in this course
    - Используется в API endpoints
 
 Проблема возникала из-за того, что:
+
 - Фронтенд использовал старый `enrollmentStore` из `$modules/courses/stores/enrollmentStore.js`
 - Этот store использовал localStorage через UserEnrollmentService
 - В localStorage могли быть старые/некорректные данные

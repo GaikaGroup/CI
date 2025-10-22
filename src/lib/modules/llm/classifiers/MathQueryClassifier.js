@@ -10,20 +10,71 @@
  */
 const MATH_KEYWORDS = {
   ru: [
-    'решить', 'решите', 'вычислить', 'вычислите', 'найти', 'найдите',
-    'доказать', 'докажите', 'упростить', 'упростите', 'разложить',
-    'интеграл', 'производная', 'предел', 'уравнение', 'неравенство',
-    'система', 'функция', 'график', 'теорема', 'формула', 'задача',
-    'вычисли', 'реши', 'найди', 'докажи', 'упрости', 'посчитать',
-    'посчитай', 'посчитайте', 'рассчитать', 'рассчитайте', 'определить',
-    'определите', 'построить', 'постройте', 'доказательство'
+    'решить',
+    'решите',
+    'вычислить',
+    'вычислите',
+    'найти',
+    'найдите',
+    'доказать',
+    'докажите',
+    'упростить',
+    'упростите',
+    'разложить',
+    'интеграл',
+    'производная',
+    'предел',
+    'уравнение',
+    'неравенство',
+    'система',
+    'функция',
+    'график',
+    'теорема',
+    'формула',
+    'задача',
+    'вычисли',
+    'реши',
+    'найди',
+    'докажи',
+    'упрости',
+    'посчитать',
+    'посчитай',
+    'посчитайте',
+    'рассчитать',
+    'рассчитайте',
+    'определить',
+    'определите',
+    'построить',
+    'постройте',
+    'доказательство'
   ],
   en: [
-    'solve', 'calculate', 'compute', 'find', 'prove', 'simplify',
-    'factor', 'expand', 'integrate', 'differentiate', 'derive',
-    'integral', 'derivative', 'limit', 'equation', 'inequality',
-    'system', 'function', 'graph', 'theorem', 'formula', 'problem',
-    'evaluate', 'determine', 'plot', 'proof'
+    'solve',
+    'calculate',
+    'compute',
+    'find',
+    'prove',
+    'simplify',
+    'factor',
+    'expand',
+    'integrate',
+    'differentiate',
+    'derive',
+    'integral',
+    'derivative',
+    'limit',
+    'equation',
+    'inequality',
+    'system',
+    'function',
+    'graph',
+    'theorem',
+    'formula',
+    'problem',
+    'evaluate',
+    'determine',
+    'plot',
+    'proof'
   ]
 };
 
@@ -31,16 +82,16 @@ const MATH_KEYWORDS = {
  * Mathematical symbols and patterns
  */
 const MATH_PATTERNS = [
-  /[+\-*/=<>≤≥≠±×÷]/,           // Basic operators
-  /\d+\s*[+\-*/=]\s*\d+/,       // Numeric expressions
-  /[∫∑∏√∂∇]/,                   // Advanced math symbols
+  /[+\-*/=<>≤≥≠±×÷]/, // Basic operators
+  /\d+\s*[+\-*/=]\s*\d+/, // Numeric expressions
+  /[∫∑∏√∂∇]/, // Advanced math symbols
   /\b(sin|cos|tan|log|ln|exp)\b/i, // Math functions
-  /\^|\*\*|²|³/,                // Exponents
-  /\([^)]*[+\-*/=][^)]*\)/,     // Expressions in parentheses
-  /\b\d+x\b|\bx\d+\b/i,         // Variables with coefficients
-  /\b[a-z]\s*[=+\-*/]\s*\d+/i,  // Variable equations
-  /\b(dx|dy|dt)\b/i,            // Differentials
-  /lim\s*\(/i,                  // Limits
+  /\^|\*\*|²|³/, // Exponents
+  /\([^)]*[+\-*/=][^)]*\)/, // Expressions in parentheses
+  /\b\d+x\b|\bx\d+\b/i, // Variables with coefficients
+  /\b[a-z]\s*[=+\-*/]\s*\d+/i, // Variable equations
+  /\b(dx|dy|dt)\b/i, // Differentials
+  /lim\s*\(/i // Limits
 ];
 
 /**
@@ -48,11 +99,29 @@ const MATH_PATTERNS = [
  */
 const CATEGORY_KEYWORDS = {
   algebra: {
-    ru: ['уравнение', 'неравенство', 'система', 'многочлен', 'корень', 'дискриминант', 'квадратное'],
+    ru: [
+      'уравнение',
+      'неравенство',
+      'система',
+      'многочлен',
+      'корень',
+      'дискриминант',
+      'квадратное'
+    ],
     en: ['equation', 'inequality', 'system', 'polynomial', 'root', 'discriminant', 'quadratic']
   },
   geometry: {
-    ru: ['треугольник', 'окружность', 'площадь', 'периметр', 'угол', 'теорема', 'фигура', 'прямая', 'точка'],
+    ru: [
+      'треугольник',
+      'окружность',
+      'площадь',
+      'периметр',
+      'угол',
+      'теорема',
+      'фигура',
+      'прямая',
+      'точка'
+    ],
     en: ['triangle', 'circle', 'area', 'perimeter', 'angle', 'theorem', 'figure', 'line', 'point']
   },
   calculus: {
@@ -138,13 +207,13 @@ export class MathQueryClassifier {
     for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
       let score = 0;
       const allKeywords = [...keywords.ru, ...keywords.en];
-      
+
       for (const keyword of allKeywords) {
         if (lowerMessage.includes(keyword)) {
           score++;
         }
       }
-      
+
       categoryScores[category] = score;
     }
 

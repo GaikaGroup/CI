@@ -1,6 +1,6 @@
 /**
  * Course by ID API Endpoints
- * 
+ *
  * GET /api/courses/[id] - Get course by ID
  * PUT /api/courses/[id] - Update course
  * DELETE /api/courses/[id] - Delete course
@@ -11,7 +11,7 @@ import CourseService from '$lib/services/CourseService.js';
 
 /**
  * GET /api/courses/[id]
- * 
+ *
  * Query parameters:
  * - includeDetails: Include enrollments, sessions, reports (default: false)
  */
@@ -32,7 +32,6 @@ export async function GET({ params, url, locals }) {
     }
 
     return json({ course: result.course });
-
   } catch (error) {
     console.error('Error in GET /api/courses/[id]:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -41,7 +40,7 @@ export async function GET({ params, url, locals }) {
 
 /**
  * PUT /api/courses/[id]
- * 
+ *
  * Body: Course update data
  */
 export async function PUT({ params, request, locals }) {
@@ -69,7 +68,6 @@ export async function PUT({ params, request, locals }) {
       message: 'Course updated successfully',
       course: result.course
     });
-
   } catch (error) {
     console.error('Error in PUT /api/courses/[id]:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -78,7 +76,7 @@ export async function PUT({ params, request, locals }) {
 
 /**
  * DELETE /api/courses/[id]
- * 
+ *
  * Query parameters:
  * - hard: Set to 'true' for hard delete (admin only)
  */
@@ -99,7 +97,6 @@ export async function DELETE({ params, url, locals }) {
     }
 
     return json({ message: 'Course deleted successfully' });
-
   } catch (error) {
     console.error('Error in DELETE /api/courses/[id]:', error);
     return json({ message: 'Internal server error' }, { status: 500 });

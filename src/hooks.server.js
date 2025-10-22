@@ -9,24 +9,24 @@ import { authenticateUser } from '$lib/modules/auth/middleware.js';
 export const handle = async ({ event, resolve }) => {
   // Try JWT authentication first
   const authenticatedUser = await authenticateUser(event);
-  
+
   if (authenticatedUser) {
     console.log('[Auth] JWT authentication successful:', authenticatedUser.email);
     event.locals.user = authenticatedUser;
   } else {
     // Fallback to cookie-based authentication for demo users
     const userCookie = event.cookies.get(STORAGE_KEYS.USER);
-    
+
     if (userCookie) {
       try {
         const decodedCookie = decodeURIComponent(userCookie);
         const userData = JSON.parse(decodedCookie);
-        
+
         // Validate user data structure
         if (!userData || !userData.id || !userData.email) {
           throw new Error('Invalid user data structure');
         }
-        
+
         // Clear old data with 'role' field - force re-login
         if (userData.role) {
           console.log('[Auth] Found old data with role field, clearing and forcing re-login');
@@ -34,7 +34,7 @@ export const handle = async ({ event, resolve }) => {
           event.locals.user = undefined;
           return resolve(event);
         }
-        
+
         console.log('[Auth] Cookie authentication successful:', userData.email);
         event.locals.user = userData;
       } catch (error) {
@@ -62,23 +62,16 @@ export const handle = async ({ event, resolve }) => {
   ];
 
   // Public routes that don't require authentication
-  const publicRoutes = [
-    '/login',
-    '/signup',
-    '/catalogue',
-    '/'
-  ];
+  const publicRoutes = ['/login', '/signup', '/catalogue', '/'];
 
   const pathname = event.url.pathname;
 
   // Check if the current route is protected
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  );
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
   // Check if the current route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || (route !== '/' && pathname.startsWith(route))
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || (route !== '/' && pathname.startsWith(route))
   );
 
   // If it's a protected route and user is not authenticated, redirect to login
@@ -89,11 +82,19 @@ export const handle = async ({ event, resolve }) => {
 
   // TEMPORARILY DISABLED: If user is authenticated and trying to access login/signup, redirect to sessions
   if (false && event.locals.user && (pathname === '/login' || pathname === '/signup')) {
-    console.log('[Auth] User is authenticated, redirecting from login to sessions:', event.locals.user.email);
+    console.log(
+      '[Auth] User is authenticated, redirecting from login to sessions:',
+      event.locals.user.email
+    );
     throw redirect(302, '/sessions');
   }
 
-  console.log('[Auth] Final state - pathname:', pathname, 'user:', event.locals.user ? event.locals.user.email : 'none');
+  console.log(
+    '[Auth] Final state - pathname:',
+    pathname,
+    'user:',
+    event.locals.user ? event.locals.user.email : 'none'
+  );
 
   return resolve(event);
 };

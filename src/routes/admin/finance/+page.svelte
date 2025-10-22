@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { checkAuth } from '$modules/auth/stores';
-  
+
   export let data;
 
   const models = data?.costs?.models ?? [];

@@ -35,7 +35,7 @@
   function loadLocalStorageData() {
     const keys = [
       'learnModeCourses',
-      'learnModeSubjects', 
+      'learnModeSubjects',
       'userEnrollments',
       'courseEnrollments',
       'subjectEnrollments',
@@ -48,7 +48,7 @@
       'language'
     ];
 
-    keys.forEach(key => {
+    keys.forEach((key) => {
       const value = localStorage.getItem(key);
       if (value) {
         try {
@@ -63,16 +63,19 @@
   }
 
   function addLog(message, type = 'info') {
-    migrationLog = [...migrationLog, {
-      timestamp: new Date().toLocaleTimeString(),
-      message,
-      type
-    }];
+    migrationLog = [
+      ...migrationLog,
+      {
+        timestamp: new Date().toLocaleTimeString(),
+        message,
+        type
+      }
+    ];
   }
 
   async function migrateCourses() {
     addLog('🔄 Starting courses migration...');
-    
+
     const courses = [
       ...(localStorageData.learnModeCourses || []),
       ...(localStorageData.learnModeSubjects || [])
@@ -119,7 +122,7 @@
 
   async function migrateEnrollments() {
     addLog('🔄 Starting enrollments migration...');
-    
+
     const enrollments = [
       ...(localStorageData.userEnrollments || []),
       ...(localStorageData.courseEnrollments || []),
@@ -140,7 +143,10 @@
 
         if (response.ok) {
           migratedCount++;
-          addLog(`✅ Migrated enrollment for course ${enrollment.courseId || enrollment.subjectId}`, 'success');
+          addLog(
+            `✅ Migrated enrollment for course ${enrollment.courseId || enrollment.subjectId}`,
+            'success'
+          );
         } else {
           const error = await response.json();
           addLog(`⚠️ Failed to migrate enrollment: ${error.message}`, 'warning');
@@ -156,13 +162,13 @@
 
   async function migratePreferences() {
     addLog('🔄 Starting preferences migration...');
-    
+
     const preferences = {};
-    
+
     if (localStorageData.theme) {
       preferences.theme = localStorageData.theme;
     }
-    
+
     if (localStorageData.language) {
       preferences.language = localStorageData.language;
     }
@@ -197,14 +203,13 @@
 
     try {
       addLog('🚀 Starting localStorage to database migration...', 'info');
-      
+
       await migrateCourses();
       await migrateEnrollments();
       await migratePreferences();
-      
+
       migrationStatus = 'success';
       addLog('🎉 Migration completed successfully!', 'success');
-      
     } catch (error) {
       migrationStatus = 'error';
       migrationError = error.message;
@@ -226,7 +231,7 @@
       'errorLog'
     ];
 
-    keysToRemove.forEach(key => {
+    keysToRemove.forEach((key) => {
       localStorage.removeItem(key);
     });
 
@@ -257,17 +262,25 @@
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold mb-8">Data Migration Tool</h1>
-    
+
     <!-- Migration Status -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
       <h2 class="text-xl font-semibold mb-4">Migration Status</h2>
-      
+
       <div class="flex items-center space-x-4 mb-4">
         <div class="flex items-center space-x-2">
-          <div class="w-3 h-3 rounded-full {migrationStatus === 'idle' ? 'bg-gray-400' : migrationStatus === 'running' ? 'bg-yellow-400' : migrationStatus === 'success' ? 'bg-green-400' : 'bg-red-400'}"></div>
+          <div
+            class="w-3 h-3 rounded-full {migrationStatus === 'idle'
+              ? 'bg-gray-400'
+              : migrationStatus === 'running'
+                ? 'bg-yellow-400'
+                : migrationStatus === 'success'
+                  ? 'bg-green-400'
+                  : 'bg-red-400'}"
+          ></div>
           <span class="capitalize">{migrationStatus}</span>
         </div>
-        
+
         {#if migrationStatus === 'running'}
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
         {/if}
@@ -308,14 +321,14 @@
         >
           {migrationStatus === 'running' ? 'Migrating...' : 'Start Migration'}
         </button>
-        
+
         <button
           on:click={downloadBackup}
           class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium"
         >
           Download Backup
         </button>
-        
+
         {#if migrationStatus === 'success'}
           <button
             on:click={clearLocalStorage}
@@ -331,10 +344,20 @@
     {#if migrationLog.length > 0}
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
         <h2 class="text-xl font-semibold mb-4">Migration Log</h2>
-        
-        <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
+
+        <div
+          class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto"
+        >
           {#each migrationLog as log}
-            <div class="mb-1 {log.type === 'error' ? 'text-red-400' : log.type === 'warning' ? 'text-yellow-400' : log.type === 'success' ? 'text-green-400' : 'text-gray-300'}">
+            <div
+              class="mb-1 {log.type === 'error'
+                ? 'text-red-400'
+                : log.type === 'warning'
+                  ? 'text-yellow-400'
+                  : log.type === 'success'
+                    ? 'text-green-400'
+                    : 'text-gray-300'}"
+            >
               [{log.timestamp}] {log.message}
             </div>
           {/each}
@@ -345,13 +368,18 @@
     <!-- localStorage Preview -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
       <h2 class="text-xl font-semibold mb-4">localStorage Data Preview</h2>
-      
+
       {#if Object.keys(localStorageData).length > 0}
         <div class="space-y-4">
           {#each Object.entries(localStorageData) as [key, value]}
             <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <h3 class="font-medium mb-2">{key}</h3>
-              <pre class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-sm overflow-x-auto">{JSON.stringify(value, null, 2)}</pre>
+              <pre
+                class="bg-gray-100 dark:bg-gray-900 p-2 rounded text-sm overflow-x-auto">{JSON.stringify(
+                  value,
+                  null,
+                  2
+                )}</pre>
             </div>
           {/each}
         </div>

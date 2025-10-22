@@ -1,9 +1,15 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
+  import { get } from 'svelte/store';
   import { user, checkAuth, isAuthenticated } from '$lib/modules/auth/stores';
   import { sessionStore } from '$lib/modules/session/stores/sessionStore.js';
-  import { chatMode as chatModeStore, messages, addMessage } from '$lib/modules/chat/stores';
+  import {
+    chatMode as chatModeStore,
+    messages,
+    addMessage,
+    updateMessage
+  } from '$lib/modules/chat/stores';
   import { MESSAGE_TYPES } from '$lib/shared/utils/constants';
   import { setVoiceModeActive } from '$lib/modules/chat/voiceServices';
   import MessageList from '$lib/modules/chat/components/MessageList.svelte';
@@ -18,6 +24,7 @@
   let loading = true;
   let error = null;
   let messageUnsubscribe;
+  let isHandlingSendMessage = false; // Flag to prevent auto-save during manual save
 
   function goBackToSessions() {
     goto('/sessions');
@@ -38,9 +45,12 @@
 
     if (!content.trim() && images.length === 0) return;
 
+    // Set flag to prevent auto-save from triggering during this function
+    isHandlingSendMessage = true;
+
     try {
-      // Add user message to store
-      const messageId = Date.now();
+      // Add user message to store with temporary ID
+      const tempMessageId = Date.now();
       const imageUrls = images && images.length > 0 ? images.map((img) => img.url || img) : [];
 
       // Convert blob URLs to base64 for storage
@@ -51,7 +61,7 @@
             const response = await fetch(imageUrl);
             if (!response.ok) return null;
             const blob = await response.blob();
-            
+
             return new Promise((resolve) => {
               const reader = new FileReader();
               reader.onloadend = () => resolve(reader.result);
@@ -63,19 +73,72 @@
             return null;
           }
         });
-        
+
         const results = await Promise.all(imageDataPromises);
-        base64Images = results.filter(img => img !== null);
+        base64Images = results.filter((img) => img !== null);
       }
 
       // Add message with base64 images
-      addMessage(MESSAGE_TYPES.USER, content, base64Images, messageId);
+      addMessage(MESSAGE_TYPES.USER, content, base64Images, tempMessageId);
+
+      // Save user message to database
+      try {
+        const saveResponse = await fetch(`/api/sessions/${sessionId}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'user',
+            content: content.trim(),
+            metadata: base64Images.length > 0 ? { images: base64Images } : null
+          })
+        });
+
+        if (saveResponse.ok) {
+          const savedMessage = await saveResponse.json();
+          // Update the message in store with database ID and mark as saved
+          updateMessage(tempMessageId, { id: savedMessage.id, saved: true });
+          console.log('User message saved to database with ID:', savedMessage.id);
+        }
+      } catch (error) {
+        console.error('Failed to save user message to database:', error);
+      }
 
       // Import the sendMessage function dynamically
       const { sendMessage } = await import('$lib/modules/chat/services');
 
       // Send message to LLM (this will add AI response to store)
-      await sendMessage(content, imageUrls, sessionId);
+      const aiResponse = await sendMessage(content, imageUrls, sessionId);
+
+      // Save assistant message to database
+      try {
+        // Get the last assistant message from store (the one just added)
+        const currentMessages = get(messages);
+        const lastAssistantMessage = [...currentMessages]
+          .reverse()
+          .find((m) => (m.type === MESSAGE_TYPES.TUTOR || m.type === 'assistant') && !m.waiting);
+
+        if (lastAssistantMessage && aiResponse) {
+          const saveResponse = await fetch(`/api/sessions/${sessionId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'assistant',
+              content: lastAssistantMessage.content,
+              metadata: lastAssistantMessage.metadata || null,
+              llmMetadata: aiResponse.llmMetadata || null
+            })
+          });
+
+          if (saveResponse.ok) {
+            const savedMessage = await saveResponse.json();
+            // Update the message in store with database ID and mark as saved
+            updateMessage(lastAssistantMessage.id, { id: savedMessage.id, saved: true });
+            console.log('Assistant message saved to database with ID:', savedMessage.id);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to save assistant message to database:', error);
+      }
 
       // Update session title with first user message if it's still the default
       if (currentSession && currentSession.title.startsWith('New Session')) {
@@ -88,6 +151,9 @@
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+    } finally {
+      // Reset flag to allow auto-save again
+      isHandlingSendMessage = false;
     }
   }
 
@@ -124,7 +190,7 @@
       // Set this as the current session in the store
       await sessionStore.selectSession(sessionId);
 
-      // Convert database messages to chat format
+      // Convert database messages to chat format (all marked as saved to prevent duplicate saves)
       const chatMessages = (sessionData.messages || []).map((msg, index) => ({
         id: msg.id || index + 1,
         type: msg.type === 'assistant' ? 'tutor' : msg.type,
@@ -135,7 +201,7 @@
         }),
         metadata: msg.metadata || {},
         images: msg.metadata?.images || [],
-        saved: true
+        saved: true // Already in database, don't save again
       }));
 
       if (chatMessages.length > 0) {
@@ -161,8 +227,8 @@
   async function saveMessageToSession(message) {
     if (!sessionId || !$user || !message.content) return;
 
-    // Don't save system messages or messages that are already saved
-    if (message.type === 'system' || message.saved) return;
+    // Don't save system messages, waiting phrases, or messages that are already saved
+    if (message.type === 'system' || message.saved || message.waiting) return;
 
     try {
       // Prepare metadata with images if present
@@ -209,15 +275,39 @@
     // Load the specific session
     await loadSession();
 
-    // Subscribe to messages to auto-save them
+    // Subscribe to messages to auto-save them (only for messages not already saved by handleSendMessage)
+    // This is a fallback for any messages that might be added through other means
     let lastProcessedIndex = 0;
     messageUnsubscribe = messages.subscribe(($messages) => {
-      // Save any new messages that haven't been saved yet
+      // Skip auto-save if handleSendMessage is currently processing
+      if (isHandlingSendMessage) {
+        lastProcessedIndex = $messages.length;
+        return;
+      }
+
+      // Only process new messages that haven't been saved yet
       for (let i = lastProcessedIndex; i < $messages.length; i++) {
         const message = $messages[i];
-        if (message && !message.saved && message.type !== 'system') {
+        // Skip if:
+        // - already saved
+        // - is a system message
+        // - doesn't have content
+        // - is a waiting phrase (temporary message)
+        // - has a database ID (already in DB)
+        const hasDbId = message.id && typeof message.id === 'string' && message.id.startsWith('c');
+        if (
+          message &&
+          !message.saved &&
+          !message.waiting &&
+          message.type !== 'system' &&
+          message.content &&
+          !hasDbId
+        ) {
+          // This should rarely trigger since handleSendMessage saves messages explicitly
+          console.log('[Auto-save fallback] Saving message:', message.id);
           saveMessageToSession(message);
-          message.saved = true;
+          // Mark as saved using updateMessage to ensure it's tracked in the store
+          updateMessage(message.id, { saved: true });
         }
       }
       lastProcessedIndex = $messages.length;

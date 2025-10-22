@@ -1,6 +1,6 @@
 /**
  * User Role Service
- * 
+ *
  * Determines user roles (Student/Tutor) based on enrollments and created courses
  */
 
@@ -83,12 +83,12 @@ export class UserRoleService {
       });
 
       // Create maps for quick lookup
-      const studentsSet = new Set(enrollments.map(e => e.userId));
-      const tutorsSet = new Set(createdCourses.map(c => c.creatorId));
+      const studentsSet = new Set(enrollments.map((e) => e.userId));
+      const tutorsSet = new Set(createdCourses.map((c) => c.creatorId));
 
       // Build result map
       const result = new Map();
-      
+
       for (const userId of userIds) {
         const isStudent = studentsSet.has(userId);
         const isTutor = tutorsSet.has(userId);

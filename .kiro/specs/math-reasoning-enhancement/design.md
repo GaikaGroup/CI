@@ -3,6 +3,7 @@
 ## Overview
 
 Этот дизайн описывает улучшение математических возможностей AI-тьютора через:
+
 1. Автоматическое определение математических запросов
 2. Динамическое увеличение лимита токенов для детальных решений
 3. Использование более мощных моделей для математики
@@ -36,7 +37,7 @@ sequenceDiagram
     participant RequestEnhancer
     participant ProviderManager
     participant LLMProvider
-    
+
     User->>ChatService: Отправляет математическую задачу
     ChatService->>MathClassifier: Классифицировать сообщение
     MathClassifier-->>ChatService: isMathQuery: true
@@ -58,6 +59,7 @@ sequenceDiagram
 **Расположение:** `src/lib/modules/llm/classifiers/MathQueryClassifier.js`
 
 **Interface:**
+
 ```javascript
 class MathQueryClassifier {
   /**
@@ -67,7 +69,7 @@ class MathQueryClassifier {
    * @returns {Object} { isMath: boolean, confidence: number, category: string }
    */
   classify(message, context = [])
-  
+
   /**
    * Определяет категорию математической задачи
    * @param {string} message - Текст сообщения
@@ -78,6 +80,7 @@ class MathQueryClassifier {
 ```
 
 **Логика классификации:**
+
 - Поиск математических ключевых слов (решить, вычислить, найти, доказать, etc.)
 - Обнаружение математических символов и формул (=, +, -, ×, ÷, ∫, ∑, etc.)
 - Обнаружение чисел и уравнений
@@ -91,6 +94,7 @@ class MathQueryClassifier {
 **Расположение:** `src/lib/modules/llm/enhancers/RequestEnhancer.js`
 
 **Interface:**
+
 ```javascript
 class RequestEnhancer {
   /**
@@ -100,7 +104,7 @@ class RequestEnhancer {
    * @returns {Object} Улучшенные параметры
    */
   enhance(options, classification)
-  
+
   /**
    * Получает оптимальные параметры для математических задач
    * @param {string} category - Категория математики
@@ -111,6 +115,7 @@ class RequestEnhancer {
 ```
 
 **Логика улучшения:**
+
 - Если `isMath === true` и `maxTokens < 4000` → установить `maxTokens = 4000`
 - Для сложных категорий (calculus, proofs) → `maxTokens = 4000`
 - Для простых (arithmetic) → `maxTokens = 2000`
@@ -124,6 +129,7 @@ class RequestEnhancer {
 **Расположение:** `src/lib/modules/llm/ProviderManager.js`
 
 **Новый метод:**
+
 ```javascript
 /**
  * Генерирует ответ с автоматическим улучшением для математики
@@ -135,6 +141,7 @@ async generateChatCompletionWithEnhancement(messages, options = {})
 ```
 
 **Логика:**
+
 1. Извлечь последнее сообщение пользователя
 2. Классифицировать через MathQueryClassifier
 3. Если математика → улучшить параметры через RequestEnhancer
@@ -147,15 +154,17 @@ async generateChatCompletionWithEnhancement(messages, options = {})
 **Изменения:** Увеличить дефолтный maxTokens
 
 **Файлы:**
+
 - `src/lib/modules/courses/agents.js`
 - `src/lib/modules/subjects/agents.js`
 
 **Изменение:**
+
 ```javascript
 export const DEFAULT_AGENT_CONFIG = {
-  model: 'gpt-4-turbo',  // Изменить с gpt-3.5-turbo
+  model: 'gpt-4-turbo', // Изменить с gpt-3.5-turbo
   temperature: 0.7,
-  maxTokens: 4000        // Изменить с 1000
+  maxTokens: 4000 // Изменить с 1000
 };
 ```
 
@@ -166,6 +175,7 @@ export const DEFAULT_AGENT_CONFIG = {
 **Расположение:** `src/lib/modules/chat/services.js`
 
 **Изменение в функции `sendMessage`:**
+
 ```javascript
 // Вместо:
 const result = await providerManager.generateChatCompletion(messages, options);
@@ -177,6 +187,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ## Data Models
 
 ### Classification Result
+
 ```javascript
 {
   isMath: boolean,           // Является ли запрос математическим
@@ -189,6 +200,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ```
 
 ### Enhanced Options
+
 ```javascript
 {
   ...originalOptions,
@@ -207,6 +219,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ### Math System Prompts
 
 **Для алгебры:**
+
 ```
 Ты - эксперт по алгебре. При решении задач:
 1. Покажи все шаги решения
@@ -216,6 +229,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ```
 
 **Для геометрии:**
+
 ```
 Ты - эксперт по геометрии. При решении задач:
 1. Опиши данные и что нужно найти
@@ -226,6 +240,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ```
 
 **Для математического анализа:**
+
 ```
 Ты - эксперт по математическому анализу. При решении задач:
 1. Определи тип задачи (предел, производная, интеграл)
@@ -242,6 +257,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 **Проблема:** Неоднозначная классификация (confidence < 0.7)
 
 **Решение:**
+
 - Использовать контекст предыдущих сообщений
 - Если контекст указывает на математику → считать математическим
 - Логировать неоднозначные случаи для анализа
@@ -251,6 +267,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 **Проблема:** Даже 4000 токенов недостаточно для очень сложной задачи
 
 **Решение:**
+
 - Разбить решение на части
 - Предложить пользователю задать уточняющие вопросы
 - Логировать случаи превышения для анализа
@@ -260,6 +277,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 **Проблема:** Специализированная модель недоступна
 
 **Решение:**
+
 - Использовать существующий механизм fallback в ProviderManager
 - Логировать причину fallback
 - Сохранить увеличенный maxTokens даже при fallback
@@ -269,6 +287,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ### Unit Tests
 
 **MathQueryClassifier:**
+
 - Тест распознавания математических ключевых слов
 - Тест обнаружения формул и уравнений
 - Тест категоризации задач
@@ -276,6 +295,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 - Тест confidence scoring
 
 **RequestEnhancer:**
+
 - Тест увеличения maxTokens для математики
 - Тест выбора параметров по категориям
 - Тест добавления system prompts
@@ -284,12 +304,14 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ### Integration Tests
 
 **ProviderManager:**
+
 - Тест полного flow с математическим запросом
 - Тест fallback при недоступности модели
 - Тест метаданных в ответе
 - Тест работы с немathematическими запросами
 
 **ChatService:**
+
 - Тест отправки математической задачи
 - Тест получения детального решения
 - Тест отображения формул через MathRenderer
@@ -298,6 +320,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 ### Manual Testing
 
 **Сценарии:**
+
 1. Простая алгебраическая задача (уравнение)
 2. Геометрическая задача с чертежом
 3. Задача на производные
@@ -306,6 +329,7 @@ const result = await providerManager.generateChatCompletionWithEnhancement(messa
 6. Смешанный диалог (математика + обычные вопросы)
 
 **Проверка:**
+
 - Полнота решения (все шаги присутствуют)
 - Корректность формул (LaTeX рендерится)
 - Время ответа (приемлемое)
@@ -357,31 +381,35 @@ export const MATH_FEATURES = {
   ENABLE_AUTO_CLASSIFICATION: true,
   ENABLE_REQUEST_ENHANCEMENT: true,
   ENABLE_MATH_SYSTEM_PROMPTS: true,
-  ENABLE_LOCAL_MATH_MODELS: false  // Для будущего расширения
+  ENABLE_LOCAL_MATH_MODELS: false // Для будущего расширения
 };
 ```
 
 ## Migration Strategy
 
 ### Phase 1: Core Implementation
+
 1. Создать MathQueryClassifier
 2. Создать RequestEnhancer
 3. Обновить DEFAULT_AGENT_CONFIG (maxTokens: 4000)
 4. Добавить unit tests
 
 ### Phase 2: Integration
+
 1. Интегрировать в ProviderManager
 2. Обновить ChatService
 3. Добавить integration tests
 4. Тестировать на реальных задачах
 
 ### Phase 3: Optimization
+
 1. Собрать метрики использования
 2. Оптимизировать классификатор
 3. Настроить параметры по категориям
 4. Добавить мониторинг
 
 ### Phase 4: Advanced Features (опционально)
+
 1. Поддержка локальных математических моделей
 2. Визуализация графиков
 3. Интерактивные решения
@@ -397,6 +425,7 @@ export const MATH_FEATURES = {
 ## Monitoring and Metrics
 
 ### Метрики для сбора:
+
 - Количество математических запросов vs обычных
 - Accuracy классификатора (через feedback)
 - Среднее количество токенов на математический запрос
@@ -405,6 +434,7 @@ export const MATH_FEATURES = {
 - Частота fallback
 
 ### Dashboards:
+
 - Распределение по категориям математики
 - Тренды использования токенов
 - Стоимость по типам запросов

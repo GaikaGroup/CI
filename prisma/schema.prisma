@@ -61,6 +61,8 @@ model Session {
   @@index([courseId, updatedAt(sort: Desc)], name: "idx_course_sessions")
   @@index([title, preview], name: "idx_session_search")
   @@index([isHidden], name: "idx_session_visibility")
+  @@index([userId, isHidden, updatedAt(sort: Desc)], name: "idx_user_sessions_visibility")
+  @@index([userId, createdAt(sort: Desc), updatedAt(sort: Desc)], name: "idx_sessions_date_range")
   @@index([createdAt], name: "idx_session_stats") // For statistics queries
   @@map("sessions")
 }
@@ -78,6 +80,7 @@ model Message {
   
   // Indexes
   @@index([sessionId, createdAt], name: "idx_session_messages")
+  @@index([sessionId, type], name: "idx_message_role")
   @@index([createdAt], name: "idx_message_stats") // For statistics queries
   @@map("messages")
 }

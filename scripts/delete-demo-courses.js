@@ -35,7 +35,6 @@ async function deleteDemoCourses() {
     console.log(`✅ Deleted ${deletedUsers.count} demo users`);
 
     console.log('\n🎉 All demo data deleted!');
-
   } catch (error) {
     console.error('❌ Error deleting demo data:', error);
     process.exit(1);

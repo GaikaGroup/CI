@@ -48,13 +48,13 @@ describe('Courses API', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         },
         body: JSON.stringify(courseData)
       });
 
       expect(response.status).toBe(201);
-      
+
       const data = await response.json();
       expect(data.course).toBeDefined();
       expect(data.course.name).toBe(courseData.name);
@@ -78,13 +78,13 @@ describe('Courses API', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         },
         body: JSON.stringify({})
       });
 
       expect(response.status).toBe(400);
-      
+
       const data = await response.json();
       expect(data.message).toContain('required');
     });
@@ -106,12 +106,12 @@ describe('Courses API', () => {
     it('should get courses with pagination', async () => {
       const response = await fetch('/api/courses?page=1&limit=10', {
         headers: {
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         }
       });
 
       expect(response.status).toBe(200);
-      
+
       const data = await response.json();
       expect(data.courses).toBeDefined();
       expect(data.pagination).toBeDefined();
@@ -122,12 +122,12 @@ describe('Courses API', () => {
     it('should filter courses by search query', async () => {
       const response = await fetch('/api/courses?search=Test', {
         headers: {
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         }
       });
 
       expect(response.status).toBe(200);
-      
+
       const data = await response.json();
       expect(data.courses.length).toBeGreaterThan(0);
       expect(data.courses[0].name).toContain('Test');
@@ -155,12 +155,12 @@ describe('Courses API', () => {
     it('should get course by ID', async () => {
       const response = await fetch(`/api/courses/${testCourse.id}`, {
         headers: {
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         }
       });
 
       expect(response.status).toBe(200);
-      
+
       const data = await response.json();
       expect(data.course).toBeDefined();
       expect(data.course.id).toBe(testCourse.id);
@@ -170,7 +170,7 @@ describe('Courses API', () => {
     it('should return 404 for non-existent course', async () => {
       const response = await fetch('/api/courses/non-existent-id', {
         headers: {
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         }
       });
 
@@ -201,13 +201,13 @@ describe('Courses API', () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         },
         body: JSON.stringify(updates)
       });
 
       expect(response.status).toBe(200);
-      
+
       const data = await response.json();
       expect(data.course.name).toBe(updates.name);
       expect(data.course.description).toBe(updates.description);
@@ -228,7 +228,7 @@ describe('Courses API', () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': `user=${JSON.stringify(otherUser)}`
+          Cookie: `user=${JSON.stringify(otherUser)}`
         },
         body: JSON.stringify({ name: 'Hacked Course' })
       });
@@ -256,7 +256,7 @@ describe('Courses API', () => {
       const response = await fetch(`/api/courses/${testCourse.id}`, {
         method: 'DELETE',
         headers: {
-          'Cookie': `user=${JSON.stringify(testUser)}`
+          Cookie: `user=${JSON.stringify(testUser)}`
         }
       });
 
@@ -284,7 +284,7 @@ describe('Courses API', () => {
       const response = await fetch(`/api/courses/${testCourse.id}`, {
         method: 'DELETE',
         headers: {
-          'Cookie': `user=${JSON.stringify(otherUser)}`
+          Cookie: `user=${JSON.stringify(otherUser)}`
         }
       });
 

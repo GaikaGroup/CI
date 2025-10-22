@@ -12,7 +12,7 @@
 
   // Tab management
   let activeTab = 'browse';
-  
+
   // Get tab from URL params
   $: {
     const urlTab = $page.url.searchParams.get('tab');
@@ -39,7 +39,9 @@
   // Get enrolled courses for My Learning tab
   $: enrolledCourses = $activeEnrollments
     .map((enrollment) => {
-      const course = $coursesStore.courses?.find((c) => c.id === enrollment.subjectId || c.id === enrollment.courseId);
+      const course = $coursesStore.courses?.find(
+        (c) => c.id === enrollment.subjectId || c.id === enrollment.courseId
+      );
       return course ? { ...course, enrollment } : null;
     })
     .filter(Boolean);
@@ -52,7 +54,7 @@
     try {
       const { enrollmentStore } = await import('$lib/stores/enrollmentDB.js');
       const result = await enrollmentStore.enrollInCourse(course.id);
-      
+
       if (result.success) {
         // Switch to My Learning tab to show the newly enrolled course
         setActiveTab('learning');
@@ -76,17 +78,17 @@
   const handleEditCourse = (event) => {
     const { course } = event.detail;
     console.log('🎯 Student page handleEditCourse:', course);
-    
+
     if (!course || !course.id) {
       console.error('Cannot edit course: missing course or course ID', course);
       return;
     }
 
     // Use encodeURIComponent for proper handling of non-Latin characters
-    const slug = course.name 
+    const slug = course.name
       ? encodeURIComponent(course.name.toLowerCase().replace(/\s+/g, '-'))
       : course.id;
-    
+
     const url = `/catalogue/edit?id=${course.id}&course=${slug}&action=edit`;
     console.log('🚀 Navigating to:', url);
     goto(url);
@@ -117,7 +119,9 @@
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center gap-3 mb-2">
-        <div class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-xl">
+        <div
+          class="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-xl"
+        >
           <User class="w-6 h-6 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
@@ -143,10 +147,11 @@
             Browse Courses
           </div>
         </button>
-        
+
         <button
           on:click={() => setActiveTab('learning')}
-          class="py-4 px-1 border-b-2 font-medium text-sm transition-colors {activeTab === 'learning'
+          class="py-4 px-1 border-b-2 font-medium text-sm transition-colors {activeTab ===
+          'learning'
             ? 'border-blue-500 text-blue-600 dark:text-blue-400'
             : 'border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-gray-400 dark:hover:text-gray-300'}"
         >
@@ -154,16 +159,19 @@
             <TrendingUp class="w-4 h-4" />
             My Learning
             {#if enrolledCourses.length > 0}
-              <span class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200">
+              <span
+                class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200"
+              >
                 {enrolledCourses.length}
               </span>
             {/if}
           </div>
         </button>
-        
+
         <button
           on:click={() => setActiveTab('progress')}
-          class="py-4 px-1 border-b-2 font-medium text-sm transition-colors {activeTab === 'progress'
+          class="py-4 px-1 border-b-2 font-medium text-sm transition-colors {activeTab ===
+          'progress'
             ? 'border-blue-500 text-blue-600 dark:text-blue-400'
             : 'border-transparent text-stone-500 hover:text-stone-700 hover:border-stone-300 dark:text-gray-400 dark:hover:text-gray-300'}"
         >
@@ -191,17 +199,20 @@
             on:edit-course={handleEditCourse}
           />
         </div>
-      
       {:else if activeTab === 'learning'}
         <!-- My Learning Tab -->
         <div class="space-y-6">
           {#if $enrollmentStats}
             <!-- Learning Statistics -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700">
+              <div
+                class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700"
+              >
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Active Courses</p>
+                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
+                      Active Courses
+                    </p>
                     <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {$enrollmentStats.active}
                     </p>
@@ -210,7 +221,9 @@
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700">
+              <div
+                class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700"
+              >
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Completed</p>
@@ -222,10 +235,14 @@
                 </div>
               </div>
 
-              <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700">
+              <div
+                class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700"
+              >
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Total Lessons</p>
+                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
+                      Total Lessons
+                    </p>
                     <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">
                       {$enrollmentStats.totalLessons}
                     </p>
@@ -258,7 +275,9 @@
             <!-- Enrolled Courses Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {#each enrolledCourses as course}
-                <div class="bg-white dark:bg-gray-800 rounded-lg border border-stone-200 dark:border-gray-700 overflow-hidden">
+                <div
+                  class="bg-white dark:bg-gray-800 rounded-lg border border-stone-200 dark:border-gray-700 overflow-hidden"
+                >
                   <div class="p-6">
                     <div class="flex items-start justify-between mb-4">
                       <div class="flex-1">
@@ -270,7 +289,10 @@
                         </p>
                       </div>
                       <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-green-500 rounded-full" title="Active enrollment"></div>
+                        <div
+                          class="w-2 h-2 bg-green-500 rounded-full"
+                          title="Active enrollment"
+                        ></div>
                         <span class="text-xs text-stone-500 dark:text-gray-400">Active</span>
                       </div>
                     </div>
@@ -298,7 +320,9 @@
                     <!-- Course Stats -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                       <div class="text-center">
-                        <div class="flex items-center justify-center gap-1 text-sm text-stone-600 dark:text-gray-400">
+                        <div
+                          class="flex items-center justify-center gap-1 text-sm text-stone-600 dark:text-gray-400"
+                        >
                           <BookOpen class="w-4 h-4" />
                           <span>Lessons</span>
                         </div>
@@ -307,7 +331,9 @@
                         </p>
                       </div>
                       <div class="text-center">
-                        <div class="flex items-center justify-center gap-1 text-sm text-stone-600 dark:text-gray-400">
+                        <div
+                          class="flex items-center justify-center gap-1 text-sm text-stone-600 dark:text-gray-400"
+                        >
                           <Award class="w-4 h-4" />
                           <span>Assessments</span>
                         </div>
@@ -330,13 +356,16 @@
             </div>
           {/if}
         </div>
-      
       {:else if activeTab === 'progress'}
         <!-- Progress Tab -->
         <div class="space-y-6">
-          <div class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700">
-            <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-4">Learning Progress</h2>
-            
+          <div
+            class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700"
+          >
+            <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-4">
+              Learning Progress
+            </h2>
+
             {#if $enrollmentStats}
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="text-center">
@@ -345,21 +374,21 @@
                   </div>
                   <div class="text-sm text-stone-600 dark:text-gray-400">Total Courses</div>
                 </div>
-                
+
                 <div class="text-center">
                   <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                     {$enrollmentStats.completed}
                   </div>
                   <div class="text-sm text-stone-600 dark:text-gray-400">Completed</div>
                 </div>
-                
+
                 <div class="text-center">
                   <div class="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-2">
                     {$enrollmentStats.totalLessons}
                   </div>
                   <div class="text-sm text-stone-600 dark:text-gray-400">Lessons Completed</div>
                 </div>
-                
+
                 <div class="text-center">
                   <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                     {$enrollmentStats.totalAssessments}
@@ -368,7 +397,9 @@
                 </div>
               </div>
             {:else}
-              <p class="text-stone-600 dark:text-gray-400">No learning progress data available yet.</p>
+              <p class="text-stone-600 dark:text-gray-400">
+                No learning progress data available yet.
+              </p>
             {/if}
           </div>
         </div>

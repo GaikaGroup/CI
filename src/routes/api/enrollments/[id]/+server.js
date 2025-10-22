@@ -1,6 +1,6 @@
 /**
  * Enrollment by ID API Endpoints
- * 
+ *
  * GET /api/enrollments/[id] - Get enrollment by ID
  * PUT /api/enrollments/[id] - Update enrollment
  * DELETE /api/enrollments/[id] - Drop enrollment
@@ -33,7 +33,6 @@ export async function GET({ params, locals }) {
     }
 
     return json({ enrollment: result.enrollment });
-
   } catch (error) {
     console.error('Error in GET /api/enrollments/[id]:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -42,7 +41,7 @@ export async function GET({ params, locals }) {
 
 /**
  * PUT /api/enrollments/[id]
- * 
+ *
  * Body: { status?, progress? }
  */
 export async function PUT({ params, request, locals }) {
@@ -57,7 +56,7 @@ export async function PUT({ params, request, locals }) {
 
     // Get enrollment to check permissions
     const enrollmentResult = await EnrollmentService.getEnrollmentById(id);
-    
+
     if (!enrollmentResult.success) {
       return json({ message: 'Enrollment not found' }, { status: 404 });
     }
@@ -95,7 +94,6 @@ export async function PUT({ params, request, locals }) {
       message: 'Enrollment updated successfully',
       enrollment: result.enrollment
     });
-
   } catch (error) {
     console.error('Error in PUT /api/enrollments/[id]:', error);
     return json({ message: 'Internal server error' }, { status: 500 });
@@ -116,7 +114,7 @@ export async function DELETE({ params, locals }) {
 
     // Get enrollment to check permissions
     const enrollmentResult = await EnrollmentService.getEnrollmentById(id);
-    
+
     if (!enrollmentResult.success) {
       return json({ message: 'Enrollment not found' }, { status: 404 });
     }
@@ -137,7 +135,6 @@ export async function DELETE({ params, locals }) {
     }
 
     return json({ message: 'Enrollment dropped successfully' });
-
   } catch (error) {
     console.error('Error in DELETE /api/enrollments/[id]:', error);
     return json({ message: 'Internal server error' }, { status: 500 });

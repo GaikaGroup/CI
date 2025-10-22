@@ -23,9 +23,9 @@ describe('Health Check Smoke Test', () => {
   it('should verify environment configuration exists', () => {
     // Check that critical environment variables are defined
     const requiredEnvVars = ['DATABASE_URL'];
-    
-    const missing = requiredEnvVars.filter(varName => !process.env[varName]);
-    
+
+    const missing = requiredEnvVars.filter((varName) => !process.env[varName]);
+
     if (missing.length > 0) {
       console.warn(`Warning: Missing environment variables: ${missing.join(', ')}`);
       // Don't fail the test if DATABASE_URL is missing in test environment
@@ -52,13 +52,7 @@ describe('Health Check Smoke Test', () => {
   });
 
   it('should verify application structure is intact', () => {
-    const criticalDirs = [
-      'src',
-      'src/lib',
-      'src/lib/modules',
-      'src/routes',
-      'tests'
-    ];
+    const criticalDirs = ['src', 'src/lib', 'src/lib/modules', 'src/routes', 'tests'];
 
     for (const dir of criticalDirs) {
       const dirPath = resolve(process.cwd(), dir);
@@ -68,16 +62,16 @@ describe('Health Check Smoke Test', () => {
 
   it('should complete health check within acceptable time', () => {
     const startTime = Date.now();
-    
+
     // Perform basic health check operations
     const healthStatus = {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       nodeVersion: process.version
     };
-    
+
     const duration = Date.now() - startTime;
-    
+
     expect(healthStatus.timestamp).toBeDefined();
     expect(duration).toBeLessThan(1000); // Should complete in < 1 second
   });

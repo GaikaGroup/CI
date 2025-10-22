@@ -14,29 +14,34 @@ inclusion: always
 ## Key Modules
 
 ### Authentication (`src/lib/modules/auth/`)
+
 - User authentication with sessions
 - Admin and regular user roles
 - Protected routes via `hooks.server.js`
 
 ### Chat System (`src/lib/modules/chat/`)
+
 - Voice interaction with Whisper (STT) and TTS
 - Animated cat avatar with lip-sync
 - Waiting phrases during AI processing
 - Multilingual support (EN, RU, ES)
 
 ### Course Management (`src/lib/modules/courses/`)
+
 - Course creation and enrollment
 - GraphRAG for document processing
 - Agent-based tutoring system
 - Material assignments per agent
 
 ### Document Processing (`src/lib/modules/document/`)
+
 - OCR with Tesseract.js
 - Vision API (GPT-4o) for images
 - PDF processing
 - GraphRAG knowledge graph creation
 
 ### LLM Providers (`src/lib/modules/llm/`)
+
 - OpenAI API integration
 - Ollama local models
 - Automatic fallback system
@@ -45,6 +50,7 @@ inclusion: always
 ## Important Patterns
 
 ### Module Structure
+
 ```
 module/
 ├── components/     # Svelte UI components
@@ -54,16 +60,19 @@ module/
 ```
 
 ### API Routes
+
 - All API endpoints in `src/routes/api/`
 - Use `+server.js` for API handlers
 - Return JSON with `{ success, data/error }` pattern
 
 ### Database Access
+
 - Use Prisma ORM exclusively
 - Repositories in `src/lib/database/repositories/`
 - Never write raw SQL unless absolutely necessary
 
 ### State Management
+
 - Svelte stores for global state
 - Component-level state for UI
 - Session storage for temporary data

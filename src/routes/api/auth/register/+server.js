@@ -12,27 +12,18 @@ export async function POST({ request }) {
 
     // Validate required fields
     if (!firstName || !lastName || !email || !password) {
-      return json(
-        { error: 'All fields are required' },
-        { status: 400 }
-      );
+      return json({ error: 'All fields are required' }, { status: 400 });
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
+      return json({ error: 'Invalid email format' }, { status: 400 });
     }
 
     // Validate password strength
     if (password.length < 6) {
-      return json(
-        { error: 'Password must be at least 6 characters long' },
-        { status: 400 }
-      );
+      return json({ error: 'Password must be at least 6 characters long' }, { status: 400 });
     }
 
     // Check if user already exists
@@ -41,10 +32,7 @@ export async function POST({ request }) {
     });
 
     if (existingUser) {
-      return json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
-      );
+      return json({ error: 'User with this email already exists' }, { status: 409 });
     }
 
     // Hash password
@@ -80,21 +68,14 @@ export async function POST({ request }) {
         type: user.type
       }
     });
-
   } catch (error) {
     console.error('Registration error:', error);
-    
+
     // Handle Prisma unique constraint errors
     if (error.code === 'P2002') {
-      return json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
-      );
+      return json({ error: 'User with this email already exists' }, { status: 409 });
     }
 
-    return json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -7,10 +7,13 @@
 ## Что было исправлено
 
 ### Основная проблема
+
 Метод `addLanguageConstraints()` в `PromptEnhancer` преобразовывал структурированные сообщения (с изображениями) в простые строки, из-за чего терялась информация об изображениях.
 
 ### Решение
+
 Обновлен `src/lib/modules/chat/PromptEnhancer.js`:
+
 - Добавлена проверка на структурированный контент (массив)
 - Языковые напоминания теперь добавляются только в текстовую часть
 - Структура с изображениями полностью сохраняется
@@ -18,6 +21,7 @@
 ## Результаты тестирования
 
 ### Unit-тесты ✅
+
 Все 15 тестов для `PromptEnhancer` проходят успешно:
 
 ```bash
@@ -25,6 +29,7 @@ npm test -- tests/unit/chat/promptEnhancer.test.js
 ```
 
 **Результаты:**
+
 - ✅ Сохранение структурированного контента с изображениями
 - ✅ Добавление языковых напоминаний в текстовую часть
 - ✅ Обработка простых текстовых сообщений
@@ -42,7 +47,9 @@ npm test -- tests/unit/chat/promptEnhancer.test.js
 - ✅ Проверка неподдерживаемых языков
 
 ### Ручное тестирование
+
 Создан и успешно выполнен тест `test-vision-fix.js`:
+
 - ✅ Определение изображений работает
 - ✅ Старое поведение: изображения терялись (подтверждено)
 - ✅ Новое поведение: изображения сохраняются
@@ -51,6 +58,7 @@ npm test -- tests/unit/chat/promptEnhancer.test.js
 ## Как проверить
 
 1. **Запустите приложение:**
+
    ```bash
    npm run dev
    ```
@@ -95,10 +103,11 @@ ollama pull llava:7b
 Модель настроена в `src/lib/config/llm.js`:
 
 ```javascript
-VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b'
+VISION_MODEL: import.meta.env.VITE_OLLAMA_VISION_MODEL || 'llava:7b';
 ```
 
 Для изменения модели:
+
 ```bash
 # В .env или .env.local
 VITE_OLLAMA_VISION_MODEL=llava:13b
@@ -107,23 +116,25 @@ VITE_OLLAMA_VISION_MODEL=llava:13b
 ## Технические детали
 
 ### До исправления
+
 ```javascript
 // Преобразовывало массив в строку
-content: `${lastUserMessage.content}\n\n${reminder}`
+content: `${lastUserMessage.content}\n\n${reminder}`;
 // Результат: "[object Object]\n\n(Ответь на русском)"
 ```
 
 ### После исправления
+
 ```javascript
 // Сохраняет структуру массива
 if (isStructuredContent) {
   const contentCopy = [...lastUserMessage.content];
-  const firstTextIndex = contentCopy.findIndex(c => c.type === 'text');
+  const firstTextIndex = contentCopy.findIndex((c) => c.type === 'text');
   contentCopy[firstTextIndex] = {
     ...contentCopy[firstTextIndex],
     text: `${contentCopy[firstTextIndex].text}\n\n${reminder}`
   };
-  content: contentCopy  // Массив сохранён!
+  content: contentCopy; // Массив сохранён!
 }
 ```
 

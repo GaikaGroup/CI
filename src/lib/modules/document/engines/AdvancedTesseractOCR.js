@@ -39,7 +39,7 @@ export class AdvancedTesseractOCR extends IOCREngine {
   async preprocessImage(imageData) {
     const canvas = document.createElement('canvas');
     const img = new Image();
-    
+
     await new Promise((resolve, reject) => {
       img.onload = resolve;
       img.onerror = reject;
@@ -50,7 +50,7 @@ export class AdvancedTesseractOCR extends IOCREngine {
     canvas.width = img.width * this.config.upscale;
     canvas.height = img.height * this.config.upscale;
     const ctx = canvas.getContext('2d');
-    
+
     // High quality scaling
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -59,16 +59,16 @@ export class AdvancedTesseractOCR extends IOCREngine {
     // Enhance contrast and brightness
     const imageData2 = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData2.data;
-    
+
     // Convert to grayscale and enhance contrast
     for (let i = 0; i < data.length; i += 4) {
       const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
       // Increase contrast
-      const enhanced = ((gray - 128) * 1.5) + 128;
+      const enhanced = (gray - 128) * 1.5 + 128;
       const clamped = Math.max(0, Math.min(255, enhanced));
       data[i] = data[i + 1] = data[i + 2] = clamped;
     }
-    
+
     ctx.putImageData(imageData2, 0, 0);
     return canvas;
   }
@@ -91,7 +91,8 @@ export class AdvancedTesseractOCR extends IOCREngine {
       try {
         await worker.setParameters({
           tessedit_pageseg_mode: psm.mode,
-          tessedit_char_whitelist: '0123456789.,°CАампервтсекундлинйкмчабвгдежзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZ ',
+          tessedit_char_whitelist:
+            '0123456789.,°CАампервтсекундлинйкмчабвгдежзийклмнопрстуфхцчшщъыьэюяABCDEFGHIJKLMNOPQRSTUVWXYZ ',
           classify_bln_numeric_mode: '1'
         });
 
@@ -116,19 +117,19 @@ export class AdvancedTesseractOCR extends IOCREngine {
    */
   mergeResults(results) {
     if (results.length === 0) return '';
-    
+
     // Sort by confidence
     results.sort((a, b) => b.conf - a.conf);
-    
+
     // Combine unique lines
     const lines = new Set();
     for (const result of results) {
-      result.text.split('\n').forEach(line => {
+      result.text.split('\n').forEach((line) => {
         const cleaned = line.trim();
         if (cleaned) lines.add(cleaned);
       });
     }
-    
+
     return Array.from(lines).join('\n');
   }
 
@@ -163,7 +164,7 @@ export class AdvancedTesseractOCR extends IOCREngine {
 
       // Merge results
       const finalText = this.mergeResults(results);
-      
+
       console.log('[Advanced OCR] Recognition complete:', {
         modesUsed: results.length,
         textLength: finalText.length,

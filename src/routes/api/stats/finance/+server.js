@@ -11,10 +11,10 @@ export async function GET({ url, locals }) {
     }
 
     const timeRange = url.searchParams.get('range') || '30d';
-    
+
     const statsService = new StatsService();
     const financeStats = await statsService.getFinanceStats(timeRange);
-    
+
     return json(financeStats);
   } catch (error) {
     console.error('Error fetching finance stats:', error);

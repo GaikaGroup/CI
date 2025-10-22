@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { 
-  navigationStore, 
-  NAVIGATION_MODES, 
-  studentCourseCount, 
+import {
+  navigationStore,
+  NAVIGATION_MODES,
+  studentCourseCount,
   tutorCourseCount,
-  badgeCounts 
+  badgeCounts
 } from '../../../src/lib/stores/navigation.js';
 
 // Mock browser environment
@@ -13,9 +13,9 @@ Object.defineProperty(global, 'localStorage', {
   value: {
     getItem: vi.fn(),
     setItem: vi.fn(),
-    removeItem: vi.fn(),
+    removeItem: vi.fn()
   },
-  writable: true,
+  writable: true
 });
 
 // Mock browser flag
@@ -70,7 +70,7 @@ describe('Navigation Store', () => {
       navigationStore.setMode(NAVIGATION_MODES.STUDENT);
       navigationStore.updateBadges(5, 3);
       navigationStore.reset();
-      
+
       const state = get(navigationStore);
       expect(state.currentMode).toBe(NAVIGATION_MODES.FUN);
       expect(state.badges.student).toBe(0);
