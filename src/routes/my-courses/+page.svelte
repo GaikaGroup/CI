@@ -71,7 +71,7 @@
 {#if !$user}
   <div class="container mx-auto px-4 py-8">
     <div class="text-center py-12">
-      <p class="text-stone-600 dark:text-gray-400">Please log in to view your courses.</p>
+      <p class="text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'pleaseLogin')}</p>
     </div>
   </div>
 {:else}
@@ -181,8 +181,8 @@
                     </p>
                   </div>
                   <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full" title="Active enrollment"></div>
-                    <span class="text-xs text-stone-500 dark:text-gray-400">Active</span>
+                    <div class="w-2 h-2 bg-green-500 rounded-full" :title="getTranslation($selectedLanguage, 'activeEnrollment')"></div>
+                    <span class="text-xs text-stone-500 dark:text-gray-400">{getTranslation($selectedLanguage, 'active')}</span>
                   </div>
                 </div>
 
@@ -192,7 +192,7 @@
 
                 <div class="space-y-3 mb-4">
                   <div class="flex items-center justify-between text-sm">
-                    <span class="text-stone-600 dark:text-gray-400">Progress</span>
+                    <span class="text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'progress')}</span>
                     <span class="font-medium text-stone-900 dark:text-white">
                       {getProgressPercentage(course.enrollment)}%
                     </span>
@@ -211,7 +211,7 @@
                       class="flex items-center justify-center gap-1 text-sm text-stone-600 dark:text-gray-400"
                     >
                       <BookOpen class="w-4 h-4" />
-                      <span>Lessons</span>
+                      <span>{getTranslation($selectedLanguage, 'lessons')}</span>
                     </div>
                     <p class="text-lg font-semibold text-stone-900 dark:text-white">
                       {course.enrollment.progress.lessonsCompleted}
@@ -222,7 +222,7 @@
                       class="flex items-center justify-center gap-1 text-sm text-stone-600 dark:text-gray-400"
                     >
                       <Award class="w-4 h-4" />
-                      <span>Assessments</span>
+                      <span>{getTranslation($selectedLanguage, 'assessments')}</span>
                     </div>
                     <p class="text-lg font-semibold text-stone-900 dark:text-white">
                       {course.enrollment.progress.assessmentsTaken}

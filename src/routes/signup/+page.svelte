@@ -54,38 +54,37 @@
 
 <div class="main-content">
   <section class="welcome-section">
-    <h1>Start your learning journey</h1>
+    <h1>{getTranslation($selectedLanguage, 'startJourney')}</h1>
     <p>
-      Join thousands of learners who are accelerating their education with our AI-powered tutoring
-      platform.
+      {getTranslation($selectedLanguage, 'joinLearners')}
     </p>
     <div class="benefits">
       <div class="benefit">
         <div class="benefit-icon">🎓</div>
         <div class="benefit-content">
-          <h3>Personalized Learning</h3>
-          <p>AI adapts to your learning style and pace for optimal results</p>
+          <h3>{getTranslation($selectedLanguage, 'personalizedLearning')}</h3>
+          <p>{getTranslation($selectedLanguage, 'aiAdaptsToYou')}</p>
         </div>
       </div>
       <div class="benefit">
         <div class="benefit-icon">📊</div>
         <div class="benefit-content">
-          <h3>Progress Tracking</h3>
-          <p>Monitor your improvement with detailed analytics and insights</p>
+          <h3>{getTranslation($selectedLanguage, 'progressTrackingBenefit')}</h3>
+          <p>{getTranslation($selectedLanguage, 'monitorImprovement')}</p>
         </div>
       </div>
       <div class="benefit">
         <div class="benefit-icon">⚡</div>
         <div class="benefit-content">
-          <h3>Instant Support</h3>
-          <p>Get help 24/7 from our advanced AI tutoring system</p>
+          <h3>{getTranslation($selectedLanguage, 'instantSupport')}</h3>
+          <p>{getTranslation($selectedLanguage, 'get247Help')}</p>
         </div>
       </div>
       <div class="benefit">
         <div class="benefit-icon">🏆</div>
         <div class="benefit-content">
-          <h3>Proven Results</h3>
-          <p>Join successful learners achieving their academic goals</p>
+          <h3>{getTranslation($selectedLanguage, 'provenResults')}</h3>
+          <p>{getTranslation($selectedLanguage, 'joinSuccessful')}</p>
         </div>
       </div>
     </div>
