@@ -41,26 +41,26 @@
 
 <div class="main-content">
   <section class="welcome-section">
-    <h1>Welcome back to AI Tutor</h1>
+    <h1>{getTranslation($selectedLanguage, 'welcomeBack')}</h1>
     <p>
-      Continue your personalized learning journey with our advanced AI-powered tutoring platform.
+      {getTranslation($selectedLanguage, 'continueJourney')}
     </p>
     <div class="features">
       <div class="feature">
         <div class="feature-icon"></div>
-        <div class="feature-text">Personalized learning paths</div>
+        <div class="feature-text">{getTranslation($selectedLanguage, 'personalizedPaths')}</div>
       </div>
       <div class="feature">
         <div class="feature-icon"></div>
-        <div class="feature-text">24/7 AI assistance</div>
+        <div class="feature-text">{getTranslation($selectedLanguage, 'aiAssistance')}</div>
       </div>
       <div class="feature">
         <div class="feature-icon"></div>
-        <div class="feature-text">Progress tracking</div>
+        <div class="feature-text">{getTranslation($selectedLanguage, 'progressTracking')}</div>
       </div>
       <div class="feature">
         <div class="feature-icon"></div>
-        <div class="feature-text">Interactive exercises</div>
+        <div class="feature-text">{getTranslation($selectedLanguage, 'interactiveExercises')}</div>
       </div>
     </div>
   </section>
