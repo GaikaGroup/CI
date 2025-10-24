@@ -65,7 +65,7 @@
 </script>
 
 <svelte:head>
-  <title>My Courses</title>
+  <title>{getTranslation($selectedLanguage, 'myCourses')}</title>
 </svelte:head>
 
 {#if !$user}
@@ -181,7 +181,7 @@
                     </p>
                   </div>
                   <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 bg-green-500 rounded-full" :title="getTranslation($selectedLanguage, 'activeEnrollment')"></div>
+                    <div class="w-2 h-2 bg-green-500 rounded-full" title={getTranslation($selectedLanguage, 'activeEnrollment')}></div>
                     <span class="text-xs text-stone-500 dark:text-gray-400">{getTranslation($selectedLanguage, 'active')}</span>
                   </div>
                 </div>
@@ -232,10 +232,10 @@
 
                 <div class="flex items-center gap-2 text-xs text-stone-500 dark:text-gray-400 mb-4">
                   <Calendar class="w-3 h-3" />
-                  <span>Enrolled {formatDate(course.enrollment.enrolledAt)}</span>
+                  <span>{getTranslation($selectedLanguage, 'enrolled')} {formatDate(course.enrollment.enrolledAt)}</span>
                   <span>•</span>
                   <Clock class="w-3 h-3" />
-                  <span>Last activity {formatDate(course.enrollment.progress.lastActivity)}</span>
+                  <span>{getTranslation($selectedLanguage, 'lastActivity')} {formatDate(course.enrollment.progress.lastActivity)}</span>
                 </div>
 
                 <div class="flex gap-3">

@@ -1,4 +1,4 @@
-# Implementation Plan
+%# Implementation Plan
 
 - [x] 1. Enhance ProviderManager to capture LLM model metadata
   - Modify `generateChatCompletion` method to capture model information (provider, model name, version, timestamp)

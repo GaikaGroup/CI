@@ -176,7 +176,7 @@
               class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 {autoRefresh
                 ? 'ring-2 ring-green-500'
                 : ''}"
-              :title="getTranslation($selectedLanguage, 'autoRefreshEvery30')"
+              title={getTranslation($selectedLanguage, 'autoRefreshEvery30')}
             >
               {autoRefresh ? '⏸️' : '▶️'} {getTranslation($selectedLanguage, 'autoRefresh')}
             </button>
@@ -361,13 +361,13 @@
                     </dt>
                     <dd
                       class="text-lg font-medium text-gray-900 dark:text-white cursor-help"
-                      title="Exact: ${overview.finance.totalCost.toFixed(8)}"
+                      title="{getTranslation($selectedLanguage, 'exact')}: ${overview.finance.totalCost.toFixed(8)}"
                     >
                       {formatCurrency(overview.finance.totalCost)}
                     </dd>
                     <dd
                       class="text-sm text-gray-600 dark:text-gray-300 cursor-help"
-                      title="Exact: ${overview.finance.avgCostPerMessage.toFixed(8)}"
+                      title="{getTranslation($selectedLanguage, 'exact')}: ${overview.finance.avgCostPerMessage.toFixed(8)}"
                     >
                       {formatCurrency(overview.finance.avgCostPerMessage)} per message
                     </dd>
@@ -479,7 +479,7 @@
                       >
                       <td
                         class="px-3 py-2 text-sm text-gray-900 dark:text-white text-right font-mono cursor-help"
-                        title="Exact: ${provider.cost.toFixed(8)}"
+                        title="{getTranslation($selectedLanguage, 'exact')}: ${provider.cost.toFixed(8)}"
                       >
                         {formatCurrency(provider.cost)}
                       </td>
@@ -488,7 +488,7 @@
                       </td>
                       <td
                         class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right font-mono cursor-help"
-                        title="Exact: ${avgPerMsg.toFixed(8)}"
+                        title="{getTranslation($selectedLanguage, 'exact')}: ${avgPerMsg.toFixed(8)}"
                       >
                         {formatCurrency(avgPerMsg)}
                       </td>

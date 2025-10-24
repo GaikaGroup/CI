@@ -219,11 +219,11 @@
 </script>
 
 <svelte:head>
-  <title>Course Catalogue</title>
+  <title>{getTranslation($selectedLanguage, 'courseCatalogue')}</title>
 </svelte:head>
 
 <div class="min-h-screen">
-  <h1 class="sr-only">Course Catalogue</h1>
+  <h1 class="sr-only">{getTranslation($selectedLanguage, 'courseCatalogue')}</h1>
   <div class="mx-auto max-w-5xl px-4 py-8">
     {#if !$examProfile}
       <CourseSelection

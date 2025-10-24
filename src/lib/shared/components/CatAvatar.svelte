@@ -18,6 +18,8 @@
   import { get } from 'svelte/store';
   import { audioAmplitude, isSpeaking } from '$lib/modules/chat/voiceServices';
   import { avatarStateManager, avatarState } from '$lib/modules/chat/AvatarStateManager.js';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   export let size = 'md'; // sm, md, lg
   export let speaking = false;
@@ -935,7 +937,7 @@
     <!-- Base emotion image -->
     <img
       src={currentCatImage}
-      alt="Cat avatar"
+      alt={getTranslation($selectedLanguage, 'catAvatar')}
       class="w-full h-full object-cover drop-shadow-lg filter"
       style="filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));"
     />
@@ -944,7 +946,7 @@
     {#if currentMouthImage}
       <img
         src={currentMouthImage}
-        alt="Cat mouth"
+        alt={getTranslation($selectedLanguage, 'catMouth')}
         class="absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-100 drop-shadow-lg filter"
         style="opacity: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));"
       />
@@ -955,7 +957,7 @@
       <div
         class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white"
       >
-        Loading...
+        {getTranslation($selectedLanguage, 'loading')}
       </div>
     {/if}
   </div>
