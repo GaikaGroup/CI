@@ -3,6 +3,7 @@
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
   import ThemeToggle from '$modules/theme/components/ThemeToggle.svelte';
+  import LanguageToggle from '$modules/i18n/components/LanguageToggle.svelte';
   import AuthButton from '$modules/auth/components/AuthButton.svelte';
   import ModeToggle from './ModeToggle.svelte';
   import ConsoleDropdown from './ConsoleDropdown.svelte';
@@ -95,6 +96,7 @@
         {#if $user?.type === 'admin'}
           <ConsoleDropdown />
         {/if}
+        <LanguageToggle />
         <ThemeToggle />
         <AuthButton />
       </div>
@@ -102,6 +104,7 @@
       <!-- Mobile Menu Button -->
       <div class="md:hidden flex items-center space-x-2">
         <ModeToggle size="compact" on:change={(e) => requireAuth(e.detail.mode)} />
+        <LanguageToggle />
         <ThemeToggle />
         <button
           on:click={toggleMobileMenu}
