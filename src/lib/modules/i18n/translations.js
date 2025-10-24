@@ -154,7 +154,22 @@ export const translations = {
     createCourseTitle: 'Create Course',
     editCourseTitle: 'Edit Course',
     loadingCourse: 'Loading course...',
-    backToCatalogue: 'Back to Catalogue'
+    backToCatalogue: 'Back to Catalogue',
+    // Login page features
+    welcomeBack: 'Welcome back to AI Tutor',
+    continueJourney: 'Continue your personalized learning journey with our advanced AI-powered tutoring platform.',
+    personalizedPaths: 'Personalized learning paths',
+    aiAssistance: '24/7 AI assistance',
+    progressTracking: 'Progress tracking',
+    interactiveExercises: 'Interactive exercises',
+    // Signup page
+    startJourney: 'Start your learning journey',
+    joinLearners: 'Join thousands of learners who are accelerating their education with our AI-powered tutoring platform.',
+    // Common labels
+    active: 'Active',
+    enrolledOn: 'Enrolled on',
+    lastActivity: 'Last activity',
+    pleaseLogin: 'Please log in to view your courses.'
   },
   ru: {
     title: 'mAItutors',
