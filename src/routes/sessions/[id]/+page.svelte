@@ -15,7 +15,9 @@
   import MessageList from '$lib/modules/chat/components/MessageList.svelte';
   import MessageInput from '$lib/modules/chat/components/MessageInput.svelte';
   import VoiceChat from '$lib/modules/chat/components/VoiceChat.svelte';
-  import { ArrowLeft, Settings } from 'lucide-svelte';
+  import { ArrowLeft } from 'lucide-svelte';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   export let data;
 
@@ -376,20 +378,16 @@
               class:active={$chatModeStore === 'text'}
               on:click={() => toggleChatMode('text')}
             >
-              💬 Text
+              {getTranslation($selectedLanguage, 'textChat')}
             </button>
             <button
               class="mode-btn"
               class:active={$chatModeStore === 'voice'}
               on:click={() => toggleChatMode('voice')}
             >
-              🎤 Voice
+              {getTranslation($selectedLanguage, 'voiceChat')}
             </button>
           </div>
-
-          <button class="settings-btn" title="Session settings">
-            <Settings class="h-4 w-4" />
-          </button>
         </div>
       </header>
 

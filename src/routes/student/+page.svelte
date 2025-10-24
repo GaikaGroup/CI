@@ -9,6 +9,8 @@
   import CourseSelection from '$modules/learn/components/CourseSelection.svelte';
   import { getCourseUrl } from '$lib/utils/courseUrl.js';
   import { BookOpen, TrendingUp, Award, User } from 'lucide-svelte';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   // Tab management
   let activeTab = 'browse';
@@ -125,9 +127,9 @@
           <User class="w-6 h-6 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <h1 class="text-3xl font-bold text-stone-900 dark:text-white">Student Dashboard</h1>
+          <h1 class="text-3xl font-bold text-stone-900 dark:text-white">{getTranslation($selectedLanguage, 'studentDashboard')}</h1>
           <p class="text-stone-600 dark:text-gray-400">
-            Discover courses, track your learning progress, and achieve your goals
+            {getTranslation($selectedLanguage, 'discoverCourses')}
           </p>
         </div>
       </div>
@@ -144,7 +146,7 @@
         >
           <div class="flex items-center gap-2">
             <BookOpen class="w-4 h-4" />
-            Browse Courses
+            {getTranslation($selectedLanguage, 'browseCourses')}
           </div>
         </button>
 
@@ -157,7 +159,7 @@
         >
           <div class="flex items-center gap-2">
             <TrendingUp class="w-4 h-4" />
-            My Learning
+            {getTranslation($selectedLanguage, 'myLearning')}
             {#if enrolledCourses.length > 0}
               <span
                 class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200"
@@ -177,7 +179,7 @@
         >
           <div class="flex items-center gap-2">
             <Award class="w-4 h-4" />
-            Progress
+            {getTranslation($selectedLanguage, 'progress')}
           </div>
         </button>
       </nav>
@@ -190,10 +192,10 @@
         <div class="space-y-6">
           <CourseSelection
             courses={$coursesStore.courses || []}
-            headerTitle="Available Courses"
-            headerSubtitle="Discover and enroll in courses to start your learning journey"
-            enrolledActionLabel="Continue Learning"
-            joinActionLabel="Enroll"
+            headerTitle={getTranslation($selectedLanguage, 'availableCourses')}
+            headerSubtitle={getTranslation($selectedLanguage, 'discoverAndEnroll')}
+            enrolledActionLabel={getTranslation($selectedLanguage, 'continueLearning')}
+            joinActionLabel={getTranslation($selectedLanguage, 'enroll')}
             on:join-course={handleJoinCourse}
             on:learn-course={handleLearnCourse}
             on:edit-course={handleEditCourse}
@@ -211,7 +213,7 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
-                      Active Courses
+                      {getTranslation($selectedLanguage, 'activeSessions')}
                     </p>
                     <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {$enrollmentStats.active}
@@ -226,7 +228,7 @@
               >
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Completed</p>
+                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'completed')}</p>
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                       {$enrollmentStats.completed}
                     </p>
@@ -241,7 +243,7 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
-                      Total Lessons
+                      {getTranslation($selectedLanguage, 'statistics')}
                     </p>
                     <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">
                       {$enrollmentStats.totalLessons}
@@ -258,17 +260,17 @@
             <div class="text-center py-12">
               <BookOpen class="w-16 h-16 text-stone-400 dark:text-gray-500 mx-auto mb-4" />
               <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-2">
-                No courses enrolled yet
+                {getTranslation($selectedLanguage, 'noCoursesEnrolled')}
               </h2>
               <p class="text-stone-600 dark:text-gray-400 mb-6">
-                Start your learning journey by browsing our course catalog
+                {getTranslation($selectedLanguage, 'startLearningJourney')}
               </p>
               <button
                 on:click={() => setActiveTab('browse')}
                 class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
               >
                 <BookOpen class="w-5 h-5 mr-2" />
-                Browse Courses
+                {getTranslation($selectedLanguage, 'browseCourses')}
               </button>
             </div>
           {:else}
@@ -348,7 +350,7 @@
                       on:click={() => handleLearnCourse({ detail: { course } })}
                       class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
                     >
-                      Continue Learning
+                      {getTranslation($selectedLanguage, 'continueLearning')}
                     </button>
                   </div>
                 </div>
@@ -363,7 +365,7 @@
             class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-stone-200 dark:border-gray-700"
           >
             <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-4">
-              Learning Progress
+              {getTranslation($selectedLanguage, 'learningProgress')}
             </h2>
 
             {#if $enrollmentStats}
@@ -372,33 +374,33 @@
                   <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                     {$enrollmentStats.total}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">Total Courses</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'totalCourses')}</div>
                 </div>
 
                 <div class="text-center">
                   <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                     {$enrollmentStats.completed}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">Completed</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'completed')}</div>
                 </div>
 
                 <div class="text-center">
                   <div class="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-2">
                     {$enrollmentStats.totalLessons}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">Lessons Completed</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'lessonsCompleted')}</div>
                 </div>
 
                 <div class="text-center">
                   <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                     {$enrollmentStats.totalAssessments}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">Assessments Taken</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'assessmentsTaken')}</div>
                 </div>
               </div>
             {:else}
               <p class="text-stone-600 dark:text-gray-400">
-                No learning progress data available yet.
+                {getTranslation($selectedLanguage, 'noProgressData')}
               </p>
             {/if}
           </div>

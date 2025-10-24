@@ -231,17 +231,14 @@
             class:active={currentMode === 'fun'}
             on:click={() => handleModeChange('fun')}
           >
-            {getTranslation($selectedLanguage, 'textChat')}
+            Fun Chat
           </button>
           <button
             class="mode-btn"
             class:active={currentMode === 'learn'}
             on:click={() => handleModeChange('learn')}
           >
-            {getTranslation($selectedLanguage, 'learnModeDefaultNote')
-              .replace('You are in ', '')
-              .replace('Вы находитесь в ', '')
-              .replace('Estás en ', '')}
+            Learn Mode
           </button>
         </div>
       </div>

@@ -134,7 +134,27 @@ export const translations = {
     newChat: 'New Chat',
     startNewChat: 'Start New Chat',
     retry: 'Retry',
-    noMoreSessions: 'No more sessions to load'
+    noMoreSessions: 'No more sessions to load',
+    // Student page
+    studentDashboard: 'Student Dashboard',
+    discoverCourses: 'Discover courses, track your learning progress, and achieve your goals',
+    browseCourses: 'Browse Courses',
+    myLearning: 'My Learning',
+    availableCourses: 'Available Courses',
+    discoverAndEnroll: 'Discover and enroll in courses to start your learning journey',
+    enroll: 'Enroll',
+    noCoursesEnrolled: 'No courses enrolled yet',
+    startLearningJourney: 'Start your learning journey by browsing our course catalog',
+    learningProgress: 'Learning Progress',
+    totalCourses: 'Total Courses',
+    lessonsCompleted: 'Lessons Completed',
+    assessmentsTaken: 'Assessments Taken',
+    noProgressData: 'No learning progress data available yet.',
+    // Course edit page
+    createCourseTitle: 'Create Course',
+    editCourseTitle: 'Edit Course',
+    loadingCourse: 'Loading course...',
+    backToCatalogue: 'Back to Catalogue'
   },
   ru: {
     title: 'mAItutors',
@@ -270,7 +290,27 @@ export const translations = {
     newChat: 'Новый чат',
     startNewChat: 'Начать новый чат',
     retry: 'Повторить',
-    noMoreSessions: 'Больше нет сессий для загрузки'
+    noMoreSessions: 'Больше нет сессий для загрузки',
+    // Student page
+    studentDashboard: 'Панель студента',
+    discoverCourses: 'Открывайте курсы, отслеживайте прогресс обучения и достигайте целей',
+    browseCourses: 'Обзор курсов',
+    myLearning: 'Мое обучение',
+    availableCourses: 'Доступные курсы',
+    discoverAndEnroll: 'Откройте и запишитесь на курсы, чтобы начать обучение',
+    enroll: 'Записаться',
+    noCoursesEnrolled: 'Вы еще не записаны на курсы',
+    startLearningJourney: 'Начните свое обучение, просмотрев каталог курсов',
+    learningProgress: 'Прогресс обучения',
+    totalCourses: 'Всего курсов',
+    lessonsCompleted: 'Уроков завершено',
+    assessmentsTaken: 'Оценок получено',
+    noProgressData: 'Данные о прогрессе обучения пока недоступны.',
+    // Course edit page
+    createCourseTitle: 'Создать курс',
+    editCourseTitle: 'Редактировать курс',
+    loadingCourse: 'Загрузка курса...',
+    backToCatalogue: 'Вернуться в каталог'
   },
   es: {
     title: 'mAItutors',
@@ -406,7 +446,27 @@ export const translations = {
     newChat: 'Nuevo chat',
     startNewChat: 'Iniciar nuevo chat',
     retry: 'Reintentar',
-    noMoreSessions: 'No hay más sesiones para cargar'
+    noMoreSessions: 'No hay más sesiones para cargar',
+    // Student page
+    studentDashboard: 'Panel del estudiante',
+    discoverCourses: 'Descubre cursos, rastrea tu progreso de aprendizaje y alcanza tus metas',
+    browseCourses: 'Explorar cursos',
+    myLearning: 'Mi aprendizaje',
+    availableCourses: 'Cursos disponibles',
+    discoverAndEnroll: 'Descubre e inscríbete en cursos para comenzar tu viaje de aprendizaje',
+    enroll: 'Inscribirse',
+    noCoursesEnrolled: 'Aún no estás inscrito en ningún curso',
+    startLearningJourney: 'Comienza tu viaje de aprendizaje explorando nuestro catálogo de cursos',
+    learningProgress: 'Progreso de aprendizaje',
+    totalCourses: 'Total de cursos',
+    lessonsCompleted: 'Lecciones completadas',
+    assessmentsTaken: 'Evaluaciones realizadas',
+    noProgressData: 'Aún no hay datos de progreso de aprendizaje disponibles.',
+    // Course edit page
+    createCourseTitle: 'Crear curso',
+    editCourseTitle: 'Editar curso',
+    loadingCourse: 'Cargando curso...',
+    backToCatalogue: 'Volver al catálogo'
   }
 };
 

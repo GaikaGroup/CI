@@ -6,6 +6,8 @@
   import { coursesStore } from '$lib/stores/coursesDB';
   import CourseEditMode from '$modules/courses/components/CourseEditMode.svelte';
   import { CourseService } from '$modules/courses/services/CourseService.js';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   let course = null;
   let isNew = false;
@@ -84,14 +86,14 @@
 </script>
 
 <svelte:head>
-  <title>{isNew ? 'Create Course' : `Edit ${course?.name || 'Course'}`}</title>
+  <title>{isNew ? getTranslation($selectedLanguage, 'createCourseTitle') : `${getTranslation($selectedLanguage, 'editCourseTitle')} ${course?.name || ''}`}</title>
 </svelte:head>
 
 {#if loading}
   <div class="min-h-screen flex items-center justify-center">
     <div class="text-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-4"></div>
-      <p class="text-stone-600 dark:text-gray-300">Loading course...</p>
+      <p class="text-stone-600 dark:text-gray-300">{getTranslation($selectedLanguage, 'loadingCourse')}</p>
     </div>
   </div>
 {:else if error}
@@ -100,13 +102,13 @@
       <div
         class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md"
       >
-        <h2 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Error</h2>
+        <h2 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">{getTranslation($selectedLanguage, 'error')}</h2>
         <p class="text-red-700 dark:text-red-300 mb-4">{error}</p>
         <button
           on:click={() => goto('/catalogue')}
           class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
-          Back to Catalogue
+          {getTranslation($selectedLanguage, 'backToCatalogue')}
         </button>
       </div>
     </div>
