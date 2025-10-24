@@ -5,6 +5,8 @@
   import { appMode } from '$lib/stores/mode';
   import { setMode } from '$lib/stores/mode';
   import { Plus } from 'lucide-svelte';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   // New imports for enhanced functionality
   import SessionToolbar from '$lib/modules/session/components/SessionToolbar.svelte';
@@ -214,9 +216,11 @@
       <!-- Page Header -->
       <div class="page-header">
         <div>
-          <h1>My Sessions</h1>
+          <h1>{getTranslation($selectedLanguage, 'sessions')}</h1>
           <p class="subtitle">
-            Manage and continue your {currentMode === 'fun' ? 'chat' : 'learning'} conversations
+            {currentMode === 'fun'
+              ? getTranslation($selectedLanguage, 'funModeNote')
+              : getTranslation($selectedLanguage, 'learnModeDefaultNote')}
           </p>
         </div>
 
@@ -227,14 +231,17 @@
             class:active={currentMode === 'fun'}
             on:click={() => handleModeChange('fun')}
           >
-            Fun Chat
+            {getTranslation($selectedLanguage, 'textChat')}
           </button>
           <button
             class="mode-btn"
             class:active={currentMode === 'learn'}
             on:click={() => handleModeChange('learn')}
           >
-            Learn Mode
+            {getTranslation($selectedLanguage, 'learnModeDefaultNote')
+              .replace('You are in ', '')
+              .replace('Вы находитесь в ', '')
+              .replace('Estás en ', '')}
           </button>
         </div>
       </div>
@@ -254,15 +261,17 @@
       <!-- Sessions Container -->
       <div class="sessions-container">
         <div class="sessions-header">
-          <h2>Your Sessions</h2>
+          <h2>{getTranslation($selectedLanguage, 'sessions')}</h2>
           <button
             class="new-session-btn"
             on:click={createNewSession}
             disabled={isCreatingSession}
-            title="Create new session"
+            title={getTranslation($selectedLanguage, 'createNewSession')}
           >
             <Plus class="h-4 w-4" />
-            {isCreatingSession ? 'Creating...' : 'New Chat'}
+            {isCreatingSession
+              ? getTranslation($selectedLanguage, 'loading')
+              : getTranslation($selectedLanguage, 'newSession')}
           </button>
         </div>
 
@@ -270,7 +279,7 @@
         {#if loading && sessions.length === 0}
           <div class="loading-state">
             <div class="loading-spinner"></div>
-            <p>Loading sessions...</p>
+            <p>{getTranslation($selectedLanguage, 'loading')}</p>
           </div>
         {/if}
 
@@ -278,7 +287,9 @@
         {#if error}
           <div class="error-state">
             <p class="error-message">{error}</p>
-            <button class="retry-button" on:click={() => fetchSessions(false)}> Retry </button>
+            <button class="retry-button" on:click={() => fetchSessions(false)}>
+              {getTranslation($selectedLanguage, 'confirm')}
+            </button>
           </div>
         {/if}
 
@@ -286,17 +297,17 @@
         {#if !loading && !error && sessions.length === 0}
           <div class="empty-state">
             <div class="empty-content">
-              <h3>No sessions found</h3>
+              <h3>{getTranslation($selectedLanguage, 'noSessionsFound')}</h3>
               {#if $hasActiveFilters}
-                <p>Try adjusting your filters or search query.</p>
+                <p>{getTranslation($selectedLanguage, 'tryAdjustingFilters')}</p>
                 <button class="clear-filters-btn" on:click={handleClearAllFilters}>
-                  Clear Filters
+                  {getTranslation($selectedLanguage, 'clearFilters')}
                 </button>
               {:else}
-                <p>Create a new session to start chatting with your AI assistant!</p>
+                <p>{getTranslation($selectedLanguage, 'createNewSession')}</p>
                 <button class="create-first-session-btn" on:click={createNewSession}>
                   <Plus class="h-4 w-4" />
-                  Start New Chat
+                  {getTranslation($selectedLanguage, 'newSession')}
                 </button>
               {/if}
             </div>
@@ -317,13 +328,13 @@
               {#if loading}
                 <div class="loading-more">
                   <div class="loading-spinner small"></div>
-                  <span>Loading more sessions...</span>
+                  <span>{getTranslation($selectedLanguage, 'loading')}</span>
                 </div>
               {/if}
             </div>
           {:else if sessions.length > 0}
             <div class="end-of-list">
-              <span>No more sessions to load</span>
+              <span>{getTranslation($selectedLanguage, 'noSessionsFound')}</span>
             </div>
           {/if}
         {/if}
@@ -334,7 +345,7 @@
   <div class="loading-page">
     <div class="loading-content">
       <div class="loading-spinner"></div>
-      <p>Loading sessions...</p>
+      <p>{getTranslation($selectedLanguage, 'loading')}</p>
     </div>
   </div>
 {/if}

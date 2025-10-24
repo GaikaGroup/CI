@@ -6,6 +6,8 @@
   import { user, checkAuth } from '$modules/auth/stores';
   import { navigateToCourse, navigateToCourseProgress } from '$lib/utils/courseNavigation.js';
   import { BookOpen, TrendingUp, Calendar, Award, Clock } from 'lucide-svelte';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   // Get courses for enrolled course IDs
   $: enrolledCourses = $activeEnrollments
@@ -76,17 +78,19 @@
   <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
       <div class="flex items-center justify-between mb-2">
-        <h1 class="text-3xl font-bold text-stone-900 dark:text-white">My Courses</h1>
+        <h1 class="text-3xl font-bold text-stone-900 dark:text-white">
+          {getTranslation($selectedLanguage, 'myCourses')}
+        </h1>
         <a
           href="/catalogue/edit?new=true"
           class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
         >
           <BookOpen class="w-4 h-4 mr-2" />
-          Create Course
+          {getTranslation($selectedLanguage, 'createCourse')}
         </a>
       </div>
       <p class="text-stone-600 dark:text-gray-400">
-        Track your progress and continue learning with your enrolled courses
+        {getTranslation($selectedLanguage, 'loginWelcome')}
       </p>
     </div>
 
@@ -97,7 +101,9 @@
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Active Courses</p>
+              <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
+                {getTranslation($selectedLanguage, 'activeSessions')}
+              </p>
               <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">
                 {$enrollmentStats.active}
               </p>
@@ -111,7 +117,9 @@
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Completed</p>
+              <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
+                {getTranslation($selectedLanguage, 'success')}
+              </p>
               <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                 {$enrollmentStats.completed}
               </p>
@@ -125,7 +133,9 @@
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-stone-600 dark:text-gray-400">Total Lessons</p>
+              <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
+                {getTranslation($selectedLanguage, 'statistics')}
+              </p>
               <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {$enrollmentStats.totalLessons}
               </p>
@@ -141,18 +151,17 @@
         <div class="text-center py-12">
           <BookOpen class="w-16 h-16 text-stone-400 dark:text-gray-500 mx-auto mb-4" />
           <h2 class="text-xl font-semibold text-stone-900 dark:text-white mb-2">
-            No courses enrolled yet
+            {getTranslation($selectedLanguage, 'noCourses')}
           </h2>
           <p class="text-stone-600 dark:text-gray-400 mb-6">
-            Start your learning journey by browsing our catalogue and enrolling in courses that
-            interest you.
+            {getTranslation($selectedLanguage, 'loginWelcome')}
           </p>
           <a
             href="/catalogue"
             class="inline-flex items-center px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
           >
             <BookOpen class="w-5 h-5 mr-2" />
-            Browse Catalogue
+            {getTranslation($selectedLanguage, 'myCourses')}
           </a>
         </div>
       {:else}
@@ -234,13 +243,13 @@
                     on:click={() => handleContinueLearning(course)}
                     class="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors text-center"
                   >
-                    Continue Learning
+                    {getTranslation($selectedLanguage, 'next')}
                   </button>
                   <button
                     on:click={() => handleViewProgress(course)}
                     class="flex-1 bg-stone-100 hover:bg-stone-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-stone-700 dark:text-gray-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors text-center"
                   >
-                    View Progress
+                    {getTranslation($selectedLanguage, 'statistics')}
                   </button>
                 </div>
               </div>

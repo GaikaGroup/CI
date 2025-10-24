@@ -1,6 +1,8 @@
 <script>
   import { goto } from '$app/navigation';
   import { register } from '$lib/modules/auth/services.js';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   let firstName = '';
   let lastName = '';
@@ -91,62 +93,62 @@
 
   <div class="signup-container">
     <div class="signup-header">
-      <h2>Create Account</h2>
-      <p>Get started with your free AI Tutor account</p>
+      <h2>{getTranslation($selectedLanguage, 'signUp')}</h2>
+      <p>{getTranslation($selectedLanguage, 'loginWelcome')}</p>
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label for="firstName">First Name</label>
+        <label for="firstName">{getTranslation($selectedLanguage, 'firstName')}</label>
         <input
           type="text"
           id="firstName"
           class="form-input"
-          placeholder="John"
+          placeholder={getTranslation($selectedLanguage, 'firstName')}
           bind:value={firstName}
         />
       </div>
       <div class="form-group">
-        <label for="lastName">Last Name</label>
+        <label for="lastName">{getTranslation($selectedLanguage, 'lastName')}</label>
         <input
           type="text"
           id="lastName"
           class="form-input"
-          placeholder="Doe"
+          placeholder={getTranslation($selectedLanguage, 'lastName')}
           bind:value={lastName}
         />
       </div>
     </div>
 
     <div class="form-group">
-      <label for="email">Email Address</label>
+      <label for="email">{getTranslation($selectedLanguage, 'email')}</label>
       <input
         type="email"
         id="email"
         class="form-input"
-        placeholder="john.doe@example.com"
+        placeholder={getTranslation($selectedLanguage, 'email')}
         bind:value={email}
       />
     </div>
 
     <div class="form-group">
-      <label for="password">Password</label>
+      <label for="password">{getTranslation($selectedLanguage, 'password')}</label>
       <input
         type="password"
         id="password"
         class="form-input"
-        placeholder="Create a strong password"
+        placeholder={getTranslation($selectedLanguage, 'password')}
         bind:value={password}
       />
     </div>
 
     <div class="form-group">
-      <label for="confirmPassword">Confirm Password</label>
+      <label for="confirmPassword">{getTranslation($selectedLanguage, 'confirmPassword')}</label>
       <input
         type="password"
         id="confirmPassword"
         class="form-input"
-        placeholder="Confirm your password"
+        placeholder={getTranslation($selectedLanguage, 'confirmPassword')}
         bind:value={confirmPassword}
       />
     </div>
@@ -154,8 +156,7 @@
     <div class="terms-agreement">
       <input type="checkbox" id="terms" bind:checked={terms} />
       <label for="terms">
-        I agree to the <a href="/terms">Terms of Service</a> and
-        <a href="/privacy">Privacy Policy</a>
+        {getTranslation($selectedLanguage, 'agreeToTerms')}
       </label>
     </div>
 
@@ -164,11 +165,13 @@
     {/if}
 
     <button class="signup-button" on:click={handleSignUp} disabled={isLoading}>
-      {isLoading ? 'Creating Account...' : 'Create Account'}
+      {isLoading
+        ? getTranslation($selectedLanguage, 'loading')
+        : getTranslation($selectedLanguage, 'signUp')}
     </button>
 
     <div class="divider">
-      <span>or sign up with</span>
+      <span>{getTranslation($selectedLanguage, 'orContinueWith')}</span>
     </div>
 
     <div class="social-signup">
@@ -177,7 +180,8 @@
     </div>
 
     <div class="signin-link">
-      Already have an account? <a href="/login">Sign in here</a>
+      {getTranslation($selectedLanguage, 'alreadyHaveAccount')}
+      <a href="/login">{getTranslation($selectedLanguage, 'signIn')}</a>
     </div>
   </div>
 </div>

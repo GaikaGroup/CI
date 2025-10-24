@@ -4,6 +4,8 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { setMode } from '$lib/stores/mode';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
   let email = '';
   let password = '';
   let remember = false;
@@ -65,28 +67,28 @@
 
   <div class="signin-container">
     <div class="signin-header">
-      <h2>Sign In</h2>
-      <p>Access your personalized learning dashboard</p>
+      <h2>{getTranslation($selectedLanguage, 'signIn')}</h2>
+      <p>{getTranslation($selectedLanguage, 'loginWelcome')}</p>
     </div>
 
     <div class="form-group">
-      <label for="email">Email or Username</label>
+      <label for="email">{getTranslation($selectedLanguage, 'email')}</label>
       <input
         type="text"
         id="email"
         class="form-input"
-        placeholder="Enter your email or username"
+        placeholder={getTranslation($selectedLanguage, 'email')}
         bind:value={email}
       />
     </div>
 
     <div class="form-group">
-      <label for="password">Password</label>
+      <label for="password">{getTranslation($selectedLanguage, 'password')}</label>
       <input
         type="password"
         id="password"
         class="form-input"
-        placeholder="Enter your password"
+        placeholder={getTranslation($selectedLanguage, 'password')}
         bind:value={password}
       />
     </div>
@@ -94,19 +96,23 @@
     <div class="signin-options">
       <label class="remember-me">
         <input type="checkbox" bind:checked={remember} />
-        Remember me
+        {getTranslation($selectedLanguage, 'rememberMe')}
       </label>
-      <a href="/forgot-password" class="forgot-password">Forgot password?</a>
+      <a href="/forgot-password" class="forgot-password"
+        >{getTranslation($selectedLanguage, 'forgotPassword')}</a
+      >
     </div>
 
     {#if error}
       <div class="error-message">{error}</div>
     {/if}
 
-    <button class="signin-button" on:click={handleSignIn}>Sign In</button>
+    <button class="signin-button" on:click={handleSignIn}
+      >{getTranslation($selectedLanguage, 'signIn')}</button
+    >
 
     <div class="divider">
-      <span>or continue with</span>
+      <span>{getTranslation($selectedLanguage, 'orContinueWith')}</span>
     </div>
 
     <div class="social-signin">
@@ -115,7 +121,8 @@
     </div>
 
     <div class="signup-link">
-      Don't have an account? <a href="/signup">Sign up here</a>
+      {getTranslation($selectedLanguage, 'dontHaveAccount')}
+      <a href="/signup">{getTranslation($selectedLanguage, 'signUp')}</a>
     </div>
   </div>
 </div>
