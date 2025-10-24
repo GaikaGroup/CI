@@ -2,6 +2,8 @@
   import { onMount, onDestroy } from 'svelte';
   import { fade } from 'svelte/transition';
   import { checkAuth } from '$modules/auth/stores';
+  import { selectedLanguage } from '$modules/i18n/stores';
+  import { getTranslation } from '$modules/i18n/translations';
 
   let loading = true;
   let selectedTimeRange = '30d';
@@ -145,7 +147,7 @@
 </script>
 
 <svelte:head>
-  <title>Statistics • AI Tutor Platform</title>
+  <title>{getTranslation($selectedLanguage, 'statisticsTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -158,7 +160,7 @@
             <h1
               class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate"
             >
-              Platform Statistics
+              {getTranslation($selectedLanguage, 'statistics')}
             </h1>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Аналитика и метрики для принятия управленческих решений
@@ -174,9 +176,9 @@
               class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 {autoRefresh
                 ? 'ring-2 ring-green-500'
                 : ''}"
-              title="Auto-refresh every 30 seconds"
+              :title="getTranslation($selectedLanguage, 'autoRefreshEvery30')"
             >
-              {autoRefresh ? '⏸️' : '▶️'} Auto-refresh
+              {autoRefresh ? '⏸️' : '▶️'} {getTranslation($selectedLanguage, 'autoRefresh')}
             </button>
             <!-- Clear Cache Button -->
             <button
@@ -193,11 +195,11 @@
               disabled={loading}
               class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              <option value="1h">Last hour</option>
-              <option value="1d">Last 24 hours</option>
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="1y">Last year</option>
+              <option value="1h">{getTranslation($selectedLanguage, 'lastHour')}</option>
+              <option value="1d">{getTranslation($selectedLanguage, 'last24Hours')}</option>
+              <option value="7d">{getTranslation($selectedLanguage, 'last7Days')}</option>
+              <option value="30d">{getTranslation($selectedLanguage, 'last30Days')}</option>
+              <option value="1y">{getTranslation($selectedLanguage, 'lastYear')}</option>
             </select>
           </div>
         </div>
@@ -238,7 +240,7 @@
         <div
           class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
         ></div>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Loading statistics...</p>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{getTranslation($selectedLanguage, 'loadingStatistics')}</p>
       </div>
     {:else if !overview && !loading}
       <div class="text-center py-12">
