@@ -56,7 +56,7 @@
               : 'text-stone-600 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-400'}"
           >
             <User class="w-4 h-4" />
-            Student
+            {getTranslation($selectedLanguage, 'student')}
             {#if $navigationBadges.student > 0}
               <span
                 class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200"
@@ -75,7 +75,7 @@
               : 'text-stone-600 hover:text-amber-700 dark:text-gray-300 dark:hover:text-amber-400'}"
           >
             <GraduationCap class="w-4 h-4" />
-            Tutor
+            {getTranslation($selectedLanguage, 'tutor')}
             {#if $navigationBadges.tutor > 0}
               <span
                 class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200"
@@ -89,7 +89,7 @@
             href="/sessions"
             class="dark:text-gray-300 dark:hover:text-amber-400 text-stone-600 hover:text-amber-700 transition-colors font-medium"
           >
-            Sessions
+            {getTranslation($selectedLanguage, 'sessions')}
           </a>
         {/if}
 
@@ -145,7 +145,7 @@
               : 'text-stone-600 hover:text-blue-700 dark:text-gray-300 dark:hover:text-blue-400'}"
           >
             <User class="w-4 h-4" />
-            Student
+            {getTranslation($selectedLanguage, 'student')}
             {#if $navigationBadges.student > 0}
               <span
                 class="ml-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-blue-900/40 dark:text-blue-200"
@@ -164,7 +164,7 @@
               : 'text-stone-600 hover:text-amber-700 dark:text-gray-300 dark:hover:text-amber-400'}"
           >
             <GraduationCap class="w-4 h-4" />
-            Tutor
+            {getTranslation($selectedLanguage, 'tutor')}
             {#if $navigationBadges.tutor > 0}
               <span
                 class="ml-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full dark:bg-amber-900/40 dark:text-amber-200"
@@ -181,7 +181,7 @@
               mobileMenuOpen = false;
             }}
           >
-            Sessions
+            {getTranslation($selectedLanguage, 'sessions')}
           </a>
         {/if}
 
