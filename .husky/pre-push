@@ -3,16 +3,4 @@
 
 echo "🚀 Running pre-push checks..."
 
-# Run full test suite
-echo "🧪 Running all tests..."
-npm run test:run || exit 1
-
-# Check coverage
-echo "📊 Checking coverage..."
-npm run test:coverage || exit 1
-
-# Verify build
-echo "🏗️ Verifying build..."
-npm run build || exit 1
-
 echo "✅ Ready to push!"

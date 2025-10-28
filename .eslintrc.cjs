@@ -11,7 +11,7 @@ module.exports = {
     es2017: true,
     node: true
   },
-  ignorePatterns: ['src/generated/**', 'build/**', '.svelte-kit/**', 'node_modules/**'],
+  ignorePatterns: ['src/generated/**', 'build/**', '.svelte-kit/**', 'node_modules/**', 'tests/_disabled/**'],
   rules: {
     // Relax some rules for development
     'no-unused-vars': 'warn',

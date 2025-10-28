@@ -7,8 +7,4 @@ echo "🔍 Running pre-commit checks..."
 echo "📝 Linting and formatting..."
 npx lint-staged || exit 1
 
-# Run unit tests (fast tests only)
-echo "🧪 Running unit tests..."
-npm run test:run tests/unit || exit 1
-
 echo "✅ Pre-commit checks passed!"

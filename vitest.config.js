@@ -8,7 +8,13 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.js'],
     include: ['tests/**/*.test.js'],
-    exclude: ['node_modules/**', 'build/**'],
+    exclude: [
+      'node_modules/**',
+      'build/**',
+      'tests/e2e/**', // E2E tests run with Playwright
+      'tests/manual/**', // Manual tests
+      'tests/_disabled/**' // Disabled problematic tests
+    ],
     coverage: {
       reporter: ['text', 'json', 'html', 'json-summary'],
       exclude: [

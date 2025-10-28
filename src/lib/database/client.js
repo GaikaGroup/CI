@@ -9,7 +9,7 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 // Import Prisma client using require for CommonJS compatibility
-const { PrismaClient } = require('../../generated/prisma/index.js');
+const { PrismaClient } = require('../generated/prisma/index.js');
 
 // Singleton pattern to prevent multiple instances in dev mode
 const globalForPrisma = globalThis;
