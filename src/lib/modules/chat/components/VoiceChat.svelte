@@ -81,6 +81,19 @@
     };
   });
 
+  // Track last message ID for voice commands
+  let lastMessageId = null;
+  let lastResponse = null;
+  let isGeneratingSecondOpinion = false;
+  let currentProvider = null;
+
+  // Export function to update last message info (called from parent)
+  export function updateLastMessage(messageId, content, provider = null) {
+    lastMessageId = messageId;
+    lastResponse = content;
+    currentProvider = provider;
+  }
+
   async function toggleRecording() {
     if (!$isRecording) {
       // Start recording
@@ -99,8 +112,25 @@
           // Update status immediately to show processing
           updateWaitingPhraseStatus();
 
-          // Send transcribed text (this will trigger waiting phrases)
-          await sendTranscribedText(transcription, sessionId);
+          // Send transcribed text with context for voice commands
+          const response = await sendTranscribedText(transcription, sessionId, {
+            lastMessageId,
+            lastResponse,
+            userId: null, // Will be set by the service from session
+            onStatusChange: (status) => {
+              if (status.isGeneratingSecondOpinion !== undefined) {
+                isGeneratingSecondOpinion = status.isGeneratingSecondOpinion;
+              }
+              if (status.currentProvider !== undefined) {
+                currentProvider = status.currentProvider;
+              }
+            }
+          });
+
+          // Update last response if we got one
+          if (response) {
+            lastResponse = response;
+          }
 
           // Update status after processing
           updateWaitingPhraseStatus();
@@ -155,6 +185,35 @@
               <span class="text-xs opacity-75">({audioQueueInfo.waitingPhrases} phrases)</span>
             {/if}
           </div>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Second opinion status indicator -->
+    {#if isGeneratingSecondOpinion}
+      <div class="mt-3 flex justify-center">
+        <div class="bg-blue-500/30 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white">
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
+            <span>
+              {#if $selectedLanguage === 'ru'}
+                Получаю второе мнение...
+              {:else if $selectedLanguage === 'es'}
+                Obteniendo segunda opinión...
+              {:else}
+                Getting second opinion...
+              {/if}
+            </span>
+          </div>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Current provider indicator -->
+    {#if currentProvider && $isSpeaking}
+      <div class="mt-2 flex justify-center">
+        <div class="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-white/80">
+          <span class="font-medium">{currentProvider}</span>
         </div>
       </div>
     {/if}

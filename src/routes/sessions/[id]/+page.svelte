@@ -18,6 +18,7 @@
   import { ArrowLeft } from 'lucide-svelte';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
+  import { container } from '$lib/shared/di/container';
 
   export let data;
 
@@ -211,6 +212,31 @@
       } else {
         messages.set([]);
       }
+
+      // Load conversation history into InMemorySessionManager
+      if (container.has('sessionFactory')) {
+        try {
+          const sessionFactory = container.resolve('sessionFactory');
+          const session = sessionFactory.getOrCreateSession(sessionId);
+
+          // Add all messages to conversation history, excluding welcome messages
+          const conversationMessages = (sessionData.messages || []).filter((msg) => {
+            // Skip welcome messages (they have isWelcomeMessage metadata)
+            return !msg.metadata?.isWelcomeMessage;
+          });
+
+          conversationMessages.forEach((msg) => {
+            const isUser = msg.type === 'user';
+            session.addToConversation(msg.content, isUser);
+          });
+
+          console.log(
+            `[Session] Loaded ${conversationMessages.length} messages into session history (excluded ${(sessionData.messages?.length || 0) - conversationMessages.length} welcome messages)`
+          );
+        } catch (error) {
+          console.warn('[Session] Failed to load history into session manager:', error);
+        }
+      }
     } catch (err) {
       console.error('Failed to load session:', err);
 
@@ -400,7 +426,7 @@
         {:else}
           <!-- Messages Area -->
           <div class="messages-area">
-            <MessageList />
+            <MessageList {sessionId} />
           </div>
 
           <!-- Input Area -->

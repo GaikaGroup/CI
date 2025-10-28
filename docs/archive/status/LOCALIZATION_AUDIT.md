@@ -3,11 +3,13 @@
 ## ✅ Полностью локализованные страницы
 
 ### 1. Navigation (Навигация)
+
 - ✅ Все пункты меню
 - ✅ Кнопки Sign In / Sign Out
 - ✅ Language switcher
 
 ### 2. Login Page (`/login`)
+
 - ✅ Заголовки и описания
 - ✅ Поля формы
 - ✅ Кнопки
@@ -15,6 +17,7 @@
 - ❌ Social login buttons (Google, Apple)
 
 ### 3. Signup Page (`/signup`)
+
 - ✅ Заголовки
 - ✅ Поля формы
 - ✅ Кнопки
@@ -22,6 +25,7 @@
 - ❌ Social signup buttons
 
 ### 4. Sessions Page (`/sessions`)
+
 - ✅ Заголовки страницы
 - ✅ Mode toggle
 - ✅ Кнопки
@@ -29,11 +33,13 @@
 - ✅ Loading states
 
 ### 5. Session Detail Page (`/sessions/[id]`)
+
 - ✅ Text Chat / Voice Chat toggle
 - ❌ Session metadata (messages count, mode)
 - ❌ Settings button (удален)
 
 ### 6. My Courses Page (`/my-courses`)
+
 - ✅ Заголовки
 - ✅ Статистика
 - ✅ Кнопки
@@ -43,6 +49,7 @@
 - ❌ "Please log in to view your courses"
 
 ### 7. Student Dashboard (`/student`)
+
 - ✅ Заголовки страницы
 - ✅ Табы навигации
 - ✅ Статистика
@@ -52,6 +59,7 @@
 - ❌ "Lessons" / "Assessments" labels
 
 ### 8. Course Edit Page (`/catalogue/edit`)
+
 - ✅ Заголовки
 - ✅ Loading/Error states
 - ❌ Форма редактирования курса (внутри компонента)
@@ -59,20 +67,25 @@
 ## ❌ Не локализованные страницы
 
 ### 9. Home Page (`/`)
+
 - ❌ Весь контент
 
 ### 10. Tutor Page (`/tutor`)
+
 - ❌ Весь контент
 
 ### 11. Catalogue Page (`/catalogue`)
+
 - ❌ "Course Catalogue" title
 - ❌ Фильтры и сортировка
 - ❌ Карточки курсов
 
 ### 12. Learn Page (`/learn`)
+
 - ❌ Весь интерфейс обучения
 
 ### 13. Stats Page (`/stats`)
+
 - ❌ "Statistics" title
 - ❌ Time range selector (Last hour, Last 24 hours, etc.)
 - ❌ "Loading statistics..."
@@ -86,6 +99,7 @@
 - ❌ "User Feedback"
 
 ### 14. Admin Pages (`/admin/*`)
+
 - ❌ Admin Dashboard
 - ❌ Users Management
 - ❌ Feedback Review
@@ -94,6 +108,7 @@
 - ❌ Finance
 
 ### 15. Debug Pages
+
 - ❌ `/debug-enrollments`
 - ❌ `/debug-courses`
 - ❌ `/debug-auth`
@@ -102,6 +117,7 @@
 ## 📝 Приоритеты локализации
 
 ### Высокий приоритет (пользовательские страницы)
+
 1. ✅ Login/Signup - ГОТОВО (частично)
 2. ✅ Sessions - ГОТОВО
 3. ✅ My Courses - ГОТОВО (частично)
@@ -112,16 +128,19 @@
 8. ❌ Learn Page (`/learn`)
 
 ### Средний приоритет
+
 9. ❌ Stats Page (`/stats`)
 10. ❌ Course Edit Form (внутри компонента)
 
 ### Низкий приоритет
+
 11. ❌ Admin Pages
 12. ❌ Debug Pages (не для пользователей)
 
 ## 🔍 Детальный список нелокализованных элементов
 
 ### Login Page
+
 ```
 - "Welcome back to AI Tutor"
 - "Continue your personalized learning journey..."
@@ -134,6 +153,7 @@
 ```
 
 ### Signup Page
+
 ```
 - "Start your learning journey"
 - "Join thousands of learners..."
@@ -143,6 +163,7 @@
 ```
 
 ### My Courses Page
+
 ```
 - "Active" badge
 - "Progress" label
@@ -154,6 +175,7 @@
 ```
 
 ### Student Dashboard
+
 ```
 - "Active" badge в карточках
 - "Progress" label
@@ -162,6 +184,7 @@
 ```
 
 ### Catalogue Page
+
 ```
 - "Course Catalogue" title
 - Filter labels
@@ -171,6 +194,7 @@
 ```
 
 ### Stats Page
+
 ```
 - "Statistics • AI Tutor Platform"
 - "Last hour", "Last 24 hours", "Last 7 days", "Last 30 days", "Last year"
@@ -188,6 +212,7 @@
 ```
 
 ### Admin Pages
+
 ```
 Все элементы интерфейса администратора
 ```
@@ -202,21 +227,25 @@
 ## 🎯 План действий
 
 ### Этап 1: Завершить частичную локализацию (1-2 часа)
+
 - [ ] Дополнить Login/Signup (features, social buttons)
 - [ ] Дополнить My Courses (badges, labels)
 - [ ] Дополнить Student Dashboard (badges, labels)
 
 ### Этап 2: Основные пользовательские страницы (3-4 часа)
+
 - [ ] Home Page
 - [ ] Tutor Page
 - [ ] Catalogue Page
 - [ ] Learn Page
 
 ### Этап 3: Дополнительные страницы (2-3 часа)
+
 - [ ] Stats Page
 - [ ] Course Edit Form
 
 ### Этап 4: Админ панель (опционально, 4-5 часов)
+
 - [ ] Admin Dashboard
 - [ ] Users Management
 - [ ] Feedback Review

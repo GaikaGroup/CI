@@ -88,16 +88,25 @@ class StatsService {
     }
 
     try {
-      const [users, sessions, messages, courses, finance, languages, attentionEconomy] =
-        await Promise.all([
-          this.getUserStats(timeRange),
-          this.getSessionStats(timeRange),
-          this.getMessageStats(timeRange),
-          this.getCourseStats(timeRange),
-          this.getFinanceStats(timeRange),
-          this.getLanguageStats(timeRange),
-          this.getAttentionEconomyStats(timeRange)
-        ]);
+      const [
+        users,
+        sessions,
+        messages,
+        courses,
+        finance,
+        languages,
+        attentionEconomy,
+        llmProviders
+      ] = await Promise.all([
+        this.getUserStats(timeRange),
+        this.getSessionStats(timeRange),
+        this.getMessageStats(timeRange),
+        this.getCourseStats(timeRange),
+        this.getFinanceStats(timeRange),
+        this.getLanguageStats(timeRange),
+        this.getAttentionEconomyStats(timeRange),
+        this.getLLMProviderStats(timeRange)
+      ]);
 
       const data = {
         users,
@@ -106,7 +115,8 @@ class StatsService {
         courses,
         finance,
         languages,
-        attentionEconomy
+        attentionEconomy,
+        llmProviders
       };
 
       this.setCache(cacheKey, data);
@@ -1190,6 +1200,76 @@ class StatsService {
         platformHealth: 'green',
         dailyActivity: [],
         registrationTrends: []
+      };
+    }
+  }
+
+  /**
+   * Get LLM provider statistics
+   * @param {string} timeRange
+   * @returns {Promise<Object>}
+   */
+  async getLLMProviderStats(timeRange = '30d') {
+    const cacheKey = `llm-providers-${timeRange}`;
+    if (this.isCached(cacheKey)) {
+      return this.getCachedData(cacheKey);
+    }
+
+    try {
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Get all assistant messages with LLM metadata
+      const messages = await this.prisma.message.findMany({
+        where: {
+          type: 'assistant',
+          createdAt: {
+            gte: thirtyDaysAgo
+          }
+        },
+        select: {
+          metadata: true
+        }
+      });
+
+      // Count providers with model names
+      const providerCounts = {};
+      let totalWithProvider = 0;
+
+      messages.forEach((message) => {
+        if (message.metadata?.llm?.provider) {
+          const provider = message.metadata.llm.provider;
+          const model = message.metadata.llm.model || 'unknown';
+          // Create key as "provider: model" for display
+          const key = `${provider}: ${model}`;
+          providerCounts[key] = (providerCounts[key] || 0) + 1;
+          totalWithProvider++;
+        }
+      });
+
+      // Calculate percentages and format data
+      const providerDistribution = Object.entries(providerCounts)
+        .map(([providerModel, count]) => ({
+          provider: providerModel, // Now includes model name
+          count,
+          percentage: totalWithProvider > 0 ? ((count / totalWithProvider) * 100).toFixed(1) : 0
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      const data = {
+        providerDistribution,
+        totalMessages: totalWithProvider,
+        totalMessagesWithoutProvider: messages.length - totalWithProvider
+      };
+
+      this.setCache(cacheKey, data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching LLM provider stats:', error);
+      return {
+        providerDistribution: [],
+        totalMessages: 0,
+        totalMessagesWithoutProvider: 0
       };
     }
   }

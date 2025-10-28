@@ -279,7 +279,7 @@
       // Prepare conversation history for context (AFTER adding current message)
       // Wait a tick to ensure the message is in the store
       await tick();
-      
+
       const conversationHistory = $messages
         .filter((msg) => msg.type === 'user' || msg.type === 'assistant')
         .slice(-10) // Last 10 messages for context

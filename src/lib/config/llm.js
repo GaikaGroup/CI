@@ -48,8 +48,8 @@ export const PROVIDER_CONFIG = {
 // -----------------------------
 const OLLAMA_MODELS_RAW = (
   import.meta.env.VITE_OLLAMA_MODELS ??
-  // sensible defaults for 8 GB machines
-  'qwen2.5:1.5b,qwen2.5:7b'
+  // Use only fast model - qwen2.5:7b is too slow!
+  'qwen2.5:1.5b'
 )
   .split(',')
   .map((s) => s.trim())

@@ -160,6 +160,14 @@ export class OllamaProvider extends ProviderInterface {
         }
       };
 
+      console.log('[Ollama] Sending request:', {
+        model,
+        messageCount: ollamaMessages.length,
+        firstMessage: ollamaMessages[0]?.content?.substring(0, 100),
+        lastMessage: ollamaMessages[ollamaMessages.length - 1]?.content?.substring(0, 100),
+        options: payload.options
+      });
+
       const response = await fetch(`${this.apiUrl}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -178,6 +186,12 @@ export class OllamaProvider extends ProviderInterface {
       const ctype = response.headers.get('content-type') || '';
       if (ctype.includes('application/json')) {
         const data = await response.json();
+        console.log('[Ollama] Response received:', {
+          model: data.model,
+          contentLength: data.message?.content?.length || 0,
+          eval_count: data.eval_count,
+          done: data.done
+        });
         return this.formatResponse(data);
       } else {
         const text = await response.text();

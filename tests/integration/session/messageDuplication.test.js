@@ -171,13 +171,7 @@ describe('Message Duplication Prevention', () => {
   it('should handle concurrent message saves correctly', async () => {
     // Simulate concurrent saves (like from multiple browser tabs)
     const concurrentSaves = Array.from({ length: 5 }, (_, i) =>
-      MessageService.addMessage(
-        testSessionId,
-        'user',
-        `Concurrent message ${i}`,
-        null,
-        testUserId
-      )
+      MessageService.addMessage(testSessionId, 'user', `Concurrent message ${i}`, null, testUserId)
     );
 
     const savedMessages = await Promise.all(concurrentSaves);

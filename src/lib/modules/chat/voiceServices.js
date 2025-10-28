@@ -1003,11 +1003,8 @@ async function synthesizeSpeech(text, options = {}) {
       throw new Error('Invalid text for synthesis: text is empty or not a string');
     }
 
-    if (text.length > 5000) {
-      console.warn(
-        `Text is very long (${text.length} characters), this may cause synthesis issues`
-      );
-    }
+    // Note: Long texts are now handled by splitting in synthesizeResponseSpeech
+    // Individual chunks should not exceed 4000 characters
 
     setLoading(true);
 
@@ -1167,8 +1164,67 @@ export async function synthesizeWaitingPhrase(text, language = null) {
 }
 
 /**
+ * Split long text into chunks for TTS processing
+ * Splits on sentence boundaries to maintain natural speech
+ * @param {string} text - Text to split
+ * @param {number} maxChunkLength - Maximum length per chunk (default 1000)
+ * @returns {string[]} Array of text chunks
+ */
+function splitTextForTTS(text, maxChunkLength = 1000) {
+  if (text.length <= maxChunkLength) {
+    return [text];
+  }
+
+  const chunks = [];
+  
+  // Split by sentences (including Russian and English punctuation)
+  // Matches: . ! ? followed by space or newline
+  const sentenceRegex = /[^.!?]+[.!?]+(?:\s+|$)/g;
+  const sentences = text.match(sentenceRegex) || [text];
+  
+  let currentChunk = '';
+
+  for (const sentence of sentences) {
+    const trimmedSentence = sentence.trim();
+    
+    // If single sentence is longer than max, we have to include it anyway
+    // (better to have one long chunk than break mid-sentence)
+    if (trimmedSentence.length > maxChunkLength) {
+      // Flush current chunk if exists
+      if (currentChunk) {
+        chunks.push(currentChunk.trim());
+        currentChunk = '';
+      }
+      // Add the long sentence as its own chunk
+      chunks.push(trimmedSentence);
+      continue;
+    }
+    
+    // Check if adding this sentence would exceed the limit
+    const potentialLength = currentChunk.length + (currentChunk ? 1 : 0) + trimmedSentence.length;
+    
+    if (potentialLength > maxChunkLength && currentChunk) {
+      // Current chunk is full, save it and start new one
+      chunks.push(currentChunk.trim());
+      currentChunk = trimmedSentence;
+    } else {
+      // Add sentence to current chunk
+      currentChunk += (currentChunk ? ' ' : '') + trimmedSentence;
+    }
+  }
+
+  // Add remaining chunk
+  if (currentChunk) {
+    chunks.push(currentChunk.trim());
+  }
+
+  return chunks.filter(chunk => chunk.length > 0);
+}
+
+/**
  * Exported function to synthesize speech for OCR responses
  * This function checks if voice mode is active before synthesizing speech
+ * Handles long texts by splitting them into chunks
  * @param {string} text - Text to synthesize
  * @returns {Promise<void>}
  */
@@ -1180,11 +1236,47 @@ export async function synthesizeResponseSpeech(text) {
     // Determine emotion from the response
     determineEmotion(text);
 
-    // Synthesize speech from the response with high priority
-    await synthesizeSpeech(text, {
-      isWaitingPhrase: false,
-      priority: 1
-    });
+    // Check if text is too long and needs to be split
+    const MAX_TTS_LENGTH = 1000; // Split into smaller chunks for faster processing and better reliability
+    
+    console.log(`[TTS] Text length: ${text.length} chars (max: ${MAX_TTS_LENGTH})`);
+    
+    if (text.length > MAX_TTS_LENGTH) {
+      console.log(`[TTS] Text is long (${text.length} chars), splitting into chunks for TTS`);
+      
+      const chunks = splitTextForTTS(text, MAX_TTS_LENGTH);
+      console.log(`[TTS] Split text into ${chunks.length} chunks:`, chunks.map((c, i) => `Chunk ${i+1}: ${c.length} chars`));
+
+      // Synthesize and play each chunk sequentially
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        console.log(`[TTS] Synthesizing chunk ${i + 1}/${chunks.length} (${chunk.length} chars)`);
+        
+        try {
+          await synthesizeSpeech(chunk, {
+            isWaitingPhrase: false,
+            priority: 1
+          });
+          
+          // Small delay between chunks to ensure smooth playback
+          if (i < chunks.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        } catch (error) {
+          console.error(`Error synthesizing chunk ${i + 1}:`, error);
+          // Continue with next chunk even if one fails
+        }
+      }
+      
+      console.log('[TTS] Completed synthesizing all chunks');
+    } else {
+      // Text is short enough, synthesize normally
+      console.log(`[TTS] Text is short enough (${text.length} chars), synthesizing as single chunk`);
+      await synthesizeSpeech(text, {
+        isWaitingPhrase: false,
+        priority: 1
+      });
+    }
   } else {
     console.log('Voice mode not active, skipping speech synthesis for OCR response');
   }

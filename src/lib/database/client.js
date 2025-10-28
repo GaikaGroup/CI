@@ -2,6 +2,7 @@
  * Database Client Wrapper
  *
  * This module provides a properly configured Prisma client instance
+ * with singleton pattern to prevent connection pool exhaustion
  */
 
 import { createRequire } from 'module';
@@ -10,28 +11,44 @@ const require = createRequire(import.meta.url);
 // Import Prisma client using require for CommonJS compatibility
 const { PrismaClient } = require('../../generated/prisma/index.js');
 
-// Create and configure Prisma client instance
-const prisma = new PrismaClient({
-  log: ['error', 'warn'],
-  errorFormat: 'pretty'
-});
+// Singleton pattern to prevent multiple instances in dev mode
+const globalForPrisma = globalThis;
 
-// Handle graceful shutdown
-if (typeof process !== 'undefined') {
-  process.on('beforeExit', async () => {
-    await prisma.$disconnect();
+// Create or reuse existing Prisma client
+if (!globalForPrisma.__prisma) {
+  globalForPrisma.__prisma = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    errorFormat: 'minimal',
+    // Connection pool settings to prevent "too many clients"
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL
+      }
+    }
   });
 
-  process.on('SIGINT', async () => {
-    await prisma.$disconnect();
-    process.exit(0);
-  });
+  // Handle graceful shutdown
+  const cleanup = async () => {
+    if (globalForPrisma.__prisma) {
+      await globalForPrisma.__prisma.$disconnect();
+      globalForPrisma.__prisma = null;
+    }
+  };
 
-  process.on('SIGTERM', async () => {
-    await prisma.$disconnect();
-    process.exit(0);
-  });
+  if (typeof process !== 'undefined') {
+    process.on('beforeExit', cleanup);
+    process.on('SIGINT', async () => {
+      await cleanup();
+      process.exit(0);
+    });
+    process.on('SIGTERM', async () => {
+      await cleanup();
+      process.exit(0);
+    });
+  }
 }
+
+const prisma = globalForPrisma.__prisma;
 
 export { prisma };
 export default prisma;

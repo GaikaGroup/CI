@@ -42,7 +42,9 @@ export class AdvancedTesseractOCR extends IOCREngine {
 
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = reject;
+      img.onerror = (error) => {
+        reject(new Error(`Failed to load image: ${error?.message || 'Image load error'}`));
+      };
       img.src = imageData;
     });
 
@@ -174,7 +176,8 @@ export class AdvancedTesseractOCR extends IOCREngine {
       return finalText;
     } catch (error) {
       console.error('[Advanced OCR] Error:', error);
-      throw new Error(`Advanced OCR failed: ${error.message}`);
+      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      throw new Error(`Advanced OCR failed: ${errorMessage}`);
     }
   }
 

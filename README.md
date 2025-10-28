@@ -995,10 +995,18 @@ flowchart TD
 
 ### Additional Documentation
 
-Further design notes and troubleshooting guides live in the `docs/` folder:
+Comprehensive documentation is organized in the `docs/` directory:
 
-- `cat-avatar-implementation.md` – animated avatar and lip-sync feature
-- `waiting-phrases.md` and `waiting-phrases-troubleshooting.md` – configuration for the “waiting” messages
+- **[docs/README.md](docs/README.md)** - Documentation hub with complete index
+- **[docs/features/](docs/features/)** - Feature documentation (cat avatar, voice, math rendering, etc.)
+- **[docs/guides/](docs/guides/)** - Setup and configuration guides
+- **[docs/implementation/](docs/implementation/)** - Technical implementation details
+- **[docs/api/](docs/api/)** - API documentation
+- **[docs/technical/](docs/technical/)** - Deep technical documentation
+
+Quick start guides:
+- **[QUICK_START_FAST_OLLAMA.md](QUICK_START_FAST_OLLAMA.md)** - Fast local LLM setup (1-2 second responses)
+- **[OLLAMA_MODELS_GUIDE.md](OLLAMA_MODELS_GUIDE.md)** - Complete Ollama models guide
 
 ### Voice Testing & Quality Assurance
 

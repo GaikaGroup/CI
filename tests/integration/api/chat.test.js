@@ -1,12 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { POST as chatHandler } from '../../../src/routes/api/chat/+server.js';
 import { prisma } from '../../../src/lib/database/client.js';
+import { initializeLLMModule } from '../../../src/lib/modules/llm/index.js';
 
 describe('Chat API Integration Tests', () => {
   let testUserId;
   let testSessionId;
 
   beforeAll(async () => {
+    // Initialize LLM module for tests
+    initializeLLMModule();
+
     await prisma.$connect();
 
     // Create test user

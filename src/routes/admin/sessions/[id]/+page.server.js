@@ -1,5 +1,5 @@
 export async function load({ params }) {
-	return {
-		sessionId: params.id
-	};
+  return {
+    sessionId: params.id
+  };
 }

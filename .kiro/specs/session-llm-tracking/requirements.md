@@ -181,4 +181,3 @@ This specification describes the implementation of LLM model tracking for chat s
 3. WHEN THE System exposes model information via API, THE System SHALL enforce administrator authentication
 4. WHEN THE System logs model usage, THE System SHALL comply with data retention policies
 5. WHEN THE System displays feedback to administrators, THE System SHALL enforce role-based access control
-

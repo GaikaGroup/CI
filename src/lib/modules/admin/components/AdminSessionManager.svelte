@@ -315,6 +315,24 @@
                     <span>Language: {session.language}</span>
                     <span>Updated: {formatDate(session.updatedAt)}</span>
                   </div>
+
+                  {#if session.llmProviders && session.llmProviders.length > 0}
+                    <div class="mt-2 flex items-center gap-2">
+                      <span class="text-xs text-gray-500">LLM:</span>
+                      {#each session.llmProviders as provider}
+                        <span
+                          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {provider ===
+                          'openai'
+                            ? 'bg-green-100 text-green-800'
+                            : provider === 'ollama'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'}"
+                        >
+                          {provider}
+                        </span>
+                      {/each}
+                    </div>
+                  {/if}
                 </div>
 
                 <div class="flex-shrink-0 flex space-x-2">

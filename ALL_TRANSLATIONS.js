@@ -3,15 +3,17 @@ export const allTranslations = {
   en: {
     // === LOGIN PAGE ===
     welcomeBack: 'Welcome back to AI Tutor',
-    continueJourney: 'Continue your personalized learning journey with our advanced AI-powered tutoring platform.',
+    continueJourney:
+      'Continue your personalized learning journey with our advanced AI-powered tutoring platform.',
     personalizedPaths: 'Personalized learning paths',
     aiAssistance: '24/7 AI assistance',
     progressTracking: 'Progress tracking',
     interactiveExercises: 'Interactive exercises',
-    
+
     // === SIGNUP PAGE ===
     startJourney: 'Start your learning journey',
-    joinLearners: 'Join thousands of learners who are accelerating their education with our AI-powered tutoring platform.',
+    joinLearners:
+      'Join thousands of learners who are accelerating their education with our AI-powered tutoring platform.',
     personalizedLearning: 'Personalized Learning',
     aiAdaptsToYou: 'AI adapts to your learning style and pace for optimal results',
     progressTrackingBenefit: 'Progress Tracking',
@@ -22,14 +24,14 @@ export const allTranslations = {
     joinSuccessful: 'Join successful learners achieving their academic goals',
     createAccount: 'Create Account',
     getStarted: 'Get started with your free AI Tutor account',
-    
+
     // === MY COURSES ===
     pleaseLogin: 'Please log in to view your courses.',
     activeEnrollment: 'Active enrollment',
-    
+
     // === CATALOGUE ===
     courseCatalogue: 'Course Catalogue',
-    
+
     // === STATS PAGE ===
     statisticsTitle: 'Statistics • AI Tutor Platform',
     lastHour: 'Last hour',
@@ -61,22 +63,23 @@ export const allTranslations = {
     enrollments: 'enrollments',
     autoRefresh: 'Auto-refresh',
     autoRefreshEvery30: 'Auto-refresh every 30 seconds',
-    
+
     // === LEARN PAGE ===
     courseError: 'Course Error',
     errorStatus: 'Error {status}',
     myCourses: 'My Courses',
     refresh: 'Refresh',
     goToCourses: 'Go to Courses',
-    exploreCatalogue: 'Explore our course catalogue to find learning opportunities that match your interests.',
-    
+    exploreCatalogue:
+      'Explore our course catalogue to find learning opportunities that match your interests.',
+
     // === TUTOR PAGE ===
     tutorDashboard: 'Tutor Dashboard',
     manageCourses: 'Manage your courses and track student progress',
     courseManagement: 'Course Management',
     studentProgress: 'Student Progress',
     analytics: 'Analytics',
-    
+
     // === ADMIN PAGES ===
     adminDashboard: 'Admin Dashboard',
     userManagement: 'User Management',
@@ -87,7 +90,7 @@ export const allTranslations = {
     sessionsManagement: 'Sessions Management',
     analyticsManagement: 'Analytics',
     financeManagement: 'Finance',
-    
+
     // === HOME PAGE ===
     homeTitle: 'AI-Powered Learning Platform',
     homeSubtitle: 'Transform your learning experience with personalized AI tutoring',
@@ -96,7 +99,7 @@ export const allTranslations = {
     howItWorks: 'How It Works',
     features: 'Features',
     testimonials: 'Testimonials',
-    
+
     // === COMMON ===
     viewAll: 'View All',
     seeMore: 'See More',
@@ -108,19 +111,21 @@ export const allTranslations = {
     exact: 'Exact',
     approximate: 'Approximate'
   },
-  
+
   ru: {
     // === LOGIN PAGE ===
     welcomeBack: 'Добро пожаловать в AI Tutor',
-    continueJourney: 'Продолжайте свой персонализированный путь обучения с нашей продвинутой платформой на базе ИИ.',
+    continueJourney:
+      'Продолжайте свой персонализированный путь обучения с нашей продвинутой платформой на базе ИИ.',
     personalizedPaths: 'Персонализированные пути обучения',
     aiAssistance: 'Помощь ИИ 24/7',
     progressTracking: 'Отслеживание прогресса',
     interactiveExercises: 'Интерактивные упражнения',
-    
+
     // === SIGNUP PAGE ===
     startJourney: 'Начните свой путь обучения',
-    joinLearners: 'Присоединяйтесь к тысячам учащихся, которые ускоряют свое образование с помощью нашей платформы на базе ИИ.',
+    joinLearners:
+      'Присоединяйтесь к тысячам учащихся, которые ускоряют свое образование с помощью нашей платформы на базе ИИ.',
     personalizedLearning: 'Персонализированное обучение',
     aiAdaptsToYou: 'ИИ адаптируется к вашему стилю и темпу обучения для оптимальных результатов',
     progressTrackingBenefit: 'Отслеживание прогресса',
@@ -131,14 +136,14 @@ export const allTranslations = {
     joinSuccessful: 'Присоединяйтесь к успешным учащимся, достигающим своих академических целей',
     createAccount: 'Создать аккаунт',
     getStarted: 'Начните с бесплатного аккаунта AI Tutor',
-    
+
     // === MY COURSES ===
     pleaseLogin: 'Пожалуйста, войдите, чтобы просмотреть свои курсы.',
     activeEnrollment: 'Активная запись',
-    
+
     // === CATALOGUE ===
     courseCatalogue: 'Каталог курсов',
-    
+
     // === STATS PAGE ===
     statisticsTitle: 'Статистика • AI Tutor Platform',
     lastHour: 'Последний час',
@@ -170,22 +175,23 @@ export const allTranslations = {
     enrollments: 'записей',
     autoRefresh: 'Авто-обновление',
     autoRefreshEvery30: 'Авто-обновление каждые 30 секунд',
-    
+
     // === LEARN PAGE ===
     courseError: 'Ошибка курса',
     errorStatus: 'Ошибка {status}',
     myCourses: 'Мои курсы',
     refresh: 'Обновить',
     goToCourses: 'Перейти к курсам',
-    exploreCatalogue: 'Изучите наш каталог курсов, чтобы найти возможности обучения, соответствующие вашим интересам.',
-    
+    exploreCatalogue:
+      'Изучите наш каталог курсов, чтобы найти возможности обучения, соответствующие вашим интересам.',
+
     // === TUTOR PAGE ===
     tutorDashboard: 'Панель преподавателя',
     manageCourses: 'Управляйте своими курсами и отслеживайте прогресс студентов',
     courseManagement: 'Управление курсами',
     studentProgress: 'Прогресс студентов',
     analytics: 'Аналитика',
-    
+
     // === ADMIN PAGES ===
     adminDashboard: 'Панель администратора',
     userManagement: 'Управление пользователями',
@@ -196,7 +202,7 @@ export const allTranslations = {
     sessionsManagement: 'Управление сессиями',
     analyticsManagement: 'Аналитика',
     financeManagement: 'Финансы',
-    
+
     // === HOME PAGE ===
     homeTitle: 'Платформа обучения на базе ИИ',
     homeSubtitle: 'Трансформируйте свой опыт обучения с персонализированным ИИ-репетиторством',
@@ -205,7 +211,7 @@ export const allTranslations = {
     howItWorks: 'Как это работает',
     features: 'Возможности',
     testimonials: 'Отзывы',
-    
+
     // === COMMON ===
     viewAll: 'Посмотреть все',
     seeMore: 'Показать больше',
@@ -217,21 +223,24 @@ export const allTranslations = {
     exact: 'Точно',
     approximate: 'Приблизительно'
   },
-  
+
   es: {
     // === LOGIN PAGE ===
     welcomeBack: 'Bienvenido de nuevo a AI Tutor',
-    continueJourney: 'Continúa tu viaje de aprendizaje personalizado con nuestra plataforma avanzada impulsada por IA.',
+    continueJourney:
+      'Continúa tu viaje de aprendizaje personalizado con nuestra plataforma avanzada impulsada por IA.',
     personalizedPaths: 'Rutas de aprendizaje personalizadas',
     aiAssistance: 'Asistencia de IA 24/7',
     progressTracking: 'Seguimiento del progreso',
     interactiveExercises: 'Ejercicios interactivos',
-    
+
     // === SIGNUP PAGE ===
     startJourney: 'Comienza tu viaje de aprendizaje',
-    joinLearners: 'Únete a miles de estudiantes que están acelerando su educación con nuestra plataforma impulsada por IA.',
+    joinLearners:
+      'Únete a miles de estudiantes que están acelerando su educación con nuestra plataforma impulsada por IA.',
     personalizedLearning: 'Aprendizaje personalizado',
-    aiAdaptsToYou: 'La IA se adapta a tu estilo y ritmo de aprendizaje para obtener resultados óptimos',
+    aiAdaptsToYou:
+      'La IA se adapta a tu estilo y ritmo de aprendizaje para obtener resultados óptimos',
     progressTrackingBenefit: 'Seguimiento del progreso',
     monitorImprovement: 'Monitorea tu mejora con análisis detallados e información',
     instantSupport: 'Soporte instantáneo',
@@ -240,14 +249,14 @@ export const allTranslations = {
     joinSuccessful: 'Únete a estudiantes exitosos que logran sus objetivos académicos',
     createAccount: 'Crear cuenta',
     getStarted: 'Comienza con tu cuenta gratuita de AI Tutor',
-    
+
     // === MY COURSES ===
     pleaseLogin: 'Por favor, inicia sesión para ver tus cursos.',
     activeEnrollment: 'Inscripción activa',
-    
+
     // === CATALOGUE ===
     courseCatalogue: 'Catálogo de cursos',
-    
+
     // === STATS PAGE ===
     statisticsTitle: 'Estadísticas • AI Tutor Platform',
     lastHour: 'Última hora',
@@ -279,22 +288,23 @@ export const allTranslations = {
     enrollments: 'inscripciones',
     autoRefresh: 'Auto-actualizar',
     autoRefreshEvery30: 'Auto-actualizar cada 30 segundos',
-    
+
     // === LEARN PAGE ===
     courseError: 'Error del curso',
     errorStatus: 'Error {status}',
     myCourses: 'Mis cursos',
     refresh: 'Actualizar',
     goToCourses: 'Ir a cursos',
-    exploreCatalogue: 'Explora nuestro catálogo de cursos para encontrar oportunidades de aprendizaje que coincidan con tus intereses.',
-    
+    exploreCatalogue:
+      'Explora nuestro catálogo de cursos para encontrar oportunidades de aprendizaje que coincidan con tus intereses.',
+
     // === TUTOR PAGE ===
     tutorDashboard: 'Panel del tutor',
     manageCourses: 'Gestiona tus cursos y rastrea el progreso de los estudiantes',
     courseManagement: 'Gestión de cursos',
     studentProgress: 'Progreso de estudiantes',
     analytics: 'Analítica',
-    
+
     // === ADMIN PAGES ===
     adminDashboard: 'Panel de administración',
     userManagement: 'Gestión de usuarios',
@@ -305,7 +315,7 @@ export const allTranslations = {
     sessionsManagement: 'Gestión de sesiones',
     analyticsManagement: 'Analítica',
     financeManagement: 'Finanzas',
-    
+
     // === HOME PAGE ===
     homeTitle: 'Plataforma de aprendizaje impulsada por IA',
     homeSubtitle: 'Transforma tu experiencia de aprendizaje con tutoría personalizada de IA',
@@ -314,7 +324,7 @@ export const allTranslations = {
     howItWorks: 'Cómo funciona',
     features: 'Características',
     testimonials: 'Testimonios',
-    
+
     // === COMMON ===
     viewAll: 'Ver todo',
     seeMore: 'Ver más',

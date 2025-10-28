@@ -23,9 +23,7 @@ export class TriangleRenderer {
     // Validate - check sum is 180°
     const sum = angleA + angleB + angleC;
     if (Math.abs(sum - 180) > 0.1) {
-      throw new Error(
-        `Невозможно построить треугольник: сумма углов ${Math.round(sum)}° ≠ 180°`
-      );
+      throw new Error(`Невозможно построить треугольник: сумма углов ${Math.round(sum)}° ≠ 180°`);
     }
 
     // Validate - all angles must be positive
@@ -80,10 +78,17 @@ export class TriangleRenderer {
 
     // Calculate A position using angles
     const angleCRad = (angleC * Math.PI) / 180;
-    const heightFromBase = baseLength * Math.sin(angleCRad) * (Math.sin((angleB * Math.PI) / 180) / Math.sin((angleA * Math.PI) / 180));
+    const heightFromBase =
+      baseLength *
+      Math.sin(angleCRad) *
+      (Math.sin((angleB * Math.PI) / 180) / Math.sin((angleA * Math.PI) / 180));
 
     const A = {
-      x: C.x + baseLength * Math.cos(angleCRad) * (Math.sin((angleB * Math.PI) / 180) / Math.sin((angleA * Math.PI) / 180)),
+      x:
+        C.x +
+        baseLength *
+          Math.cos(angleCRad) *
+          (Math.sin((angleB * Math.PI) / 180) / Math.sin((angleA * Math.PI) / 180)),
       y: C.y - heightFromBase
     };
 

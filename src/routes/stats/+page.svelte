@@ -33,13 +33,13 @@
 
       overview = await overviewRes.json();
       trends = await trendsRes.json();
-      
+
       // Feedback stats might fail if user is not admin, that's ok
       if (feedbackRes.ok) {
         const feedbackData = await feedbackRes.json();
         feedbackStats = feedbackData.stats;
       }
-      
+
       lastUpdated = new Date();
     } catch (err) {
       console.error('Error loading stats:', err);
@@ -112,36 +112,16 @@
     return `${sign}${value.toFixed(1)}%`;
   }
 
-  // Format currency without rounding - show all significant digits
+  // Format currency - always show up to 8 decimal places for precision
   function formatCurrency(num) {
     const value = num || 0;
 
-    // For very small amounts (< $0.01), show up to 8 decimal places
-    if (value > 0 && value < 0.01) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 8
-      }).format(value);
-    }
-
-    // For small amounts (< $1), show up to 6 decimal places
-    if (value > 0 && value < 1) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 6
-      }).format(value);
-    }
-
-    // For normal amounts, show up to 4 decimal places
+    // Always show up to 8 decimal places for all amounts
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 4
+      maximumFractionDigits: 8
     }).format(value);
   }
 </script>
@@ -178,7 +158,8 @@
                 : ''}"
               title={getTranslation($selectedLanguage, 'autoRefreshEvery30')}
             >
-              {autoRefresh ? '⏸️' : '▶️'} {getTranslation($selectedLanguage, 'autoRefresh')}
+              {autoRefresh ? '⏸️' : '▶️'}
+              {getTranslation($selectedLanguage, 'autoRefresh')}
             </button>
             <!-- Clear Cache Button -->
             <button
@@ -240,7 +221,9 @@
         <div
           class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
         ></div>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{getTranslation($selectedLanguage, 'loadingStatistics')}</p>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {getTranslation($selectedLanguage, 'loadingStatistics')}
+        </p>
       </div>
     {:else if !overview && !loading}
       <div class="text-center py-12">
@@ -359,16 +342,10 @@
                     <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       AI Costs
                     </dt>
-                    <dd
-                      class="text-lg font-medium text-gray-900 dark:text-white cursor-help"
-                      title="{getTranslation($selectedLanguage, 'exact')}: ${overview.finance.totalCost.toFixed(8)}"
-                    >
+                    <dd class="text-lg font-medium text-gray-900 dark:text-white">
                       {formatCurrency(overview.finance.totalCost)}
                     </dd>
-                    <dd
-                      class="text-sm text-gray-600 dark:text-gray-300 cursor-help"
-                      title="{getTranslation($selectedLanguage, 'exact')}: ${overview.finance.avgCostPerMessage.toFixed(8)}"
-                    >
+                    <dd class="text-sm text-gray-600 dark:text-gray-300">
                       {formatCurrency(overview.finance.avgCostPerMessage)} per message
                     </dd>
                   </dl>
@@ -382,7 +359,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <!-- User Activity Chart -->
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">User Activity</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              {getTranslation($selectedLanguage, 'userActivity')}
+            </h3>
             {#if trends && trends.dailyActivity}
               {@const lastDays = trends.dailyActivity.slice(-7)}
               {@const maxUsers = Math.max(...lastDays.map((d) => d.activeUsers), 1)}
@@ -425,7 +404,9 @@
 
           <!-- Course Popularity Placeholder -->
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Popular Courses</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              {getTranslation($selectedLanguage, 'popularCourses')}
+            </h3>
             <div class="space-y-3">
               {#each overview.courses.popular.slice(0, 5) as course}
                 <div class="flex justify-between items-center">
@@ -477,19 +458,13 @@
                       <td class="px-3 py-2 text-sm text-gray-900 dark:text-white capitalize"
                         >{provider.provider}</td
                       >
-                      <td
-                        class="px-3 py-2 text-sm text-gray-900 dark:text-white text-right font-mono cursor-help"
-                        title="{getTranslation($selectedLanguage, 'exact')}: ${provider.cost.toFixed(8)}"
-                      >
+                      <td class="px-3 py-2 text-sm text-gray-900 dark:text-white text-right font-mono">
                         {formatCurrency(provider.cost)}
                       </td>
                       <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatNumber(provider.messageCount)}
                       </td>
-                      <td
-                        class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right font-mono cursor-help"
-                        title="{getTranslation($selectedLanguage, 'exact')}: ${avgPerMsg.toFixed(8)}"
-                      >
+                      <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right font-mono">
                         {formatCurrency(avgPerMsg)}
                       </td>
                       <td class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-right">
@@ -502,9 +477,86 @@
             </div>
           </div>
 
+          <!-- LLM Provider Distribution -->
+          {#if overview.llmProviders && overview.llmProviders.providerDistribution.length > 0}
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                LLM Provider Usage
+              </h3>
+
+              <!-- Pie Chart -->
+              <div class="flex justify-center mb-4">
+                <svg viewBox="0 0 200 200" class="w-48 h-48">
+                  {#each overview.llmProviders.providerDistribution as provider, i}
+                    {@const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']}
+                    {@const color = colors[i % colors.length]}
+                    {@const total = overview.llmProviders.providerDistribution.reduce(
+                      (sum, p) => sum + p.count,
+                      0
+                    )}
+                    {@const percentage = (provider.count / total) * 100}
+                    {@const startAngle = overview.llmProviders.providerDistribution
+                      .slice(0, i)
+                      .reduce((sum, p) => sum + (p.count / total) * 360, 0)}
+                    {@const endAngle = startAngle + (percentage / 100) * 360}
+                    {@const startRad = (startAngle - 90) * (Math.PI / 180)}
+                    {@const endRad = (endAngle - 90) * (Math.PI / 180)}
+                    {@const x1 = 100 + 80 * Math.cos(startRad)}
+                    {@const y1 = 100 + 80 * Math.sin(startRad)}
+                    {@const x2 = 100 + 80 * Math.cos(endRad)}
+                    {@const y2 = 100 + 80 * Math.sin(endRad)}
+                    {@const largeArc = percentage > 50 ? 1 : 0}
+
+                    <path
+                      d="M 100 100 L {x1} {y1} A 80 80 0 {largeArc} 1 {x2} {y2} Z"
+                      fill={color}
+                      stroke="white"
+                      stroke-width="2"
+                    />
+                  {/each}
+                </svg>
+              </div>
+
+              <!-- Legend -->
+              <div class="space-y-2">
+                {#each overview.llmProviders.providerDistribution as provider, i}
+                  {@const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']}
+                  {@const color = colors[i % colors.length]}
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 rounded-full" style="background-color: {color}"></div>
+                      <span class="text-sm text-gray-900 dark:text-white capitalize"
+                        >{provider.provider}</span
+                      >
+                    </div>
+                    <div class="text-right">
+                      <span class="text-sm text-gray-900 dark:text-white"
+                        >{formatNumber(provider.count)} msgs</span
+                      >
+                      <span class="text-xs text-gray-500 dark:text-gray-400 ml-2"
+                        >({provider.percentage}%)</span
+                      >
+                    </div>
+                  </div>
+                {/each}
+              </div>
+
+              {#if overview.llmProviders.totalMessagesWithoutProvider > 0}
+                <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {formatNumber(overview.llmProviders.totalMessagesWithoutProvider)} messages without
+                    provider info
+                  </p>
+                </div>
+              {/if}
+            </div>
+          {/if}
+
           <!-- Language Usage -->
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Language Usage</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              {getTranslation($selectedLanguage, 'languageUsage')}
+            </h3>
             <div class="space-y-3">
               {#each overview.languages.topLanguages as language}
                 <div class="flex justify-between items-center">
@@ -527,7 +579,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <!-- Attention Economy -->
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Attention Economy</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Attention Economy
+            </h3>
             <div class="space-y-4">
               <div>
                 <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -543,13 +597,17 @@
                 </h4>
                 <div class="space-y-1">
                   <div class="flex justify-between">
-                    <span class="text-sm text-gray-900 dark:text-white">Fun</span>
+                    <span class="text-sm text-gray-900 dark:text-white"
+                      >{getTranslation($selectedLanguage, 'fun')}</span
+                    >
                     <span class="text-sm text-gray-500 dark:text-gray-400"
                       >{overview.attentionEconomy.funVsLearn.fun.percentage}%</span
                     >
                   </div>
                   <div class="flex justify-between">
-                    <span class="text-sm text-gray-900 dark:text-white">Learn</span>
+                    <span class="text-sm text-gray-900 dark:text-white"
+                      >{getTranslation($selectedLanguage, 'learn')}</span
+                    >
                     <span class="text-sm text-gray-500 dark:text-gray-400"
                       >{overview.attentionEconomy.funVsLearn.learn.percentage}%</span
                     >
@@ -562,7 +620,9 @@
           <!-- Platform Health -->
           {#if trends}
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Platform Health</h3>
+              <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                {getTranslation($selectedLanguage, 'platformHealth')}
+              </h3>
               <div class="space-y-4">
                 <div>
                   <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -610,7 +670,9 @@
           {#if feedbackStats}
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">User Feedback</h3>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                  {getTranslation($selectedLanguage, 'userFeedback')}
+                </h3>
                 <a
                   href="/admin/feedback"
                   class="text-xs text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
@@ -653,7 +715,9 @@
                     Top Models
                   </h4>
                   <div class="space-y-1">
-                    {#each Object.entries(feedbackStats.byModel).sort((a, b) => b[1] - a[1]).slice(0, 3) as [model, count]}
+                    {#each Object.entries(feedbackStats.byModel)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 3) as [model, count]}
                       <div class="flex justify-between text-xs">
                         <span class="text-gray-600 dark:text-gray-400 truncate">{model}</span>
                         <span class="text-gray-900 dark:text-white font-medium">{count}</span>

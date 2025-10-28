@@ -86,14 +86,20 @@
 </script>
 
 <svelte:head>
-  <title>{isNew ? getTranslation($selectedLanguage, 'createCourseTitle') : `${getTranslation($selectedLanguage, 'editCourseTitle')} ${course?.name || ''}`}</title>
+  <title
+    >{isNew
+      ? getTranslation($selectedLanguage, 'createCourseTitle')
+      : `${getTranslation($selectedLanguage, 'editCourseTitle')} ${course?.name || ''}`}</title
+  >
 </svelte:head>
 
 {#if loading}
   <div class="min-h-screen flex items-center justify-center">
     <div class="text-center">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-4"></div>
-      <p class="text-stone-600 dark:text-gray-300">{getTranslation($selectedLanguage, 'loadingCourse')}</p>
+      <p class="text-stone-600 dark:text-gray-300">
+        {getTranslation($selectedLanguage, 'loadingCourse')}
+      </p>
     </div>
   </div>
 {:else if error}
@@ -102,7 +108,9 @@
       <div
         class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md"
       >
-        <h2 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">{getTranslation($selectedLanguage, 'error')}</h2>
+        <h2 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+          {getTranslation($selectedLanguage, 'error')}
+        </h2>
         <p class="text-red-700 dark:text-red-300 mb-4">{error}</p>
         <button
           on:click={() => goto('/catalogue')}

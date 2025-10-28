@@ -90,18 +90,30 @@ export class ProviderManager {
    */
   async getBestProvider() {
     // First try the default provider
-    if (await this.isProviderAvailable(this.defaultProvider)) {
+    console.log(`[ProviderManager] Checking default provider: ${this.defaultProvider}`);
+    const defaultAvailable = await this.isProviderAvailable(this.defaultProvider);
+    console.log(
+      `[ProviderManager] Default provider ${this.defaultProvider} available: ${defaultAvailable}`
+    );
+
+    if (defaultAvailable) {
+      console.log(`[ProviderManager] Using default provider: ${this.defaultProvider}`);
       return this.defaultProvider;
     }
 
     // If default provider is not available and fallback is enabled, try other providers
     if (this.fallbackEnabled) {
+      console.log(`[ProviderManager] Fallback enabled, checking other providers...`);
       for (const [name] of this.providers) {
-        if (name !== this.defaultProvider && (await this.isProviderAvailable(name))) {
-          console.log(
-            `Default provider ${this.defaultProvider} not available, falling back to ${name}`
-          );
-          return name;
+        if (name !== this.defaultProvider) {
+          const available = await this.isProviderAvailable(name);
+          console.log(`[ProviderManager] Provider ${name} available: ${available}`);
+          if (available) {
+            console.log(
+              `Default provider ${this.defaultProvider} not available, falling back to ${name}`
+            );
+            return name;
+          }
         }
       }
     }
@@ -151,9 +163,10 @@ export class ProviderManager {
       console.log('[ProviderManager] No images detected in messages');
     }
 
-    const providerName = options.provider || (await this.getBestProvider());
+    // Force Ollama as default if no provider specified
+    const providerName = options.provider || 'ollama';
     const provider = this.getProvider(providerName);
-    
+
     // Track attempted model for fallback scenarios
     let attemptedModel = null;
     let fallbackOccurred = false;
@@ -260,7 +273,7 @@ export class ProviderManager {
       return await invokeProvider(provider, providerName, options, true);
     } catch (error) {
       console.error(`Error with provider ${providerName}:`, error);
-      
+
       // Mark that fallback occurred
       fallbackOccurred = true;
       fallbackReason = error.message;
@@ -271,10 +284,15 @@ export class ProviderManager {
           if (name !== providerName && (await this.isProviderAvailable(name))) {
             console.log(`Falling back to ${name} provider`);
             try {
-              return await invokeProvider(fallbackProvider, name, {
-                ...options,
-                isFallback: true
-              }, false);
+              return await invokeProvider(
+                fallbackProvider,
+                name,
+                {
+                  ...options,
+                  isFallback: true
+                },
+                false
+              );
             } catch (fallbackError) {
               console.error(`Fallback provider ${name} failed:`, fallbackError);
             }

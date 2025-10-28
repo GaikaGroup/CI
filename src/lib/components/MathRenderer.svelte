@@ -240,9 +240,14 @@
         }
       });
 
+      // Fix degree symbol: wrap ^\circ in $ if not already wrapped
+      html = html.replace(/([^$])\^\\circ(?!\$)/g, (match, before) => {
+        return before + '$^\\circ$';
+      });
+
       // Fix common LaTeX errors: ^\circC -> ^\circ C
-      html = html.replace(/\^\\circC/g, '^\\circ C');
-      html = html.replace(/\^\\circ([A-Z])/g, '^\\circ $1');
+      html = html.replace(/\^\\circC/g, '$^\\circ$ C');
+      html = html.replace(/\^\\circ([A-Z])/g, '$^\\circ$ $1');
 
       // Обработка жирного текста (markdown)
       html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');

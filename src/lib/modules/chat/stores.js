@@ -27,6 +27,10 @@ export const ocrResults = writable({});
 // OCR processing state
 export const isOcrProcessing = writable(false);
 
+// Second opinion stores
+export const secondOpinionRequests = writable({}); // messageId -> { loading, error }
+export const secondOpinions = writable({}); // messageId -> array of opinion messages
+
 // Initialize chat with welcome message
 export function initializeChat(welcomeMessage) {
   const initialMessage = {
@@ -131,4 +135,129 @@ export function clearOcrData() {
   ocrResults.set({});
   ocrNotes.set({});
   isOcrProcessing.set(false);
+}
+
+// Second opinion functions
+export async function requestSecondOpinion(messageId, provider = null) {
+  // Set loading state
+  secondOpinionRequests.update((requests) => ({
+    ...requests,
+    [messageId]: { loading: true, error: null }
+  }));
+
+  try {
+    const response = await fetch('/api/chat/second-opinion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messageId,
+        provider: provider || undefined
+      })
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get second opinion');
+    }
+
+    // Add the opinion message to the messages store
+    if (result.data && result.data.opinionMessage) {
+      messages.update((msgs) => [...msgs, result.data.opinionMessage]);
+    }
+
+    // Update second opinions store
+    secondOpinions.update((opinions) => {
+      const existing = opinions[messageId] || [];
+      return {
+        ...opinions,
+        [messageId]: [...existing, result.data.opinionMessage]
+      };
+    });
+
+    // Clear loading state
+    secondOpinionRequests.update((requests) => ({
+      ...requests,
+      [messageId]: { loading: false, error: null }
+    }));
+
+    return result.data;
+  } catch (error) {
+    console.error('Error requesting second opinion:', error);
+
+    // Set error state
+    secondOpinionRequests.update((requests) => ({
+      ...requests,
+      [messageId]: { loading: false, error: error.message }
+    }));
+
+    throw error;
+  }
+}
+
+export async function fetchSecondOpinions(messageId) {
+  try {
+    const response = await fetch(`/api/chat/second-opinions/${messageId}`);
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to fetch second opinions');
+    }
+
+    // Update second opinions store
+    secondOpinions.update((opinions) => ({
+      ...opinions,
+      [messageId]: result.data.opinions || []
+    }));
+
+    return result.data.opinions;
+  } catch (error) {
+    console.error('Error fetching second opinions:', error);
+    throw error;
+  }
+}
+
+export async function submitOpinionFeedback(opinionId, messageId, helpful) {
+  try {
+    const response = await fetch(`/api/chat/second-opinion/${opinionId}/feedback`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ helpful })
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to submit feedback');
+    }
+
+    // Update the message to mark feedback as submitted
+    updateMessage(messageId, {
+      metadata: {
+        feedbackSubmitted: true
+      }
+    });
+
+    return result.data;
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    throw error;
+  }
+}
+
+export function getSecondOpinionsForMessage(messageId) {
+  let opinions = [];
+  secondOpinions.subscribe((data) => {
+    opinions = data[messageId] || [];
+  })();
+  return opinions;
+}
+
+export function clearSecondOpinionData() {
+  secondOpinionRequests.set({});
+  secondOpinions.set({});
 }

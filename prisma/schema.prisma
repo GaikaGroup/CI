@@ -30,6 +30,8 @@ model User {
   reportedCourses CourseReport[] @relation("CourseReporter")
   reviewedReports CourseReport[] @relation("CourseReviewer")
   systemLogs      SystemLog[]
+  secondOpinions  SecondOpinion[]
+  opinionFeedback OpinionFeedback[]
   
   // Indexes
   @@index([email], name: "idx_user_email")
@@ -52,9 +54,10 @@ model Session {
   messageCount Int       @default(0) @map("message_count")
   
   // Relations
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course       Course?   @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  messages     Message[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course         Course?         @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  messages       Message[]
+  secondOpinions SecondOpinion[]
   
   // Indexes
   @@index([userId, updatedAt(sort: Desc)], name: "idx_user_sessions")
@@ -72,11 +75,13 @@ model Message {
   sessionId String   @map("session_id")
   type      String   @db.VarChar(20) // 'user' or 'assistant'
   content   String   @db.Text
-  metadata  Json?    // For storing audio, images, timestamps
+  metadata  Json?    // For storing audio, images, timestamps, second opinion info
   createdAt DateTime @default(now()) @map("created_at")
   
   // Relations
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session              Session         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  primaryOpinions      SecondOpinion[] @relation("PrimaryMessage")
+  secondOpinionMessage SecondOpinion?  @relation("OpinionMessage")
   
   // Indexes
   @@index([sessionId, createdAt], name: "idx_session_messages")
@@ -201,4 +206,57 @@ model SystemLog {
   @@index([category])
   @@index([createdAt])
   @@map("system_logs")
+}
+
+model SecondOpinion {
+  id               String   @id @default(cuid())
+  primaryMessageId String   @map("primary_message_id")
+  opinionMessageId String   @unique @map("opinion_message_id")
+  sessionId        String   @map("session_id")
+  userId           String   @map("user_id")
+  primaryProvider  String   @map("primary_provider") @db.VarChar(50)
+  opinionProvider  String   @map("opinion_provider") @db.VarChar(50)
+  primaryModel     String?  @map("primary_model") @db.VarChar(100)
+  opinionModel     String?  @map("opinion_model") @db.VarChar(100)
+  divergenceLevel  String?  @map("divergence_level") @db.VarChar(20) // 'low', 'medium', 'high'
+  divergenceData   Json?    @map("divergence_data") // Detailed divergence analysis
+  requestType      String   @default("automatic") @map("request_type") @db.VarChar(20) // 'automatic', 'manual'
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  primaryMessage Message           @relation("PrimaryMessage", fields: [primaryMessageId], references: [id], onDelete: Cascade)
+  opinionMessage Message           @relation("OpinionMessage", fields: [opinionMessageId], references: [id], onDelete: Cascade)
+  session        Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback       OpinionFeedback[]
+  
+  // Indexes
+  @@index([primaryMessageId], name: "idx_second_opinion_primary")
+  @@index([sessionId], name: "idx_second_opinion_session")
+  @@index([userId], name: "idx_second_opinion_user")
+  @@index([createdAt], name: "idx_second_opinion_created")
+  @@index([opinionProvider], name: "idx_second_opinion_provider")
+  @@map("second_opinions")
+}
+
+model OpinionFeedback {
+  id        String        @id @default(cuid())
+  opinionId String        @map("opinion_id")
+  userId    String        @map("user_id")
+  helpful   Boolean       // true = helpful, false = not helpful
+  comment   String?       @db.Text
+  createdAt DateTime      @default(now()) @map("created_at")
+  
+  // Relations
+  opinion SecondOpinion @relation(fields: [opinionId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([opinionId, userId], name: "unique_opinion_user_feedback")
+  
+  // Indexes
+  @@index([opinionId], name: "idx_feedback_opinion")
+  @@index([userId], name: "idx_feedback_user")
+  @@index([helpful], name: "idx_feedback_helpful")
+  @@map("opinion_feedback")
 }

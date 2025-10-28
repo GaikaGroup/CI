@@ -101,7 +101,8 @@ export async function sendMessageWithOCRContext(
               resolve({
                 data: reader.result,
                 blob,
-                name: `image_${index + 1}.${blob.type.split('/')[1] || 'png'}`
+                name: `image_${index + 1}.${blob.type.split('/')[1] || 'png'}`,
+                type: blob.type
               });
             };
             reader.onerror = (error) => {
@@ -125,32 +126,47 @@ export async function sendMessageWithOCRContext(
         throw new Error('Failed to process images: No valid images found');
       }
 
+      // Separate images and PDFs
+      const imageFiles = validImageData.filter((data) => data.type.startsWith('image/'));
+      const pdfFiles = validImageData.filter((data) => data.type === 'application/pdf');
+      
+      console.log(`[OCR] Found ${imageFiles.length} images and ${pdfFiles.length} PDFs`);
+
       // Process images locally with OCR memory
       let recognizedText = '';
-      console.log('[OCR] Processing images locally in the browser with memory');
+      
+      if (imageFiles.length > 0) {
+        console.log('[OCR] Processing images locally in the browser with memory');
 
-      for (let i = 0; i < validImageData.length; i++) {
-        const image = validImageData[i];
-        try {
-          // Convert base64 to buffer for OCR processing
-          const base64String = image.data.split(',')[1];
-          const binaryString = atob(base64String);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let j = 0; j < binaryString.length; j++) {
-            bytes[j] = binaryString.charCodeAt(j);
+        for (let i = 0; i < imageFiles.length; i++) {
+          const image = imageFiles[i];
+          try {
+            // Convert base64 to buffer for OCR processing
+            const base64String = image.data.split(',')[1];
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let j = 0; j < binaryString.length; j++) {
+              bytes[j] = binaryString.charCodeAt(j);
+            }
+
+            // Process with OCR memory service
+            const imgMessageId = `${messageId}_img_${i}`;
+            const ocrResult = await processOCRWithMemory(imgMessageId, bytes, image.name);
+            recognizedText += ocrResult + '\n\n';
+            console.log(
+              `[OCR] Image ${i + 1} processed successfully, text length:`,
+              ocrResult.length
+            );
+          } catch (error) {
+            console.error(`[OCR] Error processing image ${i + 1}:`, error);
           }
-
-          // Process with OCR memory service
-          const imgMessageId = `${messageId}_img_${i}`;
-          const ocrResult = await processOCRWithMemory(imgMessageId, bytes, image.name);
-          recognizedText += ocrResult + '\n\n';
-          console.log(
-            `[OCR] Image ${i + 1} processed successfully, text length:`,
-            ocrResult.length
-          );
-        } catch (error) {
-          console.error(`[OCR] Error processing image ${i + 1}:`, error);
         }
+      }
+      
+      // For PDFs, just note that they're attached (OCR will be done server-side if needed)
+      if (pdfFiles.length > 0) {
+        console.log(`[OCR] ${pdfFiles.length} PDF file(s) attached, will be processed by server`);
+        recognizedText += `\n[${pdfFiles.length} PDF document(s) attached]\n`;
       }
 
       // Update UI with recognized text
@@ -171,18 +187,27 @@ export async function sendMessageWithOCRContext(
       const enhancedContent = content + ocrContext;
       console.log('[OCR] Enhanced content length:', enhancedContent.length);
 
-      // Extract base64 strings for API call
+      // Extract base64 strings for API call (only the data field, not the whole object)
       const base64Images = validImageData.map((img) => img.data);
 
-      // Make API call with images and already processed text
-      console.log('[OCR] Sending image and recognized text for message', content, {
-        snippet: base64Images[0].slice(0, 50) + '…',
+      // Separate actual images from PDFs for API call
+      // PDFs should NOT be sent to OpenAI vision API - only actual images
+      const base64OnlyImages = imageFiles.map((img) => img.data);
+      const hasPDF = pdfFiles.length > 0;
+      const hasActualImages = imageFiles.length > 0;
+
+      console.log('[OCR] Sending files and recognized text for message', content, {
+        imagesCount: imageFiles.length,
+        pdfsCount: pdfFiles.length,
+        hasActualImages,
+        hasPDF,
+        firstFileSnippet: base64Images[0]?.slice(0, 50) + '…',
         textLength: recognizedText.length
       });
 
       const requestBody = {
         content: enhancedContent, // Send enhanced content with OCR context
-        images: base64Images,
+        images: base64OnlyImages, // ONLY actual images, NOT PDFs
         recognizedText, // Send the already processed text
         language: get(selectedLanguage),
         ...(activeExamProfile ? { examProfile: activeExamProfile } : {}),

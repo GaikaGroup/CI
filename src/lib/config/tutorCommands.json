@@ -131,23 +131,23 @@
       }
     },
     {
-      "id": "help",
-      "category": "reference",
+      "id": "test",
+      "category": "assessment",
       "translations": {
         "en": {
-          "name": "/help",
-          "description": "Shows this help menu",
-          "example": "/help"
+          "name": "/test",
+          "description": "Creates a 5-question multiple-choice test",
+          "example": "/test"
         },
         "ru": {
-          "name": "/помощь",
-          "description": "Показывает это меню помощи",
-          "example": "/помощь"
+          "name": "/тест",
+          "description": "Создает тест из 5 вопросов с вариантами ответов",
+          "example": "/тест"
         },
         "es": {
-          "name": "/ayuda",
-          "description": "Muestra este menú de ayuda",
-          "example": "/ayuda"
+          "name": "/prueba",
+          "description": "Crea una prueba de 5 preguntas de opción múltiple",
+          "example": "/prueba"
         }
       }
     }

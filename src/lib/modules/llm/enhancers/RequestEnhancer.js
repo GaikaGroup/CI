@@ -203,10 +203,11 @@ export class RequestEnhancer {
       // Override with math-specific parameters
       maxTokens: Math.max(options.maxTokens || 0, mathParams.maxTokens),
       temperature: mathParams.temperature,
-      model: options.model || mathParams.model,
+      // ALWAYS use math model for math queries, ignore user selection
+      model: mathParams.model,
       provider: mathParams.provider || options.provider, // Force OpenAI for math
       // Add system prompt if not already present
-      systemPrompt: options.systemPrompt 
+      systemPrompt: options.systemPrompt
         ? `${options.systemPrompt}\n\n${systemPrompt}`
         : systemPrompt,
       // Add metadata
@@ -221,6 +222,16 @@ export class RequestEnhancer {
         mathCategory: category
       }
     };
+
+    // Log model override if user had selected a different model
+    if (originalModel && originalModel !== mathParams.model) {
+      console.log(`[RequestEnhancer] Math query detected - overriding user model selection:`, {
+        userSelected: originalModel,
+        mathModel: mathParams.model,
+        category,
+        reason: 'Math queries require specialized model for accuracy'
+      });
+    }
 
     return enhanced;
   }

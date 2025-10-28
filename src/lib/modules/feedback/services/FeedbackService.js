@@ -206,11 +206,9 @@ export class FeedbackService {
         }
       };
     } catch (error) {
-      throw new FeedbackError(
-        `Failed to get feedback: ${error.message}`,
-        'FEEDBACK_FETCH_FAILED',
-        { filters }
-      );
+      throw new FeedbackError(`Failed to get feedback: ${error.message}`, 'FEEDBACK_FETCH_FAILED', {
+        filters
+      });
     }
   }
 

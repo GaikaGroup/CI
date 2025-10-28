@@ -127,7 +127,9 @@
           <User class="w-6 h-6 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <h1 class="text-3xl font-bold text-stone-900 dark:text-white">{getTranslation($selectedLanguage, 'studentDashboard')}</h1>
+          <h1 class="text-3xl font-bold text-stone-900 dark:text-white">
+            {getTranslation($selectedLanguage, 'studentDashboard')}
+          </h1>
           <p class="text-stone-600 dark:text-gray-400">
             {getTranslation($selectedLanguage, 'discoverCourses')}
           </p>
@@ -228,7 +230,9 @@
               >
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'completed')}</p>
+                    <p class="text-sm font-medium text-stone-600 dark:text-gray-400">
+                      {getTranslation($selectedLanguage, 'completed')}
+                    </p>
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400">
                       {$enrollmentStats.completed}
                     </p>
@@ -374,28 +378,36 @@
                   <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                     {$enrollmentStats.total}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'totalCourses')}</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">
+                    {getTranslation($selectedLanguage, 'totalCourses')}
+                  </div>
                 </div>
 
                 <div class="text-center">
                   <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                     {$enrollmentStats.completed}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'completed')}</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">
+                    {getTranslation($selectedLanguage, 'completed')}
+                  </div>
                 </div>
 
                 <div class="text-center">
                   <div class="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-2">
                     {$enrollmentStats.totalLessons}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'lessonsCompleted')}</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">
+                    {getTranslation($selectedLanguage, 'lessonsCompleted')}
+                  </div>
                 </div>
 
                 <div class="text-center">
                   <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                     {$enrollmentStats.totalAssessments}
                   </div>
-                  <div class="text-sm text-stone-600 dark:text-gray-400">{getTranslation($selectedLanguage, 'assessmentsTaken')}</div>
+                  <div class="text-sm text-stone-600 dark:text-gray-400">
+                    {getTranslation($selectedLanguage, 'assessmentsTaken')}
+                  </div>
                 </div>
               </div>
             {:else}

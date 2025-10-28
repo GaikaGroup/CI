@@ -71,29 +71,29 @@ interface MessageMetadata {
   imageUrl?: string;
   language?: string;
   timestamp?: string;
-  
+
   // NEW: LLM Model Information
   llm?: {
-    provider: string;           // 'openai', 'ollama', etc.
-    model: string;              // 'gpt-4', 'llama-3-8b', etc.
-    version?: string;           // Model version if available
-    timestamp: string;          // ISO timestamp of when model was invoked
+    provider: string; // 'openai', 'ollama', etc.
+    model: string; // 'gpt-4', 'llama-3-8b', etc.
+    version?: string; // Model version if available
+    timestamp: string; // ISO timestamp of when model was invoked
     config?: {
       temperature?: number;
       maxTokens?: number;
       systemPrompt?: string;
     };
     fallback?: {
-      attempted: string;        // Model that was attempted first
-      reason: string;           // Reason for fallback
+      attempted: string; // Model that was attempted first
+      reason: string; // Reason for fallback
     };
   };
-  
+
   // NEW: User Feedback
   feedback?: {
-    text: string;               // User's feedback text
-    timestamp: string;          // ISO timestamp of feedback submission
-    userId: string;             // User who submitted feedback
+    text: string; // User's feedback text
+    timestamp: string; // ISO timestamp of feedback submission
+    userId: string; // User who submitted feedback
   };
 }
 ```
@@ -105,11 +105,13 @@ interface MessageMetadata {
 **File:** `src/lib/modules/llm/ProviderManager.js`
 
 #### Current Behavior
+
 - Generates chat completions
 - Handles provider fallback
 - Tracks usage statistics
 
 #### New Behavior
+
 - Capture model metadata during generation
 - Return model information with response
 - Track fallback scenarios
@@ -122,7 +124,7 @@ async generateChatCompletion(messages, options = {}) {
   const startTime = Date.now();
   const providerName = options.provider || (await this.getBestProvider());
   const provider = this.getProvider(providerName);
-  
+
   let attemptedModel = null;
   let fallbackOccurred = false;
   let fallbackReason = null;
@@ -130,7 +132,7 @@ async generateChatCompletion(messages, options = {}) {
   try {
     // Try the selected provider
     const result = await provider.generateChatCompletion(messages, options);
-    
+
     // Capture model metadata
     const modelMetadata = {
       provider: result.provider || providerName,
@@ -143,7 +145,7 @@ async generateChatCompletion(messages, options = {}) {
         systemPrompt: options.systemPrompt
       }
     };
-    
+
     // Add fallback info if applicable
     if (fallbackOccurred) {
       modelMetadata.fallback = {
@@ -151,7 +153,7 @@ async generateChatCompletion(messages, options = {}) {
         reason: fallbackReason
       };
     }
-    
+
     return {
       ...result,
       llmMetadata: modelMetadata
@@ -161,7 +163,7 @@ async generateChatCompletion(messages, options = {}) {
     attemptedModel = options.model || 'default';
     fallbackOccurred = true;
     fallbackReason = error.message;
-    
+
     // ... existing fallback logic ...
   }
 }
@@ -197,7 +199,7 @@ static async addMessageWithModelInfo(
     ...existingMetadata,
     ...(llmMetadata && type === 'assistant' ? { llm: llmMetadata } : {})
   };
-  
+
   return this.addMessage(sessionId, type, content, metadata, userId);
 }
 ```
@@ -223,15 +225,15 @@ export class FeedbackService {
     if (!messageId || !feedbackText || !userId) {
       throw new Error('Message ID, feedback text, and user ID are required');
     }
-    
+
     // Get existing message
     const message = await MessageService.getMessage(messageId, userId);
-    
+
     // Check if feedback already exists
     if (message.metadata?.feedback) {
       throw new Error('Feedback already submitted for this message');
     }
-    
+
     // Add feedback to metadata
     const updatedMetadata = {
       ...message.metadata,
@@ -241,11 +243,11 @@ export class FeedbackService {
         userId
       }
     };
-    
+
     // Update message
     return MessageService.updateMessage(messageId, { metadata: updatedMetadata }, userId);
   }
-  
+
   /**
    * Get all feedback for admin review
    * @param {Object} filters - Filter options
@@ -253,7 +255,7 @@ export class FeedbackService {
    */
   static async getAllFeedback(filters = {}) {
     const { page = 1, limit = 50, model = null, dateFrom = null, dateTo = null } = filters;
-    
+
     // Build query to find messages with feedback
     const where = {
       metadata: {
@@ -261,7 +263,7 @@ export class FeedbackService {
         not: null
       }
     };
-    
+
     // Add model filter if specified
     if (model) {
       where.metadata = {
@@ -270,7 +272,7 @@ export class FeedbackService {
         equals: model
       };
     }
-    
+
     // Query messages with feedback
     const messages = await db.message.findMany({
       where,
@@ -296,10 +298,10 @@ export class FeedbackService {
       skip: (page - 1) * limit,
       take: limit
     });
-    
+
     return messages;
   }
-  
+
   /**
    * Get feedback statistics
    * @returns {Promise<Object>} Feedback statistics
@@ -314,7 +316,7 @@ export class FeedbackService {
         }
       }
     });
-    
+
     // Get feedback grouped by model
     const messages = await db.message.findMany({
       where: {
@@ -327,14 +329,14 @@ export class FeedbackService {
         metadata: true
       }
     });
-    
+
     // Group by model
     const byModel = {};
-    messages.forEach(msg => {
+    messages.forEach((msg) => {
       const model = msg.metadata?.llm?.model || 'unknown';
       byModel[model] = (byModel[model] || 0) + 1;
     });
-    
+
     return {
       totalFeedback,
       byModel
@@ -350,6 +352,7 @@ export class FeedbackService {
 Submit user feedback for a message.
 
 **Request:**
+
 ```json
 {
   "messageId": "msg_123",
@@ -358,6 +361,7 @@ Submit user feedback for a message.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -381,6 +385,7 @@ Submit user feedback for a message.
 Get all feedback for admin review (admin only).
 
 **Query Parameters:**
+
 - `page` (optional): Page number
 - `limit` (optional): Items per page
 - `model` (optional): Filter by model name
@@ -388,6 +393,7 @@ Get all feedback for admin review (admin only).
 - `dateTo` (optional): Filter by date range
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -431,6 +437,7 @@ Get all feedback for admin review (admin only).
 Get feedback statistics (admin only).
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -458,12 +465,12 @@ Get feedback statistics (admin only).
 ```svelte
 <script>
   import { createEventDispatcher } from 'svelte';
-  
+
   export let messageId;
   export let hasFeedback = false;
-  
+
   const dispatch = createEventDispatcher();
-  
+
   function handleClick() {
     if (!hasFeedback) {
       dispatch('dislike', { messageId });
@@ -486,11 +493,11 @@ Get feedback statistics (admin only).
     opacity: 0.5;
     transition: opacity 0.2s;
   }
-  
+
   .dislike-btn:hover:not(.disabled) {
     opacity: 1;
   }
-  
+
   .dislike-btn.disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -505,17 +512,17 @@ Get feedback statistics (admin only).
 ```svelte
 <script>
   import { createEventDispatcher } from 'svelte';
-  
+
   export let messageId;
   export let open = false;
-  
+
   const dispatch = createEventDispatcher();
   let feedbackText = '';
   let submitting = false;
-  
+
   async function handleSubmit() {
     if (!feedbackText.trim()) return;
-    
+
     submitting = true;
     try {
       const response = await fetch('/api/messages/feedback', {
@@ -526,7 +533,7 @@ Get feedback statistics (admin only).
           feedback: feedbackText
         })
       });
-      
+
       if (response.ok) {
         dispatch('submitted');
         close();
@@ -537,7 +544,7 @@ Get feedback statistics (admin only).
       submitting = false;
     }
   }
-  
+
   function close() {
     open = false;
     feedbackText = '';
@@ -549,13 +556,13 @@ Get feedback statistics (admin only).
     <div class="dialog" on:click|stopPropagation>
       <h3>Provide Feedback</h3>
       <p>Please describe what was wrong with this response:</p>
-      
+
       <textarea
         bind:value={feedbackText}
         placeholder="The answer was not accurate because..."
         rows="5"
       />
-      
+
       <div class="actions">
         <button on:click={close} disabled={submitting}>Cancel</button>
         <button
@@ -583,7 +590,7 @@ Get feedback statistics (admin only).
     justify-content: center;
     z-index: 1000;
   }
-  
+
   .dialog {
     background: white;
     padding: 2rem;
@@ -591,7 +598,7 @@ Get feedback statistics (admin only).
     max-width: 500px;
     width: 90%;
   }
-  
+
   textarea {
     width: 100%;
     padding: 0.5rem;
@@ -599,7 +606,7 @@ Get feedback statistics (admin only).
     border-radius: 4px;
     margin: 1rem 0;
   }
-  
+
   .actions {
     display: flex;
     gap: 1rem;
@@ -617,11 +624,11 @@ Enhancement to existing admin session view to show feedback:
 ```svelte
 <script>
   // ... existing code ...
-  
+
   function hasFeedback(message) {
     return message.metadata?.feedback != null;
   }
-  
+
   function getModelInfo(message) {
     return message.metadata?.llm || null;
   }
@@ -631,21 +638,28 @@ Enhancement to existing admin session view to show feedback:
 {#each messages as message}
   <div class="message" class:has-feedback={hasFeedback(message)}>
     <div class="content">{message.content}</div>
-    
+
     {#if hasFeedback(message)}
       <div class="feedback-indicator">
         <svg><!-- Dislike icon --></svg>
         <span>User Feedback</span>
       </div>
-      
+
       <div class="feedback-details">
         <p><strong>Feedback:</strong> {message.metadata.feedback.text}</p>
-        <p><small>Submitted: {new Date(message.metadata.feedback.timestamp).toLocaleString()}</small></p>
-        
+        <p>
+          <small>Submitted: {new Date(message.metadata.feedback.timestamp).toLocaleString()}</small>
+        </p>
+
         {#if getModelInfo(message)}
           <div class="model-info">
-            <p><strong>Model:</strong> {getModelInfo(message).provider} / {getModelInfo(message).model}</p>
-            <p><small>Generated: {new Date(getModelInfo(message).timestamp).toLocaleString()}</small></p>
+            <p>
+              <strong>Model:</strong>
+              {getModelInfo(message).provider} / {getModelInfo(message).model}
+            </p>
+            <p>
+              <small>Generated: {new Date(getModelInfo(message).timestamp).toLocaleString()}</small>
+            </p>
           </div>
         {/if}
       </div>
@@ -663,9 +677,9 @@ Add feedback statistics section:
 ```svelte
 <script>
   import { onMount } from 'svelte';
-  
+
   let feedbackStats = null;
-  
+
   onMount(async () => {
     const response = await fetch('/api/stats/feedback');
     const data = await response.json();
@@ -677,12 +691,12 @@ Add feedback statistics section:
 {#if feedbackStats}
   <section class="feedback-stats">
     <h2>User Feedback</h2>
-    
+
     <div class="stat-card">
       <h3>Total Dislikes</h3>
       <p class="big-number">{feedbackStats.totalFeedback}</p>
     </div>
-    
+
     <div class="stat-card">
       <h3>Dislikes by Model</h3>
       <table>
@@ -694,7 +708,7 @@ Add feedback statistics section:
         {/each}
       </table>
     </div>
-    
+
     <a href="/admin/feedback" class="btn">View All Feedback</a>
   </section>
 {/if}
@@ -712,9 +726,9 @@ model Message {
   content   String   @db.Text
   metadata  Json?    // Extended to include llm and feedback
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  
+
   @@index([sessionId, createdAt])
   @@map("messages")
 }
@@ -848,18 +862,21 @@ model Message {
 ## Deployment Plan
 
 ### Phase 1: Backend Implementation
+
 1. Enhance ProviderManager to capture model metadata
 2. Enhance MessageService to store model info
 3. Create FeedbackService
 4. Create API endpoints
 
 ### Phase 2: UI Implementation
+
 1. Add DislikeButton component
 2. Add FeedbackDialog component
 3. Enhance admin session view
 4. Add feedback stats to /stats page
 
 ### Phase 3: Testing & Rollout
+
 1. Run all tests
 2. Deploy to staging
 3. Test with real users

@@ -266,23 +266,25 @@ export async function sendMessage(
         );
       }
 
-      // Auto-switch to GPT-4 Vision when images are present
+      // Auto-switch to GPT-4 Vision when images are present (but not for PDFs)
       const hasImages = validImageData && validImageData.length > 0;
-      const visionProvider = hasImages ? 'openai' : provider;
-      const visionModel = hasImages ? 'gpt-4o' : undefined;
+      const hasPDF = validImageData?.some((img) => img.startsWith('data:application/pdf'));
+      const hasActualImages = hasImages && !hasPDF;
+      const visionProvider = hasActualImages ? 'openai' : provider;
+      const visionModel = hasActualImages ? 'gpt-4o' : undefined;
 
       console.log(
-        `[Vision] Images detected: ${hasImages}, using provider: ${visionProvider}, model: ${visionModel || 'default'}`
+        `[Vision] Images: ${hasImages}, PDF: ${hasPDF}, using provider: ${visionProvider}, model: ${visionModel || 'default'}`
       );
 
       const requestBody = {
         content,
-        images: validImageData,
+        images: hasPDF ? [] : validImageData, // Don't send PDF to Vision API
         recognizedText, // OCR text as additional context
         language: get(selectedLanguage),
         sessionContext,
-        provider: visionProvider, // Force OpenAI for images
-        ...(visionModel ? { model: visionModel } : {}), // Force GPT-4o for images
+        provider: visionProvider,
+        ...(visionModel ? { model: visionModel } : {}),
         ...(activeExamProfile ? { examProfile: activeExamProfile } : {}),
         ...(maxTokens ? { maxTokens } : {}),
         ...(detailLevel ? { detailLevel } : {}),

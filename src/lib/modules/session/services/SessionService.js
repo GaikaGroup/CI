@@ -32,6 +32,23 @@ export class SessionValidationError extends SessionError {
 }
 
 /**
+ * Extract unique LLM providers from session messages
+ * @param {Array} messages - Array of messages with metadata
+ * @returns {Array} Array of unique provider names
+ */
+function extractLLMProviders(messages) {
+  const llmProviders = new Set();
+  if (messages && messages.length > 0) {
+    messages.forEach((message) => {
+      if (message.metadata?.llm?.provider) {
+        llmProviders.add(message.metadata.llm.provider);
+      }
+    });
+  }
+  return Array.from(llmProviders);
+}
+
+/**
  * Retry configuration for database operations
  */
 const RETRY_CONFIG = {
@@ -337,6 +354,14 @@ export class SessionService {
             include: {
               _count: {
                 select: { messages: true }
+              },
+              messages: {
+                select: {
+                  metadata: true
+                },
+                where: {
+                  type: 'assistant' // Only get assistant messages which have LLM metadata
+                }
               }
             }
           }),
@@ -347,6 +372,8 @@ export class SessionService {
         const sessionsWithCorrectCount = sessions.map((session) => ({
           ...session,
           messageCount: session._count.messages,
+          llmProviders: extractLLMProviders(session.messages),
+          messages: undefined, // Remove messages from response
           _count: undefined // Remove the _count field from response
         }));
 
@@ -722,6 +749,14 @@ export class SessionService {
             include: {
               _count: {
                 select: { messages: true }
+              },
+              messages: {
+                select: {
+                  metadata: true
+                },
+                where: {
+                  type: 'assistant' // Only get assistant messages which have LLM metadata
+                }
               }
             }
           }),
@@ -841,6 +876,14 @@ export class SessionService {
             include: {
               _count: {
                 select: { messages: true }
+              },
+              messages: {
+                select: {
+                  metadata: true
+                },
+                where: {
+                  type: 'assistant' // Only get assistant messages which have LLM metadata
+                }
               }
             }
           }),
@@ -851,6 +894,8 @@ export class SessionService {
         const sessionsWithCorrectCount = sessions.map((session) => ({
           ...session,
           messageCount: session._count.messages,
+          llmProviders: extractLLMProviders(session.messages),
+          messages: undefined, // Remove messages from response
           _count: undefined // Remove the _count field from response
         }));
 

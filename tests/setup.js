@@ -84,8 +84,11 @@ global.Image = class {
 global.URL.createObjectURL = vi.fn(() => 'mock-object-url');
 global.URL.revokeObjectURL = vi.fn();
 
-// Mock fetch globally
-global.fetch = vi.fn();
+// Use real fetch for integration tests (Node.js 18+ has native fetch)
+// Only mock fetch if it doesn't exist
+if (typeof global.fetch === 'undefined') {
+  global.fetch = vi.fn();
+}
 
 // Mock performance API
 global.performance.now = vi.fn(() => Date.now());
@@ -154,8 +157,10 @@ console.warn = vi.fn((...args) => {
 afterEach(() => {
   vi.clearAllMocks();
 
-  // Reset fetch mock
-  global.fetch.mockReset();
+  // Reset fetch mock only if it's a mock
+  if (global.fetch && global.fetch.mockReset) {
+    global.fetch.mockReset();
+  }
 
   // Reset localStorage
   localStorageMock.getItem.mockReset();

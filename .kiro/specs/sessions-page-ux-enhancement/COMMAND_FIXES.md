@@ -5,14 +5,17 @@
 ## Проблемы
 
 ### 1. Неправильное описание команды /essay
+
 **Проблема:** Команда `/essay` имела описание "Help with essay writing" (Помощь с написанием эссе), что подразумевает помощь, а не написание.
 
 **Ожидаемое поведение:** "Write an essay" (Написать эссе)
 
 ### 2. Отсутствие контекстной обработки команд
+
 **Проблема:** Команды не обрабатывались в контексте предыдущих сообщений сессии.
 
 **Пример проблемного сценария:**
+
 1. Студент: "Реши уравнение 2x + 5 = 15"
 2. Бот: [решает уравнение]
 3. Студент: "/explain"
@@ -29,6 +32,7 @@
 **Файл:** `src/lib/config/tutorCommands.json`
 
 **Изменения:**
+
 ```json
 {
   "id": "essay",
@@ -36,15 +40,15 @@
   "translations": {
     "en": {
       "name": "/essay",
-      "description": "Write an essay on the current topic"  // Было: "Help with essay writing"
+      "description": "Write an essay on the current topic" // Было: "Help with essay writing"
     },
     "ru": {
       "name": "/эссе",
-      "description": "Написать эссе по текущей теме"  // Было: "Помощь с написанием эссе"
+      "description": "Написать эссе по текущей теме" // Было: "Помощь с написанием эссе"
     },
     "es": {
       "name": "/ensayo",
-      "description": "Escribir un ensayo sobre el tema actual"  // Было: "Ayuda con la escritura de ensayos"
+      "description": "Escribir un ensayo sobre el tema actual" // Было: "Ayuda con la escritura de ensayos"
     }
   }
 }
@@ -95,6 +99,7 @@ CRITICAL COMMAND CONTEXT RULES:
 ### Пример 1: Команда /explain после решения
 
 **Сценарий:**
+
 ```
 Студент: "Реши уравнение 2x + 5 = 15"
 Бот: "Решение:
@@ -111,6 +116,7 @@ CRITICAL COMMAND CONTEXT RULES:
 ### Пример 2: Команда /check после попытки решения
 
 **Сценарий:**
+
 ```
 Студент: "/solve x² - 4 = 0"
 Бот: "Решение:
@@ -127,6 +133,7 @@ CRITICAL COMMAND CONTEXT RULES:
 ### Пример 3: Команда /essay
 
 **Сценарий:**
+
 ```
 Студент: "Расскажи о фотосинтезе"
 Бот: [объясняет фотосинтез]
@@ -139,6 +146,7 @@ CRITICAL COMMAND CONTEXT RULES:
 ### Пример 4: Команда с новым контекстом
 
 **Сценарий:**
+
 ```
 Студент: "/solve 3x + 7 = 22"
 ```
@@ -153,6 +161,7 @@ CRITICAL COMMAND CONTEXT RULES:
 ### Как работает контекстная обработка
 
 1. **История сообщений передается в LLM:**
+
    ```javascript
    if (sessionContext?.history && sessionContext.history.length > 0) {
      sessionContext.history.forEach((entry) => {
@@ -173,17 +182,17 @@ CRITICAL COMMAND CONTEXT RULES:
 
 ### Поддерживаемые языки команд
 
-| Команда | English | Русский | Español |
-|---------|---------|---------|---------|
-| Solve | /solve | /решить | /resolver |
-| Explain | /explain | /объяснить | /explicar |
-| Check | /check | /проверить | /verificar |
-| Example | /example | /пример | /ejemplo |
-| Cheatsheet | /cheatsheet | /шпаргалка | /guía |
-| Test | /test | /тест | /prueba |
-| Conspect | /conspect | /конспект | /notas |
-| Plan | /plan | /план | /plan |
-| Essay | /essay | /эссе | /ensayo |
+| Команда    | English     | Русский    | Español    |
+| ---------- | ----------- | ---------- | ---------- |
+| Solve      | /solve      | /решить    | /resolver  |
+| Explain    | /explain    | /объяснить | /explicar  |
+| Check      | /check      | /проверить | /verificar |
+| Example    | /example    | /пример    | /ejemplo   |
+| Cheatsheet | /cheatsheet | /шпаргалка | /guía      |
+| Test       | /test       | /тест      | /prueba    |
+| Conspect   | /conspect   | /конспект  | /notas     |
+| Plan       | /plan       | /план      | /plan      |
+| Essay      | /essay      | /эссе      | /ensayo    |
 
 ---
 
@@ -194,6 +203,7 @@ CRITICAL COMMAND CONTEXT RULES:
 Для проверки исправлений:
 
 1. **Тест команды /essay:**
+
    ```
    1. Студент: "Расскажи о глобальном потеплении"
    2. Бот: [объясняет]
@@ -202,6 +212,7 @@ CRITICAL COMMAND CONTEXT RULES:
    ```
 
 2. **Тест контекстной команды /explain:**
+
    ```
    1. Студент: "Реши 5x - 3 = 12"
    2. Бот: [решает]
@@ -210,6 +221,7 @@ CRITICAL COMMAND CONTEXT RULES:
    ```
 
 3. **Тест команды /check:**
+
    ```
    1. Студент: "/solve x + 7 = 10"
    2. Бот: [решает: x = 3]
@@ -277,12 +289,14 @@ describe('Command Context Processing', () => {
 ### Возможные улучшения
 
 1. **Явное указание контекста:**
+
    ```
    /explain #2  // Объяснить сообщение #2
    /check @previous  // Проверить предыдущее решение
    ```
 
 2. **Цепочки команд:**
+
    ```
    /solve && /explain  // Решить и объяснить
    ```
@@ -302,9 +316,11 @@ describe('Command Context Processing', () => {
 После тестирования было добавлено дополнительное улучшение - "умное предложение контекста".
 
 ### Проблема
+
 Когда студент работает над темой A, а затем дает команду с темой B, бот не предлагает использовать тему A.
 
 **Пример:**
+
 ```
 Студент: [большой конспект о Барселоне]
 Студент: "/эссе как я провел лето у бабушки"
@@ -313,12 +329,13 @@ describe('Command Context Processing', () => {
 
 **Улучшение:**
 Бот теперь может предложить тему из контекста:
+
 ```
 Студент: [большой конспект о Барселоне]
 Студент: "/эссе как я провел лето у бабушки"
-Бот: "Я вижу, что вы хотите эссе о том, как провели лето у бабушки. 
-      Кстати, я заметил, что вы только что написали подробный конспект 
-      о Барселоне. Хотите, чтобы я написал эссе о Барселоне, или 
+Бот: "Я вижу, что вы хотите эссе о том, как провели лето у бабушки.
+      Кстати, я заметил, что вы только что написали подробный конспект
+      о Барселоне. Хотите, чтобы я написал эссе о Барселоне, или
       продолжим с темой о лете у бабушки?"
 ```
 
@@ -328,8 +345,8 @@ describe('Command Context Processing', () => {
 SMART CONTEXT AWARENESS:
 7. If a student just discussed topic A in detail, and then uses a command about topic B:
    - You MAY briefly acknowledge topic A and offer to work on it instead
-   - Example: "I see you want an essay about [topic B]. I also noticed you just 
-     wrote detailed notes about [topic A]. Would you like me to write about 
+   - Example: "I see you want an essay about [topic B]. I also noticed you just
+     wrote detailed notes about [topic A]. Would you like me to write about
      [topic A] instead, or shall I proceed with [topic B]?"
    - Keep this suggestion brief and friendly, don't insist
    - If the student clearly wants topic B, proceed with topic B
@@ -358,6 +375,7 @@ SMART CONTEXT AWARENESS:
 ## Заключение
 
 Исправления обеспечивают:
+
 - ✅ Правильное описание команды /essay
 - ✅ Контекстную обработку всех команд
 - ✅ Умное предложение контекста (новое!)

@@ -28,6 +28,7 @@
     "db:reset": "npx prisma migrate reset",
     "db:backup": "bash scripts/backup-db.sh",
     "db:backup:pre-migration": "bash scripts/backup-before-migration.sh",
+    "db:cleanup": "bash scripts/cleanup-db-connections.sh",
     "db:restore": "bash scripts/restore-db.sh",
     "clear-sessions": "node scripts/clear-sessions.js",
     "check-sessions": "node scripts/check-sessions.js",
