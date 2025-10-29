@@ -1,9 +1,11 @@
 # Long Text TTS Fix - Обработка длинных текстов для озвучивания
 
 ## Проблема
+
 При получении длинных ответов от AI (например, при анализе PDF документов) TTS API возвращал ошибку 500, так как OpenAI TTS имеет ограничение ~4096 символов на один запрос.
 
 ## Решение
+
 Добавлена автоматическая разбивка длинных текстов на части (chunks) с последовательным озвучиванием каждой части.
 
 ## Реализация
@@ -22,6 +24,7 @@ function splitTextForTTS(text, maxChunkLength = 4000) {
 ```
 
 **Преимущества:**
+
 - ✅ Разбивает по смысловым границам (параграфы, предложения)
 - ✅ Не обрывает текст посередине слова
 - ✅ Сохраняет естественность речи
@@ -34,18 +37,18 @@ function splitTextForTTS(text, maxChunkLength = 4000) {
 ```javascript
 export async function synthesizeResponseSpeech(text) {
   const MAX_TTS_LENGTH = 4000; // OpenAI TTS limit
-  
+
   if (text.length > MAX_TTS_LENGTH) {
     // Разбить на части
     const chunks = splitTextForTTS(text, MAX_TTS_LENGTH);
-    
+
     // Озвучить каждую часть последовательно
     for (let i = 0; i < chunks.length; i++) {
       await synthesizeSpeech(chunks[i], { priority: 1 });
-      
+
       // Небольшая пауза между частями
       if (i < chunks.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
   } else {
@@ -58,6 +61,7 @@ export async function synthesizeResponseSpeech(text) {
 ## Пример работы
 
 ### Входной текст (5000+ символов):
+
 ```
 Вот краткий разбор вакансии инженера по речевому искусственному интеллекту.
 
@@ -68,6 +72,7 @@ export async function synthesizeResponseSpeech(text) {
 ```
 
 ### Обработка:
+
 ```
 1. Определяем: текст длинный (5000 chars)
 2. Разбиваем на 2 части:
@@ -80,11 +85,13 @@ export async function synthesizeResponseSpeech(text) {
 ## Логи
 
 ### До исправления:
+
 ```
 Error synthesizing speech: Synthesis API error (500): {"error":"Failed to synthesize speech"}
 ```
 
 ### После исправления:
+
 ```
 Text is long (5000 chars), splitting into chunks for TTS
 Split text into 2 chunks
@@ -107,8 +114,8 @@ Completed synthesizing all chunks
 Можно изменить параметры в коде:
 
 ```javascript
-const MAX_TTS_LENGTH = 4000;  // Максимальная длина одной части
-const CHUNK_DELAY = 100;      // Пауза между частями (мс)
+const MAX_TTS_LENGTH = 4000; // Максимальная длина одной части
+const CHUNK_DELAY = 100; // Пауза между частями (мс)
 ```
 
 ## Тестирование

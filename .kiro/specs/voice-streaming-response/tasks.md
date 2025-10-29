@@ -16,7 +16,7 @@ This implementation plan breaks down the voice streaming response feature into d
 - [ ] 1.1 Implement StreamingResponseHandler
   - Write class with text buffer management
   - Implement processChunk() method for UTF-8 text processing
-  - Implement _detectAndEmitSentences() with universal punctuation regex
+  - Implement \_detectAndEmitSentences() with universal punctuation regex
   - Implement finalize() method for incomplete sentence handling
   - Implement reset() method for state cleanup
   - _Requirements: 1.1, 1.2, 5.1, 5.2, 5.4, 5.5_
@@ -24,7 +24,7 @@ This implementation plan breaks down the voice streaming response feature into d
 - [ ] 1.2 Implement StreamingTTSCoordinator
   - Write class with synthesis queue management
   - Implement queueSentence() method with parallel synthesis support
-  - Implement _synthesizeSentence() with consistent voice parameters
+  - Implement \_synthesizeSentence() with consistent voice parameters
   - Implement start() and stop() methods
   - Implement getStatus() method for monitoring
   - Add voice parameter consistency logic
@@ -44,7 +44,7 @@ This implementation plan breaks down the voice streaming response feature into d
   - Implement getAverageMetrics() for performance analysis
   - _Requirements: 7.1, 7.2, 7.5_
 
-- [ ]* 1.5 Write unit tests for streaming components
+- [ ]\* 1.5 Write unit tests for streaming components
   - Test StreamingResponseHandler sentence detection
   - Test StreamingResponseHandler buffer management
   - Test StreamingTTSCoordinator queue management
@@ -74,7 +74,7 @@ This implementation plan breaks down the voice streaming response feature into d
   - Sanitize error messages sent to client
   - _Requirements: 7.3, 8.2_
 
-- [ ]* 2.3 Write integration tests for Chat API streaming
+- [ ]\* 2.3 Write integration tests for Chat API streaming
   - Test streaming response with stream=true
   - Test JSON response with stream=false (backward compatibility)
   - Test error handling for streaming failures
@@ -102,7 +102,7 @@ This implementation plan breaks down the voice streaming response feature into d
   - Add timing synchronization for smooth transitions
   - _Requirements: 2.1_
 
-- [ ]* 3.3 Write unit tests for AudioBufferManager enhancements
+- [ ]\* 3.3 Write unit tests for AudioBufferManager enhancements
   - Test streaming segment handling
   - Test priority queue ordering
   - Test continuous playback
@@ -133,7 +133,7 @@ This implementation plan breaks down the voice streaming response feature into d
   - Ensure continuous animation across segments
   - _Requirements: 3.4_
 
-- [ ]* 4.3 Write unit tests for AvatarStateManager enhancements
+- [ ]\* 4.3 Write unit tests for AvatarStateManager enhancements
   - Test continuous animation across segments
   - Test mouth shape transitions
   - Test emotion persistence
@@ -185,7 +185,7 @@ This implementation plan breaks down the voice streaming response feature into d
   - Continue processing on individual synthesis failures
   - _Requirements: 7.3, 8.1, 8.2, 8.3, 8.4_
 
-- [ ]* 5.5 Write integration tests for voiceServices streaming
+- [ ]\* 5.5 Write integration tests for voiceServices streaming
   - Test generateAIResponseStreaming() with mock API
   - Test sendTranscribedText() with streaming
   - Test interruption handling
@@ -262,7 +262,7 @@ This implementation plan breaks down the voice streaming response feature into d
   - Implement cooldown periods
   - _Requirements: Security considerations_
 
-- [ ]* 7.4 Write security tests
+- [ ]\* 7.4 Write security tests
   - Test input validation
   - Test resource limits
   - Test rate limiting
@@ -345,8 +345,8 @@ This implementation plan breaks down the voice streaming response feature into d
 
 ### Testing Strategy
 
-- **Unit Tests**: Test individual components in isolation (marked with *)
-- **Integration Tests**: Test component interactions and API endpoints (marked with *)
+- **Unit Tests**: Test individual components in isolation (marked with \*)
+- **Integration Tests**: Test component interactions and API endpoints (marked with \*)
 - **E2E Tests**: Test complete user flows with real voice chat
 - **Manual Tests**: Verify user experience and edge cases
 

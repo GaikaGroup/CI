@@ -429,15 +429,19 @@
                     {@const imgUrl = typeof img === 'string' ? img : img.url}
                     {@const imgType = typeof img === 'object' && img.type ? img.type : ''}
                     {@const imgName = typeof img === 'object' && img.name ? img.name : ''}
-                    {@const isPdf = imgType === 'application/pdf' || imgUrl.startsWith('data:application/pdf') || imgName.toLowerCase().endsWith('.pdf')}
-                    
+                    {@const isPdf =
+                      imgType === 'application/pdf' ||
+                      imgUrl.startsWith('data:application/pdf') ||
+                      imgName.toLowerCase().endsWith('.pdf')}
+
                     <div class="image-preview-container relative">
                       {#if isPdf}
                         <!-- PDF Preview -->
                         <div
                           class="pdf-preview rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                           on:click={() => openPdfViewer(imgUrl, imgName || 'document.pdf')}
-                          on:keydown={(e) => e.key === 'Enter' && openPdfViewer(imgUrl, imgName || 'document.pdf')}
+                          on:keydown={(e) =>
+                            e.key === 'Enter' && openPdfViewer(imgUrl, imgName || 'document.pdf')}
                           tabindex="0"
                           role="button"
                           aria-label="Open PDF {index + 1}"
@@ -451,7 +455,9 @@
                           {#if imgName}
                             <div class="pdf-name">{imgName}</div>
                           {/if}
-                          <div class="pdf-hint">{getTranslation($selectedLanguage, 'clickToView')}</div>
+                          <div class="pdf-hint">
+                            {getTranslation($selectedLanguage, 'clickToView')}
+                          </div>
                         </div>
                       {:else}
                         <!-- Image Preview -->
@@ -466,7 +472,7 @@
                           aria-label="Open image {index + 1} in new tab"
                         />
                       {/if}
-                      
+
                       {#if typeof img === 'object' && img.ocrData}
                         <div
                           class="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1 shadow-lg"
@@ -561,7 +567,13 @@
 <!-- PDF Viewer Modal -->
 {#if pdfViewerOpen}
   <div class="pdf-modal-overlay" on:click={closePdfViewer} role="presentation">
-    <div class="pdf-modal-content" on:click|stopPropagation role="dialog" aria-modal="true" aria-labelledby="pdf-viewer-title">
+    <div
+      class="pdf-modal-content"
+      on:click|stopPropagation
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pdf-viewer-title"
+    >
       <div class="pdf-modal-header">
         <h3 id="pdf-viewer-title" class="pdf-modal-title">{currentPdfName}</h3>
         <div class="pdf-modal-actions">
@@ -584,11 +596,7 @@
         </div>
       </div>
       <div class="pdf-modal-body">
-        <iframe
-          src={currentPdfUrl}
-          title="PDF Viewer"
-          class="pdf-iframe"
-        ></iframe>
+        <iframe src={currentPdfUrl} title="PDF Viewer" class="pdf-iframe"></iframe>
       </div>
     </div>
   </div>

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "dev:single": "bash scripts/start-single-dev.sh",
     "build": "vite build",
     "preview": "vite preview",
     "start": "node build",

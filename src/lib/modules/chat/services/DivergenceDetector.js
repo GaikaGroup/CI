@@ -66,7 +66,7 @@ export class DivergenceDetector {
   normalizeText(text) {
     return text
       .toLowerCase()
-      .replace(/[^\w\s]/g, ' ') // Remove punctuation
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ') // Remove punctuation (Unicode-aware)
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
   }

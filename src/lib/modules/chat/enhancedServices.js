@@ -129,12 +129,12 @@ export async function sendMessageWithOCRContext(
       // Separate images and PDFs
       const imageFiles = validImageData.filter((data) => data.type.startsWith('image/'));
       const pdfFiles = validImageData.filter((data) => data.type === 'application/pdf');
-      
+
       console.log(`[OCR] Found ${imageFiles.length} images and ${pdfFiles.length} PDFs`);
 
       // Process images locally with OCR memory
       let recognizedText = '';
-      
+
       if (imageFiles.length > 0) {
         console.log('[OCR] Processing images locally in the browser with memory');
 
@@ -162,7 +162,7 @@ export async function sendMessageWithOCRContext(
           }
         }
       }
-      
+
       // For PDFs, just note that they're attached (OCR will be done server-side if needed)
       if (pdfFiles.length > 0) {
         console.log(`[OCR] ${pdfFiles.length} PDF file(s) attached, will be processed by server`);

@@ -1176,17 +1176,17 @@ function splitTextForTTS(text, maxChunkLength = 1000) {
   }
 
   const chunks = [];
-  
+
   // Split by sentences (including Russian and English punctuation)
   // Matches: . ! ? followed by space or newline
   const sentenceRegex = /[^.!?]+[.!?]+(?:\s+|$)/g;
   const sentences = text.match(sentenceRegex) || [text];
-  
+
   let currentChunk = '';
 
   for (const sentence of sentences) {
     const trimmedSentence = sentence.trim();
-    
+
     // If single sentence is longer than max, we have to include it anyway
     // (better to have one long chunk than break mid-sentence)
     if (trimmedSentence.length > maxChunkLength) {
@@ -1199,10 +1199,10 @@ function splitTextForTTS(text, maxChunkLength = 1000) {
       chunks.push(trimmedSentence);
       continue;
     }
-    
+
     // Check if adding this sentence would exceed the limit
     const potentialLength = currentChunk.length + (currentChunk ? 1 : 0) + trimmedSentence.length;
-    
+
     if (potentialLength > maxChunkLength && currentChunk) {
       // Current chunk is full, save it and start new one
       chunks.push(currentChunk.trim());
@@ -1218,7 +1218,7 @@ function splitTextForTTS(text, maxChunkLength = 1000) {
     chunks.push(currentChunk.trim());
   }
 
-  return chunks.filter(chunk => chunk.length > 0);
+  return chunks.filter((chunk) => chunk.length > 0);
 }
 
 /**
@@ -1238,40 +1238,45 @@ export async function synthesizeResponseSpeech(text) {
 
     // Check if text is too long and needs to be split
     const MAX_TTS_LENGTH = 1000; // Split into smaller chunks for faster processing and better reliability
-    
+
     console.log(`[TTS] Text length: ${text.length} chars (max: ${MAX_TTS_LENGTH})`);
-    
+
     if (text.length > MAX_TTS_LENGTH) {
       console.log(`[TTS] Text is long (${text.length} chars), splitting into chunks for TTS`);
-      
+
       const chunks = splitTextForTTS(text, MAX_TTS_LENGTH);
-      console.log(`[TTS] Split text into ${chunks.length} chunks:`, chunks.map((c, i) => `Chunk ${i+1}: ${c.length} chars`));
+      console.log(
+        `[TTS] Split text into ${chunks.length} chunks:`,
+        chunks.map((c, i) => `Chunk ${i + 1}: ${c.length} chars`)
+      );
 
       // Synthesize and play each chunk sequentially
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         console.log(`[TTS] Synthesizing chunk ${i + 1}/${chunks.length} (${chunk.length} chars)`);
-        
+
         try {
           await synthesizeSpeech(chunk, {
             isWaitingPhrase: false,
             priority: 1
           });
-          
+
           // Small delay between chunks to ensure smooth playback
           if (i < chunks.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
         } catch (error) {
           console.error(`Error synthesizing chunk ${i + 1}:`, error);
           // Continue with next chunk even if one fails
         }
       }
-      
+
       console.log('[TTS] Completed synthesizing all chunks');
     } else {
       // Text is short enough, synthesize normally
-      console.log(`[TTS] Text is short enough (${text.length} chars), synthesizing as single chunk`);
+      console.log(
+        `[TTS] Text is short enough (${text.length} chars), synthesizing as single chunk`
+      );
       await synthesizeSpeech(text, {
         isWaitingPhrase: false,
         priority: 1

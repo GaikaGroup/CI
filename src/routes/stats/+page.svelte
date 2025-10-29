@@ -458,13 +458,17 @@
                       <td class="px-3 py-2 text-sm text-gray-900 dark:text-white capitalize"
                         >{provider.provider}</td
                       >
-                      <td class="px-3 py-2 text-sm text-gray-900 dark:text-white text-right font-mono">
+                      <td
+                        class="px-3 py-2 text-sm text-gray-900 dark:text-white text-right font-mono"
+                      >
                         {formatCurrency(provider.cost)}
                       </td>
                       <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right">
                         {formatNumber(provider.messageCount)}
                       </td>
-                      <td class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right font-mono">
+                      <td
+                        class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300 text-right font-mono"
+                      >
                         {formatCurrency(avgPerMsg)}
                       </td>
                       <td class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-right">

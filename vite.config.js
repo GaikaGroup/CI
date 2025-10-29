@@ -4,8 +4,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [sveltekit()],
   server: {
-    port: 3000,
-    open: true, // Automatically open the browser
+    port: 3005,
+    strictPort: true, // Fail if port is already in use instead of trying next port
+    open: false, // Don't automatically open browser (prevents multiple tabs)
     hmr: {
       // Reduce HMR overhead to prevent connection leaks
       overlay: true

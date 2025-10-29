@@ -53,7 +53,14 @@ function storeConversation(adapter, sessionId, message, reply) {
  * @param {number|null} delayOverride - Optional explicit delay in milliseconds between sentence additions
  * @returns {number[]} Array of message IDs created for the waiting phrase
  */
+// Store active waiting phrase timers so we can cancel them
+let activeWaitingTimers = [];
+
 export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
+  // Cancel any previous waiting phrase timers
+  activeWaitingTimers.forEach((timerId) => clearTimeout(timerId));
+  activeWaitingTimers = [];
+
   const sentences = phrase.match(/[^.!?]+[.!?]+/g) || [phrase];
   const ids = [];
 
@@ -73,7 +80,8 @@ export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
     if (delay <= 0) {
       callback();
     } else {
-      setTimeout(callback, delay);
+      const timerId = setTimeout(callback, delay);
+      activeWaitingTimers.push(timerId);
     }
   };
 
@@ -103,12 +111,22 @@ export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
     } else {
       const delayForSentence = computeDelay(trimmedSentence);
       accumulatedDelay += delayForSentence;
-      setTimeout(emit, accumulatedDelay);
+      const timerId = setTimeout(emit, accumulatedDelay);
+      activeWaitingTimers.push(timerId);
       scheduleVoice(speak, accumulatedDelay);
     }
   });
 
   return ids;
+}
+
+/**
+ * Cancel all active waiting phrase timers
+ * Call this when response is received to prevent waiting phrases from appearing after response
+ */
+export function cancelWaitingPhrases() {
+  activeWaitingTimers.forEach((timerId) => clearTimeout(timerId));
+  activeWaitingTimers = [];
 }
 
 /**
@@ -317,6 +335,10 @@ export async function sendMessage(
       }
 
       console.log('Adding AI response to chat');
+
+      // Cancel any pending waiting phrase timers
+      cancelWaitingPhrases();
+
       // Remove waiting bubbles and add the AI's response (with provider info if available)
       messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
       addMessage('tutor', data.response, null, Date.now(), {
@@ -384,6 +406,9 @@ export async function sendMessage(
 
       const data = await response.json();
 
+      // Cancel any pending waiting phrase timers
+      cancelWaitingPhrases();
+
       // Remove waiting bubbles and add the AI's response (with provider info if available)
       messages.update((msgs) => msgs.filter((m) => !waitingMessageIds.includes(m.id)));
       addMessage('tutor', data.response, null, Date.now(), {
@@ -406,6 +431,9 @@ export async function sendMessage(
       message: error.message,
       stack: error.stack
     });
+
+    // Cancel any pending waiting phrase timers
+    cancelWaitingPhrases();
 
     // Set a more descriptive error message for the user
     const errorMessage = error.message || 'Unknown error occurred';

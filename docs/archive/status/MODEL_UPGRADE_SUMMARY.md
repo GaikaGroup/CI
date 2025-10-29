@@ -21,8 +21,9 @@
 ### Причина:
 
 В `RequestEnhancer.js` была логика:
+
 ```javascript
-model: options.model || mathParams.model
+model: options.model || mathParams.model;
 ```
 
 Это означало: "Если пользователь выбрал модель, используй её, иначе используй математическую"
@@ -30,8 +31,9 @@ model: options.model || mathParams.model
 ### Решение:
 
 Изменили на:
+
 ```javascript
-model: mathParams.model  // ВСЕГДА используй математическую модель для математики
+model: mathParams.model; // ВСЕГДА используй математическую модель для математики
 ```
 
 Теперь математические запросы **ВСЕГДА** используют `gpt-5`, независимо от выбора пользователя.
@@ -41,6 +43,7 @@ model: mathParams.model  // ВСЕГДА используй математиче
 ### 1. `src/lib/modules/llm/enhancers/RequestEnhancer.js`
 
 **Главное исправление:**
+
 ```javascript
 // БЫЛО:
 model: options.model || mathParams.model,
@@ -51,32 +54,32 @@ model: mathParams.model,
 ```
 
 **Добавлено логирование:**
+
 ```javascript
 if (originalModel && originalModel !== mathParams.model) {
-  console.log(
-    `[RequestEnhancer] Math query detected - overriding user model selection:`,
-    {
-      userSelected: originalModel,
-      mathModel: mathParams.model,
-      category,
-      reason: 'Math queries require specialized model for accuracy'
-    }
-  );
+  console.log(`[RequestEnhancer] Math query detected - overriding user model selection:`, {
+    userSelected: originalModel,
+    mathModel: mathParams.model,
+    category,
+    reason: 'Math queries require specialized model for accuracy'
+  });
 }
 ```
 
 ### 2. `src/lib/config/api.js`
 
 Обновлена модель по умолчанию для обычных запросов:
+
 ```javascript
-MODEL: import.meta.env.VITE_OPENAI_MODEL || 'chatgpt-4o-latest'
+MODEL: import.meta.env.VITE_OPENAI_MODEL || 'chatgpt-4o-latest';
 ```
 
 ### 3. `src/lib/config/math.js`
 
 Модель для математики осталась `gpt-5` (это правильно!):
+
 ```javascript
-MODEL: import.meta.env.VITE_MATH_MODEL || 'gpt-5'
+MODEL: import.meta.env.VITE_MATH_MODEL || 'gpt-5';
 ```
 
 MAX_TOKENS увеличен до 16000 для сложных задач.
@@ -84,6 +87,7 @@ MAX_TOKENS увеличен до 16000 для сложных задач.
 ### 4. `src/lib/modules/chat/services.js`
 
 Для Vision API используется chatgpt-4o-latest:
+
 ```javascript
 const visionModel = hasImages ? 'chatgpt-4o-latest' : undefined;
 ```
@@ -107,6 +111,7 @@ VITE_MATH_MAX_TOKENS=16000
 **Запрос:** "Реши уравнение: x² - 5x + 6 = 0"
 
 **Что происходит:**
+
 1. Классификатор определяет: `isMath: true, category: 'algebra'`
 2. RequestEnhancer переопределяет модель на `gpt-5`
 3. Логируется: "Math query detected - overriding user model selection"
@@ -119,6 +124,7 @@ VITE_MATH_MAX_TOKENS=16000
 **Запрос:** "Расскажи о кошках"
 
 **Что происходит:**
+
 1. Классификатор определяет: `isMath: false`
 2. Используется модель, выбранная пользователем (или chatgpt-4o-latest по умолчанию)
 3. Запрос обрабатывается обычным образом
@@ -128,6 +134,7 @@ VITE_MATH_MAX_TOKENS=16000
 **Запрос:** Загружено изображение с текстом
 
 **Что происходит:**
+
 1. Система определяет наличие изображения
 2. Автоматически переключается на `chatgpt-4o-latest` (поддерживает Vision)
 3. Изображение обрабатывается с помощью Vision API
@@ -159,14 +166,15 @@ VITE_MATH_MODEL=gpt-4o
 
 ## Стоимость моделей
 
-| Модель | Input | Output | Использование |
-|--------|-------|--------|---------------|
-| **gpt-5** (o1-preview) | $15/1M | $60/1M | Только математика |
-| **chatgpt-4o-latest** | $5/1M | $15/1M | Обычные запросы, Vision |
-| **gpt-4o** | $2.50/1M | $10/1M | Альтернатива |
-| **gpt-4o-mini** | $0.15/1M | $0.60/1M | Простые задачи |
+| Модель                 | Input    | Output   | Использование           |
+| ---------------------- | -------- | -------- | ----------------------- |
+| **gpt-5** (o1-preview) | $15/1M   | $60/1M   | Только математика       |
+| **chatgpt-4o-latest**  | $5/1M    | $15/1M   | Обычные запросы, Vision |
+| **gpt-4o**             | $2.50/1M | $10/1M   | Альтернатива            |
+| **gpt-4o-mini**        | $0.15/1M | $0.60/1M | Простые задачи          |
 
 **Рекомендация:**
+
 - Математика → `gpt-5` (дорого, но максимально точно)
 - Обычные вопросы → `chatgpt-4o-latest` (хороший баланс)
 - Простые вопросы → `gpt-4o-mini` (экономия)
@@ -179,7 +187,7 @@ VITE_MATH_MODEL=gpt-4o
 
 ```
 [ProviderManager] Query classification: { isMath: true, confidence: 0.95, category: 'geometry' }
-[RequestEnhancer] Math query detected - overriding user model selection: 
+[RequestEnhancer] Math query detected - overriding user model selection:
   { userSelected: 'qwen2.5:1.5b', mathModel: 'gpt-5', category: 'geometry' }
 [OpenAI] Using model: gpt-5
 Response generated using provider: openai, model: gpt-5
@@ -188,13 +196,15 @@ Response generated using provider: openai, model: gpt-5
 ### 2. Тест математической задачи
 
 Задайте вопрос:
+
 ```
-В равнобедренном треугольнике ABC AB = BC = 4, AC = 2, BH− высота. 
-Вписанная в треугольник ABC окружность второй раз пересекает высоту BH в точке K. 
+В равнобедренном треугольнике ABC AB = BC = 4, AC = 2, BH− высота.
+Вписанная в треугольник ABC окружность второй раз пересекает высоту BH в точке K.
 Найдите BK : KH
 ```
 
 **Ожидаемый результат:**
+
 - ✅ Используется модель `gpt-5`
 - ✅ Правильное решение с пошаговым объяснением
 - ✅ Геометрические вычисления корректны
@@ -202,11 +212,13 @@ Response generated using provider: openai, model: gpt-5
 ### 3. Тест обычного запроса
 
 Задайте вопрос:
+
 ```
 Привет, как дела?
 ```
 
 **Ожидаемый результат:**
+
 - ✅ Используется выбранная модель (или chatgpt-4o-latest)
 - ✅ Нет переопределения модели
 
@@ -217,6 +229,7 @@ Response generated using provider: openai, model: gpt-5
 **Причина:** Модель `gpt-5` (o1-preview) требует специального доступа от OpenAI.
 
 **Решение:**
+
 ```bash
 # В .env используйте gpt-4o вместо gpt-5
 VITE_MATH_MODEL=gpt-4o
@@ -227,6 +240,7 @@ VITE_MATH_MODEL=gpt-4o
 **Причина:** gpt-5 очень дорогая ($15/$60 за 1M токенов).
 
 **Решение:** Используйте gpt-4o для математики, если стоимость критична:
+
 ```bash
 VITE_MATH_MODEL=gpt-4o  # В 6 раз дешевле, но менее точная
 ```
@@ -255,6 +269,7 @@ grep "model: gpt-5" logs/app.log
 ### Метрики в админ-панели
 
 Перейдите на `/admin/finance` чтобы увидеть:
+
 - Количество запросов к каждой модели
 - Стоимость использования gpt-5
 - Общую статистику

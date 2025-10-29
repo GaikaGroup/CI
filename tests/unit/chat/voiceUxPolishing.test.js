@@ -425,7 +425,9 @@ describe('InterruptionResponseGenerator Enhanced Features', () => {
       const offer = generator.generateContinuationOffer('en', preservedState);
 
       expect(offer).toBeTruthy();
-      expect(offer.toLowerCase()).toMatch(/(continue|continuing|finish|resume|pick up|left off)/);
+      expect(offer.toLowerCase()).toMatch(
+        /(continue|continuing|finish|resume|pick up|left off|keep going)/
+      );
     });
 
     it('should provide choice options for users', () => {

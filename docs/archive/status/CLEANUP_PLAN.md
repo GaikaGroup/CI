@@ -5,6 +5,7 @@
 After reviewing the markdown files, I've identified several categories:
 
 ### ✅ Keep (Core Documentation)
+
 - `README.md` - Main project documentation
 - `CHANGELOG.md` - Version history
 - `CONTRIBUTING.md` - Contribution guidelines
@@ -12,9 +13,11 @@ After reviewing the markdown files, I've identified several categories:
 - `OLLAMA_MODELS_GUIDE.md` - Comprehensive model guide
 
 ### 📦 Archive (Temporary Status Files)
+
 These are implementation status files that should be moved to `docs/archive/`:
 
 **Root Level:**
+
 - `BUGFIX_MESSAGE_DUPLICATION.md`
 - `CHANGES_VERIFICATION.md`
 - `CLEANUP_COMPLETE.md`
@@ -58,7 +61,9 @@ These are implementation status files that should be moved to `docs/archive/`:
 - `VOICE_MODE_PDF_FIX.md`
 
 ### 🗑️ Delete (Redundant/Outdated)
+
 Files that are duplicates or no longer relevant:
+
 - Multiple `LOCALIZATION_*` files (keep only the final one in archive)
 - Multiple `FINAL_*` files (consolidate)
 - `TEST_NOW.md` and similar temporary test files
@@ -66,7 +71,9 @@ Files that are duplicates or no longer relevant:
 ## Recommended Actions
 
 ### Option 1: Archive Everything (Safe)
+
 Move all temporary files to `docs/archive/status/`:
+
 ```bash
 mkdir -p docs/archive/status
 mv BUGFIX_*.md CHANGES_*.md CLEANUP_*.md COMMAND_*.md docs/archive/status/
@@ -79,7 +86,9 @@ mv TEST_*.md TESTS_*.md VOICE_*.md docs/archive/status/
 ```
 
 ### Option 2: Delete Temporary Files (Aggressive)
+
 Delete files that are purely temporary status updates:
+
 ```bash
 rm -f TEST_NOW.md TEST_SECOND_OPINION_NOW.md
 rm -f QUICK_SUMMARY.md FINAL_CHECKLIST.md
@@ -88,6 +97,7 @@ rm -f CLEANUP_COMPLETE.md DOCUMENTATION_ORGANIZED.md
 ```
 
 ### Option 3: Selective Cleanup (Recommended)
+
 1. Keep useful guides in root
 2. Move completed implementation docs to `docs/archive/implementations/`
 3. Move fix documentation to `docs/archive/fixes/`
@@ -96,6 +106,7 @@ rm -f CLEANUP_COMPLETE.md DOCUMENTATION_ORGANIZED.md
 ## Clean Root Directory Structure
 
 After cleanup, root should only have:
+
 ```
 ├── README.md                      # Main documentation
 ├── CHANGELOG.md                   # Version history
