@@ -12,13 +12,16 @@ PostgreSQL has a limited number of connections (default: 100). In development wi
 
 ### Solution Implemented
 
-#### 1. Singleton Prisma Client
+#### 1. Singleton Prisma Client with Proxy Pattern
 
 File: `src/lib/database/client.js`
 
+- Uses **Proxy** to defer initialization (prevents build-time errors)
 - Uses `globalThis.__prisma` to ensure single instance
 - Properly handles cleanup on process exit
 - Configured with minimal logging in production
+
+**IMPORTANT:** The Proxy pattern is critical for CI/CD - it prevents Prisma Client from initializing during SvelteKit's build analyze phase.
 
 #### 2. Connection Pool Settings
 
