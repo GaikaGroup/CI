@@ -94,6 +94,16 @@ export class RequestValidatorService {
     if (requestBody.images !== undefined && Array.isArray(requestBody.images)) {
       for (let i = 0; i < requestBody.images.length; i++) {
         const image = requestBody.images[i];
+
+        // Skip validation if recognizedText is provided (images already processed)
+        if (
+          requestBody.recognizedText &&
+          typeof requestBody.recognizedText === 'string' &&
+          requestBody.recognizedText.trim() !== ''
+        ) {
+          continue;
+        }
+
         if (typeof image !== 'string') {
           return {
             valid: false,
@@ -236,6 +246,11 @@ export class RequestValidatorService {
 
     // Ensure language is lowercase
     normalized.language = normalized.language.toLowerCase();
+
+    // If recognizedText is provided, clear images array (already processed)
+    if (normalized.recognizedText && normalized.recognizedText.trim() !== '') {
+      normalized.images = [];
+    }
 
     return normalized;
   }

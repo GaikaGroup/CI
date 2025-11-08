@@ -74,7 +74,7 @@ export class PromptBuilderService {
 
     // Add recognized text from images
     if (recognizedText) {
-      fullContent += `\n\nExercise (from photo):\n${recognizedText}`;
+      fullContent += `\n\nDocument content (OCR extracted):\n${recognizedText}`;
     }
 
     // Add OCR processing notes if images are attached

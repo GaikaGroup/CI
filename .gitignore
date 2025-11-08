@@ -46,3 +46,6 @@ pnpm-debug.log*
 /backups
 *.sql
 *.sql.gz
+
+# Kiro AI assistant specs (local development only)
+.kiro/

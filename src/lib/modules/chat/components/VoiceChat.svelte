@@ -14,7 +14,7 @@
     currentEmotion,
     isWaitingPhraseActive,
     getAudioQueueStatus
-  } from '../voiceServices';
+  } from '../voice';
 
   const dispatch = createEventDispatcher();
 

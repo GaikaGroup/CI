@@ -7,7 +7,7 @@
 
 import { get } from 'svelte/store';
 import { selectedLanguage } from '$modules/i18n/stores';
-import { synthesizeSpeech } from './voiceServices.js';
+import { synthesizeSpeech } from './voice/index.js';
 
 /**
  * Voice command patterns for different languages

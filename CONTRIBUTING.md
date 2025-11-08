@@ -38,39 +38,192 @@ We follow a structured branching model:
 
 ## Commit Messages
 
-Clear, consistent commit messages make history useful:
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated versioning and changelog generation. Your commit messages directly affect version bumps and release notes.
 
 ### Structure
 
 ```
 <type>(<scope>): <short summary>
 
-[optional longer description…]
+[optional body]
+
+[optional footer(s)]
 ```
 
-- **type**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, etc.
-- **scope**: subsystem or file, e.g. `auth`, `ui`, `db`
-- **summary**: imperative, ≤50 chars: "Add login button", not "Added" or "Adding"
+- **type**: Determines version bump (see table below)
+- **scope**: Optional, subsystem or module (e.g., `auth`, `chat`, `ui`, `db`)
+- **summary**: Imperative mood, ≤100 chars: "add login button", not "Added" or "Adding"
+- **body**: Optional, explain "why" more than "what", wrap at ~72 chars
+- **footer**: Optional, reference issues or breaking changes
 
-### Body (if needed)
+### Commit Types and Version Impact
 
-- Wrap at ~72 chars
-- Explain "why" more than "what"
-- Reference issues: "Closes #123" or "Fixes JIRA-456"
+| Type       | Description             | Version Bump      | Example                                     |
+| ---------- | ----------------------- | ----------------- | ------------------------------------------- |
+| `feat`     | New feature             | **MINOR** (1.x.0) | `feat(chat): add voice streaming`           |
+| `fix`      | Bug fix                 | **PATCH** (1.0.x) | `fix(auth): resolve session timeout`        |
+| `docs`     | Documentation only      | **PATCH** (1.0.x) | `docs: update API documentation`            |
+| `style`    | Code style/formatting   | **PATCH** (1.0.x) | `style: format with prettier`               |
+| `refactor` | Code refactoring        | **PATCH** (1.0.x) | `refactor(chat): simplify message handling` |
+| `test`     | Add/update tests        | **PATCH** (1.0.x) | `test: add voice service tests`             |
+| `chore`    | Maintenance tasks       | **PATCH** (1.0.x) | `chore: upgrade dependencies`               |
+| `perf`     | Performance improvement | **PATCH** (1.0.x) | `perf(db): optimize query performance`      |
+| `ci`       | CI/CD changes           | **PATCH** (1.0.x) | `ci: add coverage reporting`                |
+| `build`    | Build system changes    | **PATCH** (1.0.x) | `build: update vite config`                 |
+| `revert`   | Revert previous commit  | **PATCH** (1.0.x) | `revert: undo feature X`                    |
 
-### Examples
+### Breaking Changes
+
+To indicate a breaking change (triggers **MAJOR** version bump):
+
+**Option 1: Footer**
 
 ```
-feat(auth): add "Remember me" toggle
+feat(api): redesign authentication endpoints
 
-Persists user preference in localStorage so they stay logged in across
-browser restarts. Closes #789.
+BREAKING CHANGE: Authentication endpoints now require OAuth2 tokens
+instead of API keys. Update your client code accordingly.
 ```
 
-```
-fix(ui): correct button alignment on mobile
+**Option 2: ! in type**
 
-Buttons were overlapping on small screens due to incorrect flex settings.
+```
+feat(api)!: redesign authentication endpoints
+
+Authentication endpoints now require OAuth2 tokens instead of API keys.
+```
+
+### Scope Examples
+
+Common scopes in this project:
+
+- `auth` - Authentication module
+- `chat` - Chat system and voice features
+- `courses` - Course management
+- `db` - Database and migrations
+- `api` - API endpoints
+- `ui` - User interface components
+- `docs` - Documentation
+- `tests` - Test suite
+
+### Complete Examples
+
+**Feature with scope:**
+
+```
+feat(chat): add multilingual waiting phrases
+
+Implements waiting phrases in English, Russian, and Spanish with
+automatic language detection. Phrases are synthesized sentence by
+sentence for smooth user experience.
+
+Closes #456
+```
+
+**Bug fix:**
+
+```
+fix(auth): prevent session timeout during active use
+
+Users were being logged out while actively using the application.
+Now the session is refreshed on each API call.
+
+Fixes #789
+```
+
+**Documentation:**
+
+```
+docs: add GraphRAG architecture guide
+
+Explains the knowledge graph structure, document processing pipeline,
+and query mechanisms for developers.
+```
+
+**Breaking change:**
+
+```
+feat(api)!: redesign course enrollment endpoints
+
+BREAKING CHANGE: Course enrollment now uses POST /api/courses/:id/enroll
+instead of PUT /api/enrollments. The response format has also changed
+to include enrollment status and timestamp.
+
+Migration guide: See docs/migration-v2.md
+
+Closes #123
+```
+
+**Chore:**
+
+```
+chore: upgrade dependencies to latest versions
+
+Updates all npm packages to their latest stable versions.
+No breaking changes in dependencies.
+```
+
+### Commit Message Validation
+
+Your commits are automatically validated using commitlint:
+
+- ✅ **Valid**: `feat(chat): add voice streaming`
+- ❌ **Invalid**: `Add voice streaming` (missing type)
+- ❌ **Invalid**: `Feat(chat): add voice streaming` (type must be lowercase)
+- ❌ **Invalid**: `feat(chat): Add voice streaming` (subject must be lowercase)
+- ❌ **Invalid**: `feat(chat): add voice streaming.` (no period at end)
+
+If your commit message is invalid, the pre-commit hook will reject it with helpful error messages.
+
+### Tips for Good Commit Messages
+
+1. **Use imperative mood**: "add feature" not "added feature" or "adding feature"
+2. **Be specific**: "fix login button alignment" not "fix bug"
+3. **Keep it concise**: Summary should be ≤100 characters
+4. **Explain why, not what**: The diff shows what changed; explain why it was necessary
+5. **Reference issues**: Use "Closes #123" or "Fixes #456" to auto-close issues
+6. **One logical change per commit**: Don't mix unrelated changes
+
+### Troubleshooting Commit Messages
+
+**Error: "type may not be empty"**
+
+```bash
+# Wrong
+git commit -m "add new feature"
+
+# Correct
+git commit -m "feat: add new feature"
+```
+
+**Error: "subject may not be empty"**
+
+```bash
+# Wrong
+git commit -m "feat:"
+
+# Correct
+git commit -m "feat: add new feature"
+```
+
+**Error: "subject must not be sentence-case"**
+
+```bash
+# Wrong
+git commit -m "feat: Add new feature"
+
+# Correct
+git commit -m "feat: add new feature"
+```
+
+**Error: "subject may not end with period"**
+
+```bash
+# Wrong
+git commit -m "feat: add new feature."
+
+# Correct
+git commit -m "feat: add new feature"
 ```
 
 ## Pushing and Synchronizing

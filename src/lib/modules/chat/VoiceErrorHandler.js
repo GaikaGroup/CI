@@ -4,7 +4,7 @@
  */
 
 import { get } from 'svelte/store';
-import { isVoiceModeActive, isSpeaking } from './voiceServices.js';
+import { isVoiceModeActive, isSpeaking } from './voice/index.js';
 import { setError } from '$lib/stores/app';
 
 export class VoiceErrorHandler {

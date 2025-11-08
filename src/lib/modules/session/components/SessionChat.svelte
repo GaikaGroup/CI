@@ -30,7 +30,7 @@
     getAudioQueueStatus,
     setVoiceModeActive,
     isVoiceModeActive
-  } from '$lib/modules/chat/voiceServices';
+  } from '$lib/modules/chat/voice';
   import { isRecording, selectedImages } from '$lib/modules/chat/stores';
   import {
     createVoiceMetadata,

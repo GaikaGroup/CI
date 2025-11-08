@@ -323,25 +323,6 @@ export class LanguageDetector {
       return this.getFallbackLanguage();
     }
 
-    // CRITICAL: If text contains Spanish-specific characters, it's 100% Spanish
-    // Spanish-specific: ¿ ¡ ñ á é í ó ú ü
-    if (/[¿¡ñáéíóúü]/i.test(text)) {
-      return {
-        language: 'es',
-        confidence: 0.99,
-        scores: { es: 0.99, en: 0, ru: 0 },
-        confidenceFactors: [
-          {
-            factor: 'spanish_specific_characters',
-            weight: 1.0,
-            confidence: 0.99
-          }
-        ],
-        method: 'spanish_character_detection',
-        timestamp: Date.now()
-      };
-    }
-
     const scores = {};
     const confidenceFactors = {};
 
@@ -351,6 +332,7 @@ export class LanguageDetector {
       confidenceFactors[lang] = [];
     });
 
+    // CRITICAL: Check for Russian FIRST (Cyrillic has priority over Latin accents)
     // Enhanced Russian detection with improved Cyrillic patterns
     const russianScore = this.detectRussianLanguage(text, confidenceFactors.ru);
     scores.ru = russianScore;
@@ -363,6 +345,26 @@ export class LanguageDetector {
         scores: scores,
         confidenceFactors: confidenceFactors.ru,
         method: 'enhanced_russian_analysis',
+        timestamp: Date.now()
+      };
+    }
+
+    // CRITICAL: If text contains Spanish-specific characters, it's 100% Spanish
+    // Spanish-specific: ¿ ¡ ñ á é í ó ú ü
+    // BUT only if no Cyrillic detected (to avoid false positives with Russian text containing Latin accents)
+    if (/[¿¡ñáéíóúü]/i.test(text) && russianScore < 0.3) {
+      return {
+        language: 'es',
+        confidence: 0.99,
+        scores: { es: 0.99, en: 0, ru: russianScore },
+        confidenceFactors: [
+          {
+            factor: 'spanish_specific_characters',
+            weight: 1.0,
+            confidence: 0.99
+          }
+        ],
+        method: 'spanish_character_detection',
         timestamp: Date.now()
       };
     }

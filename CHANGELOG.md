@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## [1.0.0] (2023-07-07)
 
+### Features
+
+- Initial release of the AI Tutor Platform
+- SvelteKit frontend with Tailwind CSS
+- Multilingual support
+- Text and voice chat interfaces
+- Theme toggle (light/dark mode)
+- Responsive design
 - Git workflow documentation in CONTRIBUTING.md
 - Pre-commit hooks for linting and formatting
 - Commit message validation with commitlint
@@ -18,14 +26,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG.md for tracking changes
 - GitHub SSH setup documentation in CONTRIBUTING.md
 - Updated README.md with SSH clone instructions
-
-## [1.0.0] - 2023-07-07
-
-### Added
-
-- Initial release of the AI Tutor Platform
-- SvelteKit frontend with Tailwind CSS
-- Multilingual support
-- Text and voice chat interfaces
-- Theme toggle (light/dark mode)
-- Responsive design

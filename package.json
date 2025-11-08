@@ -38,7 +38,9 @@
     "db:restore": "bash scripts/restore-db.sh",
     "clear-sessions": "node scripts/clear-sessions.js",
     "check-sessions": "node scripts/check-sessions.js",
-    "create-test-users": "node scripts/create-test-users.js"
+    "create-test-users": "node scripts/create-test-users.js",
+    "release:check": "echo \"Current version: $(node -p 'require(\"./package.json\").version')\"",
+    "release:changelog": "cat CHANGELOG.md | head -n 50"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.7",

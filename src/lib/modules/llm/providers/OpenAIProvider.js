@@ -3,6 +3,7 @@
  *
  * This class implements the ProviderInterface for the OpenAI API.
  */
+/* eslint-disable no-constant-condition */
 
 import { ProviderInterface } from './ProviderInterface';
 import { OPENAI_CONFIG } from '$lib/config/api';
@@ -115,6 +116,136 @@ export class OpenAIProvider extends ProviderInterface {
         const usesNewAPI = model.startsWith('gpt-5') || model.startsWith('o1-');
         const timeout = usesNewAPI ? 120000 : this.config.TIMEOUT;
         throw new Error(`OpenAI request timed out after ${timeout}ms`);
+      }
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Generate a chat completion with STREAMING support (Requirement 1.1)
+   * @param {Array} messages - Array of message objects
+   * @param {Object} options - Options including onChunk callback
+   * @returns {Promise<Object>} - Formatted response with full content
+   */
+  async generateChatCompletionStreaming(messages, options = {}) {
+    try {
+      const { onChunk, ...otherOptions } = options;
+
+      if (!onChunk || typeof onChunk !== 'function') {
+        throw new Error('onChunk callback is required for streaming');
+      }
+
+      const model = otherOptions.model || this.config.MODEL;
+      const maxTokens = otherOptions.maxTokens || this.config.MAX_TOKENS;
+      const temperature = otherOptions.temperature || this.config.TEMPERATURE;
+
+      const usesNewAPI = model.startsWith('gpt-5') || model.startsWith('o1-');
+      const timeout = usesNewAPI ? 120000 : this.config.TIMEOUT;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      // Build request body with stream=true
+      const requestBody = {
+        model,
+        messages,
+        stream: true, // Enable streaming!
+        ...otherOptions.extraParams
+      };
+
+      if (usesNewAPI) {
+        requestBody.max_completion_tokens = maxTokens;
+      } else {
+        requestBody.max_tokens = maxTokens;
+        requestBody.temperature = temperature;
+      }
+
+      console.log('[OpenAI Streaming] Starting stream:', {
+        model,
+        messageCount: messages.length,
+        stream: true
+      });
+
+      const response = await fetch(this.config.API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.API_KEY}`
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      // Read SSE stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+          if (!trimmed.startsWith('data: ')) continue;
+
+          try {
+            const jsonStr = trimmed.substring(6); // Remove 'data: ' prefix
+            const data = JSON.parse(jsonStr);
+            const chunk = data.choices?.[0]?.delta?.content || '';
+
+            if (chunk) {
+              fullContent += chunk;
+              // Call onChunk callback (Requirement 1.1)
+              onChunk(chunk);
+            }
+          } catch (parseError) {
+            console.warn('[OpenAI Streaming] Failed to parse line:', trimmed);
+          }
+        }
+      }
+
+      console.log('[OpenAI Streaming] Stream completed:', {
+        totalLength: fullContent.length,
+        model
+      });
+
+      return {
+        content: fullContent,
+        provider: this.name,
+        model,
+        usage: {
+          prompt_tokens: -1,
+          completion_tokens: -1,
+          total_tokens: -1
+        },
+        finishReason: 'stop',
+        raw: { streamed: true }
+      };
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        const model = options.model || this.config.MODEL;
+        const usesNewAPI = model.startsWith('gpt-5') || model.startsWith('o1-');
+        const timeout = usesNewAPI ? 120000 : this.config.TIMEOUT;
+        throw new Error(`OpenAI streaming request timed out after ${timeout}ms`);
       }
       throw this.handleError(error);
     }

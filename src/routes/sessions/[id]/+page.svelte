@@ -11,7 +11,7 @@
     updateMessage
   } from '$lib/modules/chat/stores';
   import { MESSAGE_TYPES } from '$lib/shared/utils/constants';
-  import { setVoiceModeActive } from '$lib/modules/chat/voiceServices';
+  import { setVoiceModeActive } from '$lib/modules/chat/voice';
   import MessageList from '$lib/modules/chat/components/MessageList.svelte';
   import MessageInput from '$lib/modules/chat/components/MessageInput.svelte';
   import VoiceChat from '$lib/modules/chat/components/VoiceChat.svelte';

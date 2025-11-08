@@ -1,5 +1,26 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Validate commit message format
+# Validate commit message format using commitlint
+echo "🔍 Validating commit message format..."
+
 npx --no -- commitlint --edit ${1}
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Commit message validation failed!"
+  echo ""
+  echo "📝 Valid commit format:"
+  echo "   <type>(<scope>): <subject>"
+  echo ""
+  echo "📌 Examples:"
+  echo "   feat(chat): add voice streaming support"
+  echo "   fix(auth): resolve session timeout issue"
+  echo "   docs: update API documentation"
+  echo "   chore: upgrade dependencies"
+  echo ""
+  echo "🔗 See CONTRIBUTING.md for more details"
+  exit 1
+fi
+
+echo "✅ Commit message is valid!"

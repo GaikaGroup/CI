@@ -35,7 +35,24 @@ export class AvatarStateManager {
     this.validStates = ['idle', 'speaking', 'listening', 'thinking', 'transitioning'];
     this.validEmotions = ['neutral', 'happy', 'sad', 'surprised', 'angry', 'resting'];
 
-    console.log('AvatarStateManager initialized');
+    // Streaming animation support (Requirements 3.1, 3.2, 3.3, 3.4, 3.5)
+    this.currentMouthState = 'neutral';
+    this.isAnimating = false;
+    this.currentEmotion = 'neutral';
+    this.phonemeAnalysisInterval = null;
+
+    // Mouth shape mapping for phonemes (Requirement 3.4)
+    this.mouthShapes = {
+      a: 'open',
+      e: 'smile',
+      i: 'narrow',
+      o: 'round',
+      u: 'pucker',
+      silence: 'closed',
+      neutral: 'neutral'
+    };
+
+    console.log('AvatarStateManager initialized with streaming support');
   }
 
   /**
@@ -449,13 +466,214 @@ export class AvatarStateManager {
   }
 
   /**
-   * Clear all transitions and reset to idle state
+   * Start lip-sync animation with optional state maintenance (Requirements 3.1, 3.2)
+   * @param {HTMLAudioElement} audio - Audio element to sync with
+   * @param {Object} options - Animation options
+   */
+  startLipSync(audio, options = {}) {
+    const { maintainState = false, onPhoneme = null } = options;
+
+    if (!maintainState) {
+      // Reset to neutral only for non-streaming segments (Requirement 3.2)
+      this.currentMouthState = 'neutral';
+      console.log('[AvatarAnimation] Starting lip-sync with state reset');
+    } else {
+      console.log(
+        '[AvatarAnimation] Starting lip-sync maintaining current state:',
+        this.currentMouthState
+      );
+    }
+
+    this.isAnimating = true;
+
+    // Update avatar state to speaking
+    avatarState.update((state) => ({
+      ...state,
+      speaking: true,
+      currentState: 'speaking'
+    }));
+
+    // Analyze audio for phonemes (Requirement 3.4)
+    this.analyzeAudioForPhonemes(audio, (phoneme) => {
+      this.updateMouthShape(phoneme);
+      if (onPhoneme) {
+        onPhoneme(phoneme);
+      }
+    });
+
+    console.log('[AvatarAnimation] Lip-sync started');
+  }
+
+  /**
+   * Analyze audio for phoneme detection (Requirement 3.4)
+   * @param {HTMLAudioElement} audio - Audio element to analyze
+   * @param {Function} onPhoneme - Callback for phoneme detection
+   */
+  analyzeAudioForPhonemes(audio, onPhoneme) {
+    // Simple phoneme simulation based on audio playback
+    // In a real implementation, this would use Web Audio API for frequency analysis
+
+    let lastPhoneme = 'silence';
+    const phonemes = ['a', 'e', 'i', 'o', 'u', 'silence'];
+
+    // Clear any existing interval
+    if (this.phonemeAnalysisInterval) {
+      clearInterval(this.phonemeAnalysisInterval);
+    }
+
+    // Simulate phoneme changes during playback
+    this.phonemeAnalysisInterval = setInterval(() => {
+      if (audio.paused || audio.ended) {
+        clearInterval(this.phonemeAnalysisInterval);
+        this.phonemeAnalysisInterval = null;
+        onPhoneme('silence');
+        return;
+      }
+
+      // Simple simulation: alternate between phonemes
+      // In production, this would analyze audio frequency data
+      const randomPhoneme = phonemes[Math.floor(Math.random() * phonemes.length)];
+
+      if (randomPhoneme !== lastPhoneme) {
+        lastPhoneme = randomPhoneme;
+        onPhoneme(randomPhoneme);
+      }
+    }, 100); // Update every 100ms
+
+    // Cleanup on audio end
+    audio.addEventListener(
+      'ended',
+      () => {
+        if (this.phonemeAnalysisInterval) {
+          clearInterval(this.phonemeAnalysisInterval);
+          this.phonemeAnalysisInterval = null;
+        }
+      },
+      { once: true }
+    );
+  }
+
+  /**
+   * Update mouth shape based on phoneme (Requirement 3.4)
+   * @param {string} phoneme - Phoneme identifier
+   */
+  updateMouthShape(phoneme) {
+    const newShape = this.mouthShapes[phoneme] || 'neutral';
+
+    // Only update if shape changed
+    if (newShape !== this.currentMouthState) {
+      console.log(`[AvatarAnimation] Mouth shape: ${this.currentMouthState} -> ${newShape}`);
+
+      // Smooth transition between shapes
+      this.transitionMouthShape(this.currentMouthState, newShape);
+      this.currentMouthState = newShape;
+    }
+  }
+
+  /**
+   * Transition between mouth shapes smoothly (Requirement 3.4)
+   * @param {string} fromShape - Current mouth shape
+   * @param {string} toShape - Target mouth shape
+   */
+  transitionMouthShape(fromShape, toShape) {
+    // Update avatar state with new mouth position
+    avatarState.update((state) => ({
+      ...state,
+      mouthPosition: toShape
+    }));
+
+    // In a real implementation, this would trigger CSS animations or
+    // canvas-based morphing between mouth shapes
+    console.log(`[AvatarAnimation] Transitioning mouth: ${fromShape} -> ${toShape}`);
+  }
+
+  /**
+   * Apply emotion consistently across segments (Requirement 3.5)
+   * @param {string} emotion - Emotion to apply
+   */
+  applyEmotion(emotion) {
+    if (!this.validEmotions.includes(emotion)) {
+      console.warn(`[AvatarAnimation] Invalid emotion: ${emotion}`);
+      return;
+    }
+
+    this.currentEmotion = emotion;
+
+    // Update avatar state
+    avatarState.update((state) => ({
+      ...state,
+      emotion: emotion
+    }));
+
+    // Apply facial expression
+    this.updateFacialExpression(emotion);
+
+    // Emotion persists across streaming segments (Requirement 3.5)
+    console.log(`[AvatarAnimation] Emotion applied: ${emotion} (persists across segments)`);
+  }
+
+  /**
+   * Update facial expression based on emotion (Requirement 3.5)
+   * @param {string} emotion - Emotion to express
+   */
+  updateFacialExpression(emotion) {
+    // In a real implementation, this would update eye shape, eyebrow position, etc.
+    // For now, we just log the change
+    console.log(`[AvatarAnimation] Facial expression updated: ${emotion}`);
+  }
+
+  /**
+   * Return to neutral state after streaming complete (Requirement 3.3)
+   */
+  returnToNeutral() {
+    console.log('[AvatarAnimation] Returning to neutral state');
+
+    this.isAnimating = false;
+
+    // Clear phoneme analysis
+    if (this.phonemeAnalysisInterval) {
+      clearInterval(this.phonemeAnalysisInterval);
+      this.phonemeAnalysisInterval = null;
+    }
+
+    // Transition mouth to closed
+    this.transitionMouthShape(this.currentMouthState, 'closed');
+    this.currentMouthState = 'closed';
+
+    // Update avatar state
+    avatarState.update((state) => ({
+      ...state,
+      speaking: false,
+      currentState: 'idle',
+      mouthPosition: 'closed'
+    }));
+
+    console.log('[AvatarAnimation] Returned to neutral state');
+  }
+
+  /**
+   * Clear all transitions and reset to idle state (enhanced for streaming)
    */
   reset() {
+    console.log('[AvatarAnimation] Resetting avatar state');
+
+    // Clear streaming animation state
+    this.isAnimating = false;
+    this.currentMouthState = 'neutral';
+    this.currentEmotion = 'neutral';
+
+    // Clear phoneme analysis
+    if (this.phonemeAnalysisInterval) {
+      clearInterval(this.phonemeAnalysisInterval);
+      this.phonemeAnalysisInterval = null;
+    }
+
+    // Clear transition queue
     this.transitionQueue = [];
     this.isProcessingTransition = false;
     this.stateHistory = [];
 
+    // Reset avatar state
     avatarState.set({
       currentState: 'idle',
       emotion: 'neutral',

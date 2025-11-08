@@ -6,7 +6,7 @@
 import { waitingPhrasesService } from './waitingPhrasesService.js';
 import { translationBridge } from './translationBridge.js';
 import { get } from 'svelte/store';
-import { isVoiceModeActive, getAudioQueueStatus } from './voiceServices.js';
+import { isVoiceModeActive, getAudioQueueStatus } from './voice/index.js';
 
 /**
  * Performance Monitor for Waiting Phrases System

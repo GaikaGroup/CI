@@ -174,7 +174,24 @@ export class ProviderManager {
 
     const invokeProvider = async (providerInstance, name, requestOptions, isAttempt = false) => {
       const invocationTimestamp = new Date().toISOString();
-      const result = await providerInstance.generateChatCompletion(messages, requestOptions);
+
+      // Check if streaming is requested (Requirement 1.1)
+      const isStreaming =
+        requestOptions.stream === true && typeof requestOptions.onChunk === 'function';
+
+      let result;
+      if (isStreaming && typeof providerInstance.generateChatCompletionStreaming === 'function') {
+        console.log(`[ProviderManager] Using streaming mode for provider: ${name}`);
+        result = await providerInstance.generateChatCompletionStreaming(messages, requestOptions);
+      } else {
+        if (isStreaming) {
+          console.warn(
+            `[ProviderManager] Streaming requested but not supported by provider: ${name}`
+          );
+        }
+        result = await providerInstance.generateChatCompletion(messages, requestOptions);
+      }
+
       const resolvedProvider = result.provider || name;
       const modelName = result.model || requestOptions?.model;
 

@@ -17,7 +17,7 @@
   import { getTranslation } from '$modules/i18n/translations';
   import { CHAT_MODES, MESSAGE_TYPES } from '$shared/utils/constants';
   import { sendMessageWithOCRContext } from '../enhancedServices';
-  import { setVoiceModeActive } from '../voiceServices';
+  import { setVoiceModeActive } from '../voice';
   import { container } from '$lib/shared/di/container';
   import { LLM_FEATURES } from '$lib/config/llm';
   import { ensureProviderManager } from '$modules/llm/ensureProviderManager.js';

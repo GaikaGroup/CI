@@ -1,8 +1,11 @@
 # AI Tutor Platform
 
+[![Version](https://img.shields.io/github/package-json/v/yourusername/ai-tutor-platform)](https://github.com/yourusername/ai-tutor-platform/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 [![SvelteKit](https://img.shields.io/badge/SvelteKit-4.0+-orange)](https://kit.svelte.dev/)
+
+> 📋 **Release Notes**: See [CHANGELOG.md](CHANGELOG.md) for detailed version history and changes.
 
 ## Overview
 
@@ -1093,6 +1096,35 @@ The platform's GraphRAG system is designed as a foundational implementation that
 
 The modular design allows for incremental upgrades from the current foundational implementation to a production-scale GraphRAG system.
 
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/) (SemVer):
+
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for new features (backward compatible)
+- **PATCH** version for bug fixes
+
+**Automated Releases:**
+
+- Releases are automatically created based on conventional commit messages
+- Version numbers are bumped automatically when changes are merged to `main`
+- Release notes are generated from commit history
+- See [CHANGELOG.md](CHANGELOG.md) for complete version history
+
+**Commit Message Format:**
+
+```
+<type>(<scope>): <subject>
+
+Examples:
+  feat(chat): add voice streaming support    → MINOR version bump
+  fix(auth): resolve session timeout         → PATCH version bump
+  docs: update API documentation             → PATCH version bump
+  BREAKING CHANGE: remove old API            → MAJOR version bump
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed commit message guidelines.
+
 ## Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
@@ -1112,7 +1144,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for deta
 - Follow ESLint and Prettier configurations
 - Write tests for new features
 - Update documentation as needed
-- Use conventional commit messages
+- Use conventional commit messages (see Versioning section above)
 
 ## Roadmap
 

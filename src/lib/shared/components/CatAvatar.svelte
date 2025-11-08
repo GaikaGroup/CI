@@ -16,7 +16,7 @@
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
   import { get } from 'svelte/store';
-  import { audioAmplitude, isSpeaking } from '$lib/modules/chat/voiceServices';
+  import { audioAmplitude, isSpeaking } from '$lib/modules/chat/voice';
   import { avatarStateManager, avatarState } from '$lib/modules/chat/AvatarStateManager.js';
   import { selectedLanguage } from '$modules/i18n/stores';
   import { getTranslation } from '$modules/i18n/translations';
@@ -277,10 +277,11 @@
       updateEmotion(state.emotion);
     }
 
-    if (state.speaking !== speaking) {
-      // This will trigger the reactive statement below
-      speaking = state.speaking;
-    }
+    // FIXED: Prevent infinite loop by not updating speaking prop from state manager
+    // The speaking prop should only be controlled by parent component
+    // if (state.speaking !== speaking) {
+    //   speaking = state.speaking;
+    // }
 
     // Handle mouth position from state manager
     if (state.mouthPosition !== undefined && state.mouthPosition !== currentMouthImage) {
@@ -818,17 +819,20 @@
   $: if (speaking !== undefined && imagesLoaded) {
     // If speaking state changed
     if (speaking !== lastSpeakingState) {
-      // Update avatar state manager
-      updateAvatarState(
-        {
-          speaking: speaking,
-          currentState: speaking ? 'speaking' : 'idle'
-        },
-        {
-          priority: 'high',
-          duration: speaking ? 200 : 50 // Faster transition when stopping
-        }
-      );
+      // FIXED: Only update avatar state manager if the current state is different
+      const currentAvatarState = avatarStateManager.getCurrentState();
+      if (currentAvatarState.speaking !== speaking) {
+        updateAvatarState(
+          {
+            speaking: speaking,
+            currentState: speaking ? 'speaking' : 'idle'
+          },
+          {
+            priority: 'high',
+            duration: speaking ? 200 : 50 // Faster transition when stopping
+          }
+        );
+      }
 
       // If transitioning from not speaking to speaking
       if (speaking) {

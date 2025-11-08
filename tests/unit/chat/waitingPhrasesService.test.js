@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WaitingPhrasesService } from '../../../src/lib/modules/chat/waitingPhrasesService.js';
 import { translationBridge } from '../../../src/lib/modules/chat/translationBridge.js';
 import { emitWaitingPhraseIncrementally } from '../../../src/lib/modules/chat/services.js';
-import { synthesizeWaitingPhrase } from '../../../src/lib/modules/chat/voiceServices.js';
+import { synthesizeWaitingPhrase } from '../../../src/lib/modules/chat/voice/index.js';
 import { addMessage } from '../../../src/lib/modules/chat/stores';
 
 const mockVoiceModeStore = vi.hoisted(() => {
@@ -71,7 +71,7 @@ vi.mock('../../../src/lib/modules/chat/stores', () => ({
   }
 }));
 
-vi.mock('../../../src/lib/modules/chat/voiceServices.js', () => ({
+vi.mock('../../../src/lib/modules/chat/voice/index.js', () => ({
   synthesizeWaitingPhrase: vi.fn(() => Promise.resolve()),
   isVoiceModeActive: mockVoiceModeStore
 }));

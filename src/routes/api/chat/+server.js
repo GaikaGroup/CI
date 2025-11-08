@@ -1,6 +1,5 @@
 import { json } from '@sveltejs/kit';
 import { container } from '$lib/shared/di/container';
-import { prisma } from '$lib/database/client';
 import { OPENAI_CONFIG } from '$lib/config/api';
 import { languageDetector } from '$lib/modules/chat/LanguageDetector.js';
 import { sessionLanguageManager } from '$lib/modules/chat/SessionLanguageManager.js';
@@ -85,6 +84,7 @@ export async function POST({ request, locals }) {
       images,
       recognizedText,
       language,
+      languageConfirmed,
       sessionContext,
       maxTokens,
       detailLevel,
@@ -99,28 +99,51 @@ export async function POST({ request, locals }) {
     const sessionId = sessionContext?.sessionId || `temp_${Date.now()}`;
 
     // 2. Detect and manage language
-    const languageDetection = languageManager.detectLanguage({
-      content,
-      sessionId,
-      fallbackLanguage: language,
-      images,
-      provider: requestedProvider
+    let detectedLanguage;
+    let languageConfidence;
+
+    console.log('[API /chat] Language detection params:', {
+      languageConfirmed,
+      providedLanguage: language,
+      contentLength: content?.length,
+      recognizedTextLength: recognizedText?.length
     });
 
-    let detectedLanguage = languageDetection.language;
-    let languageConfidence = languageDetection.confidence;
+    // If language is confirmed (e.g., from Voice mode waiting phrase), use it directly
+    if (languageConfirmed && language) {
+      detectedLanguage = language;
+      languageConfidence = 1.0;
+      console.log(
+        `[Language] Using confirmed language: ${detectedLanguage} (confidence: 1.0, SKIPPING re-detection)`
+      );
+    } else {
+      // Otherwise, detect language from content
+      const languageDetection = languageManager.detectLanguage({
+        content,
+        sessionId,
+        fallbackLanguage: language,
+        images,
+        provider: requestedProvider
+      });
+
+      detectedLanguage = languageDetection.language;
+      languageConfidence = languageDetection.confidence;
+    }
 
     // Handle short messages with conversation history fallback
-    const shortMessageResult = languageManager.handleShortMessage({
-      content,
-      detectedLanguage,
-      languageConfidence,
-      sessionContext
-    });
+    // Skip this if language is already confirmed
+    if (!languageConfirmed) {
+      const shortMessageResult = languageManager.handleShortMessage({
+        content,
+        detectedLanguage,
+        languageConfidence,
+        sessionContext
+      });
 
-    if (shortMessageResult.adjusted) {
-      detectedLanguage = shortMessageResult.language;
-      languageConfidence = shortMessageResult.confidence;
+      if (shortMessageResult.adjusted) {
+        detectedLanguage = shortMessageResult.language;
+        languageConfidence = shortMessageResult.confidence;
+      }
     }
 
     console.log(
@@ -175,6 +198,13 @@ export async function POST({ request, locals }) {
     const languageInstructions = languageManager.getLanguageInstructions(detectedLanguage);
     const baseSystemPrompt = languageInstructions.instruction;
 
+    console.log(
+      '[API /chat] Language instructions for',
+      detectedLanguage,
+      ':',
+      languageInstructions.instruction.substring(0, 100)
+    );
+
     // Enhance system prompt with language constraints
     const enhancedSystemPrompt = promptEnhancer.enhanceSystemPrompt(
       baseSystemPrompt,
@@ -188,6 +218,8 @@ export async function POST({ request, locals }) {
         enhancementLevel: 'ultra_strong'
       }
     );
+
+    console.log('[API /chat] Enhanced system prompt:', enhancedSystemPrompt.substring(0, 200));
 
     // Get agent instructions from session context
     const agentInstructions =
@@ -239,6 +271,98 @@ export async function POST({ request, locals }) {
 
     // 9. Generate completion using provider manager
     const providerManager = container.resolve('llmProviderManager');
+
+    // Check if streaming is requested (Requirement 1.1, 8.2)
+    const streamRequested = requestBody.stream === true;
+
+    if (streamRequested) {
+      // Return streaming response (Requirement 1.1)
+      console.log('[API /chat] Streaming mode enabled');
+
+      return new Response(
+        new ReadableStream({
+          async start(controller) {
+            try {
+              let fullResponse = '';
+              let chunkCount = 0;
+              const streamStartTime = Date.now();
+
+              // Use streaming completion with onChunk callback
+              await providerManager.generateChatCompletionWithEnhancement(messages, {
+                ...options,
+                stream: true,
+                onChunk: (chunk) => {
+                  try {
+                    // Send chunk to client (Requirement 1.1)
+                    fullResponse += chunk;
+                    chunkCount++;
+                    controller.enqueue(new TextEncoder().encode(chunk));
+                  } catch (chunkError) {
+                    // Log chunk processing error but continue (Requirement 7.3)
+                    console.error('[API /chat] Error processing chunk:', {
+                      error: chunkError.message,
+                      chunkNumber: chunkCount,
+                      timestamp: new Date().toISOString()
+                    });
+                  }
+                }
+              });
+
+              controller.close();
+
+              // Log completion with metrics (Requirement 7.2)
+              const streamDuration = Date.now() - streamStartTime;
+              console.log('[API /chat] Streaming completed:', {
+                totalLength: fullResponse.length,
+                chunkCount,
+                duration: `${streamDuration}ms`,
+                avgChunkSize: chunkCount > 0 ? Math.round(fullResponse.length / chunkCount) : 0,
+                timestamp: new Date().toISOString()
+              });
+            } catch (error) {
+              // Log detailed error context server-side (Requirement 7.3)
+              console.error('[API /chat] Streaming error:', {
+                errorType: error.name,
+                errorMessage: error.message,
+                stack: error.stack,
+                userId: locals.user?.id,
+                sessionId: sessionContext?.sessionId,
+                language: detectedLanguage,
+                provider: options.provider,
+                model: options.model,
+                timestamp: new Date().toISOString()
+              });
+
+              // Sanitize error message for client (Requirement 7.3)
+              const sanitizedError = error.message.includes('API key')
+                ? 'Authentication error with AI provider'
+                : error.message.includes('rate limit')
+                  ? 'Service temporarily unavailable due to high demand'
+                  : error.message.includes('timeout')
+                    ? 'Request timed out, please try again'
+                    : 'An error occurred while streaming the response';
+
+              // Send error to client
+              try {
+                controller.enqueue(new TextEncoder().encode(`\n\n[Error: ${sanitizedError}]`));
+              } catch (enqueueError) {
+                console.error('[API /chat] Failed to send error to client:', enqueueError);
+              }
+
+              controller.error(new Error(sanitizedError));
+            }
+          }
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Transfer-Encoding': 'chunked'
+          }
+        }
+      );
+    }
+
+    // Non-streaming mode (existing behavior, backward compatibility)
     const result = await providerManager.generateChatCompletionWithEnhancement(messages, options);
 
     console.info(`Response generated using provider: ${result.provider}, model: ${result.model}`);

@@ -10,7 +10,7 @@ import { chatStore } from '$lib/modules/session/stores/chatStore.js';
 import { sessionStore } from '$lib/modules/session/stores/sessionStore.js';
 import { selectedLanguage } from '$lib/modules/i18n/stores';
 import { darkMode } from '$lib/modules/theme/stores';
-import * as voiceServices from '$lib/modules/chat/voiceServices';
+import * as voiceServices from '$lib/modules/chat/voice';
 
 // Mock voice services
 vi.mock('$lib/modules/chat/voiceServices', () => {

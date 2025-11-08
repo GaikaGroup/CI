@@ -3,6 +3,7 @@
  *
  * Implements the ProviderInterface for the Ollama API (local LLM).
  */
+/* eslint-disable no-constant-condition */
 
 import { ProviderInterface } from './ProviderInterface';
 import { OLLAMA_CONFIG } from '$lib/config/llm';
@@ -99,7 +100,15 @@ export class OllamaProvider extends ProviderInterface {
         console.log('[Ollama] Using vision model:', this.config.VISION_MODEL);
       }
 
-      const modelToUse = needsVision ? this.config.VISION_MODEL : options.model;
+      // Don't use options.model if it's an OpenAI model name
+      const requestedModel = options.model;
+      const isOpenAIModel =
+        requestedModel && (requestedModel.includes('gpt') || requestedModel.includes('chatgpt'));
+      const modelToUse = needsVision
+        ? this.config.VISION_MODEL
+        : isOpenAIModel
+          ? null
+          : requestedModel;
 
       const model = await this.resolveModel(modelToUse);
       const maxTokens = Number(options.maxTokens ?? this.config.MAX_TOKENS);
@@ -218,6 +227,172 @@ export class OllamaProvider extends ProviderInterface {
     } catch (error) {
       if (error.name === 'AbortError') {
         throw new Error('Ollama request timed out');
+      }
+      throw this.handleError(error);
+    }
+  }
+
+  /**
+   * Generate a chat completion with STREAMING support (Requirement 1.1)
+   * @param {Array} messages - Array of message objects
+   * @param {Object} options - Options including onChunk callback
+   * @returns {Promise<Object>} - Formatted response with full content
+   */
+  async generateChatCompletionStreaming(messages, options = {}) {
+    try {
+      const { onChunk, ...otherOptions } = options;
+
+      if (!onChunk || typeof onChunk !== 'function') {
+        throw new Error('onChunk callback is required for streaming');
+      }
+
+      // Check if we need vision model
+      const needsVision = options.hasImages || this.hasImages(messages);
+      // Don't use options.model if it's an OpenAI model name
+      const requestedModel = options.model;
+      const isOpenAIModel =
+        requestedModel && (requestedModel.includes('gpt') || requestedModel.includes('chatgpt'));
+      const modelToUse = needsVision
+        ? this.config.VISION_MODEL
+        : isOpenAIModel
+          ? null
+          : requestedModel;
+      const model = await this.resolveModel(modelToUse);
+      const maxTokens = Number(otherOptions.maxTokens ?? this.config.MAX_TOKENS);
+      const temperature = Number(otherOptions.temperature ?? this.config.TEMPERATURE);
+
+      // Convert messages to Ollama format
+      const ollamaMessages = messages.map((m) => {
+        if (Array.isArray(m.content)) {
+          const textParts = m.content.filter((c) => c.type === 'text').map((c) => c.text);
+          const imageParts = m.content.filter((c) => c.type === 'image_url');
+          const images = imageParts.map((img) => {
+            const url = img.image_url.url;
+            if (url.startsWith('data:')) {
+              const base64Index = url.indexOf('base64,');
+              return base64Index !== -1 ? url.substring(base64Index + 7) : url;
+            }
+            return url;
+          });
+          return {
+            role: m.role,
+            content: textParts.join('\n'),
+            images: images
+          };
+        }
+        return { role: m.role, content: String(m.content) };
+      });
+
+      // Timeout guard
+      const controller = new AbortController();
+      const timeoutMs = Number(otherOptions.timeout ?? 30000);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      // IMPORTANT: stream=true for NDJSON streaming
+      const payload = {
+        model,
+        messages: ollamaMessages,
+        stream: true, // Enable streaming!
+        options: {
+          num_ctx: Number(this.config.NUM_CTX ?? 2048),
+          num_predict: maxTokens,
+          temperature,
+          repeat_penalty: this.config.PARAMETERS?.repeat_penalty ?? 1.1,
+          top_p: this.config.PARAMETERS?.top_p ?? 0.9,
+          top_k: this.config.PARAMETERS?.top_k ?? 40,
+          ...(otherOptions.extraParams ?? {})
+        }
+      };
+
+      console.log('[Ollama Streaming] Starting stream:', {
+        model,
+        messageCount: ollamaMessages.length,
+        stream: true
+      });
+
+      const response = await fetch(`${this.apiUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const bodyText = await response.text().catch(() => '');
+        throw new Error(`Ollama API error ${response.status}: ${bodyText || response.statusText}`);
+      }
+
+      // Read NDJSON stream
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        // Decode chunk
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+
+          try {
+            const data = JSON.parse(trimmed);
+            const chunk = data.message?.content || '';
+
+            if (chunk) {
+              fullContent += chunk;
+              console.log('[Ollama Streaming] Chunk received:', {
+                chunkLength: chunk.length,
+                totalLength: fullContent.length,
+                preview: chunk.substring(0, 50)
+              });
+              // Call onChunk callback (Requirement 1.1)
+              onChunk(chunk);
+            }
+
+            // Check if done
+            if (data.done) {
+              console.log('[Ollama Streaming] Stream completed:', {
+                totalLength: fullContent.length,
+                model: data.model,
+                preview: fullContent.substring(0, 100)
+              });
+            }
+          } catch (parseError) {
+            console.warn('[Ollama Streaming] Failed to parse line:', trimmed);
+          }
+        }
+      }
+
+      // Return formatted response
+      return {
+        content: fullContent,
+        provider: this.name,
+        model,
+        usage: {
+          prompt_tokens: -1,
+          completion_tokens: -1,
+          total_tokens: -1
+        },
+        finishReason: 'stop',
+        raw: { streamed: true }
+      };
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Ollama streaming request timed out');
       }
       throw this.handleError(error);
     }

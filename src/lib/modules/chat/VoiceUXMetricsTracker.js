@@ -4,7 +4,7 @@
  */
 
 import { get } from 'svelte/store';
-import { isVoiceModeActive, isSpeaking } from './voiceServices.js';
+import { isVoiceModeActive, isSpeaking } from './voice/index.js';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { voiceDiagnostics } from './VoiceDiagnostics.js';
 

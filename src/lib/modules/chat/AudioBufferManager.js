@@ -1,7 +1,12 @@
 /**
  * Audio Buffer Manager
  * Handles audio buffering, crossfading, and smooth transitions to prevent stuttering
+ * Enhanced with streaming support and seamless audio transitions (Requirement 2.1)
  */
+
+import { SeamlessAudioTransitionManager } from './SeamlessAudioTransitionManager.js';
+import { isSpeaking, audioAmplitude } from './voice/services/avatarAnimation.js';
+import { setWaitingPhraseActive, setWaitingPhraseLanguage } from './voice/services/audioQueue.js';
 
 export class AudioBufferManager {
   constructor() {
@@ -34,10 +39,23 @@ export class AudioBufferManager {
       memoryUsage: 0
     };
 
+    // Streaming support (Requirements 1.3, 1.5, 2.1, 8.1)
+    this.audioQueue = []; // Queue for streaming segments
+    this.isPlaying = false; // Playback state
+    this.currentAudioSource = null; // Current playing audio source
+    this.onQueueComplete = null; // Callback when queue is empty
+
+    // Seamless audio transition manager (Requirement 2.1)
+    this.transitionManager = new SeamlessAudioTransitionManager({
+      crossfadeDuration: this.crossfadeDuration
+    });
+
     // Start cleanup interval
     this.startCleanupInterval();
 
-    console.log('AudioBufferManager initialized with performance optimizations');
+    console.log(
+      'AudioBufferManager initialized with performance optimizations and streaming support'
+    );
   }
 
   /**
@@ -157,6 +175,7 @@ export class AudioBufferManager {
 
   /**
    * Buffer audio blob for smooth playback with performance optimizations
+   * Supports streaming segments with priority queuing (Requirements 1.3, 1.5, 2.1)
    * @param {Blob} audioBlob - Audio data to buffer
    * @param {Object} metadata - Audio metadata
    * @returns {Promise<Object>} Buffered audio data
@@ -191,7 +210,11 @@ export class AudioBufferManager {
           numberOfChannels: processedBuffer.numberOfChannels,
           buffered: true,
           processedAt: Date.now(),
-          processingTime: performance.now() - startTime
+          processingTime: performance.now() - startTime,
+          // Streaming segment metadata (Requirement 1.5)
+          streamingSegment: metadata.streamingSegment || false,
+          priority: metadata.priority || 1,
+          timestamp: Date.now()
         },
         processingInfo: {
           buffered: true,
@@ -208,8 +231,13 @@ export class AudioBufferManager {
       this.updatePerformanceMetrics('bufferProcessingTime', performance.now() - startTime);
 
       console.log(
-        `Audio buffered successfully: ${bufferedAudio.id}, duration: ${processedBuffer.duration.toFixed(2)}s, processing: ${(performance.now() - startTime).toFixed(1)}ms`
+        `Audio buffered successfully: ${bufferedAudio.id}, duration: ${processedBuffer.duration.toFixed(2)}s, processing: ${(performance.now() - startTime).toFixed(1)}ms, streaming: ${bufferedAudio.metadata.streamingSegment}`
       );
+
+      // If streaming segment, add to queue for sequential playback (Requirement 1.5)
+      if (bufferedAudio.metadata.streamingSegment) {
+        this.addToQueue(bufferedAudio);
+      }
 
       return bufferedAudio;
     } catch (error) {
@@ -640,6 +668,229 @@ export class AudioBufferManager {
   }
 
   /**
+   * Add buffered audio to queue with priority sorting (Requirement 1.5)
+   * @param {Object} bufferedAudio - Buffered audio to queue
+   */
+  addToQueue(bufferedAudio) {
+    const segment = {
+      audioBlob: bufferedAudio.originalBlob,
+      audioBuffer: bufferedAudio.audioBuffer,
+      metadata: bufferedAudio.metadata,
+      priority: bufferedAudio.metadata.priority || 1,
+      timestamp: bufferedAudio.metadata.timestamp,
+      isStreamingSegment: bufferedAudio.metadata.streamingSegment || false
+    };
+
+    // Add to queue (Requirement 1.5)
+    this.audioQueue.push(segment);
+
+    // Sort by priority and timestamp to maintain order (Requirement 1.5)
+    this.audioQueue.sort((a, b) => {
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      return a.timestamp - b.timestamp;
+    });
+
+    console.log(
+      `[AudioQueue] Segment added to queue, position: ${this.audioQueue.length}, priority: ${segment.priority}`
+    );
+
+    // Start playback immediately if not already playing (Requirement 1.3)
+    if (!this.isPlaying) {
+      this.playNextSegment();
+    }
+  }
+
+  /**
+   * Play next segment from queue with continuous animation (Requirement 3.2)
+   * Maintains animation state across segments for streaming
+   * Uses seamless transitions for smooth playback (Requirement 2.1)
+   */
+  async playNextSegment() {
+    if (this.audioQueue.length === 0) {
+      // No more segments - queue is complete
+      this.isPlaying = false;
+      console.log('[AudioQueue] Queue complete');
+
+      // Update isSpeaking store - stop lip-sync animation
+      isSpeaking.set(false);
+      audioAmplitude.set(0);
+
+      // Call onQueueComplete callback if set (Requirement 8.1)
+      if (this.onQueueComplete) {
+        this.onQueueComplete();
+      }
+
+      return;
+    }
+
+    const segment = this.audioQueue.shift();
+    this.isPlaying = true;
+
+    console.log(`[AudioQueue] Playing segment, ${this.audioQueue.length} remaining`);
+
+    try {
+      // Use seamless transition manager for smooth playback (Requirement 2.1)
+      const audio = await this.transitionManager.playWithTransition(segment.audioBlob, {
+        maintainState: segment.isStreamingSegment // Don't reset between streaming segments
+      });
+
+      // Store current audio source
+      this.currentAudioSource = audio;
+
+      // Update waiting phrase state if this is a waiting phrase
+      if (segment.metadata?.isWaitingPhrase) {
+        setWaitingPhraseActive(true);
+        setWaitingPhraseLanguage(segment.metadata.language);
+        console.log('[AudioQueue] Playing waiting phrase in language:', segment.metadata.language);
+      } else {
+        setWaitingPhraseActive(false);
+        setWaitingPhraseLanguage(null);
+      }
+
+      // Update isSpeaking store for lip-sync animation
+      isSpeaking.set(true);
+
+      // Start audio amplitude analysis for lip-sync
+      this.startAmplitudeAnalysis(audio);
+
+      // Handle segment completion
+      audio.onended = () => {
+        // Stop amplitude analysis
+        this.stopAmplitudeAnalysis();
+
+        // Clear waiting phrase state when segment ends
+        if (segment.metadata?.isWaitingPhrase) {
+          setWaitingPhraseActive(false);
+          setWaitingPhraseLanguage(null);
+        }
+
+        // Continue to next segment without resetting animation (Requirement 3.2)
+        this.playNextSegment();
+      };
+
+      // Handle errors
+      audio.onerror = (error) => {
+        console.error('[AudioQueue] Playback error:', error);
+
+        // Stop amplitude analysis
+        this.stopAmplitudeAnalysis();
+
+        // Continue to next segment on error
+        this.playNextSegment();
+      };
+
+      console.log('[AudioQueue] Segment playback started with seamless transition');
+    } catch (error) {
+      console.error('[AudioQueue] Error playing segment:', error);
+
+      // Continue to next segment on error
+      this.playNextSegment();
+    }
+  }
+
+  /**
+   * Set callback for queue completion (Requirement 8.1)
+   * @param {Function} callback - Callback function
+   */
+  setOnQueueComplete(callback) {
+    this.onQueueComplete = callback;
+  }
+
+  /**
+   * Get current queue status
+   * @returns {Object} Queue status
+   */
+  getQueueStatus() {
+    return {
+      queueLength: this.audioQueue.length,
+      isPlaying: this.isPlaying,
+      currentSegment: this.currentAudioSource
+        ? {
+            currentTime: this.currentAudioSource.currentTime,
+            duration: this.currentAudioSource.duration
+          }
+        : null
+    };
+  }
+
+  /**
+   * Clear the audio queue
+   */
+  clearQueue() {
+    // Stop amplitude analysis
+    this.stopAmplitudeAnalysis();
+
+    // Stop current playback via transition manager
+    this.transitionManager.stop();
+
+    // Stop current audio source if any
+    if (this.currentAudioSource) {
+      this.currentAudioSource.pause();
+      this.currentAudioSource.currentTime = 0;
+      this.currentAudioSource = null;
+    }
+
+    // Clear queue
+    this.audioQueue = [];
+    this.isPlaying = false;
+
+    // Update stores
+    isSpeaking.set(false);
+    audioAmplitude.set(0);
+    setWaitingPhraseActive(false);
+    setWaitingPhraseLanguage(null);
+
+    console.log('[AudioQueue] Queue cleared');
+  }
+
+  /**
+   * Start amplitude analysis for lip-sync
+   * @param {HTMLAudioElement} audio - Audio element
+   */
+  startAmplitudeAnalysis(audio) {
+    // Stop any existing analysis
+    this.stopAmplitudeAnalysis();
+
+    // Don't create analyzer - it's already created by SeamlessAudioTransitionManager
+    // Just monitor the audio element directly
+    if (!audio) {
+      return;
+    }
+
+    // Simple amplitude simulation based on audio playback
+    const analyze = () => {
+      if (!audio || audio.paused || audio.ended) {
+        audioAmplitude.set(0);
+        return;
+      }
+
+      // Simulate amplitude based on playback position
+      // This is a simple approximation - real amplitude would need Web Audio API
+      const progress = audio.currentTime / audio.duration;
+      const amplitude = Math.sin(progress * Math.PI * 10) * 0.5 + 0.5; // Oscillate between 0 and 1
+
+      audioAmplitude.set(amplitude * 0.7); // Scale down a bit
+      this.amplitudeAnalysisFrame = requestAnimationFrame(analyze);
+    };
+
+    analyze();
+  }
+
+  /**
+   * Stop amplitude analysis
+   */
+  stopAmplitudeAnalysis() {
+    if (this.amplitudeAnalysisFrame) {
+      cancelAnimationFrame(this.amplitudeAnalysisFrame);
+      this.amplitudeAnalysisFrame = null;
+    }
+
+    this.currentAnalyser = null;
+    this.currentAnalyserData = null;
+    audioAmplitude.set(0);
+  }
+
+  /**
    * Cleanup resources
    */
   cleanup() {
@@ -652,6 +903,9 @@ export class AudioBufferManager {
           // Ignore errors during cleanup
         }
       }
+
+      // Clear queue
+      this.clearQueue();
 
       // Clear all buffers and caches
       this.preloadBuffer.clear();

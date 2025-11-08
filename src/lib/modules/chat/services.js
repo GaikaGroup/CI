@@ -1,5 +1,5 @@
 import { addMessage, updateMessage, messages } from './stores';
-import { synthesizeWaitingPhrase, isVoiceModeActive } from './voiceServices.js';
+import { synthesizeWaitingPhrase, isVoiceModeActive } from './voice/index.js';
 import { selectedLanguage } from '$modules/i18n/stores';
 import { get } from 'svelte/store';
 import { setLoading, setError } from '$lib/stores/app';
@@ -85,8 +85,8 @@ export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
     }
   };
 
-  if (!shouldSplitVoice) {
-    // In text mode (or when an explicit delay is provided), synthesize the whole phrase at once
+  if (!shouldSplitVoice && isVoiceMode) {
+    // In voice mode with explicit delay, synthesize the whole phrase at once
     synthesizeWaitingPhrase(phrase).catch((e) =>
       console.warn('Failed to synthesize waiting phrase:', e)
     );
@@ -100,10 +100,13 @@ export function emitWaitingPhraseIncrementally(phrase, delayOverride = null) {
 
     const trimmedSentence = sentence.trim();
     const emit = () => addMessage('tutor', trimmedSentence, null, id, { waiting: true });
-    const speak = () =>
-      synthesizeWaitingPhrase(trimmedSentence).catch((e) =>
-        console.warn('Failed to synthesize waiting phrase:', e)
-      );
+    const speak = () => {
+      if (isVoiceMode) {
+        synthesizeWaitingPhrase(trimmedSentence).catch((e) =>
+          console.warn('Failed to synthesize waiting phrase:', e)
+        );
+      }
+    };
 
     if (index === 0) {
       emit();
@@ -299,7 +302,7 @@ export async function sendMessage(
         content,
         images: hasPDF ? [] : validImageData, // Don't send PDF to Vision API
         recognizedText, // OCR text as additional context
-        language: get(selectedLanguage),
+        language: targetLanguage, // Use detected language, not store value
         sessionContext,
         provider: visionProvider,
         ...(visionModel ? { model: visionModel } : {}),
@@ -495,4 +498,4 @@ export async function getChatHistory(sessionId = null) {
   }
 }
 
-// Voice chat functionality has been moved to voiceServices.js
+// Voice chat functionality has been moved to voice/ module
