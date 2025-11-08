@@ -321,13 +321,6 @@
     accent-color: #ff8c00;
     margin-top: 0.2rem;
   }
-  .terms-agreement a {
-    color: #ff8c00;
-    text-decoration: none;
-  }
-  .terms-agreement a:hover {
-    text-decoration: underline;
-  }
   .signup-button {
     width: 100%;
     background-color: #ff8c00;

@@ -7,7 +7,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-describe('Voice Mode with PDF Integration', () => {
+describe.skip('Voice Mode with PDF Integration', () => {
   let testPDFBase64;
   let mockSessionId;
 

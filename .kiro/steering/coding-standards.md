@@ -12,6 +12,190 @@ inclusion: always
 - API routes: `+server.js` or `+page.server.js`
 - Tests: `*.test.js` (e.g., `slugify.test.js`)
 
+## File Size Limits
+
+**КРИТИЧЕСКОЕ ПРАВИЛО: Никогда не создавайте файлы длиннее 300 строк!**
+
+### Почему это важно:
+
+1. **Читаемость**: Файлы больше 300 строк сложно понимать и поддерживать
+2. **Тестирование**: Большие файлы сложнее тестировать
+3. **Переиспользование**: Монолитные файлы препятствуют переиспользованию кода
+4. **Code Review**: Сложно ревьюить большие изменения
+5. **Рефакторинг**: Большие файлы сложнее рефакторить
+
+### Что делать если файл превышает 300 строк:
+
+#### 1. Разделить на модули
+
+```javascript
+// ❌ ПЛОХО: Один файл voiceService.js на 2000+ строк
+export class VoiceService {
+  static async processAudio() { /* 500 строк */ }
+  static async synthesizeSpeech() { /* 500 строк */ }
+  static async transcribeAudio() { /* 500 строк */ }
+  static async detectLanguage() { /* 500 строк */ }
+}
+
+// ✅ ХОРОШО: Разделить на отдельные модули
+// voiceProcessing.js (< 300 строк)
+export class VoiceProcessing {
+  static async processAudio() { /* ... */ }
+}
+
+// speechSynthesis.js (< 300 строк)
+export class SpeechSynthesis {
+  static async synthesizeSpeech() { /* ... */ }
+}
+
+// audioTranscription.js (< 300 строк)
+export class AudioTranscription {
+  static async transcribeAudio() { /* ... */ }
+}
+
+// languageDetection.js (< 300 строк)
+export class LanguageDetection {
+  static async detectLanguage() { /* ... */ }
+}
+```
+
+#### 2. Вынести утилиты
+
+```javascript
+// ❌ ПЛОХО: Утилиты внутри сервиса
+export class MyService {
+  static async mainMethod() { /* ... */ }
+  
+  static formatDate(date) { /* 50 строк */ }
+  static validateInput(input) { /* 50 строк */ }
+  static parseResponse(response) { /* 50 строк */ }
+}
+
+// ✅ ХОРОШО: Утилиты в отдельном файле
+// utils/dateUtils.js
+export function formatDate(date) { /* ... */ }
+
+// utils/validators.js
+export function validateInput(input) { /* ... */ }
+
+// utils/parsers.js
+export function parseResponse(response) { /* ... */ }
+
+// services/myService.js
+import { formatDate } from '../utils/dateUtils';
+import { validateInput } from '../utils/validators';
+import { parseResponse } from '../utils/parsers';
+
+export class MyService {
+  static async mainMethod() { /* ... */ }
+}
+```
+
+#### 3. Создать подмодули
+
+```javascript
+// ❌ ПЛОХО: Все в одном файле
+// modules/chat/chatService.js (1000+ строк)
+
+// ✅ ХОРОШО: Структура подмодулей
+modules/chat/
+├── services/
+│   ├── messageService.js      (< 300 строк)
+│   ├── voiceService.js        (< 300 строк)
+│   ├── translationService.js  (< 300 строк)
+│   └── sessionService.js      (< 300 строк)
+├── utils/
+│   ├── audioUtils.js          (< 300 строк)
+│   └── textUtils.js           (< 300 строк)
+└── index.js                   (экспорт всех сервисов)
+```
+
+#### 4. Использовать композицию
+
+```javascript
+// ❌ ПЛОХО: Один большой класс
+export class ChatService {
+  static async sendMessage() { /* ... */ }
+  static async processVoice() { /* ... */ }
+  static async translate() { /* ... */ }
+  static async saveSession() { /* ... */ }
+}
+
+// ✅ ХОРОШО: Композиция из маленьких сервисов
+// chatService.js
+import { MessageService } from './messageService';
+import { VoiceService } from './voiceService';
+import { TranslationService } from './translationService';
+import { SessionService } from './sessionService';
+
+export class ChatService {
+  static async sendMessage(data) {
+    return MessageService.send(data);
+  }
+  
+  static async processVoice(audio) {
+    return VoiceService.process(audio);
+  }
+  
+  static async translate(text, lang) {
+    return TranslationService.translate(text, lang);
+  }
+  
+  static async saveSession(session) {
+    return SessionService.save(session);
+  }
+}
+```
+
+### Рекомендуемые лимиты:
+
+- **Сервисы**: максимум 250 строк
+- **Компоненты**: максимум 200 строк
+- **Утилиты**: максимум 150 строк
+- **API routes**: максимум 100 строк
+
+### Исключения:
+
+Единственные допустимые исключения (но все равно старайтесь избегать):
+
+- Конфигурационные файлы (например, большие объекты переводов)
+- Автогенерированные файлы (Prisma Client, GraphQL types)
+- Тестовые файлы с множеством test cases (но лучше разделить на несколько файлов)
+
+### Проверка перед коммитом:
+
+```bash
+# Найти файлы длиннее 300 строк
+find src -name "*.js" -o -name "*.svelte" | while read file; do
+  lines=$(wc -l < "$file")
+  if [ $lines -gt 300 ]; then
+    echo "$file: $lines строк (превышает лимит!)"
+  fi
+done
+```
+
+### Пример рефакторинга voiceService.js:
+
+```
+# Было: voiceService.js (2000+ строк)
+src/lib/modules/chat/voiceService.js
+
+# Стало: Модульная структура
+src/lib/modules/chat/voice/
+├── services/
+│   ├── audioProcessing.js       (< 300 строк)
+│   ├── speechSynthesis.js       (< 300 строк)
+│   ├── transcription.js         (< 300 строк)
+│   └── languageDetection.js     (< 300 строк)
+├── utils/
+│   ├── audioUtils.js            (< 300 строк)
+│   ├── formatters.js            (< 300 строк)
+│   └── validators.js            (< 300 строк)
+└── index.js                     (экспорт API)
+```
+
+**Помните: Если файл больше 300 строк - это сигнал что нужен рефакторинг!**
+
 ## Code Organization
 
 ### Svelte Components

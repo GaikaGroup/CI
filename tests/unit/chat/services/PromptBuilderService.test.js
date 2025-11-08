@@ -104,7 +104,7 @@ describe('PromptBuilderService', () => {
         ocrError: null
       });
 
-      expect(result).toContain('Exercise (from photo):\nText from image');
+      expect(result).toContain('Document content (OCR extracted):\nText from image');
     });
 
     it('should include OCR error note when provided', () => {
