@@ -1,70 +1,125 @@
+import { StorageAdapterFactory } from '../../graphrag/factories/StorageAdapterFactory.js';
+
 /**
  * GraphRAG Service
  *
  * This service provides GraphRAG (Graph Retrieval-Augmented Generation) functionality
- * for processing and querying reference materials. This is a foundational implementation
- * that can be extended with actual GraphRAG libraries in the future.
+ * for processing and querying reference materials. Now uses persistent storage with pgvector
+ * for semantic search, with automatic fallback to in-memory storage.
  */
 
 /**
  * GraphRAG Service class
  */
 export class GraphRAGService {
-  constructor() {
-    this.knowledgeGraphs = new Map(); // subjectId -> knowledge graph
-    this.embeddings = new Map(); // materialId -> embeddings
+  constructor(storageAdapter = null) {
+    this.storageAdapter = storageAdapter;
+    this.initialized = false;
+  }
+
+  /**
+   * Initialize storage adapter
+   * @returns {Promise<void>}
+   */
+  async initialize() {
+    if (!this.initialized) {
+      if (!this.storageAdapter) {
+        this.storageAdapter = await StorageAdapterFactory.create();
+      }
+      this.initialized = true;
+    }
   }
 
   /**
    * Process a document and create knowledge graph nodes
    * @param {string} content - Document content
-   * @param {Object} metadata - Document metadata
+   * @param {Object} metadata - Document metadata (must include materialId and courseId)
    * @returns {Promise<Object>} Processing result
    */
   async processDocument(content, metadata) {
     try {
-      // This is a simplified implementation
-      // In a real GraphRAG system, this would:
-      // 1. Extract entities and relationships
-      // 2. Create knowledge graph nodes
-      // 3. Generate embeddings
-      // 4. Store in vector database
+      await this.initialize();
 
+      if (!metadata.materialId || !metadata.courseId) {
+        throw new Error('Missing required metadata: materialId and courseId');
+      }
+
+      // Chunk content
       const chunks = this.chunkContent(content);
-      const nodes = await this.createNodes(chunks, metadata);
-      const embeddings = await this.generateEmbeddings(chunks);
+
+      // Create node objects
+      const nodes = chunks.map((chunk, index) => ({
+        courseId: metadata.courseId,
+        materialId: metadata.materialId,
+        content: chunk,
+        chunkIndex: index,
+        metadata: {
+          fileName: metadata.fileName,
+          fileType: metadata.fileType,
+          processedAt: new Date()
+        }
+      }));
+
+      // Store nodes (embeddings generated automatically by DatabaseStorageAdapter)
+      const result = await this.storageAdapter.storeBatchNodes(nodes);
+
+      if (!result.success) {
+        throw new Error(`Failed to store nodes: ${result.error}`);
+      }
+
+      // Create relationships between sequential chunks
+      const relationships = [];
+      for (let i = 0; i < result.nodes.length - 1; i++) {
+        const relResult = await this.storageAdapter.storeRelationship({
+          sourceNodeId: result.nodes[i].id,
+          targetNodeId: result.nodes[i + 1].id,
+          relationshipType: 'follows',
+          weight: 1.0
+        });
+
+        if (relResult.success) {
+          relationships.push(relResult.relationship);
+        }
+      }
 
       return {
         success: true,
-        nodes,
-        embeddings,
+        nodes: result.nodes,
+        relationships,
         metadata: {
           processedAt: new Date(),
           chunkCount: chunks.length,
-          nodeCount: nodes.length
+          nodeCount: result.nodes.length,
+          relationshipCount: relationships.length
         }
       };
     } catch (error) {
-      console.error('Error processing document:', error);
+      console.error('[GraphRAGService] Error processing document:', error);
       return {
         success: false,
         error: error.message,
         nodes: [],
-        embeddings: []
+        relationships: []
       };
     }
   }
 
   /**
-   * Create knowledge graph for a subject's materials
+   * Create knowledge graph for a course's materials
    * @param {Object[]} materials - Array of materials
+   * @param {string} courseId - Course ID
    * @returns {Promise<Object>} Knowledge graph creation result
    */
-  async createKnowledgeGraph(materials) {
+  async createKnowledgeGraph(materials, courseId) {
     try {
-      const subjectId = materials[0]?.subjectId;
-      if (!subjectId) {
-        throw new Error('No subject ID found in materials');
+      await this.initialize();
+
+      if (!courseId) {
+        throw new Error('Course ID is required');
+      }
+
+      if (!Array.isArray(materials) || materials.length === 0) {
+        throw new Error('No materials provided');
       }
 
       const allNodes = [];
@@ -75,95 +130,70 @@ export class GraphRAGService {
         if (material.status === 'ready' && material.content) {
           const processingResult = await this.processDocument(material.content, {
             materialId: material.id,
+            courseId: courseId,
             fileName: material.fileName,
             fileType: material.fileType
           });
 
           if (processingResult.success) {
             allNodes.push(...processingResult.nodes);
-
-            // Create relationships between nodes from the same material
-            const relationships = this.createRelationships(processingResult.nodes);
-            allRelationships.push(...relationships);
+            allRelationships.push(...processingResult.relationships);
           }
         }
       }
 
-      // Create cross-material relationships
-      const crossRelationships = this.createCrossRelationships(allNodes);
-      allRelationships.push(...crossRelationships);
-
-      // Store knowledge graph
-      const knowledgeGraph = {
-        subjectId,
-        nodes: allNodes,
-        relationships: allRelationships,
-        createdAt: new Date(),
-        materialCount: materials.length
-      };
-
-      this.knowledgeGraphs.set(subjectId, knowledgeGraph);
-
       return {
         success: true,
-        knowledgeGraph,
+        nodeCount: allNodes.length,
+        relationshipCount: allRelationships.length,
+        materialCount: materials.length,
         message: 'Knowledge graph created successfully'
       };
     } catch (error) {
-      console.error('Error creating knowledge graph:', error);
+      console.error('[GraphRAGService] Error creating knowledge graph:', error);
       return {
         success: false,
-        error: error.message,
-        knowledgeGraph: null
+        error: error.message
       };
     }
   }
 
   /**
-   * Query knowledge base for relevant information
+   * Query knowledge base for relevant information using semantic search
    * @param {string} query - Search query
-   * @param {string} subjectId - Subject ID
-   * @param {string[]} agentIds - Array of agent IDs (for filtering materials)
+   * @param {string} courseId - Course ID
+   * @param {Object} options - Additional search options
    * @returns {Promise<Object>} Query result
    */
-  async queryKnowledge(query, subjectId) {
+  async queryKnowledge(query, courseId, options = {}) {
     try {
-      const knowledgeGraph = this.knowledgeGraphs.get(subjectId);
-      if (!knowledgeGraph) {
-        return {
-          success: true,
-          results: [],
-          message: 'No knowledge graph found for this subject'
-        };
+      await this.initialize();
+
+      if (!query || typeof query !== 'string') {
+        throw new Error('Invalid query: must be non-empty string');
       }
 
-      // Simple keyword-based search (would be vector similarity in real implementation)
-      const queryTerms = query.toLowerCase().split(' ');
-      const relevantNodes = knowledgeGraph.nodes.filter((node) => {
-        const nodeContent = node.content.toLowerCase();
-        return queryTerms.some((term) => nodeContent.includes(term));
+      // Use semantic search (or keyword fallback for in-memory adapter)
+      const searchResult = await this.storageAdapter.semanticSearch(query, {
+        courseId,
+        ...options
       });
 
-      // Score and rank results
-      const scoredResults = relevantNodes
-        .map((node) => ({
-          ...node,
-          score: this.calculateRelevanceScore(node, queryTerms)
-        }))
-        .sort((a, b) => b.score - a.score);
-
-      // Limit results
-      const topResults = scoredResults.slice(0, 10);
+      if (!searchResult.success) {
+        throw new Error(`Search failed: ${searchResult.error}`);
+      }
 
       return {
         success: true,
-        results: topResults,
-        totalFound: relevantNodes.length,
+        results: searchResult.results,
+        count: searchResult.count,
+        cached: searchResult.cached,
+        latency: searchResult.latency,
         query,
-        message: `Found ${topResults.length} relevant results`
+        message: `Found ${searchResult.count} relevant results`
       };
     } catch (error) {
-      console.error('Error querying knowledge:', error);
+      console.error('[GraphRAGService] Error querying knowledge:', error);
       return {
         success: false,
         error: error.message,
@@ -175,59 +205,42 @@ export class GraphRAGService {
   /**
    * Update knowledge base when materials change
    * @param {string} materialId - Material ID
+   * @param {string} courseId - Course ID
    * @param {string} content - Updated content
+   * @param {Object} metadata - Additional metadata
    * @returns {Promise<Object>} Update result
    */
-  async updateKnowledgeBase(materialId, content) {
+  async updateKnowledgeBase(materialId, courseId, content, metadata = {}) {
     try {
-      // Find which subject this material belongs to
-      let targetSubjectId = null;
-      for (const [subjectId, graph] of this.knowledgeGraphs.entries()) {
-        if (graph.nodes.some((node) => node.metadata.materialId === materialId)) {
-          targetSubjectId = subjectId;
-          break;
-        }
-      }
+      await this.initialize();
 
-      if (!targetSubjectId) {
-        return {
-          success: false,
-          error: 'Material not found in any knowledge graph'
-        };
-      }
+      // Delete old nodes for this material
+      const deleteResult = await this.storageAdapter.deleteMaterialGraph(materialId);
 
-      // Remove old nodes for this material
-      const graph = this.knowledgeGraphs.get(targetSubjectId);
-      graph.nodes = graph.nodes.filter((node) => node.metadata.materialId !== materialId);
-      graph.relationships = graph.relationships.filter(
-        (rel) => rel.sourceId !== materialId && rel.targetId !== materialId
-      );
+      if (!deleteResult.success) {
+        console.warn('[GraphRAGService] Failed to delete old nodes:', deleteResult.error);
+      }
 
       // Process updated content
       const processingResult = await this.processDocument(content, {
         materialId,
+        courseId,
+        ...metadata,
         updatedAt: new Date()
       });
 
-      if (processingResult.success) {
-        // Add new nodes
-        graph.nodes.push(...processingResult.nodes);
-
-        // Recreate relationships
-        const newRelationships = this.createRelationships(processingResult.nodes);
-        graph.relationships.push(...newRelationships);
-
-        // Update cross-relationships
-        const crossRelationships = this.createCrossRelationships(graph.nodes);
-        graph.relationships.push(...crossRelationships);
+      if (!processingResult.success) {
+        throw new Error(`Failed to process updated content: ${processingResult.error}`);
       }
 
       return {
         success: true,
+        nodeCount: processingResult.nodes.length,
+        relationshipCount: processingResult.relationships.length,
         message: 'Knowledge base updated successfully'
       };
     } catch (error) {
-      console.error('Error updating knowledge base:', error);
+      console.error('[GraphRAGService] Error updating knowledge base:', error);
       return {
         success: false,
         error: error.message
@@ -242,37 +255,24 @@ export class GraphRAGService {
    */
   async deleteFromKnowledgeBase(materialId) {
     try {
-      let updated = false;
+      await this.initialize();
 
-      // Remove from all knowledge graphs
-      for (const [, graph] of this.knowledgeGraphs.entries()) {
-        const originalNodeCount = graph.nodes.length;
+      const result = await this.storageAdapter.deleteMaterialGraph(materialId);
 
-        // Remove nodes for this material
-        graph.nodes = graph.nodes.filter((node) => node.metadata.materialId !== materialId);
-
-        // Remove relationships involving this material
-        graph.relationships = graph.relationships.filter(
-          (rel) => rel.sourceId !== materialId && rel.targetId !== materialId
-        );
-
-        if (graph.nodes.length < originalNodeCount) {
-          updated = true;
-        }
+      if (!result.success) {
+        throw new Error(`Failed to delete material: ${result.error}`);
       }
-
-      // Remove embeddings
-      this.embeddings.delete(materialId);
 
       return {
         success: true,
-        updated,
-        message: updated
-          ? 'Material removed from knowledge base'
-          : 'Material not found in knowledge base'
+        deletedCount: result.deletedCount,
+        message:
+          result.deletedCount > 0
+            ? `Removed ${result.deletedCount} nodes from knowledge base`
+            : 'Material not found in knowledge base'
       };
     } catch (error) {
-      console.error('Error deleting from knowledge base:', error);
+      console.error('[GraphRAGService] Error deleting from knowledge base:', error);
       return {
         success: false,
         error: error.message
@@ -281,12 +281,33 @@ export class GraphRAGService {
   }
 
   /**
-   * Get knowledge graph for a subject
-   * @param {string} subjectId - Subject ID
-   * @returns {Object|null} Knowledge graph or null
+   * Get knowledge graph for a material
+   * @param {string} materialId - Material ID
+   * @returns {Promise<Object>} Knowledge graph data
    */
-  getKnowledgeGraph(subjectId) {
-    return this.knowledgeGraphs.get(subjectId) || null;
+  async getKnowledgeGraph(materialId) {
+    try {
+      await this.initialize();
+
+      const result = await this.storageAdapter.getNodesByMaterial(materialId);
+
+      if (!result.success) {
+        throw new Error(`Failed to get knowledge graph: ${result.error}`);
+      }
+
+      return {
+        success: true,
+        nodes: result.nodes,
+        count: result.count
+      };
+    } catch (error) {
+      console.error('[GraphRAGService] Error getting knowledge graph:', error);
+      return {
+        success: false,
+        error: error.message,
+        nodes: []
+      };
+    }
   }
 
   /**
@@ -317,149 +338,5 @@ export class GraphRAGService {
     }
 
     return chunks;
-  }
-
-  /**
-   * Create nodes from content chunks
-   * @param {string[]} chunks - Content chunks
-   * @param {Object} metadata - Document metadata
-   * @returns {Promise<Object[]>} Array of nodes
-   */
-  async createNodes(chunks, metadata) {
-    return chunks.map((chunk, index) => ({
-      id: `${metadata.materialId}_node_${index}`,
-      type: 'text_chunk',
-      content: chunk,
-      metadata: {
-        ...metadata,
-        chunkIndex: index,
-        createdAt: new Date()
-      }
-    }));
-  }
-
-  /**
-   * Generate embeddings for content chunks (placeholder)
-   * @param {string[]} chunks - Content chunks
-   * @returns {Promise<number[][]>} Array of embeddings
-   */
-  async generateEmbeddings(chunks) {
-    // Placeholder implementation
-    // In a real system, this would use a proper embedding model
-    return chunks.map(() =>
-      Array(384)
-        .fill(0)
-        .map(() => Math.random())
-    );
-  }
-
-  /**
-   * Create relationships between nodes
-   * @param {Object[]} nodes - Array of nodes
-   * @returns {Object[]} Array of relationships
-   */
-  createRelationships(nodes) {
-    const relationships = [];
-
-    // Create sequential relationships between chunks from the same document
-    for (let i = 0; i < nodes.length - 1; i++) {
-      relationships.push({
-        id: `rel_${nodes[i].id}_${nodes[i + 1].id}`,
-        sourceId: nodes[i].id,
-        targetId: nodes[i + 1].id,
-        type: 'follows',
-        weight: 1.0
-      });
-    }
-
-    return relationships;
-  }
-
-  /**
-   * Create cross-material relationships
-   * @param {Object[]} allNodes - All nodes in the knowledge graph
-   * @returns {Object[]} Array of cross-relationships
-   */
-  createCrossRelationships(allNodes) {
-    // Simplified implementation - would use semantic similarity in real system
-    const relationships = [];
-
-    // Group nodes by material
-    const nodesByMaterial = new Map();
-    allNodes.forEach((node) => {
-      const materialId = node.metadata.materialId;
-      if (!nodesByMaterial.has(materialId)) {
-        nodesByMaterial.set(materialId, []);
-      }
-      nodesByMaterial.get(materialId).push(node);
-    });
-
-    // Create relationships between materials with similar content
-    const materials = Array.from(nodesByMaterial.keys());
-    for (let i = 0; i < materials.length; i++) {
-      for (let j = i + 1; j < materials.length; j++) {
-        const similarity = this.calculateMaterialSimilarity(
-          nodesByMaterial.get(materials[i]),
-          nodesByMaterial.get(materials[j])
-        );
-
-        if (similarity > 0.3) {
-          // Threshold for creating relationship
-          relationships.push({
-            id: `cross_rel_${materials[i]}_${materials[j]}`,
-            sourceId: materials[i],
-            targetId: materials[j],
-            type: 'related_to',
-            weight: similarity
-          });
-        }
-      }
-    }
-
-    return relationships;
-  }
-
-  /**
-   * Calculate relevance score for a node given query terms
-   * @param {Object} node - Node to score
-   * @param {string[]} queryTerms - Query terms
-   * @returns {number} Relevance score
-   */
-  calculateRelevanceScore(node, queryTerms) {
-    const content = node.content.toLowerCase();
-    let score = 0;
-
-    queryTerms.forEach((term) => {
-      const termCount = (content.match(new RegExp(term, 'g')) || []).length;
-      score += termCount * (term.length / content.length);
-    });
-
-    return score;
-  }
-
-  /**
-   * Calculate similarity between materials
-   * @param {Object[]} nodes1 - Nodes from first material
-   * @param {Object[]} nodes2 - Nodes from second material
-   * @returns {number} Similarity score (0-1)
-   */
-  calculateMaterialSimilarity(nodes1, nodes2) {
-    // Simplified similarity calculation
-    const content1 = nodes1
-      .map((n) => n.content)
-      .join(' ')
-      .toLowerCase();
-    const content2 = nodes2
-      .map((n) => n.content)
-      .join(' ')
-      .toLowerCase();
-
-    const words1 = new Set(content1.split(/\s+/));
-    const words2 = new Set(content2.split(/\s+/));
-
-    const intersection = new Set([...words1].filter((x) => words2.has(x)));
-    const union = new Set([...words1, ...words2]);
-
-    return intersection.size / union.size;
   }
 }

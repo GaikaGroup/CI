@@ -112,10 +112,11 @@ model Course {
   updatedAt          DateTime @updatedAt @map("updated_at")
   
   // Relations
-  creator            User     @relation("CourseCreator", fields: [creatorId], references: [id])
+  creator            User                   @relation("CourseCreator", fields: [creatorId], references: [id])
   enrollments        Enrollment[]
   sessions           Session[]
   reports            CourseReport[]
+  knowledgeGraphNodes KnowledgeGraphNode[]
   
   @@index([creatorId])
   @@index([status])
@@ -258,4 +259,48 @@ model OpinionFeedback {
   @@index([userId], name: "idx_feedback_user")
   @@index([helpful], name: "idx_feedback_helpful")
   @@map("opinion_feedback")
+}
+
+model KnowledgeGraphNode {
+  id         String   @id @default(cuid())
+  materialId String   @map("material_id") @db.VarChar(255)
+  courseId   String   @map("course_id")
+  content    String   @db.Text
+  chunkIndex Int      @map("chunk_index")
+  metadata   Json?
+  embedding  Unsupported("vector(384)")?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  course                Course                       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  sourceRelationships   KnowledgeGraphRelationship[] @relation("SourceNode")
+  targetRelationships   KnowledgeGraphRelationship[] @relation("TargetNode")
+  
+  // Indexes
+  @@index([materialId], name: "idx_kg_nodes_material")
+  @@index([courseId], name: "idx_kg_nodes_course")
+  @@index([createdAt], name: "idx_kg_nodes_created")
+  @@map("knowledge_graph_nodes")
+}
+
+model KnowledgeGraphRelationship {
+  id               String   @id @default(cuid())
+  sourceNodeId     String   @map("source_node_id")
+  targetNodeId     String   @map("target_node_id")
+  relationshipType String   @map("relationship_type") @db.VarChar(100)
+  weight           Float    @default(1.0)
+  metadata         Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  sourceNode KnowledgeGraphNode @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode KnowledgeGraphNode @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+  
+  // Indexes
+  @@index([sourceNodeId], name: "idx_kg_rel_source")
+  @@index([targetNodeId], name: "idx_kg_rel_target")
+  @@index([relationshipType], name: "idx_kg_rel_type")
+  @@unique([sourceNodeId, targetNodeId, relationshipType], name: "idx_kg_rel_unique")
+  @@map("knowledge_graph_relationships")
 }
