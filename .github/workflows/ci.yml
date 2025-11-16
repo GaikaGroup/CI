@@ -70,6 +70,12 @@ jobs:
       - name: Generate Prisma Client
         run: npm run db:generate
 
+      - name: Enable pgvector extension
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "CREATE EXTENSION IF NOT EXISTS vector;"
+        env:
+          PGPASSWORD: postgres
+
       - name: Run database migrations
         run: npm run db:migrate
         env:
