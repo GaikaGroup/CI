@@ -1,5 +1,6 @@
 import { prisma } from '$lib/database/client';
 import { graphragConfig } from '$lib/config/graphrag.js';
+import { insertNodeWithVector, vectorSearch } from '../utils/vectorHelpers.js';
 
 /**
  * Database Storage Adapter
@@ -35,16 +36,12 @@ export class DatabaseStorageAdapter {
         throw new Error(`Embedding generation failed: ${embeddingResult.error}`);
       }
 
-      // Store in database
-      const storedNode = await prisma.knowledgeGraphNode.create({
-        data: {
-          courseId: node.courseId,
-          materialId: node.materialId,
-          content: node.content,
-          chunkIndex: node.chunkIndex || 0,
-          metadata: node.metadata || {},
-          embedding: embeddingResult.embedding
-        }
+      // Store in database using helper function
+      const id = await insertNodeWithVector(prisma, node, embeddingResult.embedding);
+
+      // Fetch the stored node
+      const storedNode = await prisma.knowledgeGraphNode.findUnique({
+        where: { id }
       });
 
       return {
@@ -90,21 +87,25 @@ export class DatabaseStorageAdapter {
         const startIdx = i * batchSize;
 
         const storedNodes = await prisma.$transaction(async (tx) => {
-          const promises = batch.map((node, idx) => {
-            const embeddingIdx = startIdx + idx;
-            return tx.knowledgeGraphNode.create({
-              data: {
-                courseId: node.courseId,
-                materialId: node.materialId,
-                content: node.content,
-                chunkIndex: node.chunkIndex || idx,
-                metadata: node.metadata || {},
-                embedding: embeddingResult.embeddings[embeddingIdx]
-              }
-            });
-          });
+          const insertedIds = [];
 
-          return Promise.all(promises);
+          for (let idx = 0; idx < batch.length; idx++) {
+            const node = batch[idx];
+            const embeddingIdx = startIdx + idx;
+            const id = await insertNodeWithVector(
+              tx,
+              node,
+              embeddingResult.embeddings[embeddingIdx]
+            );
+            insertedIds.push(id);
+          }
+
+          // Fetch all inserted nodes
+          return tx.knowledgeGraphNode.findMany({
+            where: {
+              id: { in: insertedIds }
+            }
+          });
         });
 
         allStoredNodes.push(...storedNodes);

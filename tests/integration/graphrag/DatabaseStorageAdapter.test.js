@@ -7,16 +7,29 @@ describe('DatabaseStorageAdapter Integration Tests', () => {
   let adapter;
   let testCourseId;
   let testMaterialId;
+  let testUserId;
 
   beforeAll(async () => {
+    // Create test user first
+    const user = await prisma.user.create({
+      data: {
+        email: `test-graphrag-${Date.now()}@example.com`,
+        firstName: 'Test',
+        lastName: 'GraphRAG',
+        password: 'test-password-hash',
+        type: 'admin'
+      }
+    });
+    testUserId = user.id;
+
     // Create test course
     const course = await prisma.course.create({
       data: {
         name: 'Test Course for GraphRAG',
-        slug: 'test-graphrag-course',
+        slug: `test-graphrag-course-${Date.now()}`,
         language: 'en',
         level: 'beginner',
-        creatorId: 'test-user-id',
+        creatorId: testUserId,
         creatorRole: 'admin'
       }
     });
@@ -29,9 +42,9 @@ describe('DatabaseStorageAdapter Integration Tests', () => {
       cacheEnabled: false
     });
 
-    // Mock the embedding generation
+    // Mock the embedding generation (384 dimensions for pgvector)
     embeddingService.callOpenAIAPI = async () => {
-      return Array(1536)
+      return Array(384)
         .fill(0)
         .map(() => Math.random());
     };
@@ -41,12 +54,19 @@ describe('DatabaseStorageAdapter Integration Tests', () => {
 
   afterAll(async () => {
     // Cleanup test data
-    await prisma.knowledgeGraphNode.deleteMany({
-      where: { courseId: testCourseId }
-    });
-    await prisma.course.delete({
-      where: { id: testCourseId }
-    });
+    if (testCourseId) {
+      await prisma.knowledgeGraphNode.deleteMany({
+        where: { courseId: testCourseId }
+      });
+      await prisma.course.delete({
+        where: { id: testCourseId }
+      });
+    }
+    if (testUserId) {
+      await prisma.user.delete({
+        where: { id: testUserId }
+      });
+    }
     await prisma.$disconnect();
   });
 
@@ -73,7 +93,7 @@ describe('DatabaseStorageAdapter Integration Tests', () => {
       expect(result.node).toBeDefined();
       expect(result.node.id).toBeDefined();
       expect(result.node.content).toBe(node.content);
-      expect(result.node.embedding).toBeDefined();
+      // Note: embedding is Unsupported type in Prisma, so it won't be returned
     });
 
     it('should fail with missing required fields', async () => {

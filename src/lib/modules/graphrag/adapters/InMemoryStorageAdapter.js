@@ -3,16 +3,17 @@ import { graphragConfig } from '$lib/config/graphrag.js';
 /**
  * In-Memory Storage Adapter
  *
- * Fallback storage adapter that uses Maps for storage and keyword-based search.
- * Used when pgvector is not available.
+ * Storage adapter that uses Maps for storage with embedding-based semantic search.
+ * Supports both embedding-based and keyword-based search.
  */
 export class InMemoryStorageAdapter {
-  constructor() {
+  constructor(embeddingService = null) {
     this.nodes = new Map(); // nodeId -> node
     this.relationships = new Map(); // relationshipId -> relationship
     this.materialIndex = new Map(); // materialId -> Set of nodeIds
     this.courseIndex = new Map(); // courseId -> Set of nodeIds
     this.nodeIdCounter = 0;
+    this.embeddingService = embeddingService;
   }
 
   /**
@@ -28,6 +29,15 @@ export class InMemoryStorageAdapter {
 
       const nodeId = node.id || `node_${++this.nodeIdCounter}`;
 
+      // Generate embedding if service is available
+      let embedding = node.embedding;
+      if (!embedding && this.embeddingService) {
+        const embeddingResult = await this.embeddingService.generateEmbedding(node.content);
+        if (embeddingResult.success) {
+          embedding = embeddingResult.embedding;
+        }
+      }
+
       const storedNode = {
         id: nodeId,
         courseId: node.courseId,
@@ -35,6 +45,7 @@ export class InMemoryStorageAdapter {
         content: node.content,
         chunkIndex: node.chunkIndex || 0,
         metadata: node.metadata || {},
+        embedding: embedding || null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -76,10 +87,27 @@ export class InMemoryStorageAdapter {
         throw new Error('Invalid nodes: must be non-empty array');
       }
 
+      // Generate embeddings in batch if service is available
+      let embeddings = [];
+      if (this.embeddingService) {
+        const texts = nodes.map((n) => n.content);
+        const embeddingResult = await this.embeddingService.generateBatchEmbeddings(texts);
+        if (embeddingResult.success) {
+          embeddings = embeddingResult.embeddings;
+        }
+      }
+
       const storedNodes = [];
 
-      for (const node of nodes) {
-        const result = await this.storeNode(node);
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const embedding = embeddings[i] || node.embedding || null;
+
+        const result = await this.storeNode({
+          ...node,
+          embedding
+        });
+
         if (result.success) {
           storedNodes.push(result.node);
         }
@@ -143,7 +171,7 @@ export class InMemoryStorageAdapter {
   }
 
   /**
-   * Keyword-based search (fallback for semantic search)
+   * Semantic search using embeddings or keyword-based fallback
    * @param {string} query - Search query
    * @param {Object} options - Search options
    * @returns {Promise<Object>} Search results
@@ -154,22 +182,6 @@ export class InMemoryStorageAdapter {
 
       if (!query || typeof query !== 'string') {
         throw new Error('Invalid query: must be non-empty string');
-      }
-
-      // Extract query terms
-      const queryTerms = query
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((t) => t.length > 2);
-
-      if (queryTerms.length === 0) {
-        return {
-          success: true,
-          results: [],
-          count: 0,
-          cached: false,
-          latency: Date.now() - startTime
-        };
       }
 
       // Filter nodes by materialId/courseId if provided
@@ -185,14 +197,54 @@ export class InMemoryStorageAdapter {
         nodesToSearch = nodesToSearch.filter((n) => nodeIds.has(n.id));
       }
 
-      // Score each node
-      const scoredResults = nodesToSearch
-        .map((node) => ({
-          ...node,
-          similarity: this.calculateKeywordScore(node.content, queryTerms)
-        }))
-        .filter((node) => node.similarity > 0)
-        .sort((a, b) => b.similarity - a.similarity);
+      let scoredResults;
+
+      // Try embedding-based search if service is available
+      if (this.embeddingService) {
+        const embeddingResult = await this.embeddingService.generateEmbedding(query);
+
+        if (embeddingResult.success) {
+          // Calculate cosine similarity with each node
+          scoredResults = nodesToSearch
+            .filter((node) => node.embedding)
+            .map((node) => ({
+              ...node,
+              similarity: this.cosineSimilarity(embeddingResult.embedding, node.embedding)
+            }))
+            .filter(
+              (node) =>
+                node.similarity >=
+                (options.similarityThreshold || graphragConfig.search.similarityThreshold)
+            )
+            .sort((a, b) => b.similarity - a.similarity);
+        }
+      }
+
+      // Fallback to keyword-based search
+      if (!scoredResults || scoredResults.length === 0) {
+        const queryTerms = query
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((t) => t.length > 2);
+
+        if (queryTerms.length === 0) {
+          return {
+            success: true,
+            results: [],
+            count: 0,
+            cached: false,
+            latency: Date.now() - startTime
+          };
+        }
+
+        scoredResults = nodesToSearch
+          .map((node) => ({
+            ...node,
+            similarity: this.calculateKeywordScore(node.content, queryTerms)
+          }))
+          .filter((node) => node.similarity > 0)
+          .sort((a, b) => b.similarity - a.similarity);
+      }
 
       // Apply limit
       const limit = options.limit || graphragConfig.search.defaultLimit;
@@ -206,13 +258,41 @@ export class InMemoryStorageAdapter {
         latency: Date.now() - startTime
       };
     } catch (error) {
-      console.error('[InMemoryStorageAdapter] Error in keyword search:', error);
+      console.error('[InMemoryStorageAdapter] Error in semantic search:', error);
       return {
         success: false,
         error: error.message,
         results: []
       };
     }
+  }
+
+  /**
+   * Calculate cosine similarity between two vectors
+   * @param {number[]} vecA - First vector
+   * @param {number[]} vecB - Second vector
+   * @returns {number} Cosine similarity (0-1)
+   */
+  cosineSimilarity(vecA, vecB) {
+    if (!vecA || !vecB || vecA.length !== vecB.length) {
+      return 0;
+    }
+
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+
+    for (let i = 0; i < vecA.length; i++) {
+      dotProduct += vecA[i] * vecB[i];
+      normA += vecA[i] * vecA[i];
+      normB += vecB[i] * vecB[i];
+    }
+
+    if (normA === 0 || normB === 0) {
+      return 0;
+    }
+
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
   /**
