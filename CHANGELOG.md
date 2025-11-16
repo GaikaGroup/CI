@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/GaikaGroup/CI/compare/v1.0.0...v1.1.0) (2025-11-16)
+
+
+### Features
+
+* **graphrag:** implement full pgvector integration and InMemoryStorageAdapter ([729d9de](https://github.com/GaikaGroup/CI/commit/729d9dec5442e6b73d6b4924dc5c47bc4f5f0d37))
+* **graphrag:** integrate pgvector with GraphRAG system ([f70837d](https://github.com/GaikaGroup/CI/commit/f70837dcae3da12124b2168bfc82ac6af50dc6b4))
+
+
+### Bug Fixes
+
+* **migrations:** use vector(384) from the start in initial migration ([30f020a](https://github.com/GaikaGroup/CI/commit/30f020a093a234a2f4dee0f42295171867f54818))
+* **tests:** make semanticSearch test more resilient to timing issues ([651f579](https://github.com/GaikaGroup/CI/commit/651f5799fd33eda5efe6c3e82a926f92a7f05726))
+
 ## 1.0.0 (2025-11-08)
 
 
